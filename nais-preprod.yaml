@@ -16,4 +16,4 @@ spec:
     initialDelay: 20
   readiness:
     path: /ditt-nav-arbeidsgiver-api/internal/isReady
-    initialDelay: 20
+    initialDelay: 20s
