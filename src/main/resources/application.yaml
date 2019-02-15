@@ -1,0 +1,2 @@
+http.proxy: ${HTTP_PROXY:}
+server.servlet.context-path: /ditt-nav-arbeidsgiver-api
