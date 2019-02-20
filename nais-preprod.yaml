@@ -6,7 +6,7 @@ metadata:
   labels:
     team: teamtag
 spec:
-  image: navikt/ditt-nav-arbeidsgiver-api:latest
+  image: navikt/ditt-nav-arbeidsgiver-api:8
   team: teamtag
   port: 8080
   ingresses:
@@ -16,4 +16,4 @@ spec:
     initialDelay: 20
   readiness:
     path: /ditt-nav-arbeidsgiver-api/internal/isReady
-    initialDelay: 20s
+    initialDelay: 20
