@@ -1,4 +1,4 @@
-package no.nav.tag.dittNavArbeidsgiver.controller;
+package no.nav.tag.dittNavArbeidsgiver.models;
 
 public class Role {
 
