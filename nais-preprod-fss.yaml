@@ -10,7 +10,7 @@ spec:
   team: teamtag
   port: 8080
   ingresses:
-    - https://arbeidsgiver.nais.preprod.local/tiltaksgjennomforing
+    - https://arbeidsgiver.nais.preprod.local/ditt-nav-arbeidsgiver-api
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/isAlive
     initialDelay: 20
