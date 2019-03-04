@@ -14,19 +14,8 @@ public class OrganizationController {
 
     @RequestMapping(value="/api/organisasjoner", method = RequestMethod.GET)
     private ResponseEntity<List<Organization>> getOrganizations(){
-       List <Organization> result = new ArrayList<>();
-       Organization a =  new Organization();
-       a.setNavn("BIRI OG TORPO REGNSKAP");
-       a.setOrgNo("910437127");
-       a.setStatus("Active");
-       a.setType("Enterprise");
-        Organization b =  new Organization();
-        b.setNavn( "EIDSNES OG AUSTRE ÅMØY");
-        b.setOrgNo("910521551");
-        b.setStatus("Active");
-        b.setType("Business");
-       result.add(a);
-       result.add(b);
+        AltinnGW gw = new AltinnGW();
+        List <Organization> result = gw.getOrganizations("1");
         return ResponseEntity.ok(result);
 
     }

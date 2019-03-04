@@ -1,54 +1,59 @@
 package no.nav.tag.dittNavArbeidsgiver.models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.io.Serializable;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Organization {
-    private String navn;
-    private String type;
-    private String orgNo;
-    private String overordnetOrgNo;
-    private String status;
+    private String Name;
+    private String Type;
+    private String OrganizationNumber ;
+    private String OrganizationForm;
+    private String Status;
 
     public Organization() {
     }
-    public String getNavn() {
-        return navn;
+
+    public String getName() {
+        return Name;
     }
 
-    public void setNavn(String navn) {
-        this.navn = navn;
+    public void setName(String name) {
+        Name = name;
     }
 
     public String getType() {
-        return type;
+        return Type;
     }
 
     public void setType(String type) {
-        this.type = type;
+        Type = type;
     }
 
-    public String getOrgNo() {
-        return orgNo;
+    public String getOrganizationNumber() {
+        return OrganizationNumber;
     }
 
-    public void setOrgNo(String orgNo) {
-        this.orgNo = orgNo;
+    public void setOrganizationNumber(String organizationNumber) {
+        OrganizationNumber = organizationNumber;
     }
 
-    public String getOverordnetOrgNo() {
-        return overordnetOrgNo;
+    public String getOrganizationForm() {
+        return OrganizationForm;
     }
 
-    public void setOverordnetOrgNo(String overordnetOrgNo) {
-        this.overordnetOrgNo = overordnetOrgNo;
+    public void setOrganizationForm(String organizationForm) {
+        OrganizationForm = organizationForm;
     }
 
     public String getStatus() {
-        return status;
+        return Status;
     }
 
     public void setStatus(String status) {
-        this.status = status;
+        Status = status;
     }
+
 }

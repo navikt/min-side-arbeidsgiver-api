@@ -10,7 +10,7 @@ spec:
   team: teamtag
   port: 8080
   ingresses:
-    - https://arbeidsgiver.nais.preprod.local/ditt-nav-arbeidsgiver-api
+    - https://arbeidsgiver.nais.adeo.no/ditt-nav-arbeidsgiver-api
   vault:
     enabled: true
   liveness:
