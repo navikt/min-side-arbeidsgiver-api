@@ -20,7 +20,7 @@ public class AltinnGW {
         System.out.println("AltinnGW get orgs");
         List<Organization> result = new ArrayList<>();
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity <List<Organization>> response = restTemplate.exchange("https://api-gw-qi.adeo.no/ekstern/api/serviceowner/reportees/?subject=140445000761&ForceEIAuthentication",
+        ResponseEntity <List<Organization>> response = restTemplate.exchange("https://api-gw-q1.adeo.no/ekstern/api/serviceowner/reportees/?subject=140445000761&ForceEIAuthentication",
                 HttpMethod.GET, null, new ParameterizedTypeReference<List<Organization>>() {
                 });
         result = response.getBody();
