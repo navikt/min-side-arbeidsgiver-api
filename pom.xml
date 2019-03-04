@@ -32,6 +32,7 @@
             <groupId>org.mock-server</groupId>
             <artifactId>mockserver-netty</artifactId>
             <version>5.5.1</version>
+        </dependency>
         <!-- Swagger -->
         <dependency>
             <groupId>io.springfox</groupId>
