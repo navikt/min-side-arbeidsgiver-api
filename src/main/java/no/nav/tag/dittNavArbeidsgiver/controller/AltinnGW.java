@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import no.nav.tag.dittNavArbeidsgiver.models.Organization;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -18,10 +20,14 @@ public class AltinnGW {
 
     public List<Organization> getOrganizations(String pnr){
         System.out.println("AltinnGW get orgs");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X_NAV_APIKEY", APIGwHeader);
+        headers.set("APIKEY", altinnHeader);
+        HttpEntity<String> entity = new HttpEntity<>(null, headers);
         List<Organization> result = new ArrayList<>();
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity <List<Organization>> response = restTemplate.exchange("https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/reportees/?subject=14044500761&ForceEIAuthentication",
-                HttpMethod.GET, null, new ParameterizedTypeReference<List<Organization>>() {
+                HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organization>>() {
                 });
         result = response.getBody();
 
