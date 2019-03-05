@@ -37,6 +37,7 @@ public class AltinnGW {
         response = restTemplate.exchange("https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/reportees/?subject=14044500761&ForceEIAuthentication",
                 HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organization>>() {
                 });
+        System.out.println(response.getHeaders());
         result = response.getBody();
 
         /*Organization a =  new Organization();
