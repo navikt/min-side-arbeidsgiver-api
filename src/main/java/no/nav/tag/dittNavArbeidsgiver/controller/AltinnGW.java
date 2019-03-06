@@ -34,7 +34,7 @@ public class AltinnGW {
         List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
         interceptors.add(new LoggingRequestInterceptor());
         restTemplate.setInterceptors(interceptors);
-        response = restTemplate.exchange("https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/reportees/?ForceEIAuthentication?subject=14044500761",
+        response = restTemplate.exchange("https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/reportees/?ForceEIAuthentication&subject=14044500761",
                 HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organization>>() {
                 });
         System.out.println(response.getHeaders());
