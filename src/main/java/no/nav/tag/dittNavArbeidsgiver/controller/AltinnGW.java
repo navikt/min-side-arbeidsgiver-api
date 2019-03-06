@@ -23,7 +23,7 @@ public class AltinnGW {
     public List<Organization> getOrganizations(String pnr){
         System.out.println("AltinnGW get orgs");
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X_NAV_APIKEY", APIGwHeader);
+        headers.set("X-NAV-APIKEY", APIGwHeader);
         headers.set("APIKEY", altinnHeader);
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
         List<Organization> result = new ArrayList<>();
@@ -34,7 +34,7 @@ public class AltinnGW {
         List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
         interceptors.add(new LoggingRequestInterceptor());
         restTemplate.setInterceptors(interceptors);
-        response = restTemplate.exchange("https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/reportees/?subject=14044500761&ForceEIAuthentication",
+        response = restTemplate.exchange("https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/reportees/?ForceEIAuthentication?subject=14044500761",
                 HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organization>>() {
                 });
         System.out.println(response.getHeaders());
