@@ -2,3 +2,6 @@ server:
   port: 8080
   servlet:
     context-path: /ditt-nav-arbeidsgiver-api
+
+ALTINN_HEADER: 'heisann'
+APIGW_HEADER: 'apigw header'

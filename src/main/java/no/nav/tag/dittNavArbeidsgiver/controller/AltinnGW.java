@@ -1,6 +1,5 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import no.nav.tag.dittNavArbeidsgiver.LoggingRequestInterceptor;
 import no.nav.tag.dittNavArbeidsgiver.models.Organization;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,20 +8,17 @@ import org.springframework.http.*;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.web.client.RestClientException;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class AltinnGW {
 
-
-
-    @Value("${ALTINN_HEADER}")
-    private String altinnHeader;
-    @Value("${APIGW_HEADER}")
-    private String APIGwHeader;
+    @Value("${ALTINN_HEADER}") private String altinnHeader;
+    @Value("${APIGW_HEADER}") private String APIGwHeader;
 
     public List<Organization> getOrganizations(String pnr){
         System.out.println("AltinnGW get orgs");
