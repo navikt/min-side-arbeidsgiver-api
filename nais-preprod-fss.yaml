@@ -6,14 +6,12 @@ metadata:
   labels:
     team: teamtag
 spec:
-  image: navikt/ditt-nav-arbeidsgiver-api:project-restructure_27
+  image: navikt/ditt-nav-arbeidsgiver-api:project-restructure_28
   team: teamtag
   port: 8080
   secrets: true
   ingresses:
     - https://arbeidsgiver.nais.preprod.local/ditt-nav-arbeidsgiver-api
-  vault:
-    enabled: true
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/isAlive
     initialDelay: 20
