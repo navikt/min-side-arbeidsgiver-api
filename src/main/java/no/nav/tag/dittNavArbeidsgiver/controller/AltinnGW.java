@@ -26,8 +26,6 @@ public class AltinnGW {
 
     public List<Organization> getOrganizations(String pnr){
         System.out.println("AltinnGW get orgs");
-        System.out.println("altin header: " +  altinnHeader);
-        System.out.println("api header: " +  APIGwHeader);
         HttpHeaders headers = new HttpHeaders();
         headers.set("X_NAV_APIKEY", APIGwHeader);
         headers.set("APIKEY", altinnHeader);
