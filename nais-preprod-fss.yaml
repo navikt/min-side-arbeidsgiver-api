@@ -6,7 +6,7 @@ metadata:
   labels:
     team: teamtag
 spec:
-  image: navikt/ditt-nav-arbeidsgiver-api:project-restructure_33
+  image: navikt/ditt-nav-arbeidsgiver-api:project-restructure_34
   team: teamtag
   port: 8080
   secrets: true
