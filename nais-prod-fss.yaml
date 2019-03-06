@@ -9,6 +9,7 @@ spec:
   image: navikt/ditt-nav-arbeidsgiver-api:18
   team: teamtag
   port: 8080
+  secrets: true
   ingresses:
     - https://arbeidsgiver.nais.adeo.no/ditt-nav-arbeidsgiver-api
   vault:

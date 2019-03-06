@@ -17,8 +17,12 @@ import java.util.List;
 
 public class AltinnGW {
 
-    @Value("${ALTINN_HEADER}") String altinnHeader;
-    @Value("${APIGW_HEADER}") String APIGwHeader;
+
+
+    @Value("${ALTINN_HEADER}")
+    private String altinnHeader;
+    @Value("${APIGW_HEADER}")
+    private String APIGwHeader;
 
     public List<Organization> getOrganizations(String pnr){
         System.out.println("AltinnGW get orgs");
