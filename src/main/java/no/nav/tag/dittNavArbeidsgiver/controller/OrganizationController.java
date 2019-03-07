@@ -1,6 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import no.nav.tag.dittNavArbeidsgiver.models.Organization;
+import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnGW;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;

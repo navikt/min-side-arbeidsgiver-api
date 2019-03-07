@@ -9,9 +9,8 @@ spec:
   image: navikt/ditt-nav-arbeidsgiver-api:18
   team: teamtag
   port: 8080
-  secrets: true
   ingresses:
-    - https://arbeidsgiver.nais.adeo.no/ditt-nav-arbeidsgiver-api
+    - https://arbeidsgiver.nais.adeo.no/ditt-nav-arbeidsgiver-api/
   vault:
     enabled: true
   liveness:
@@ -20,10 +19,6 @@ spec:
   readiness:
     path: /ditt-nav-arbeidsgiver-api/internal/isReady
     initialDelay: 20
-  resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 200m
-      memory: 256Mi
+  env:
+    name: SPRING_PROFILES_ACTIVE
+    value: prod
