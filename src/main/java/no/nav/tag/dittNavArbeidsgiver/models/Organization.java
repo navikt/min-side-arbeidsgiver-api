@@ -20,40 +20,40 @@ public class Organization {
         return Name;
     }
 
-    public void setName(String name) {
-        Name = name;
+    public void setName(String Name) {
+        this.Name = Name;
     }
 
     public String getType() {
         return Type;
     }
 
-    public void setType(String type) {
-        Type = type;
+    public void setType(String Type) {
+        this.Type = Type;
     }
 
     public String getOrganizationNumber() {
         return OrganizationNumber;
     }
 
-    public void setOrganizationNumber(String organizationNumber) {
-        OrganizationNumber = organizationNumber;
+    public void setOrganizationNumber(String OrganizationNumber) {
+        this.OrganizationNumber = OrganizationNumber;
     }
 
     public String getOrganizationForm() {
         return OrganizationForm;
     }
 
-    public void setOrganizationForm(String organizationForm) {
-        OrganizationForm = organizationForm;
+    public void setOrganizationForm(String OrganizationForm) {
+        this.OrganizationForm = OrganizationForm;
     }
 
     public String getStatus() {
         return Status;
     }
 
-    public void setStatus(String status) {
-        Status = status;
+    public void setStatus(String Status) {
+        this.Status = Status;
     }
 
 }
