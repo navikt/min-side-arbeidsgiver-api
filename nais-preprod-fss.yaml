@@ -6,7 +6,7 @@ metadata:
   labels:
     team: teamtag
 spec:
-  image: navikt/ditt-nav-arbeidsgiver-api:project-restructure_35
+  image: navikt/ditt-nav-arbeidsgiver-api:project-restructure_36
   team: teamtag
   port: 8080
   ingresses:
@@ -20,5 +20,5 @@ spec:
     path: /ditt-nav-arbeidsgiver-api/internal/isReady
     initialDelay: 20
   env:
-    name: SPRING_PROFILES_ACTIVE
-    value: preprod
+    - name: SPRING_PROFILES_ACTIVE
+      value: preprod

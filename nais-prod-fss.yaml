@@ -20,5 +20,5 @@ spec:
     path: /ditt-nav-arbeidsgiver-api/internal/isReady
     initialDelay: 20
   env:
-    name: SPRING_PROFILES_ACTIVE
-    value: prod
+    - name: SPRING_PROFILES_ACTIVE
+      value: prod

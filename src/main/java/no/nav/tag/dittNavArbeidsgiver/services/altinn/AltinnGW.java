@@ -24,14 +24,14 @@ public class AltinnGW {
 
     public List<Organization> getOrganizations(String pnr){
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-NAV-APIKEY", altinnEnvConf.getGatewayKey());
-        headers.set("APIKEY", altinnEnvConf.getApiKey());
+        headers.set("X-NAV-APIKEY", altinnEnvConf.getAPIGwHeader());
+        headers.set("APIKEY", altinnEnvConf.getAltinnHeader());
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
         RestTemplate restTemplate = new RestTemplate();
         List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
         interceptors.add(new LoggingRequestInterceptor());
         restTemplate.setInterceptors(interceptors);
-        String url = altinnEnvConf.getAltinnUrl() + "/reportees/?ForceEIAuthentication&subject=14044500761";
+        String url = altinnEnvConf.getAltinnurl() + "/reportees/?ForceEIAuthentication&subject=14044500761";
         ResponseEntity <List<Organization>> response = restTemplate.exchange(url,
                 HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organization>>() {
                 });

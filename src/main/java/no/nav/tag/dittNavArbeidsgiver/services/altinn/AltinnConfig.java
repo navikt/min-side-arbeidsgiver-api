@@ -9,22 +9,32 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "altinn")
 public class AltinnConfig {
-
-
     private String altinnHeader;
-    private String altinnUrl;
+    private String altinnurl;
     private String APIGwHeader;
 
-    public String getAltinnUrl() {
-        return this.altinnUrl;
+    public String getAltinnHeader() {
+        return altinnHeader;
     }
 
-    public String getApiKey() {
-        return this.altinnHeader;
+    public void setAltinnHeader(String altinnHeader) {
+        this.altinnHeader = altinnHeader;
     }
 
-    public String getGatewayKey() {
-        return this.APIGwHeader;
+    public String getAltinnurl() {
+        return altinnurl;
+    }
+
+    public void setAltinnurl(String altinnurl) {
+        this.altinnurl = altinnurl;
+    }
+
+    public String getAPIGwHeader() {
+        return APIGwHeader;
+    }
+
+    public void setAPIGwHeader(String APIGwHeader) {
+        this.APIGwHeader = APIGwHeader;
     }
 
 }
