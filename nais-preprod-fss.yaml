@@ -6,7 +6,7 @@ metadata:
   labels:
     team: teamtag
 spec:
-  image: navikt/ditt-nav-arbeidsgiver-api:latest
+  image: navikt/ditt-nav-arbeidsgiver-api:TAG-343_24
   team: teamtag
   port: 8080
   ingresses:
@@ -20,3 +20,4 @@ spec:
   env:
   - name: SPRING_PROFILES_ACTIVE
     value: preprod
+  webproxy: true
