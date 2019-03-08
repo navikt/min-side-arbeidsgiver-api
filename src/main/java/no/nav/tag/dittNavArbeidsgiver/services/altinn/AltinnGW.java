@@ -35,8 +35,8 @@ public class AltinnGW {
         ResponseEntity <List<Organization>> response = restTemplate.exchange(url,
                 HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organization>>() {
                 });
-
         return response.getBody();
+
     }
 
 }

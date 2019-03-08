@@ -7,53 +7,53 @@ import java.io.Serializable;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Organization {
-    private String Name;
-    private String Type;
-    private String OrganizationNumber ;
-    private String OrganizationForm;
-    private String Status;
+    private String name;
+    private String type;
+    private String organizationNumber;
+    private String organizationForm;
+    private String status;
 
     public Organization() {
     }
 
     public String getName() {
-        return Name;
+        return name;
     }
 
     public void setName(String Name) {
-        this.Name = Name;
+        name = Name;
     }
 
     public String getType() {
-        return Type;
+        return type;
     }
 
     public void setType(String Type) {
-        this.Type = Type;
+        type = Type;
     }
 
     public String getOrganizationNumber() {
-        return OrganizationNumber;
+        return organizationNumber;
     }
 
     public void setOrganizationNumber(String OrganizationNumber) {
-        this.OrganizationNumber = OrganizationNumber;
+        organizationNumber = OrganizationNumber;
     }
 
     public String getOrganizationForm() {
-        return OrganizationForm;
+        return organizationForm;
     }
 
     public void setOrganizationForm(String OrganizationForm) {
-        this.OrganizationForm = OrganizationForm;
+        organizationForm = OrganizationForm;
     }
 
     public String getStatus() {
-        return Status;
+        return status;
     }
 
     public void setStatus(String Status) {
-        this.Status = Status;
+        status = Status;
     }
 
 }
