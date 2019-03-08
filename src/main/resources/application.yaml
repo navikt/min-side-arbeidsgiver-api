@@ -9,11 +9,8 @@ server:
 
 
 no.nav.security.oidc:
-  issuers: selvbetjening, isso
+  issuers: selvbetjening
   issuer:
     selvbetjening:
       discoveryurl: http://metadata-selvbetjening
       accepted_audience: aud-selvbetjening
-    isso:
-      discoveryurl: http://metadata-isso
-      accepted_audience: aud-isso
