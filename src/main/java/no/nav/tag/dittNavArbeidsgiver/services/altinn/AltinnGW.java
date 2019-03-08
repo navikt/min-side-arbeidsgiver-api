@@ -1,17 +1,13 @@
 package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.tag.dittNavArbeidsgiver.LoggingRequestInterceptor;
 import no.nav.tag.dittNavArbeidsgiver.models.Organization;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
