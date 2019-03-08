@@ -24,12 +24,12 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
     }
 
     private void traceRequest(HttpRequest request, byte[] body) throws IOException {
-        log.info("===========================request begin================================================");
-        log.info("URI         : {}", request.getURI());
-        log.info("Method      : {}", request.getMethod());
-        log.info("Headers     : {}", request.getHeaders() );
-        log.info("Request body: {}", new String(body, "UTF-8"));
-        log.info("==========================request end================================================");
+        log.debug("===========================request begin================================================");
+        log.debug("URI         : {}", request.getURI());
+        log.debug("Method      : {}", request.getMethod());
+        log.debug("Headers     : {}", request.getHeaders() );
+        log.debug("Request body: {}", new String(body, "UTF-8"));
+        log.debug("==========================request end================================================");
     }
 
     private void traceResponse(ClientHttpResponse response) throws IOException {
@@ -41,12 +41,12 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
             inputStringBuilder.append('\n');
             line = bufferedReader.readLine();
         }
-        log.info("============================response begin==========================================");
-        log.info("Status code  : {}", response.getStatusCode());
-        log.info("Status text  : {}", response.getStatusText());
-        log.info("Headers      : {}", response.getHeaders());
-        log.info("Response body: {}", inputStringBuilder.toString());
-        log.info("=======================response end=================================================");
+        log.debug("============================response begin==========================================");
+        log.debug("Status code  : {}", response.getStatusCode());
+        log.debug("Status text  : {}", response.getStatusText());
+        log.debug("Headers      : {}", response.getHeaders());
+        log.debug("Response body: {}", inputStringBuilder.toString());
+        log.debug("=======================response end=================================================");
     }
 
 }
