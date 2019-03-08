@@ -30,15 +30,11 @@ public class AltinnGW {
         headers.set("APIKEY", altinnEnvConf.getAltinnHeader());
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
         RestTemplate restTemplate = new RestTemplate();
-        List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
-        interceptors.add(new LoggingRequestInterceptor());
-        restTemplate.setInterceptors(interceptors);
         String url = altinnEnvConf.getAltinnurl() + "/reportees/?ForceEIAuthentication&subject=14044500761";
         ResponseEntity <List<Organization>> response = restTemplate.exchange(url,
                 HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organization>>() {
                 });
-        List<Organization> result = response.getBody();
-        return result;
+        return response.getBody();
     }
 
 }
