@@ -1,4 +1,19 @@
+spring:
+  profiles:
+    active: dev
+
 server:
   port: 8080
   servlet:
     context-path: /ditt-nav-arbeidsgiver-api
+
+
+no.nav.security.oidc:
+  issuers: selvbetjening, isso
+  issuer:
+    selvbetjening:
+      discoveryurl: http://metadata-selvbetjening
+      accepted_audience: aud-selvbetjening
+    isso:
+      discoveryurl: http://metadata-isso
+      accepted_audience: aud-isso
