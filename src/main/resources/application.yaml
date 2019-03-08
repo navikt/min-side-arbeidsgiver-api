@@ -1,12 +1,13 @@
-spring:
-  profiles:
-    active: dev
-
 server:
   port: 8080
   servlet:
     context-path: /ditt-nav-arbeidsgiver-api
 
+spring:
+  profiles:
+    active: dev
+
+---
 
 no.nav.security.oidc:
   issuers: selvbetjening
@@ -14,3 +15,29 @@ no.nav.security.oidc:
     selvbetjening:
       discoveryurl: http://metadata-selvbetjening
       accepted_audience: aud-selvbetjening
+
+---
+
+spring:
+  profiles:
+    active: preprod
+
+no.nav.security.oidc:
+  issuers: selvbetjening
+  issuer:
+    selvbetjening:
+      discoveryurl: https://login.microsoftonline.com/NAVtestB2C.onmicrosoft.com/v2.0/.well-known/openid-configuration?p=B2C_1A_idporten_ver1
+      accepted_audience: 0090b6e1-ffcc-4c37-bc21-049f7d1f0fe5
+
+---
+
+spring:
+  profiles:
+    active: prod
+
+no.nav.security.oidc:
+  issuers: selvbetjening
+  issuer:
+    selvbetjening:
+      discoveryurl: https://login.microsoftonline.com/navnob2c.onmicrosoft.com/v2.0/.well-known/openid-configuration?p=B2C_1A_idporten
+      accepted_audience: 45104d6a-f5bc-4e8c-b352-4bbfc9381f25
