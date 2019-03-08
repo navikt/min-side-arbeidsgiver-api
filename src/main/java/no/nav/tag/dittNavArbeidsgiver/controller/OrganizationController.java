@@ -7,9 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
+import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
+@Slf4j
 @RestController
 public class OrganizationController {
 
@@ -23,7 +24,7 @@ public class OrganizationController {
     @RequestMapping(value="/api/organisasjoner", method = RequestMethod.GET)
     private ResponseEntity<List<Organization>> getOrganizations(){
         List <Organization> result = altinnGW.getOrganizations("1");
+        log.debug("Response from altinn" + result.size());
         return ResponseEntity.ok(result);
-
     }
 }
