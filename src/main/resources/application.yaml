@@ -4,9 +4,13 @@ server:
     context-path: /ditt-nav-arbeidsgiver-api
 
 spring:
-  profiles: dev
+  profiles:
+    active: dev
 
 ---
+
+spring:
+  profiles: dev
 
 no.nav.security.oidc:
   issuers: selvbetjening
