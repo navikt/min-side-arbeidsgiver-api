@@ -1,5 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
+import lombok.extern.slf4j.Slf4j;
 import no.nav.tag.dittNavArbeidsgiver.LoggingRequestInterceptor;
 import no.nav.tag.dittNavArbeidsgiver.models.Organization;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Component
 public class AltinnGW {
     private final AltinnConfig altinnEnvConf;
@@ -28,15 +30,17 @@ public class AltinnGW {
         headers.set("APIKEY", altinnEnvConf.getAltinnHeader());
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
         RestTemplate restTemplate = new RestTemplate();
-        List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
+     /*   List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
         interceptors.add(new LoggingRequestInterceptor());
-        restTemplate.setInterceptors(interceptors);
+        restTemplate.setInterceptors(interceptors);*/
         String url = altinnEnvConf.getAltinnurl() + "/reportees/?ForceEIAuthentication&subject=14044500761";
         ResponseEntity <List<Organization>> response = restTemplate.exchange(url,
                 HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organization>>() {
                 });
-        return response.getBody();
-
+        log.debug(response.getBody().toString());
+        List<Organization> result = response.getBody();
+        log.debug("result size: " + result.size());
+        return result;
     }
 
 }

@@ -56,4 +56,9 @@ public class Organization {
         status = Status;
     }
 
+    @Override
+    public String toString(){
+        return "nam: "+name+", type:" +type;
+    }
+
 }
