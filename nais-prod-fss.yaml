@@ -11,13 +11,15 @@ spec:
   port: 8080
   ingresses:
     - https://arbeidsgiver.nais.adeo.no/ditt-nav-arbeidsgiver-api/
+  vault:
+    enabled: true
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/isAlive
     initialDelay: 20
   readiness:
     path: /ditt-nav-arbeidsgiver-api/internal/isReady
     initialDelay: 20
-  env:
-  - name: SPRING_PROFILES_ACTIVE
-    value: prod
   webproxy: true
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: prod

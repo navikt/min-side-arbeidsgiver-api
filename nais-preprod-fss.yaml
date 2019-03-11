@@ -6,18 +6,20 @@ metadata:
   labels:
     team: teamtag
 spec:
-  image: navikt/ditt-nav-arbeidsgiver-api:TAG-343_24
+  image: navikt/ditt-nav-arbeidsgiver-api:8
   team: teamtag
   port: 8080
   ingresses:
     - https://arbeidsgiver.nais.preprod.local/ditt-nav-arbeidsgiver-api/
+  vault:
+    enabled: true
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/isAlive
     initialDelay: 20
   readiness:
     path: /ditt-nav-arbeidsgiver-api/internal/isReady
     initialDelay: 20
-  env:
-  - name: SPRING_PROFILES_ACTIVE
-    value: preprod
   webproxy: true
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: preprod

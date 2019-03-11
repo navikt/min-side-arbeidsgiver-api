@@ -1,54 +1,25 @@
 package no.nav.tag.dittNavArbeidsgiver.models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
 public class Organization {
-    private String navn;
+    @JsonProperty("Name")
+    private String name;
+    @JsonProperty("Type")
     private String type;
-    private String orgNo;
-    private String overordnetOrgNo;
+    @JsonProperty("OrganizationNumber")
+    private String organizationNumber;
+    @JsonProperty("OrganizationForm")
+    private String organizationForm;
+    @JsonProperty("Status")
     private String status;
-
-    public Organization() {
-    }
-    public String getNavn() {
-        return navn;
-    }
-
-    public void setNavn(String navn) {
-        this.navn = navn;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getOrgNo() {
-        return orgNo;
-    }
-
-    public void setOrgNo(String orgNo) {
-        this.orgNo = orgNo;
-    }
-
-    public String getOverordnetOrgNo() {
-        return overordnetOrgNo;
-    }
-
-    public void setOverordnetOrgNo(String overordnetOrgNo) {
-        this.overordnetOrgNo = overordnetOrgNo;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
 }
