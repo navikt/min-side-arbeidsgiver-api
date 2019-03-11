@@ -19,6 +19,15 @@ no.nav.security.oidc:
       discoveryurl: http://metadata-selvbetjening
       accepted_audience: aud-selvbetjening
 
+mock:
+  enabled: true
+  port: 8081
+
+altinn:
+  altinnUrl: "http://localhost:${mock.port}/altinn"
+  altinnHeader: "test"
+  APIGwHeader: "test"
+
 ---
 
 spring:
@@ -47,3 +56,9 @@ no.nav.security.oidc:
     selvbetjening:
       discoveryurl: https://login.microsoftonline.com/navnob2c.onmicrosoft.com/v2.0/.well-known/openid-configuration?p=B2C_1A_idporten
       accepted_audience: 45104d6a-f5bc-4e8c-b352-4bbfc9381f25
+
+altinn:
+  altinnUrl: "https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/"
+  altinnHeader: ${ALTINN_HEADER}
+  APIGwHeader: ${APIGW_HEADER}
+
