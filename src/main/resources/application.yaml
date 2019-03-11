@@ -19,6 +19,15 @@ no.nav.security.oidc:
       discoveryurl: http://metadata-selvbetjening
       accepted_audience: aud-selvbetjening
 
+mock:
+  enabled: true
+  port: 8081
+
+altinn:
+  altinnUrl: "http://localhost:${mock.port}/altinn"
+  altinnHeader: "test"
+  APIGwHeader: "test"
+
 ---
 
 spring:
