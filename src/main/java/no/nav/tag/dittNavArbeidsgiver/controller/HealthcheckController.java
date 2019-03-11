@@ -1,11 +1,13 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
 
+import no.nav.security.oidc.api.Unprotected;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+@Unprotected
 @RestController
 public class HealthcheckController {
     @RequestMapping(value="/internal/isAlive", method = RequestMethod.GET)

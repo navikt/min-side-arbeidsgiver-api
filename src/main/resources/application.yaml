@@ -3,7 +3,47 @@ server:
   servlet:
     context-path: /ditt-nav-arbeidsgiver-api
 
+spring:
+  profiles:
+    active: dev
+
+---
+
+spring:
+  profiles: dev
+
+no.nav.security.oidc:
+  issuers: selvbetjening
+  issuer:
+    selvbetjening:
+      discoveryurl: http://metadata-selvbetjening
+      accepted_audience: aud-selvbetjening
+
+---
+
+spring:
+  profiles: preprod
+
+no.nav.security.oidc:
+  issuers: selvbetjening
+  issuer:
+    selvbetjening:
+      discoveryurl: https://login.microsoftonline.com/NAVtestB2C.onmicrosoft.com/v2.0/.well-known/openid-configuration?p=B2C_1A_idporten_ver1
+      accepted_audience: 0090b6e1-ffcc-4c37-bc21-049f7d1f0fe5
+
 altinn:
   altinnUrl: "https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/"
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
+
+---
+
+spring:
+  profiles: prod
+
+no.nav.security.oidc:
+  issuers: selvbetjening
+  issuer:
+    selvbetjening:
+      discoveryurl: https://login.microsoftonline.com/navnob2c.onmicrosoft.com/v2.0/.well-known/openid-configuration?p=B2C_1A_idporten
+      accepted_audience: 45104d6a-f5bc-4e8c-b352-4bbfc9381f25
