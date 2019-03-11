@@ -2,3 +2,8 @@ server:
   port: 8080
   servlet:
     context-path: /ditt-nav-arbeidsgiver-api
+
+altinn:
+  altinnUrl: "https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/"
+  altinnHeader: ${ALTINN_HEADER}
+  APIGwHeader: ${APIGW_HEADER}

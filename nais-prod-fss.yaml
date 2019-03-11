@@ -6,11 +6,11 @@ metadata:
   labels:
     team: teamtag
 spec:
-  image: navikt/ditt-nav-arbeidsgiver-api:project-restructure_46
+  image: navikt/ditt-nav-arbeidsgiver-api:18
   team: teamtag
   port: 8080
   ingresses:
-    - https://arbeidsgiver.nais.preprod.local/ditt-nav-arbeidsgiver-api/
+    - https://arbeidsgiver.nais.adeo.no/ditt-nav-arbeidsgiver-api/
   vault:
     enabled: true
   liveness:
@@ -21,4 +21,4 @@ spec:
     initialDelay: 20
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: preprod
+      value: prod
