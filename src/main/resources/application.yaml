@@ -58,7 +58,7 @@ no.nav.security.oidc:
       accepted_audience: 45104d6a-f5bc-4e8c-b352-4bbfc9381f25
 
 altinn:
-  altinnUrl: "https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/"
+  altinnUrl: "https://api-gw.oera.no/ekstern/altinn/api/serviceowner/"
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
 
