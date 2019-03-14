@@ -1,5 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
+import no.nav.security.oidc.api.Protected;
 import no.nav.tag.dittNavArbeidsgiver.models.Organization;
 import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnGW;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
+@Protected
 @Slf4j
 @RestController
 public class OrganizationController {
