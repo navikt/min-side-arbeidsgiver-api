@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
@@ -19,7 +18,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Profile("dev")
 @Slf4j
-@Component@ConditionalOnProperty(prefix = "mock", name = "enabled", havingValue = "true")
+@Component
+@ConditionalOnProperty(prefix = "mock", name = "enabled", havingValue = "true")
 
 public class MockServer {
 
@@ -32,7 +32,7 @@ public class MockServer {
             @Value("${altinn.altinnUrl}") String altinnUrl,
             @Value("${mock.port}") int port,
             AltinnConfig altinnConfig
-            ) {
+    ) {
         log.info("starter mockserveren");
 
         this.altinnConfig = altinnConfig;
@@ -48,7 +48,7 @@ public class MockServer {
                 .withHeader("X-NAV-APIKEY", equalTo(altinnConfig.getAPIGwHeader()))
                 .withHeader("APIKEY", equalTo(altinnConfig.getAltinnHeader()))
                 .withQueryParam("ForceEIAuthentication", equalTo(""))
-                .withQueryParam("subject", equalTo("14044500761"))
+                .withQueryParam("subject", equalTo("00000000000"))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("organisasjoner.json"))

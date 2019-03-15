@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -13,24 +14,32 @@ import java.util.List;
 @Slf4j
 @Component
 public class AltinnGW {
-    private final AltinnConfig altinnEnvConf;
+    private final AltinnConfig altinnConfig;
 
     @Autowired
-    public AltinnGW(AltinnConfig altinnEnvConf) {
-        this.altinnEnvConf = altinnEnvConf;
+    public AltinnGW(AltinnConfig altinnConfig) {
+        this.altinnConfig = altinnConfig;
     }
 
-    public List<Organization> getOrganizations(String pnr){
+    public List<Organization> hentOrganisasjoner(String fnr) {
+        // TODO: Valider fnr med bekk validator
+
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-NAV-APIKEY", altinnEnvConf.getAPIGwHeader());
-        headers.set("APIKEY", altinnEnvConf.getAltinnHeader());
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        headers.set("X-NAV-APIKEY", altinnConfig.getAPIGwHeader());
+        headers.set("APIKEY", altinnConfig.getAltinnHeader());
+        HttpEntity<String> entity = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
-        String url = altinnEnvConf.getAltinnurl() + "/reportees/?ForceEIAuthentication=&subject=14044500761";
-        ResponseEntity <List<Organization>> response = restTemplate.exchange(url,
-                HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organization>>() {
-                });
-        return response.getBody();
-    }
 
+        String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication=&subject=" + fnr;
+
+        try {
+            ResponseEntity<List<Organization>> respons = restTemplate.exchange(url,
+                HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organization>>() {});
+            return respons.getBody();
+
+        } catch (RestClientException exception) {
+            log.error("Feil fra Altinn. Exception: ", exception);
+            throw new AltinnException("Feil fra Altinn");
+        }
+    }
 }
