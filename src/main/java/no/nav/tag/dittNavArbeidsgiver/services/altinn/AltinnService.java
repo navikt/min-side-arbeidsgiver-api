@@ -13,11 +13,11 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class AltinnGW {
+public class AltinnService {
     private final AltinnConfig altinnConfig;
 
     @Autowired
-    public AltinnGW(AltinnConfig altinnConfig) {
+    public AltinnService(AltinnConfig altinnConfig) {
         this.altinnConfig = altinnConfig;
     }
 

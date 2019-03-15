@@ -3,7 +3,7 @@ package no.nav.tag.dittNavArbeidsgiver.controller;
 import no.nav.security.oidc.api.Protected;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.models.Organization;
-import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnGW;
+import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnService;
 import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,21 +15,21 @@ import java.util.List;
 @Protected
 @Slf4j
 @RestController
-public class OrganizationController {
+public class OrganisasjonController {
 
-    private final AltinnGW altinnGW;
+    private final AltinnService altinnService;
     private final OIDCRequestContextHolder requestContextHolder;
 
     @Autowired
-    public OrganizationController(AltinnGW altinnGW, OIDCRequestContextHolder requestContextHolder) {
-        this.altinnGW = altinnGW;
+    public OrganisasjonController(AltinnService altinnService, OIDCRequestContextHolder requestContextHolder) {
+        this.altinnService = altinnService;
         this.requestContextHolder = requestContextHolder;
     }
 
     @GetMapping(value="/api/organisasjoner")
     private ResponseEntity<List<Organization>> getOrganizations() {
         String fnr = FnrExtractor.extract(requestContextHolder);
-        List <Organization> result = altinnGW.hentOrganisasjoner(fnr);
+        List <Organization> result = altinnService.hentOrganisasjoner(fnr);
         return ResponseEntity.ok(result);
     }
 
