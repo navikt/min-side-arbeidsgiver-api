@@ -2,7 +2,7 @@ package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import no.nav.security.oidc.api.Protected;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
-import no.nav.tag.dittNavArbeidsgiver.models.Organization;
+import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnService;
 import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +27,9 @@ public class OrganisasjonController {
     }
 
     @GetMapping(value="/api/organisasjoner")
-    private ResponseEntity<List<Organization>> getOrganizations() {
+    private ResponseEntity<List<Organisasjon>> hentOrganisasjoner() {
         String fnr = FnrExtractor.extract(requestContextHolder);
-        List <Organization> result = altinnService.hentOrganisasjoner(fnr);
+        List <Organisasjon> result = altinnService.hentOrganisasjoner(fnr);
         return ResponseEntity.ok(result);
     }
 

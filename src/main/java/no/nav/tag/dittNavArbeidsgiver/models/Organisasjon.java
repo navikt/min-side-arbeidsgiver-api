@@ -11,7 +11,7 @@ import java.io.Serializable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter
-public class Organization {
+public class Organisasjon {
     @JsonProperty("Name")
     private String name;
     @JsonProperty("Type")

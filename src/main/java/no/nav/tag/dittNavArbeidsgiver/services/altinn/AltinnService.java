@@ -1,7 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.tag.dittNavArbeidsgiver.models.Organization;
+import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -21,7 +21,7 @@ public class AltinnService {
         this.altinnConfig = altinnConfig;
     }
 
-    public List<Organization> hentOrganisasjoner(String fnr) {
+    public List<Organisasjon> hentOrganisasjoner(String fnr) {
         // TODO: Valider fnr med bekk validator
 
         HttpHeaders headers = new HttpHeaders();
@@ -33,8 +33,8 @@ public class AltinnService {
         String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication=&subject=" + fnr;
 
         try {
-            ResponseEntity<List<Organization>> respons = restTemplate.exchange(url,
-                HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organization>>() {});
+            ResponseEntity<List<Organisasjon>> respons = restTemplate.exchange(url,
+                HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organisasjon>>() {});
             return respons.getBody();
 
         } catch (RestClientException exception) {
