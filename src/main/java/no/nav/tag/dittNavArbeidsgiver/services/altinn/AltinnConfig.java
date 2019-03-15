@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Data
 @ConfigurationProperties(prefix = "altinn")
 public class AltinnConfig {
-    @Value("${altinnHeader}") private String altinnHeader;
+    private String altinnHeader;
     private String altinnurl;
     private String APIGwHeader;
 
