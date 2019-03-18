@@ -16,11 +16,10 @@ import java.net.URL;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-@Profile("dev")
+@Profile({"dev"})
 @Slf4j
 @Component
 @ConditionalOnProperty(prefix = "mock", name = "enabled", havingValue = "true")
-
 public class MockServer {
 
     private WireMockServer server;
@@ -39,11 +38,14 @@ public class MockServer {
         this.server = new WireMockServer(port);
 
         String altinnPath = new URL(altinnUrl).getPath();
-        mockOrganisasjoner(altinnPath);
+        mockOrganisasjoner(altinnConfig, server,altinnPath);
+        mockInvalidSSN(altinnConfig, server,altinnPath);
         server.start();
     }
 
-    private void mockOrganisasjoner(String altinnPath) {
+    public static void mockOrganisasjoner(AltinnConfig altinnConfig, WireMockServer server,String altinnPath) {
+
+
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "/reportees/"))
                 .withHeader("X-NAV-APIKEY", equalTo(altinnConfig.getAPIGwHeader()))
                 .withHeader("APIKEY", equalTo(altinnConfig.getAltinnHeader()))
@@ -54,9 +56,19 @@ public class MockServer {
                         .withBody(hentStringFraFil("organisasjoner.json"))
                 ));
     }
+    public static void mockInvalidSSN(AltinnConfig altinnConfig, WireMockServer server,String altinnPath) {
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "/reportees/"))
+                .withHeader("X-NAV-APIKEY", equalTo(altinnConfig.getAPIGwHeader()))
+                .withHeader("APIKEY", equalTo(altinnConfig.getAltinnHeader()))
+                .withQueryParam("ForceEIAuthentication", equalTo(""))
+                .withQueryParam("subject", equalTo("04010100655"))
+                .willReturn(WireMock.aResponse().withStatusMessage("Invalid socialSecurityNumber").withStatus(400)
+                        .withHeader("Content-Type", "application/octet-stream")
+                ));
+    }
 
     @SneakyThrows
-    private String hentStringFraFil(String filnavn) {
-        return IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("mock/" + filnavn), UTF_8);
+    private static String hentStringFraFil(String filnavn) {
+        return IOUtils.toString(MockServer.class.getClassLoader().getResourceAsStream("mock/" + filnavn), UTF_8);
     }
 }

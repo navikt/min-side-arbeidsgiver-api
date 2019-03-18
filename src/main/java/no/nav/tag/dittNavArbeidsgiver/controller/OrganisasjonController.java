@@ -27,7 +27,7 @@ public class OrganisasjonController {
     }
 
     @GetMapping(value="/api/organisasjoner")
-    private ResponseEntity<List<Organisasjon>> hentOrganisasjoner() {
+    public ResponseEntity<List<Organisasjon>> hentOrganisasjoner() {
         String fnr = FnrExtractor.extract(requestContextHolder);
         List <Organisasjon> result = altinnService.hentOrganisasjoner(fnr);
         return ResponseEntity.ok(result);

@@ -14,6 +14,7 @@ import java.util.List;
 @Slf4j
 @Component
 public class AltinnService {
+    @Autowired
     private final AltinnConfig altinnConfig;
 
     @Autowired
