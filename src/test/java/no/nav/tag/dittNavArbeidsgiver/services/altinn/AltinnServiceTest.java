@@ -16,12 +16,8 @@ public class AltinnServiceTest {
     @Autowired
     private AltinnService altinnService;
 
-    @Test
-    public void hentOrganisasjoner() {
-        altinnService.hentOrganisasjoner("00000000000");
-    }
     @Test(expected = AltinnException.class)
-    public void hentOrganisasjoner_ugyldig_pnr() {
+    public void hentOrganisasjoner__skal_kaste_altinn_exception_hvis_ugyldig_fnr() {
          altinnService.hentOrganisasjoner("04010100655");
     }
 

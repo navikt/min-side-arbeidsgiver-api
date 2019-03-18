@@ -23,7 +23,7 @@ public class AltinnService {
     }
 
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
-        // TODO: Valider fnr med bekk validator
+
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-NAV-APIKEY", altinnConfig.getAPIGwHeader());
