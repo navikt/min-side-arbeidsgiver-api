@@ -19,7 +19,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Profile({"dev"})
 @Slf4j
 @Component
-@ConditionalOnProperty(prefix = "mock", name = "enabled", havingValue = "true")
 public class MockServer {
 
     private WireMockServer server;

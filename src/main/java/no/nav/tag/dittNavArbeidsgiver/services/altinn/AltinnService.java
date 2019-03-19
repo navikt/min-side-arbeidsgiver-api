@@ -14,33 +14,40 @@ import java.util.List;
 @Slf4j
 @Component
 public class AltinnService {
-    @Autowired
+
     private final AltinnConfig altinnConfig;
 
+    private final RestTemplate restTemplate;
+
     @Autowired
-    public AltinnService(AltinnConfig altinnConfig) {
+    public AltinnService(AltinnConfig altinnConfig, RestTemplate restTemplate) {
         this.altinnConfig = altinnConfig;
+        this.restTemplate = restTemplate;
     }
 
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
+        String query = "&subject=" + fnr;
+        ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},query);
+        return respons.getBody();
+    }
 
-
+    private <T> ResponseEntity<List<T>> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String query){
+        String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication" + query;
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-NAV-APIKEY", altinnConfig.getAPIGwHeader());
         headers.set("APIKEY", altinnConfig.getAltinnHeader());
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        RestTemplate restTemplate = new RestTemplate();
-
-        String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication=&subject=" + fnr;
 
         try {
-            ResponseEntity<List<Organisasjon>> respons = restTemplate.exchange(url,
-                HttpMethod.GET, entity, new ParameterizedTypeReference<List<Organisasjon>>() {});
-            return respons.getBody();
+            ResponseEntity<List<T>> respons = restTemplate.exchange(url,
+                    HttpMethod.GET, entity, typeReference);
+            return respons;
 
         } catch (RestClientException exception) {
             log.error("Feil fra Altinn. Exception: ", exception);
             throw new AltinnException("Feil fra Altinn");
         }
+
     }
+
 }
