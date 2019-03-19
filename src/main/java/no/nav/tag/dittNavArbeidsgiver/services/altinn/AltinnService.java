@@ -31,21 +31,25 @@ public class AltinnService {
         return respons.getBody();
     }
 
-    private <T> ResponseEntity<List<T>> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String query){
-        String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication" + query;
+    private HttpEntity<String>  getheaderEntity() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-NAV-APIKEY", altinnConfig.getAPIGwHeader());
         headers.set("APIKEY", altinnConfig.getAltinnHeader());
         HttpEntity<String> entity = new HttpEntity<>(headers);
+        return entity;
+    }
 
+    private <T> ResponseEntity<List<T>> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String query){
+        String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication" + query;
+        HttpEntity<String> headers = getheaderEntity();
         try {
             ResponseEntity<List<T>> respons = restTemplate.exchange(url,
-                    HttpMethod.GET, entity, typeReference);
+                    HttpMethod.GET, headers, typeReference);
             return respons;
 
         } catch (RestClientException exception) {
             log.error("Feil fra Altinn. Exception: ", exception);
-            throw new AltinnException("Feil fra Altinn");
+            throw new AltinnException("Feil fra Altinn", exception);
         }
 
     }
