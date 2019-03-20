@@ -36,11 +36,11 @@ public class BearerTokenClientHttpRequestInterceptor implements ClientHttpReques
                 .getOIDCValidationContext();
 
         if (context != null && context.hasValidToken()) {
-            logger.debug("adding tokens to Authorization header");
+            logger.info("adding tokens to Authorization header");
             StringBuffer headerValue = new StringBuffer();
             boolean first = true;
             for (String issuer : context.getIssuers()) {
-                logger.debug("adding token for issuer {}", issuer);
+                logger.info("adding token for issuer {}", issuer);
                 if (!first) {
                     headerValue.append(",");
                 }
@@ -48,7 +48,7 @@ public class BearerTokenClientHttpRequestInterceptor implements ClientHttpReques
             }
             request.getHeaders().add(OIDCConstants.AUTHORIZATION_HEADER, headerValue.toString());
         } else {
-            logger.debug("no tokens found, nothing added to request");
+            logger.info("no tokens found, nothing added to request");
         }
         return execution.execute(request, body);
     }
