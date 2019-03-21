@@ -1,6 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.security.oidc.OIDCConstants;
 import no.nav.security.oidc.api.Protected;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnException;
@@ -37,8 +38,16 @@ public class DigisyfoController {
                 log.info("issuer: " + issuer);
                 log.info("issuer: " + requestContextHolder.getOIDCValidationContext().getClaims(issuer));
             }
+            StringBuffer headerValue = new StringBuffer();
+            boolean first = true;
+            for (String issuer : requestContextHolder.getOIDCValidationContext().getIssuers()) {
+                if (!first) {
+                    headerValue.append(",");
+                }
+                headerValue.append("Bearer " + requestContextHolder.getOIDCValidationContext().getToken(issuer).getIdToken());
+            }
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Bearer ", requestContextHolder.getOIDCValidationContext().getToken("selvbetjening").getIdToken());
+            headers.set(OIDCConstants.AUTHORIZATION_HEADER, headerValue.toString());
             HttpEntity<String> entity = new HttpEntity<>(headers);
             String url = "https://syfoarbeidsgivertilgang.nais.preprod.local/api/06025800174";
 
