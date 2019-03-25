@@ -51,7 +51,7 @@
   {
     "Name": "ERLING ENGENES",
     "Type": "Person",
-    "OrganizationNumber": "111111111",
+    "OrganizationNumber": null,
     "OrganizationForm": null,
     "Status": null
   },
@@ -100,7 +100,7 @@
   {
     "Name": "RODAL LOUIS",
     "Type": "Person",
-    "OrganizationNumber": "999999999",
+    "OrganizationNumber": null,
     "OrganizationForm": null,
     "Status": null
   },

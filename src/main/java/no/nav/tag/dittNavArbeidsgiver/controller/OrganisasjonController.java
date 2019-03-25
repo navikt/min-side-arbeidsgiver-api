@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 @Protected
 @Slf4j
 @RestController
-@CrossOrigin({"https://arbeidsgiver.nav.no"})
 public class OrganisasjonController {
 
     private final AltinnService altinnService;

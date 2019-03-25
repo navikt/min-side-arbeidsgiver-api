@@ -29,13 +29,7 @@ public class AltinnService {
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         String query = "&subject=" + fnr + "&%24filter=Type%20eq%20%27Business%27";
         ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},query);
-        return filtrerPaBusiness(respons.getBody());
-    }
-
-    public List<Organisasjon> filtrerPaBusiness(List<Organisasjon> ufiltrert) {
-        return ufiltrert.stream()
-                .filter(org -> "Business".equals(org.getType()))
-                .collect(Collectors.toList());
+        return respons.getBody();
     }
 
     private HttpEntity<String>  getheaderEntity() {
