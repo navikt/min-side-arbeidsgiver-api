@@ -1,5 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +21,13 @@ public class AltinnServiceTest {
     private AltinnService altinnService;
 
     @Test
+    @Ignore
     public void hentOrganisasjoner__skal_fungere_med_gyldig_fnr() {
         altinnService.hentOrganisasjoner("00000000000");
     }
 
     @Test(expected = AltinnException.class)
+   @Ignore
     public void hentOrganisasjoner__skal_kaste_altinn_exception_hvis_ugyldig_fnr() {
          altinnService.hentOrganisasjoner("04010100655");
     }
