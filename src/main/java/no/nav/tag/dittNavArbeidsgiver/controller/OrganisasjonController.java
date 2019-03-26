@@ -7,14 +7,11 @@ import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnService;
 import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Protected
 @Slf4j
