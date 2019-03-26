@@ -29,7 +29,7 @@ public class AltinnService {
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         String query = "&subject=" + fnr + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business')+and+Status+eq+'Active'";
         ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},query);
-        log.info(query);
+        log.info("Henter organisasjoner fra Altinn");
         return respons.getBody();
     }
 
