@@ -34,6 +34,9 @@ aad:
 
 spring:
   profiles: preprod
+sts:
+  stsPass: ${STS-PASS}
+  stsUrl: https://security-token-service.nais.preprod.local/rest/v1/sts/token
 
 aad:
   aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"

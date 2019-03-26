@@ -7,6 +7,8 @@ import no.nav.security.oidc.OIDCConstants;
 import no.nav.security.oidc.api.Protected;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnException;
+import no.nav.tag.dittNavArbeidsgiver.utils.AktorClient;
+import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -25,21 +27,25 @@ public class DigisyfoController {
 
         private final OIDCRequestContextHolder requestContextHolder;
         private final AccesstokenClient accesstokenClient;
-
+        private final AktorClient aktorClient;
         @Autowired
-        public DigisyfoController (OIDCRequestContextHolder requestContextHolder, AccesstokenClient accesstokenClient ) {
+        public DigisyfoController (OIDCRequestContextHolder requestContextHolder, AccesstokenClient accesstokenClient, AktorClient aktorClient) {
             this.requestContextHolder = requestContextHolder;
             this.accesstokenClient = accesstokenClient;
+            this.aktorClient = aktorClient;
         }
+
 
         @GetMapping(value = "/api/narmesteleder")
         public String sjekkNarmestelederTilgang() {
+            String fnr = FnrExtractor.extract(requestContextHolder);
             RestTemplate restTemplate =new RestTemplate();
             AadAccessToken adToken = accesstokenClient.hentAccessToken();
             HttpHeaders headers = new HttpHeaders();
+            String aktorid = aktorClient.getAktorId(fnr);
             headers.set(OIDCConstants.AUTHORIZATION_HEADER, "Bearer "+adToken.getAccess_token());
             HttpEntity<String> entity = new HttpEntity<>(headers);
-            String url = "https://syfoarbeidsgivertilgang.nais.preprod.local/api/06025800174";
+            String url = "https://syfoarbeidsgivertilgang.nais.preprod.local/api/"+aktorid;
 
             try {
                 ResponseEntity<String> respons = restTemplate.exchange(url,

@@ -1,6 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.utils;
 
 
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.*;
@@ -17,10 +18,12 @@ public class AccesstokenClient {
 
     public void setAadAccessTokenURL(String aadAccessTokenURL) {
         this.aadAccessTokenURL = aadAccessTokenURL;
+
     }
 
     private String aadAccessTokenURL;
-
+    @Setter
+    private String azureClientSecret;
     @Autowired
     public AccesstokenClient( ){
 
@@ -35,7 +38,7 @@ public class AccesstokenClient {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("grant_type", "client_credentials");
         map.add("client_id", "1b1bf278-3c28-4003-a528-b595d800afb0");
-        map.add("client_secret", "");
+        map.add("client_secret", azureClientSecret);
         map.add("resource", "3f567c84-4912-4acf-88ef-9f0dcfc2ae2b");
 
 
