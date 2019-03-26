@@ -1,6 +1,8 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.tag.dittNavArbeidsgiver.utils.AadAccessToken;
+import no.nav.tag.dittNavArbeidsgiver.utils.AccesstokenClient;
 import no.nav.security.oidc.OIDCConstants;
 import no.nav.security.oidc.api.Protected;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
@@ -15,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-
 @Protected
 @Slf4j
 @RestController
@@ -24,30 +24,20 @@ public class DigisyfoController {
 
 
         private final OIDCRequestContextHolder requestContextHolder;
+        private final AccesstokenClient accesstokenClient;
 
         @Autowired
-        public DigisyfoController (OIDCRequestContextHolder requestContextHolder) {
+        public DigisyfoController (OIDCRequestContextHolder requestContextHolder, AccesstokenClient accesstokenClient ) {
             this.requestContextHolder = requestContextHolder;
+            this.accesstokenClient = accesstokenClient;
         }
 
         @GetMapping(value = "/api/narmesteleder")
         public String sjekkNarmestelederTilgang() {
             RestTemplate restTemplate =new RestTemplate();
-            log.info("===========Sjekknærmesteledertilgang===========");
-            for (String issuer : requestContextHolder.getOIDCValidationContext().getIssuers()){
-                log.info("issuer: " + issuer);
-                log.info("issuer: " + requestContextHolder.getOIDCValidationContext().getClaims(issuer));
-            }
-            StringBuffer headerValue = new StringBuffer();
-            boolean first = true;
-            for (String issuer : requestContextHolder.getOIDCValidationContext().getIssuers()) {
-                if (!first) {
-                    headerValue.append(",");
-                }
-                headerValue.append("Bearer " + requestContextHolder.getOIDCValidationContext().getToken(issuer).getIdToken());
-            }
+            AadAccessToken adToken = accesstokenClient.hentAccessToken();
             HttpHeaders headers = new HttpHeaders();
-            headers.set(OIDCConstants.AUTHORIZATION_HEADER, headerValue.toString());
+            headers.set(OIDCConstants.AUTHORIZATION_HEADER, "Bearer "+adToken.getAccess_token());
             HttpEntity<String> entity = new HttpEntity<>(headers);
             String url = "https://syfoarbeidsgivertilgang.nais.preprod.local/api/06025800174";
 
@@ -58,13 +48,9 @@ public class DigisyfoController {
 
             } catch (RestClientException exception) {
                 log.error(" Ddigisyfo Exception: ", exception);
-                throw new AltinnException("Feil fra Altinn", exception);
+                throw new AltinnException("digisyfo", exception);
             }
-            // rest kall til syfo med header Bearer blabla  context.getToken("selvbetjening").getIdToken()
 
-            // restteplate legg til headers med "Bearer ..."
-
-           // return "ok";
         }
 
     }

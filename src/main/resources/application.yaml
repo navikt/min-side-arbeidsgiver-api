@@ -28,10 +28,18 @@ altinn:
   altinnHeader: "test"
   APIGwHeader: "test"
 
+aad:
+  aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
 ---
 
 spring:
   profiles: preprod
+
+aad:
+  aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
+  azureClientSecret:  ${AZURE_CLIENT_SECRET}
+  clientid: 1b1bf278-3c28-4003-a528-b595d800afb0
+  scope: https://trygdeetaten.no/syfoarbeidsgivertilgang/.default
 
 no.nav.security.oidc:
   issuers: selvbetjening
