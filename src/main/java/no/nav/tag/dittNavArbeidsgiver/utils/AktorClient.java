@@ -42,6 +42,12 @@ public class AktorClient {
                 throw new RuntimeException(message);
 
             }
+            if(response.getBody().getAktorer().get(fnr).Feilmelding != null){
+                String message = "feilmelding på aktør: " + response.getBody().getAktorer().get(fnr).Feilmelding;
+                log.error(message);
+                throw new RuntimeException(message);
+            }
+
             return (response.getBody().aktorer.get(fnr).identer.get(0).ident);
         }
         catch(HttpClientErrorException e){
