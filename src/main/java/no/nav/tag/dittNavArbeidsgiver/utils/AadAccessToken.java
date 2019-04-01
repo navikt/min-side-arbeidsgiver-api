@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class AadAccessToken
-
 {
     String access_token;
     String token_type;

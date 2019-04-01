@@ -15,7 +15,6 @@ import org.springframework.web.client.RestTemplate;
 @ConfigurationProperties("aad")
 public class AccesstokenClient {
 
-
     public void setAadAccessTokenURL(String aadAccessTokenURL) {
         this.aadAccessTokenURL = aadAccessTokenURL;
 
@@ -41,7 +40,6 @@ public class AccesstokenClient {
         map.add("client_secret", azureClientSecret);
         map.add("resource", "3f567c84-4912-4acf-88ef-9f0dcfc2ae2b");
 
-
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
         AadAccessToken token = null;
         try {
@@ -53,9 +51,5 @@ public class AccesstokenClient {
 
             throw exception;
         }
-
-
     }
-
-
 }
