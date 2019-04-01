@@ -43,6 +43,7 @@ public class AktorClient {
 
             }
             log.error("responsebody: " + response.getBody().toString());
+            log.error("responsebody.aktører: " + response.getBody().getAktorer().toString());
             if(response.getBody().getAktorer().get(fnr).Feilmelding != null){
                 String message = "feilmelding på aktør: " + response.getBody().getAktorer().get(fnr).Feilmelding;
                 log.error(message);
