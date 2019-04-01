@@ -10,6 +10,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -26,8 +27,9 @@ public class AltinnService {
     }
 
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
-        String query = "&subject=" + fnr;
+        String query = "&subject=" + fnr + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business')+and+Status+eq+'Active'";
         ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},query);
+        log.info("Henter organisasjoner fra Altinn");
         return respons.getBody();
     }
 
