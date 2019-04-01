@@ -5,17 +5,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
+import lombok.extern.slf4j.Slf4j;
 import java.util.UUID;
 
+@Slf4j
 @Component
 public class AktorClient {
-    @Setter
-    private String stsPass;
-    @Setter
-    private String Url;
 
     @Autowired
     private STSClient stsClient;
@@ -36,10 +34,22 @@ public class AktorClient {
                 .toUriString();
         RestTemplate restTemplate= new RestTemplate();
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<AktorResponse> result = restTemplate.exchange(uriString, HttpMethod.GET,entity,AktorResponse.class);
+        try {
+            ResponseEntity<AktorResponse> response = restTemplate.exchange(uriString, HttpMethod.GET, entity, AktorResponse.class);
+            if(response.getStatusCode() != HttpStatus.OK){
+                String message = "Kall mot aktørregister feiler med HTTP-" + response.getStatusCode();
+                log.error(message);
+                throw new RuntimeException(message);
+
+            }
+            return (response.getBody().aktorer.get(fnr).identer.get(0).ident);
+        }
+        catch(HttpClientErrorException e){
+            log.error("Feil ved oppslag i aktørtjenesten", e);
+            throw new RuntimeException(e);
+        }
 
 
-        return (result.getBody().aktorer.get(fnr).identer.get(0).ident);
 
 
     }
