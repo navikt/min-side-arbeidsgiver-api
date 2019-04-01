@@ -35,7 +35,7 @@ aad:
 spring:
   profiles: preprod
 sts:
-  stsPass: ${STS-PASS}
+  stsPass: ${STS_PASS}
   stsUrl: https://security-token-service.nais.preprod.local/rest/v1/sts/token
 
 aad:
