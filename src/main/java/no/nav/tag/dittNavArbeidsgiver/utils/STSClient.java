@@ -1,6 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.utils;
 
 import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+@ConfigurationProperties("sts")
 @Component
 public class STSClient {
 
