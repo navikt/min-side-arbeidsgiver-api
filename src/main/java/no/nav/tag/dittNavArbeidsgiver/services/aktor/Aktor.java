@@ -1,4 +1,4 @@
-package no.nav.tag.dittNavArbeidsgiver.utils;
+package no.nav.tag.dittNavArbeidsgiver.services.aktor;
 
 import lombok.Data;
 

@@ -29,7 +29,9 @@ public class MockServer {
     MockServer(
             @Value("${altinn.altinnUrl}") String altinnUrl,
             @Value("${mock.port}") int port,
-            AltinnConfig altinnConfig
+            AltinnConfig altinnConfig,
+            @Value("${sts.stsUrl}") String stsUrl,
+            @Value("${aktorregister.aktorUrl}") String aktorUrl
     ) {
         log.info("starter mockserveren");
 
@@ -37,8 +39,12 @@ public class MockServer {
         this.server = new WireMockServer(port);
 
         String altinnPath = new URL(altinnUrl).getPath();
+        String stsPath = new URL(stsUrl).getPath();
+        String aktorPath=new URL(aktorUrl).getPath();
         mockOrganisasjoner(altinnConfig, server,altinnPath);
         mockInvalidSSN(altinnConfig, server,altinnPath);
+        mockSTSResponse( server,stsPath);
+        mockAktorResponse( server,aktorPath);
         server.start();
     }
 
@@ -64,6 +70,27 @@ public class MockServer {
                 .willReturn(WireMock.aResponse().withStatusMessage("Invalid socialSecurityNumber").withStatus(400)
                         .withHeader("Content-Type", "application/octet-stream")
                 ));
+    }
+
+    public static void mockAktorResponse(WireMockServer server,String aktorURL) {
+
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(aktorURL))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("aktorer.json"))
+                ));
+    }
+    public static void mockSTSResponse(WireMockServer server, String stsPath){
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(stsPath))
+                .withQueryParam("grant_type",equalTo("client_credentials"))
+                .withQueryParam("scope", equalTo("openid"))
+                .willReturn(WireMock.aResponse()
+                .withHeader("Content-Type", "application/json")
+
+                .withBody(hentStringFraFil("STStoken.json"))
+        ));
+
+
     }
 
     @SneakyThrows

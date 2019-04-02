@@ -7,7 +7,7 @@ import no.nav.security.oidc.OIDCConstants;
 import no.nav.security.oidc.api.Protected;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnException;
-import no.nav.tag.dittNavArbeidsgiver.utils.AktorClient;
+import no.nav.tag.dittNavArbeidsgiver.services.aktor.AktorClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -28,6 +28,7 @@ public class DigisyfoController {
         private final OIDCRequestContextHolder requestContextHolder;
         private final AccesstokenClient accesstokenClient;
         private final AktorClient aktorClient;
+
         @Autowired
         public DigisyfoController (OIDCRequestContextHolder requestContextHolder, AccesstokenClient accesstokenClient, AktorClient aktorClient) {
             this.requestContextHolder = requestContextHolder;
