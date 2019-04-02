@@ -30,10 +30,18 @@ public class AktorClient {
 
         String uriString = UriComponentsBuilder.fromHttpUrl(aktorURL)
                 .queryParam("identgruppe","AktoerId")
-                .queryParam("gjeldende",true)
+                .queryParam("gjeldende","true")
                 .toUriString();
         RestTemplate restTemplate= new RestTemplate();
         HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<String> stringResponse = restTemplate.exchange(uriString, HttpMethod.GET, entity, String.class);
+        if(stringResponse.getStatusCode() != HttpStatus.OK){
+            String message = "Kall mot aktørregister feiler med HTTP-" + stringResponse.getStatusCode();
+            log.error(message);
+            throw new RuntimeException(message);
+
+        }
+        log.info("stringResponse:" +stringResponse.getBody());
         try {
             ResponseEntity<AktorResponse> response = restTemplate.exchange(uriString, HttpMethod.GET, entity, AktorResponse.class);
             if(response.getStatusCode() != HttpStatus.OK){
@@ -44,8 +52,8 @@ public class AktorClient {
             }
             log.error("responsebody: " + response.getBody().toString());
             log.error("responsebody.aktører: " + response.getBody().getAktorer().toString());
-            if(response.getBody().getAktorer().get(fnr).Feilmelding != null){
-                String message = "feilmelding på aktør: " + response.getBody().getAktorer().get(fnr).Feilmelding;
+            if(response.getBody().getAktorer().get(fnr).feilmelding != null){
+                String message = "feilmelding på aktør: " + response.getBody().getAktorer().get(fnr).feilmelding;
                 log.error(message);
                 throw new RuntimeException(message);
             }

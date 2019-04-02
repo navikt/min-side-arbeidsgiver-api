@@ -7,5 +7,5 @@ import java.util.List;
 @Data
 public class Aktor {
     List <Ident> identer;
-    String Feilmelding;
+    String feilmelding;
 }
