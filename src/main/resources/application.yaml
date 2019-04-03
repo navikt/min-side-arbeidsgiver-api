@@ -36,12 +36,20 @@ altinn:
   altinnHeader: "test"
   APIGwHeader: "test"
 
+digisyfo:
+  digisyfoUrl: "http://localhost:${mock.port}/digisyfo/api/"
+
 aad:
   aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
 ---
 
 spring:
   profiles: preprod
+
+
+digisyfo:
+  digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.preprod.local/api/"
+
 sts:
   stsPass: ${STS_PASS}
   stsUrl: https://security-token-service.nais.preprod.local/rest/v1/sts/token

@@ -2,11 +2,6 @@
   "07045700172": {
     "identer": [
       {
-        "ident": "07045700172",
-        "identgruppe": "NorskIdent",
-        "gjeldende": true
-      },
-      {
         "ident": "1000087745633",
         "identgruppe": "AktoerId",
         "gjeldende": true
@@ -19,11 +14,6 @@
       {
         "ident": "1000096233937",
         "identgruppe": "AktoerId",
-        "gjeldende": true
-      },
-      {
-        "ident": "07063000250",
-        "identgruppe": "NorskIdent",
         "gjeldende": true
       }
     ],

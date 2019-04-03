@@ -10,6 +10,7 @@ import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnException;
 import no.nav.tag.dittNavArbeidsgiver.services.aktor.AktorClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -24,40 +25,37 @@ import org.springframework.web.client.RestTemplate;
 @RestController
 public class DigisyfoController {
 
-
         private final OIDCRequestContextHolder requestContextHolder;
         private final AccesstokenClient accesstokenClient;
         private final AktorClient aktorClient;
+        private final RestTemplate restTemplate;
+        @Value("${digisyfo.digisyfoUrl}") private String digisyfoUrl;
 
-        @Autowired
-        public DigisyfoController (OIDCRequestContextHolder requestContextHolder, AccesstokenClient accesstokenClient, AktorClient aktorClient) {
+        public DigisyfoController (OIDCRequestContextHolder requestContextHolder, AccesstokenClient accesstokenClient, AktorClient aktorClient, RestTemplate restTemplate) {
             this.requestContextHolder = requestContextHolder;
             this.accesstokenClient = accesstokenClient;
             this.aktorClient = aktorClient;
+            this.restTemplate = restTemplate;
         }
-
 
         @GetMapping(value = "/api/narmesteleder")
         public String sjekkNarmestelederTilgang() {
             String fnr = FnrExtractor.extract(requestContextHolder);
-            RestTemplate restTemplate =new RestTemplate();
-            AadAccessToken adToken = accesstokenClient.hentAccessToken();
             HttpHeaders headers = new HttpHeaders();
-            String aktorid = aktorClient.getAktorId(fnr);
-            headers.set(OIDCConstants.AUTHORIZATION_HEADER, "Bearer "+adToken.getAccess_token());
+            /*
+            TODO: lagre accestoken fra AD (med en session?) så man slipper å spørre AD hver gang man skal sjekke nærmeste leder tilgang
+             */
+            headers.set(OIDCConstants.AUTHORIZATION_HEADER, "Bearer " + accesstokenClient.hentAccessToken().getAccess_token());
             HttpEntity<String> entity = new HttpEntity<>(headers);
-            String url = "https://syfoarbeidsgivertilgang.nais.preprod.local/api/"+aktorid;
-
+            String url = digisyfoUrl + aktorClient.getAktorId(fnr);
             try {
                 ResponseEntity<String> respons = restTemplate.exchange(url,
                         HttpMethod.GET, entity, String.class);
                 return respons.getBody();
-
             } catch (RestClientException exception) {
-                log.error(" Ddigisyfo Exception: ", exception);
+                log.error(" Digisyfo Exception: ", exception);
                 throw new AltinnException("digisyfo", exception);
             }
-
         }
 
     }

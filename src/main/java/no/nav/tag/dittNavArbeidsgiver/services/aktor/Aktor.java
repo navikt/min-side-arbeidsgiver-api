@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class Aktor {
+class Aktor {
     List <Ident> identer;
     String feilmelding;
 }

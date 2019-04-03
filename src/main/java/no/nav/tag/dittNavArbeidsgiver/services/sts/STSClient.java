@@ -2,6 +2,7 @@ package no.nav.tag.dittNavArbeidsgiver.services.sts;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
@@ -11,14 +12,13 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
-@ConfigurationProperties("sts")
 @Component
 public class STSClient {
 
-    @Setter
-    private String stsPass;
-    @Setter
-    private String stsUrl;
+
+    @Value("${sts.stsPass}")private String stsPass;
+    @Value("${sts.stsUrl}")private String stsUrl;
+
     public STStoken getToken() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
