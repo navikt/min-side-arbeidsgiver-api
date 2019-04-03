@@ -1,7 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.tag.dittNavArbeidsgiver.utils.AadAccessToken;
 import no.nav.tag.dittNavArbeidsgiver.utils.AccesstokenClient;
 import no.nav.security.oidc.OIDCConstants;
 import no.nav.security.oidc.api.Protected;
@@ -9,7 +8,6 @@ import no.nav.security.oidc.context.OIDCRequestContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnException;
 import no.nav.tag.dittNavArbeidsgiver.services.aktor.AktorClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

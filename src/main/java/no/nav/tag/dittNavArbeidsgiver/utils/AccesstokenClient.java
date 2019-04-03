@@ -41,11 +41,9 @@ public class AccesstokenClient {
         map.add("resource", "3f567c84-4912-4acf-88ef-9f0dcfc2ae2b");
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
-        AadAccessToken token = null;
         try {
             ResponseEntity <AadAccessToken> response = template.exchange(aadAccessTokenURL, HttpMethod.POST, entity, AadAccessToken.class);
-            token = response.getBody();
-            return token;
+            return response.getBody();
 
         } catch (RestClientException exception) {
 
