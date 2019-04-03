@@ -55,7 +55,7 @@ sts:
   stsUrl: https://security-token-service.nais.preprod.local/rest/v1/sts/token
 
 aktorregister:
-  akotrUrl: "https://app-q1.adeo.no/aktoerregister/api/v1/identer"
+  aktorUrl: "https://app-q1.adeo.no/aktoerregister/api/v1/identer"
 
 aad:
   aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
