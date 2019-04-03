@@ -46,7 +46,6 @@ aad:
 spring:
   profiles: preprod
 
-
 digisyfo:
   digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.preprod.local/api/"
 
