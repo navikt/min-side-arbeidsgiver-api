@@ -14,9 +14,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Protected
 @Slf4j
@@ -36,8 +38,8 @@ public class DigisyfoController {
             this.restTemplate = restTemplate;
         }
 
-        @GetMapping(value = "/api/narmesteleder")
-        public String sjekkNarmestelederTilgang() {
+        @GetMapping(value = "/api/narmesteleder/{orgid}")
+        public String sjekkNarmestelederTilgang(@PathVariable String orgid) {
             String fnr = FnrExtractor.extract(requestContextHolder);
             HttpHeaders headers = new HttpHeaders();
             /*
@@ -45,7 +47,9 @@ public class DigisyfoController {
              */
             headers.set(OIDCConstants.AUTHORIZATION_HEADER, "Bearer " + accesstokenClient.hentAccessToken().getAccess_token());
             HttpEntity<String> entity = new HttpEntity<>(headers);
-            String url = digisyfoUrl + aktorClient.getAktorId(fnr);
+            String url = UriComponentsBuilder.fromHttpUrl(digisyfoUrl + aktorClient.getAktorId(fnr))
+                    .queryParam("orgnummer",orgid)
+                    .toUriString();
             try {
                 ResponseEntity<String> respons = restTemplate.exchange(url,
                         HttpMethod.GET, entity, String.class);
