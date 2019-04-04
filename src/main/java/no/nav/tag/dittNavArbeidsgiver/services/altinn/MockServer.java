@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +20,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Component
 public class MockServer {
 
-    private WireMockServer server;
     private AltinnConfig altinnConfig;
 
     @SneakyThrows
@@ -36,7 +34,7 @@ public class MockServer {
         log.info("starter mockserveren");
 
         this.altinnConfig = altinnConfig;
-        this.server = new WireMockServer(port);
+        WireMockServer server = new WireMockServer(port);
 
         String altinnPath = new URL(altinnUrl).getPath();
         String stsPath = new URL(stsUrl).getPath();

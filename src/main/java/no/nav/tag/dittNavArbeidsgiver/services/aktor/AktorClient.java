@@ -28,7 +28,7 @@ public class AktorClient {
         try {
             ResponseEntity<AktorResponse> response = utforKallTilAktorregister(fnr);
             return response.getBody().get(fnr).identer.get(0).ident;
-        } catch(HttpClientErrorException e) {
+        } catch(HttpClientErrorException e ) {
             throw new AktorException("Feil ved oppslag i aktørtjenesten", e);
         }
     }

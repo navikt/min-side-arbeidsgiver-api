@@ -18,22 +18,12 @@ public class STSClient {
     @Value("${sts.stsUrl}")private String stsUrl;
 
     public STStoken getToken() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        RestTemplate basicAuthRestTemplate = new RestTemplateBuilder().basicAuthentication("srvditt-nav-arbeid",stsPass).build();
-        String uriString = UriComponentsBuilder.fromHttpUrl(stsUrl)
-                .queryParam("grant_type","client_credentials")
-                .queryParam("scope","openid")
-                .toUriString();
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
         try {
-            ResponseEntity<STStoken> response = basicAuthRestTemplate.exchange(uriString, HttpMethod.GET,entity,STStoken.class);
+            ResponseEntity<STStoken> response = buildUriAndExecuteRequest();
             if(response.getStatusCode() != HttpStatus.OK){
                 String message = "Kall mot STS feiler med HTTP-" + response.getStatusCode();
                 log.error(message);
                 throw new RuntimeException(message);
-
             }
             return (response.getBody());
         }
@@ -42,5 +32,23 @@ public class STSClient {
             throw new RuntimeException(e);
         }
     }
+
+    private ResponseEntity<STStoken> buildUriAndExecuteRequest(){
+        RestTemplate basicAuthRestTemplate = new RestTemplateBuilder().basicAuthentication("srvditt-nav-arbeid",stsPass).build();
+        String uriString = UriComponentsBuilder.fromHttpUrl(stsUrl)
+                .queryParam("grant_type","client_credentials")
+                .queryParam("scope","openid")
+                .toUriString();
+        HttpEntity<String> entity = getRequestEntity();
+        return basicAuthRestTemplate.exchange(uriString, HttpMethod.GET,entity,STStoken.class);
+    }
+
+    private HttpEntity<String> getRequestEntity() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        return new HttpEntity<>(headers);
+    }
+
+
 
 }
