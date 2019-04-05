@@ -3,14 +3,10 @@ package no.nav.tag.dittNavArbeidsgiver.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.io.Serializable;
+import lombok.Data;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
-@Setter
+@Data
 public class Organisasjon {
     @JsonProperty("Name")
     private String name;

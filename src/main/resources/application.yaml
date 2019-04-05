@@ -22,16 +22,45 @@ no.nav.security.oidc:
 mock:
   enabled: true
   port: 8081
+  aktorPort: 8082
+
+sts:
+  stsPass: "mockpass"
+  stsUrl: "http://localhost:${mock.port}/sts"
+
+aktorregister:
+  aktorUrl: "http://localhost:${mock.port}/aktoerregister/api/v1/identer"
 
 altinn:
   altinnUrl: "http://localhost:${mock.port}/altinn"
   altinnHeader: "test"
   APIGwHeader: "test"
 
+digisyfo:
+  digisyfoUrl: "http://localhost:${mock.port}/digisyfo/api/"
+
+aad:
+  aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
 ---
 
 spring:
   profiles: preprod
+
+digisyfo:
+  digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.preprod.local/api/"
+
+sts:
+  stsPass: ${STS_PASS}
+  stsUrl: https://security-token-service.nais.preprod.local/rest/v1/sts/token
+
+aktorregister:
+  aktorUrl: "https://app-q1.adeo.no/aktoerregister/api/v1/identer"
+
+aad:
+  aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
+  azureClientSecret:  ${AZURE_CLIENT_SECRET}
+  clientid: 1b1bf278-3c28-4003-a528-b595d800afb0
+  scope: https://trygdeetaten.no/syfoarbeidsgivertilgang/.default
 
 no.nav.security.oidc:
   issuers: selvbetjening
