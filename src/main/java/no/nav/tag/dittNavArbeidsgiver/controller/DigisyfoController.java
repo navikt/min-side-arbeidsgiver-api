@@ -25,7 +25,7 @@ public class DigisyfoController {
             this.digisyfoService = digisyfoService;
         }
 
-        @GetMapping(value = "/api/narmesteleder/")
+        @GetMapping(value = "/api/narmesteleder")
         public String sjekkNarmestelederTilgang() {
             String fnr = FnrExtractor.extract(requestContextHolder);
             return digisyfoService.getNarmesteledere(fnr);
