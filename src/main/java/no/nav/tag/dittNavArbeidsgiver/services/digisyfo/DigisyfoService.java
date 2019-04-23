@@ -49,4 +49,22 @@ public class DigisyfoService {
             throw new AltinnException("digisyfo", exception);
         }
     }
+
+    public String hentSykemeldingerFraSyfo(String navesso) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Cookie", "nav-esso="+ navesso);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<String> respons = restTemplate.exchange("https://tjenester-q1.nav.no/syforest/sykmeldinger" ,
+                    HttpMethod.GET, entity, String.class);
+            return respons.getBody();
+        } catch (
+                RestClientException exception) {
+            log.error(" Digisyfo Exception: ", exception);
+            throw new AltinnException("digisyfo", exception);
+        }
+
+
+    }
 }
