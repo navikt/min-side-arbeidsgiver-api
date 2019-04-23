@@ -3,7 +3,6 @@ package no.nav.tag.dittNavArbeidsgiver.services.digisyfo;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.security.oidc.OIDCConstants;
 import no.nav.tag.dittNavArbeidsgiver.services.aktor.AktorClient;
-import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnException;
 import no.nav.tag.dittNavArbeidsgiver.utils.AccesstokenClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -43,8 +42,7 @@ public class DigisyfoService {
                 throw new RuntimeException(message);
             }
             return respons.getBody();
-        } catch (
-                RestClientException exception) {
+        } catch (RestClientException exception) {
             log.error(" Digisyfo Exception: ", exception);
             throw new RuntimeException(" Digisyfo Exception: "+ exception);
         }

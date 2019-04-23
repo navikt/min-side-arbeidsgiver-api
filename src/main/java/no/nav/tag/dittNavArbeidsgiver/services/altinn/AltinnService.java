@@ -36,7 +36,6 @@ public class AltinnService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-NAV-APIKEY", altinnConfig.getAPIGwHeader());
         headers.set("APIKEY", altinnConfig.getAltinnHeader());
-
         return new HttpEntity<>(headers);
     }
 
