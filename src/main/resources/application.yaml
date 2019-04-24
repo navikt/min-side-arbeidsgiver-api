@@ -79,6 +79,17 @@ altinn:
 spring:
   profiles: prod
 
+digisyfo:
+  digisyfoUrl: "https://syfoarbeidsgivertilgang.adeo.no/api/"
+
+aktorregister:
+  aktorUrl: "https://app.adeo.no/aktoerregister/api/v1/identer"
+
+sts:
+  stsPass: ${STS_PASS}
+  stsUrl: https://security-token-service.nais.adeo.no/rest/v1/sts/token
+
+
 no.nav.security.oidc:
   issuers: selvbetjening
   issuer:
