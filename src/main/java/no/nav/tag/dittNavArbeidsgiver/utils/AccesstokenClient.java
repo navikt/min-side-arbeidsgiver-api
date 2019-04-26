@@ -24,7 +24,11 @@ public class AccesstokenClient {
 
     private String aadAccessTokenURL;
     @Setter
+    private String clientid;
+    @Setter
     private String azureClientSecret;
+    @Setter
+    private String scope;
     @Autowired
     public AccesstokenClient( ){
 
@@ -38,7 +42,7 @@ public class AccesstokenClient {
             return response.getBody();
 
         } catch (RestClientException exception) {
-            log.error("Feil ved oppslag i STS", exception);
+            log.error("Feil ved oppslag i AAD", exception);
             throw exception;
         }
     }
@@ -49,9 +53,9 @@ public class AccesstokenClient {
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
-        map.add("client_id", "1b1bf278-3c28-4003-a528-b595d800afb0");
+        map.add("client_id", clientid);
         map.add("client_secret", azureClientSecret);
-        map.add("resource", "3f567c84-4912-4acf-88ef-9f0dcfc2ae2b");
+        map.add("resource", scope);
 
         return new HttpEntity<>(map, headers);
     }

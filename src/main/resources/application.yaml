@@ -60,7 +60,7 @@ aad:
   aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
   azureClientSecret:  ${AZURE_CLIENT_SECRET}
   clientid: 1b1bf278-3c28-4003-a528-b595d800afb0
-  scope: https://trygdeetaten.no/syfoarbeidsgivertilgang/.default
+  scope: 3f567c84-4912-4acf-88ef-9f0dcfc2ae2b
 
 no.nav.security.oidc:
   issuers: selvbetjening
@@ -93,7 +93,7 @@ aad:
   aadAccessTokenURL: "https://login.microsoftonline.com/navno.onmicrosoft.com/oauth2/token"
   azureClientSecret:  ${AZURE_CLIENT_SECRET}
   clientid: ${AZURE_CLIENT_ID}
-  scope: https://nav.no/syfoarbeidsgivertilgang/.default
+  scope: 24059ae3-654d-4aaf-9c04-a1cb7b510bb4
 
 no.nav.security.oidc:
   issuers: selvbetjening
