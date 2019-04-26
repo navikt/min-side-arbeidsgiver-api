@@ -90,9 +90,9 @@ sts:
   stsUrl: https://security-token-service.nais.adeo.no/rest/v1/sts/token
 
 aad:
-  aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
+  aadAccessTokenURL: "https://login.microsoftonline.com/navno.onmicrosoft.com/oauth2/token"
   azureClientSecret:  ${AZURE_CLIENT_SECRET}
-  clientid: 84842e46-d077-4a4b-91c2-690f84c5db78
+  clientid: ${AZURE_CLIENT_ID}
   scope: https://nav.no/syfoarbeidsgivertilgang/.default
 
 no.nav.security.oidc:
