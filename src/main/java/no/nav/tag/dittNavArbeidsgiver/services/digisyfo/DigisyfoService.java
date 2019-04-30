@@ -19,6 +19,7 @@ public class DigisyfoService {
     private final AktorClient aktorClient;
     private final RestTemplate restTemplate;
     @Value("${digisyfo.digisyfoUrl}") private String digisyfoUrl;
+    @Value("${digisyfo.sykemeldteURL}") private String sykemeldteURL;
 
     public DigisyfoService ( AccesstokenClient accesstokenClient, AktorClient aktorClient, RestTemplate restTemplate) {
         this.accesstokenClient = accesstokenClient;
@@ -61,7 +62,7 @@ public class DigisyfoService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<String> respons = restTemplate.exchange("https://tjenester-q1.nav.no/syforest/sykmeldinger" ,
+            ResponseEntity<String> respons = restTemplate.exchange(sykemeldteURL ,
                     HttpMethod.GET, entity, String.class);
             return respons.getBody();
         } catch (
@@ -69,7 +70,5 @@ public class DigisyfoService {
             log.error(" Digisyfo Exception: ", exception);
             throw new RuntimeException("digisyfo", exception);
         }
-
-
     }
 }

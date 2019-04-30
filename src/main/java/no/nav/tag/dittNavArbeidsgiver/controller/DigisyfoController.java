@@ -34,8 +34,9 @@ public class DigisyfoController {
 
     @GetMapping(value = "/api/sykemeldinger")
     public String hentAntallSykemeldinger (@CookieValue("nav-esso") String navesso ) {
-        digisyfoService.hentSykemeldingerFraSyfo(navesso);
-        return null;
+            log.info("nav-esso cookie: "+ navesso);
+        return digisyfoService.hentSykemeldingerFraSyfo(navesso);
+
     }
 
 

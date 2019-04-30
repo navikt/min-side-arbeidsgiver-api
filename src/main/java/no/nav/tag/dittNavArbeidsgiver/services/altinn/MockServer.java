@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URL;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -29,7 +30,8 @@ public class MockServer {
             @Value("${mock.port}") int port,
             AltinnConfig altinnConfig,
             @Value("${sts.stsUrl}") String stsUrl,
-            @Value("${aktorregister.aktorUrl}") String aktorUrl
+            @Value("${aktorregister.aktorUrl}") String aktorUrl,
+            @Value("${digisyfo.sykemeldteURL}") String sykemeldteUrl
     ) {
         log.info("starter mockserveren");
 
@@ -39,10 +41,12 @@ public class MockServer {
         String altinnPath = new URL(altinnUrl).getPath();
         String stsPath = new URL(stsUrl).getPath();
         String aktorPath=new URL(aktorUrl).getPath();
+        String sykemeldtePath= new URL(sykemeldteUrl).getPath();
         mockOrganisasjoner(altinnConfig, server,altinnPath);
         mockInvalidSSN(altinnConfig, server,altinnPath);
         mockSTSResponse( server,stsPath);
         mockAktorResponse( server,aktorPath);
+        mockSykemeldingerResponse(server,sykemeldtePath);
         server.start();
     }
 
@@ -71,7 +75,7 @@ public class MockServer {
     }
 
     public static void mockAktorResponse(WireMockServer server,String aktorURL) {
-
+        log.info("mocking sykemeldte");
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(aktorURL))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -84,11 +88,17 @@ public class MockServer {
                 .withQueryParam("scope", equalTo("openid"))
                 .willReturn(WireMock.aResponse()
                 .withHeader("Content-Type", "application/json")
-
                 .withBody(hentStringFraFil("STStoken.json"))
         ));
 
 
+    }
+    public static void mockSykemeldingerResponse(WireMockServer server, String sykemeldtePath){
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(sykemeldtePath))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("sykemeldinger.json"))
+                ));
     }
 
     @SneakyThrows
