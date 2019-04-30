@@ -67,7 +67,7 @@ public class DigisyfoService {
         } catch (
                 RestClientException exception) {
             log.error(" Digisyfo Exception: ", exception);
-            throw new AltinnException("digisyfo", exception);
+            throw new RuntimeException("digisyfo", exception);
         }
 
 
