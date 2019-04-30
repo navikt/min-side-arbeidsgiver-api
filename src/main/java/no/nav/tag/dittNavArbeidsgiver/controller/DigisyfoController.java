@@ -6,12 +6,9 @@ import no.nav.security.oidc.api.Protected;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.WebUtils;
 
 
 @Protected
@@ -36,7 +33,7 @@ public class DigisyfoController {
 
     @GetMapping(value = "/api/sykemeldinger")
     public String hentAntallSykemeldinger (@CookieValue("nav-esso") String navesso ) {
-        hentSykemeldingerFraSyfo(navesso);
+        digisyfoService.hentSykemeldingerFraSyfo(navesso);
         return null;
     }
 
