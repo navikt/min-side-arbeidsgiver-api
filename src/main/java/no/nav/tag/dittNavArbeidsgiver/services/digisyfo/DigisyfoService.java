@@ -18,10 +18,12 @@ public class DigisyfoService {
     private final AccesstokenClient accesstokenClient;
     private final AktorClient aktorClient;
     private final RestTemplate restTemplate;
-    @Value("${digisyfo.digisyfoUrl}") private String digisyfoUrl;
-    @Value("${digisyfo.sykemeldteURL}") private String sykemeldteURL;
+    @Value("${digisyfo.digisyfoUrl}")
+    private String digisyfoUrl;
+    @Value("${digisyfo.sykemeldteURL}")
+    private String sykemeldteURL;
 
-    public DigisyfoService ( AccesstokenClient accesstokenClient, AktorClient aktorClient, RestTemplate restTemplate) {
+    public DigisyfoService(AccesstokenClient accesstokenClient, AktorClient aktorClient, RestTemplate restTemplate) {
         this.accesstokenClient = accesstokenClient;
         this.aktorClient = aktorClient;
         this.restTemplate = restTemplate;
@@ -37,7 +39,7 @@ public class DigisyfoService {
         try {
             ResponseEntity<String> respons = restTemplate.exchange(url,
                     HttpMethod.GET, entity, String.class);
-            if(respons.getStatusCode() != HttpStatus.OK) {
+            if (respons.getStatusCode() != HttpStatus.OK) {
                 String message = "Kall mot digisyfo feiler med HTTP-" + respons.getStatusCode();
                 log.error(message);
                 throw new RuntimeException(message);
@@ -45,7 +47,7 @@ public class DigisyfoService {
             return respons.getBody();
         } catch (RestClientException exception) {
             log.error(" Digisyfo Exception: ", exception);
-            throw new RuntimeException(" Digisyfo Exception: "+ exception);
+            throw new RuntimeException(" Digisyfo Exception: " + exception);
         }
     }
 
@@ -58,11 +60,10 @@ public class DigisyfoService {
 
     public String hentSykemeldingerFraSyfo(String navesso) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Cookie", "nav-esso="+ navesso);
+        headers.add("Cookie", "nav-esso=" + navesso);
         HttpEntity<String> entity = new HttpEntity<>(headers);
-
         try {
-            ResponseEntity<String> respons = restTemplate.exchange(sykemeldteURL ,
+            ResponseEntity<String> respons = restTemplate.exchange(sykemeldteURL,
                     HttpMethod.GET, entity, String.class);
             return respons.getBody();
         } catch (

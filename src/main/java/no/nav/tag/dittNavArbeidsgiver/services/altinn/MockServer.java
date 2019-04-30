@@ -40,17 +40,17 @@ public class MockServer {
 
         String altinnPath = new URL(altinnUrl).getPath();
         String stsPath = new URL(stsUrl).getPath();
-        String aktorPath=new URL(aktorUrl).getPath();
-        String sykemeldtePath= new URL(sykemeldteUrl).getPath();
-        mockOrganisasjoner(altinnConfig, server,altinnPath);
-        mockInvalidSSN(altinnConfig, server,altinnPath);
-        mockSTSResponse( server,stsPath);
-        mockAktorResponse( server,aktorPath);
-        mockSykemeldingerResponse(server,sykemeldtePath);
+        String aktorPath = new URL(aktorUrl).getPath();
+        String sykemeldtePath = new URL(sykemeldteUrl).getPath();
+        mockOrganisasjoner(altinnConfig, server, altinnPath);
+        mockInvalidSSN(altinnConfig, server, altinnPath);
+        mockSTSResponse(server, stsPath);
+        mockAktorResponse(server, aktorPath);
+        mockSykemeldingerResponse(server, sykemeldtePath);
         server.start();
     }
 
-    public static void mockOrganisasjoner(AltinnConfig altinnConfig, WireMockServer server,String altinnPath) {
+    public static void mockOrganisasjoner(AltinnConfig altinnConfig, WireMockServer server, String altinnPath) {
 
 
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "/reportees/"))
@@ -63,7 +63,8 @@ public class MockServer {
                         .withBody(hentStringFraFil("organisasjoner.json"))
                 ));
     }
-    public static void mockInvalidSSN(AltinnConfig altinnConfig, WireMockServer server,String altinnPath) {
+
+    public static void mockInvalidSSN(AltinnConfig altinnConfig, WireMockServer server, String altinnPath) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "/reportees/"))
                 .withHeader("X-NAV-APIKEY", equalTo(altinnConfig.getAPIGwHeader()))
                 .withHeader("APIKEY", equalTo(altinnConfig.getAltinnHeader()))
@@ -74,7 +75,7 @@ public class MockServer {
                 ));
     }
 
-    public static void mockAktorResponse(WireMockServer server,String aktorURL) {
+    public static void mockAktorResponse(WireMockServer server, String aktorURL) {
         log.info("mocking sykemeldte");
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(aktorURL))
                 .willReturn(WireMock.aResponse()
@@ -82,18 +83,20 @@ public class MockServer {
                         .withBody(hentStringFraFil("aktorer.json"))
                 ));
     }
-    public static void mockSTSResponse(WireMockServer server, String stsPath){
+
+    public static void mockSTSResponse(WireMockServer server, String stsPath) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(stsPath))
-                .withQueryParam("grant_type",equalTo("client_credentials"))
+                .withQueryParam("grant_type", equalTo("client_credentials"))
                 .withQueryParam("scope", equalTo("openid"))
                 .willReturn(WireMock.aResponse()
-                .withHeader("Content-Type", "application/json")
-                .withBody(hentStringFraFil("STStoken.json"))
-        ));
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("STStoken.json"))
+                ));
 
 
     }
-    public static void mockSykemeldingerResponse(WireMockServer server, String sykemeldtePath){
+
+    public static void mockSykemeldingerResponse(WireMockServer server, String sykemeldtePath) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(sykemeldtePath))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
