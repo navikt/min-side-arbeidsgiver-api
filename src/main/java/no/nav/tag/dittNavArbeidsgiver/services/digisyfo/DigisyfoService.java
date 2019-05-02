@@ -22,6 +22,8 @@ public class DigisyfoService {
     private String digisyfoUrl;
     @Value("${digisyfo.sykemeldteURL}")
     private String sykemeldteURL;
+    @Value("${digisyfo.syfooppgaveurl}")
+    private String syfoOppgaveUrl;
 
     public DigisyfoService(AccesstokenClient accesstokenClient, AktorClient aktorClient, RestTemplate restTemplate) {
         this.accesstokenClient = accesstokenClient;
@@ -58,12 +60,25 @@ public class DigisyfoService {
         return new HttpEntity<>(headers);
     }
 
-    public String hentSykemeldingerFraSyfo(String navesso) {
+    private HttpEntity<String> getEssoRequestEntity(String navesso) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cookie", "nav-esso=" + navesso);
         HttpEntity<String> entity = new HttpEntity<>(headers);
+        return entity;
+    }
+
+    public String hentSykemeldingerFraSyfo(String navesso) {
+        return utforSyfoSporring(navesso, sykemeldteURL);
+    }
+
+    public String hentSyfoOppgaver(String navesso) {
+        return utforSyfoSporring(navesso, syfoOppgaveUrl);
+    }
+
+    private String utforSyfoSporring(String navesso, String requestUrl) {
+        HttpEntity<String> entity = getEssoRequestEntity(navesso);
         try {
-            ResponseEntity<String> respons = restTemplate.exchange(sykemeldteURL,
+            ResponseEntity<String> respons = restTemplate.exchange(requestUrl,
                     HttpMethod.GET, entity, String.class);
             return respons.getBody();
         } catch (
@@ -73,3 +88,4 @@ public class DigisyfoService {
         }
     }
 }
+

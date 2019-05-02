@@ -36,6 +36,10 @@ public class DigisyfoController {
     public String hentAntallSykemeldinger(@CookieValue("nav-esso") String navesso) {
         return digisyfoService.hentSykemeldingerFraSyfo(navesso);
     }
+    @GetMapping(value = "/api/syfooppgaver")
+    public String hentSyfoOppgaver(@CookieValue("nav-esso") String navesso) {
+        return digisyfoService.hentSyfoOppgaver(navesso);
+    }
 
 }
 
