@@ -90,7 +90,6 @@ public class MockServer {
     }
 
     public static void mockAktorResponse(WireMockServer server, String aktorURL) {
-        log.info("mocking sykemeldte");
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(aktorURL))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -106,8 +105,6 @@ public class MockServer {
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("STStoken.json"))
                 ));
-
-
     }
 
     public static void mockSykemeldingerResponse(WireMockServer server, String sykemeldtePath) {
