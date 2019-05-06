@@ -2,6 +2,7 @@ package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
+import no.nav.tag.dittNavArbeidsgiver.models.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -27,7 +28,15 @@ public class AltinnService {
 
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         String query = "&subject=" + fnr + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business')+and+Status+eq+'Active'";
-        ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},query);
+        String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication" + query;
+        ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
+        log.info("Henter organisasjoner fra Altinn");
+        return respons.getBody();
+    }
+    public List<Role> hentRoller(String fnr, String orgnr) {
+        String query = "&subject=" + fnr + "&reportee="+orgnr;
+        String url = altinnConfig.getAltinnurl() + "/authorization/roles?ForceEIAuthentication" + query;
+        ResponseEntity<List<Role>> respons = getFromAltinn(new ParameterizedTypeReference<List<Role>>() {},url);
         log.info("Henter organisasjoner fra Altinn");
         return respons.getBody();
     }
@@ -39,8 +48,7 @@ public class AltinnService {
         return new HttpEntity<>(headers);
     }
 
-    private <T> ResponseEntity<List<T>> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String query){
-        String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication" + query;
+    private <T> ResponseEntity<List<T>> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String url){
         HttpEntity<String> headers = getHeaderEntity();
         try {
            return restTemplate.exchange(url,

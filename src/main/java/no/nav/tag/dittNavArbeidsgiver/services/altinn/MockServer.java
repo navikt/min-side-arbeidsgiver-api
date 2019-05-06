@@ -45,6 +45,7 @@ public class MockServer {
         String syfoOppgavePath = new URL(syfoOpggaveUrl).getPath();
         mockOrganisasjoner(altinnConfig, server, altinnPath);
         mockInvalidSSN(altinnConfig, server, altinnPath);
+        mockRoles(altinnConfig,server,altinnPath);
         mockSTSResponse(server, stsPath);
         mockAktorResponse(server, aktorPath);
         mockSykemeldingerResponse(server, sykemeldtePath);
@@ -72,6 +73,19 @@ public class MockServer {
                 .withQueryParam("subject", equalTo("04010100655"))
                 .willReturn(WireMock.aResponse().withStatusMessage("Invalid socialSecurityNumber").withStatus(400)
                         .withHeader("Content-Type", "application/octet-stream")
+                ));
+    }
+
+    public static void mockRoles(AltinnConfig altinnConfig, WireMockServer server, String altinnPath) {
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "/authorization/roles"))
+                .withHeader("X-NAV-APIKEY", equalTo(altinnConfig.getAPIGwHeader()))
+                .withHeader("APIKEY", equalTo(altinnConfig.getAltinnHeader()))
+                .withQueryParam("ForceEIAuthentication", equalTo(""))
+                .withQueryParam("subject", equalTo("00000000000"))
+                .withQueryParam("reportee", equalTo("000000000"))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("roles.json"))
                 ));
     }
 

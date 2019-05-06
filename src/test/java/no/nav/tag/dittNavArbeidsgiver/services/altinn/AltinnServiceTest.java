@@ -28,4 +28,9 @@ public class AltinnServiceTest {
          altinnService.hentOrganisasjoner("04010100655");
     }
 
+    @Test
+    public void hentRoller__skal_fungere_med_gyldig_fnr_og_orgno() {
+        altinnService.hentRoller("00000000000","000000000");
+    }
+
 }
