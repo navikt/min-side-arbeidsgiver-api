@@ -38,6 +38,8 @@ altinn:
 
 digisyfo:
   digisyfoUrl: "http://localhost:${mock.port}/digisyfo/api/"
+  sykemeldteURL: "http://localhost:${mock.port}/syforest/sykmeldinger"
+  syfooppgaveurl: "http://localhost:${mock.port}/syforest/oppgaver"
 
 aad:
   aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
@@ -48,6 +50,8 @@ spring:
 
 digisyfo:
   digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.preprod.local/api/"
+  sykemeldteURL: "https://tjenester-q1.nav.no/syforest/sykmeldinger"
+  syfooppgaveurl: "https://tjenester-q1.nav.no/syforest/oppgaver"
 
 sts:
   stsPass: ${STS_PASS}
@@ -81,6 +85,8 @@ spring:
 
 digisyfo:
   digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.adeo.no/api/"
+  sykemeldteURL: "https://tjenester.nav.no/syforest/sykmeldinger"
+  syfooppgaveurl: "https://tjenester.nav.no/syforest/oppgaver"
 
 aktorregister:
   aktorUrl: "https://app.adeo.no/aktoerregister/api/v1/identer"

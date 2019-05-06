@@ -18,9 +18,14 @@ public class DigisyfoService {
     private final AccesstokenClient accesstokenClient;
     private final AktorClient aktorClient;
     private final RestTemplate restTemplate;
-    @Value("${digisyfo.digisyfoUrl}") private String digisyfoUrl;
+    @Value("${digisyfo.digisyfoUrl}")
+    private String digisyfoUrl;
+    @Value("${digisyfo.sykemeldteURL}")
+    private String sykemeldteURL;
+    @Value("${digisyfo.syfooppgaveurl}")
+    private String syfoOppgaveUrl;
 
-    public DigisyfoService ( AccesstokenClient accesstokenClient, AktorClient aktorClient, RestTemplate restTemplate) {
+    public DigisyfoService(AccesstokenClient accesstokenClient, AktorClient aktorClient, RestTemplate restTemplate) {
         this.accesstokenClient = accesstokenClient;
         this.aktorClient = aktorClient;
         this.restTemplate = restTemplate;
@@ -36,7 +41,7 @@ public class DigisyfoService {
         try {
             ResponseEntity<String> respons = restTemplate.exchange(url,
                     HttpMethod.GET, entity, String.class);
-            if(respons.getStatusCode() != HttpStatus.OK) {
+            if (respons.getStatusCode() != HttpStatus.OK) {
                 String message = "Kall mot digisyfo feiler med HTTP-" + respons.getStatusCode();
                 log.error(message);
                 throw new RuntimeException(message);
@@ -44,7 +49,7 @@ public class DigisyfoService {
             return respons.getBody();
         } catch (RestClientException exception) {
             log.error(" Digisyfo Exception: ", exception);
-            throw new RuntimeException(" Digisyfo Exception: "+ exception);
+            throw new RuntimeException(" Digisyfo Exception: " + exception);
         }
     }
 
@@ -54,4 +59,33 @@ public class DigisyfoService {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return new HttpEntity<>(headers);
     }
+
+    private HttpEntity<String> getEssoRequestEntity(String navesso) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Cookie", "nav-esso=" + navesso);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        return entity;
+    }
+
+    public String hentSykemeldingerFraSyfo(String navesso) {
+        return utforSyfoSporring(navesso, sykemeldteURL);
+    }
+
+    public String hentSyfoOppgaver(String navesso) {
+        return utforSyfoSporring(navesso, syfoOppgaveUrl);
+    }
+
+    private String utforSyfoSporring(String navesso, String requestUrl) {
+        HttpEntity<String> entity = getEssoRequestEntity(navesso);
+        try {
+            ResponseEntity<String> respons = restTemplate.exchange(requestUrl,
+                    HttpMethod.GET, entity, String.class);
+            return respons.getBody();
+        } catch (
+                RestClientException exception) {
+            log.error(" Digisyfo Exception: ", exception);
+            throw new RuntimeException("digisyfo", exception);
+        }
+    }
 }
+

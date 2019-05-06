@@ -1,0 +1,202 @@
+[
+  {
+    "id": "f27b8e26-9726-4f41-84f8-37a0b3e2f4e7",
+    "startLegemeldtFravaer": "2016-07-15",
+    "skalViseSkravertFelt": true,
+    "identdato": "2016-07-15",
+    "status": "SENDT",
+    "naermesteLederStatus": null,
+    "innsendtArbeidsgivernavn": "BÆRUM KOMMUNE SOLBAKKEN BO- OG, BEHANDLINGSSENTER",
+    "valgtArbeidssituasjon": null,
+    "mottakendeArbeidsgiver": {
+      "navn": "BÆRUM KOMMUNE SOLBAKKEN BO- OG, BEHANDLINGSSENTER",
+      "virksomhetsnummer": "974554062",
+      "juridiskOrgnummer": "935478715"
+    },
+    "orgnummer": "974554062",
+    "sendtdato": "2017-02-07T13:51:02",
+    "sporsmal": null,
+    "pasient": {
+      "fnr": "09017025608",
+      "fornavn": "Frida",
+      "mellomnavn": null,
+      "etternavn": "Frost"
+    },
+    "arbeidsgiver": "LOMMEN BARNEHAVE",
+    "stillingsprosent": 100,
+    "diagnose": {
+      "hoveddiagnose": {
+        "diagnose": "TENDINITT INA",
+        "diagnosekode": "L87",
+        "diagnosesystem": "ICPC-2"
+      },
+      "bidiagnoser": [
+        {
+          "diagnose": "GANGLION SENE",
+          "diagnosekode": "L87",
+          "diagnosesystem": "ICPC-2"
+        }
+      ],
+      "fravaersgrunnLovfestet": null,
+      "fravaerBeskrivelse": "Medising årsak i kategorien annet",
+      "svangerskap": true,
+      "yrkesskade": true,
+      "yrkesskadeDato": "2016-07-15"
+    },
+    "mulighetForArbeid": {
+      "perioder": [
+        {
+          "fom": "2016-07-15",
+          "tom": "2016-07-20",
+          "grad": 60,
+          "behandlingsdager": null,
+          "reisetilskudd": false,
+          "avventende": null
+        }
+      ],
+      "aktivitetIkkeMulig433": null,
+      "aktivitetIkkeMulig434": null,
+      "aarsakAktivitetIkkeMulig433": null,
+      "aarsakAktivitetIkkeMulig434": null
+    },
+    "friskmelding": {
+      "arbeidsfoerEtterPerioden": true,
+      "hensynPaaArbeidsplassen": "Må ta det pent",
+      "antarReturSammeArbeidsgiver": true,
+      "antattDatoReturSammeArbeidsgiver": "2016-07-15",
+      "antarReturAnnenArbeidsgiver": true,
+      "tilbakemeldingReturArbeid": "2016-07-15",
+      "utenArbeidsgiverAntarTilbakeIArbeid": false,
+      "utenArbeidsgiverAntarTilbakeIArbeidDato": null,
+      "utenArbeidsgiverTilbakemelding": null
+    },
+    "utdypendeOpplysninger": {
+      "sykehistorie": null,
+      "paavirkningArbeidsevne": null,
+      "resultatAvBehandling": null,
+      "henvisningUtredningBehandling": null,
+      "grupper": []
+    },
+    "arbeidsevne": {
+      "tilretteleggingArbeidsplass": "Fortsett som sist.",
+      "tiltakNAV": "Pasienten har plager som er kommet tilbake etter operasjon. Det er nylig tatt MR bildet som viser forandringer i hånd som mulig må opereres. Venter på time. Det er mulig sykemledingen vil vare utover aktuell sm periode. ",
+      "tiltakAndre": null
+    },
+    "meldingTilNav": {
+      "navBoerTaTakISaken": false,
+      "navBoerTaTakISakenBegrunnelse": null
+    },
+    "innspillTilArbeidsgiver": null,
+    "tilbakedatering": {
+      "dokumenterbarPasientkontakt": null,
+      "tilbakedatertBegrunnelse": null
+    },
+    "bekreftelse": {
+      "utstedelsesdato": "2017-02-10",
+      "sykmelder": "Frida Frost",
+      "sykmelderTlf": "00000000"
+    }
+  },
+  {
+    "id": "f912cba2-a7c6-4a24-920f-875218ae1ecb",
+    "startLegemeldtFravaer": "2017-01-10",
+    "skalViseSkravertFelt": true,
+    "identdato": "2017-01-10",
+    "status": "SENDT",
+    "naermesteLederStatus": null,
+    "innsendtArbeidsgivernavn": "ARBEIDS- OG VELFERDSDIREKTORATET, AVD SANNERGATA",
+    "valgtArbeidssituasjon": null,
+    "mottakendeArbeidsgiver": {
+      "navn": "ARBEIDS- OG VELFERDSDIREKTORATET, AVD SANNERGATA",
+      "virksomhetsnummer": "995298775",
+      "juridiskOrgnummer": "983887457"
+    },
+    "orgnummer": "995298775",
+    "sendtdato": "2017-03-01T15:19:31",
+    "sporsmal": null,
+    "pasient": {
+      "fnr": "09017025608",
+      "fornavn": "Frida",
+      "mellomnavn": null,
+      "etternavn": "Frost"
+    },
+    "arbeidsgiver": "LOMMEN BARNEHAVE",
+    "stillingsprosent": 100,
+    "diagnose": {
+      "hoveddiagnose": {
+        "diagnose": "TENDINITT INA",
+        "diagnosekode": "L87",
+        "diagnosesystem": "ICPC-2"
+      },
+      "bidiagnoser": [
+        {
+          "diagnose": "GANGLION SENE",
+          "diagnosekode": "L87",
+          "diagnosesystem": "ICPC-2"
+        }
+      ],
+      "fravaersgrunnLovfestet": null,
+      "fravaerBeskrivelse": "Medising årsak i kategorien annet",
+      "svangerskap": true,
+      "yrkesskade": true,
+      "yrkesskadeDato": "2017-01-10"
+    },
+    "mulighetForArbeid": {
+      "perioder": [
+        {
+          "fom": "2017-01-10",
+          "tom": "2017-01-20",
+          "grad": 100,
+          "behandlingsdager": null,
+          "reisetilskudd": null,
+          "avventende": null
+        }
+      ],
+      "aktivitetIkkeMulig433": [
+        "Annet"
+      ],
+      "aktivitetIkkeMulig434": [
+        "Annet"
+      ],
+      "aarsakAktivitetIkkeMulig433": "andre årsaker til sykefravær",
+      "aarsakAktivitetIkkeMulig434": "andre årsaker til sykefravær"
+    },
+    "friskmelding": {
+      "arbeidsfoerEtterPerioden": true,
+      "hensynPaaArbeidsplassen": "Må ta det pent",
+      "antarReturSammeArbeidsgiver": true,
+      "antattDatoReturSammeArbeidsgiver": "2017-01-10",
+      "antarReturAnnenArbeidsgiver": true,
+      "tilbakemeldingReturArbeid": "2017-01-10",
+      "utenArbeidsgiverAntarTilbakeIArbeid": false,
+      "utenArbeidsgiverAntarTilbakeIArbeidDato": null,
+      "utenArbeidsgiverTilbakemelding": null
+    },
+    "utdypendeOpplysninger": {
+      "sykehistorie": null,
+      "paavirkningArbeidsevne": null,
+      "resultatAvBehandling": null,
+      "henvisningUtredningBehandling": null,
+      "grupper": []
+    },
+    "arbeidsevne": {
+      "tilretteleggingArbeidsplass": "Fortsett som sist.",
+      "tiltakNAV": "Pasienten har plager som er kommet tilbake etter operasjon. Det er nylig tatt MR bildet som viser forandringer i hånd som mulig må opereres. Venter på time. Det er mulig sykemledingen vil vare utover aktuell sm periode. ",
+      "tiltakAndre": null
+    },
+    "meldingTilNav": {
+      "navBoerTaTakISaken": false,
+      "navBoerTaTakISakenBegrunnelse": null
+    },
+    "innspillTilArbeidsgiver": null,
+    "tilbakedatering": {
+      "dokumenterbarPasientkontakt": null,
+      "tilbakedatertBegrunnelse": null
+    },
+    "bekreftelse": {
+      "utstedelsesdato": "2017-01-10",
+      "sykmelder": "Frida Frost",
+      "sykmelderTlf": "00000000"
+    }
+  }
+  ]
