@@ -3,11 +3,13 @@ package no.nav.tag.dittNavArbeidsgiver.controller;
 import no.nav.security.oidc.api.Protected;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
+import no.nav.tag.dittNavArbeidsgiver.models.Role;
 import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnService;
 import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,5 +35,10 @@ public class OrganisasjonController {
         List <Organisasjon> result = altinnService.hentOrganisasjoner(fnr);
         return ResponseEntity.ok(result);
     }
-
+    @GetMapping(value ="/api/roller/{orgnr}")
+    public ResponseEntity<List<Role>> hentRoller(@PathVariable String orgnr){
+        String fnr = FnrExtractor.extract(requestContextHolder);
+        List<Role> result = altinnService.hentRoller(fnr, orgnr);
+        return ResponseEntity.ok(result);
+    }
 }
