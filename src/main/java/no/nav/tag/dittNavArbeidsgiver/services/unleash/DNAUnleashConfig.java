@@ -19,26 +19,22 @@ public class DNAUnleashConfig {
     @Value("${unleash.url}")
     private String api;
 
-    @Bean
-    @Profile({"preprod", "prod"})
-    public UnleashConfig unleashConfig() {
-        return UnleashConfig.builder()
-                .appName("ditt-nav-arbeidsgiver-api")
-                .instanceId(System.getProperty("environment.name", "local"))
-                .unleashAPI(api)
-                .build();
-    }
-
     @Profile("dev")
     @Bean
-    public Unleash unleash() {
+    public Unleash testUnleash() {
         return new LocalLeash();
     }
 
     @Profile({"preprod", "prod"})
     @Bean
-    public Unleash unleash(UnleashConfig unleashConfig) {
-        return new DefaultUnleash(unleashConfig);
+    public Unleash unleash() {
+        UnleashConfig conf = UnleashConfig.builder()
+                    .appName("ditt-nav-arbeidsgiver-api")
+                    .instanceId(System.getProperty("environment.name", "local"))
+                    .unleashAPI(api)
+                    .build();
+
+        return new DefaultUnleash(conf);
     }
 
     private static class LocalLeash implements Unleash {
