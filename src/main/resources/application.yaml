@@ -43,6 +43,9 @@ digisyfo:
 
 aad:
   aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
+
+unleash:
+  url: "https://unleash.herokuapp.com/api/"
 ---
 
 spring:
@@ -78,6 +81,9 @@ altinn:
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
 
+unleash:
+  url: ${UNLEASH_URL}
+
 ---
 
 spring:
@@ -112,4 +118,7 @@ altinn:
   altinnUrl: "https://api-gw.adeo.no/ekstern/altinn/api/serviceowner/"
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
+
+unleash:
+  url: ${UNLEASH_URL}
 
