@@ -81,8 +81,6 @@ public class MockServer {
                 .withHeader("X-NAV-APIKEY", equalTo(altinnConfig.getAPIGwHeader()))
                 .withHeader("APIKEY", equalTo(altinnConfig.getAltinnHeader()))
                 .withQueryParam("ForceEIAuthentication", equalTo(""))
-                .withQueryParam("subject", equalTo("00000000000"))
-                .withQueryParam("reportee", equalTo("000000000"))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("roles.json"))
