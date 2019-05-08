@@ -40,9 +40,7 @@ public class DigisyfoController {
         if(unleash.isEnabled("dna.digisyfo.hentSyfoTilgang")) {
             return digisyfoService.getNarmesteledere(fnr);
         }else{
-            return"{\"narmesteLedere\": [],\n" +
-                    "  \"humanResources\": []\n" +
-                    "}";
+            return"{\"humanResources\": [],\"narmesteLedere\": []}";
         }
     }
 
