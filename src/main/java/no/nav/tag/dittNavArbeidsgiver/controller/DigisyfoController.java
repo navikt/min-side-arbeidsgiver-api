@@ -37,7 +37,11 @@ public class DigisyfoController {
     @GetMapping(value = "/api/narmesteleder")
     public String sjekkNarmestelederTilgang() {
         String fnr = FnrExtractor.extract(requestContextHolder);
-        return digisyfoService.getNarmesteledere(fnr);
+        if(unleash.isEnabled("dna.digisyfo.hentSyfoTilgang")) {
+            return digisyfoService.getNarmesteledere(fnr);
+        }else{
+            return"[]";
+        }
     }
 
     @GetMapping(value = "/api/sykemeldinger")
