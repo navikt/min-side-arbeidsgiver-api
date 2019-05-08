@@ -50,7 +50,12 @@ public class DigisyfoController {
     }
     @GetMapping(value = "/api/syfooppgaver")
     public String hentSyfoOppgaver(@CookieValue("nav-esso") String navesso) {
-        return digisyfoService.hentSyfoOppgaver(navesso);
+        if(unleash.isEnabled("dna.digisyfo.hentSykemeldinger")) {
+            return digisyfoService.hentSyfoOppgaver(navesso);
+        }else {
+        return "[]";
+        }
+
     }
 
 }
