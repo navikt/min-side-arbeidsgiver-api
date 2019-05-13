@@ -100,7 +100,7 @@ public class DigisyfoService {
 
         RestTemplate restTemplate = new RestTemplate(factory);
         try {
-            ResponseEntity<String> respons = restTemplate.exchange(sykemeldteURL,
+            ResponseEntity<String> respons = restTemplate.exchange(syfoOppgaveUrl,
                     HttpMethod.GET, entity, String.class);
 
             return respons.getBody();
