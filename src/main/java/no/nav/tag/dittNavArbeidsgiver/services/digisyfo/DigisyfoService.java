@@ -85,16 +85,13 @@ public class DigisyfoService {
                 .setRedirectStrategy(new LaxRedirectStrategy())
                 .build();
 
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(httpClient);
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
         HttpEntity<String> entity = getEssoRequestEntity(navesso);
-
         RestTemplate restTemplate = new RestTemplate(factory);
+
         try {
             ResponseEntity<String> respons = restTemplate.exchange(syfoOppgaveUrl,
                     HttpMethod.GET, entity, String.class);
-
             return respons.getBody();
         } catch (
                 RestClientException exception) {
@@ -105,11 +102,9 @@ public class DigisyfoService {
 
     private String utforSyfoSporring(String navesso, String requestUrl) {
         HttpEntity<String> entity = getEssoRequestEntity(navesso);
-
         try {
             ResponseEntity<String> respons = restTemplate.exchange(requestUrl,
                     HttpMethod.GET, entity, String.class);
-
             return respons.getBody();
         } catch (
                 RestClientException exception) {
