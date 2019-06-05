@@ -3,7 +3,6 @@ package no.nav.tag.dittNavArbeidsgiver.controller;
 import lombok.extern.slf4j.Slf4j;
 
 import no.finn.unleash.Unleash;
-import no.nav.tag.dittNavArbeidsgiver.services.unleash.DNAUnleashConfig;
 import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoService;
 import no.nav.security.oidc.api.Protected;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
@@ -40,9 +39,7 @@ public class DigisyfoController {
         if(unleash.isEnabled("dna.digisyfo.hentSyfoTilgang")) {
             return digisyfoService.getNarmesteledere(fnr);
         }else{
-            return"{\"narmesteLedere\": [],\n" +
-                    "  \"humanResources\": []\n" +
-                    "}";
+            return"{\"humanResources\": [],\"narmesteLedere\": []}";
         }
     }
 
