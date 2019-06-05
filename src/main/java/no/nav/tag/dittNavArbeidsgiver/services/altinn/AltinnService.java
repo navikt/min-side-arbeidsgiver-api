@@ -27,7 +27,7 @@ public class AltinnService {
     }
 
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
-        String query = "&subject=" + fnr + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business')+and+Status+eq+'Active'";
+        String query = "&subject=" + fnr + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business'+or+Type+eq+'Enterprise'+or+Type+eq+'Foretak')+and+Status+eq+'Active'";
         String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication" + query;
         ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
         log.info("Henter organisasjoner fra Altinn");
