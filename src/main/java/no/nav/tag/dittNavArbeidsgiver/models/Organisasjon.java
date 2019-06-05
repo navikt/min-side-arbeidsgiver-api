@@ -12,7 +12,7 @@ public class Organisasjon {
     private String name;
     @JsonProperty("Type")
     private String type;
-    @JsonProperty("ParentOrganizationNumbers")
+    @JsonProperty("ParentOrganizationNumber")
     private String parentOrganizationNumber;
     @JsonProperty("OrganizationNumber")
     private String organizationNumber;
