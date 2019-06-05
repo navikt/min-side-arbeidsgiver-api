@@ -3,6 +3,7 @@
     "Name": "BALLSTAD OG EIDSLANDET",
     "Type": "Business",
     "OrganizationNumber": "811076422",
+    "ParentOrganizationNumber": "811076112",
     "OrganizationForm": "BEDR",
     "Status": "Active"
   },
@@ -10,6 +11,7 @@
     "Name": "BALLSTAD OG HAMARØY",
     "Type": "Business",
     "OrganizationNumber": "811076732",
+    "ParentOrganizationNumber": "811076112",
     "OrganizationForm": "BEDR",
     "Status": "Active"
   },
@@ -24,6 +26,7 @@
     "Name": "BALLSTAD OG SÆTERVIK",
     "Type": "Business",
     "OrganizationNumber": "811076902",
+    "ParentOrganizationNumber": "811076112",
     "OrganizationForm": "BEDR",
     "Status": "Active"
   },
@@ -45,6 +48,7 @@
     "Name": "EIDSNES OG AUSTRE ÅMØY",
     "Type": "Business",
     "OrganizationNumber": "910521551",
+    "ParentOrganizationNumber": "910998250",
     "OrganizationForm": "BEDR",
     "Status": "Active"
   },
@@ -87,6 +91,7 @@
     "Name": "KYSTBASEN ÅGOTNES OG ILSENG REGNSKAP",
     "Type": "Enterprise",
     "OrganizationNumber": "910514318",
+    "ParentOrganizationNumber": "910175777",
     "OrganizationForm": "ASA",
     "Status": "Active"
   },
@@ -109,6 +114,7 @@
     "Type": "Business",
     "OrganizationNumber": "910793829",
     "OrganizationForm": "BEDR",
+    "ParentOrganizationNumber": "910720120",
     "Status": "Active"
   },
   {
@@ -136,6 +142,7 @@
     "Name": "TROMVIK OG SPARBU REVISJON",
     "Type": "Business",
     "OrganizationNumber": "910989626",
+    "ParentOrganizationNumber": "910167200",
     "OrganizationForm": "BEDR",
     "Status": "Active"
   },
@@ -150,6 +157,7 @@
     "Name": "UGGDAL OG STEINSDALEN",
     "Type": "Business",
     "OrganizationNumber": "910521616",
+    "ParentOrganizationNumber": "910820834",
     "OrganizationForm": "BEDR",
     "Status": "Active"
   },
@@ -157,6 +165,7 @@
     "Name": "VALESTRANDSFOSSEN OG SØRLI REVISJON",
     "Type": "Business",
     "OrganizationNumber": "810989602",
+    "ParentOrganizationNumber": "910820834",
     "OrganizationForm": "BEDR",
     "Status": "Active"
   },
@@ -164,6 +173,7 @@
     "Name": "VESTBY OG LOEN REVISJON",
     "Type": "Business",
     "OrganizationNumber": "910989642",
+    "ParentOrganizationNumber": "910820834",
     "OrganizationForm": "BEDR",
     "Status": "Active"
   }
