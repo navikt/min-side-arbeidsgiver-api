@@ -5,8 +5,12 @@ import no.nav.security.oidc.OIDCConstants;
 import no.nav.tag.dittNavArbeidsgiver.models.DigisyfoNarmesteLederRespons;
 import no.nav.tag.dittNavArbeidsgiver.services.aktor.AktorClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.AccesstokenClient;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -73,7 +77,28 @@ public class DigisyfoService {
     }
 
     public String hentSyfoOppgaver(String navesso) {
-        return utforSyfoSporring(navesso, syfoOppgaveUrl);
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setCircularRedirectsAllowed(true)
+                .build();
+
+        HttpClient httpClient = HttpClients.custom()
+                .setDefaultRequestConfig(requestConfig)
+                .setRedirectStrategy(new LaxRedirectStrategy())
+                .build();
+
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        HttpEntity<String> entity = getEssoRequestEntity(navesso);
+        RestTemplate restTemplate = new RestTemplate(factory);
+
+        try {
+            ResponseEntity<String> respons = restTemplate.exchange(syfoOppgaveUrl,
+                    HttpMethod.GET, entity, String.class);
+            return respons.getBody();
+        } catch (
+                RestClientException exception) {
+            log.error(" Digisyfo Exception: ", exception);
+            throw new RuntimeException("digisyfo", exception);
+        }
     }
 
     private String utforSyfoSporring(String navesso, String requestUrl) {

@@ -37,7 +37,7 @@ public class AltinnService {
         String query = "&subject=" + fnr + "&reportee="+orgnr;
         String url = altinnConfig.getAltinnurl() + "/authorization/roles?ForceEIAuthentication" + query;
         ResponseEntity<List<Role>> respons = getFromAltinn(new ParameterizedTypeReference<List<Role>>() {},url);
-        log.info("Henter organisasjoner fra Altinn");
+        log.info("Henter roller fra Altinn");
         return respons.getBody();
     }
 
