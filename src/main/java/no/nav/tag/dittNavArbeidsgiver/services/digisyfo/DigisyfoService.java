@@ -2,6 +2,7 @@ package no.nav.tag.dittNavArbeidsgiver.services.digisyfo;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.security.oidc.OIDCConstants;
+import no.nav.tag.dittNavArbeidsgiver.models.DigisyfoNarmesteLederRespons;
 import no.nav.tag.dittNavArbeidsgiver.services.aktor.AktorClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.AccesstokenClient;
 import org.apache.http.client.HttpClient;
@@ -35,16 +36,16 @@ public class DigisyfoService {
         this.restTemplate = restTemplate;
     }
 
-    public String getNarmesteledere(String fnr) {
+    public DigisyfoNarmesteLederRespons getNarmesteledere(String fnr) {
             /*
             TODO: lagre accestoken fra AD (med en session?) så man slipper å spørre AD hver gang man skal sjekke nærmeste leder tilgang
              */
-        HttpEntity<String> entity = getRequestEntity();
-        String url = UriComponentsBuilder.fromHttpUrl(digisyfoUrl + aktorClient.getAktorId(fnr))
+        HttpEntity <String> entity = getRequestEntity();
+        String url = UriComponentsBuilder.fromHttpUrl(digisyfoUrl+ aktorClient.getAktorId(fnr))
                 .toUriString();
         try {
-            ResponseEntity<String> respons = restTemplate.exchange(url,
-                    HttpMethod.GET, entity, String.class);
+            ResponseEntity<DigisyfoNarmesteLederRespons> respons = restTemplate.exchange(url,
+                    HttpMethod.GET, entity, DigisyfoNarmesteLederRespons.class);
             if (respons.getStatusCode() != HttpStatus.OK) {
                 String message = "Kall mot digisyfo feiler med HTTP-" + respons.getStatusCode();
                 log.error(message);
@@ -57,7 +58,7 @@ public class DigisyfoService {
         }
     }
 
-    private HttpEntity<String> getRequestEntity() {
+    private HttpEntity <String> getRequestEntity() {
         HttpHeaders headers = new HttpHeaders();
         headers.set(OIDCConstants.AUTHORIZATION_HEADER, "Bearer " + accesstokenClient.hentAccessToken().getAccess_token());
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

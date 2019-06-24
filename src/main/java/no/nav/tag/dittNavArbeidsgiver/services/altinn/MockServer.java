@@ -31,18 +31,19 @@ public class MockServer {
             @Value("${sts.stsUrl}") String stsUrl,
             @Value("${aktorregister.aktorUrl}") String aktorUrl,
             @Value("${digisyfo.sykemeldteURL}") String sykemeldteUrl,
-            @Value("${digisyfo.syfooppgaveurl}") String syfoOpggaveUrl
+            @Value("${digisyfo.syfooppgaveurl}") String syfoOpggaveUrl,
+            @Value("${digisyfo.digisyfoUrl}") String digisyfoUrl
     ) {
         log.info("starter mockserveren");
 
         this.altinnConfig = altinnConfig;
         WireMockServer server = new WireMockServer(port);
-
         String altinnPath = new URL(altinnUrl).getPath();
         String stsPath = new URL(stsUrl).getPath();
         String aktorPath = new URL(aktorUrl).getPath();
         String sykemeldtePath = new URL(sykemeldteUrl).getPath();
         String syfoOppgavePath = new URL(syfoOpggaveUrl).getPath();
+        String syfoNarmesteLederPath = new URL(digisyfoUrl).getPath();
         mockOrganisasjoner(altinnConfig, server, altinnPath);
         mockInvalidSSN(altinnConfig, server, altinnPath);
         mockRoles(altinnConfig,server,altinnPath);
@@ -50,6 +51,7 @@ public class MockServer {
         mockAktorResponse(server, aktorPath);
         mockSykemeldingerResponse(server, sykemeldtePath);
         mockSyfoOppgaverResponse(server, syfoOppgavePath);
+        mockSyfoNarmesteLeder(server, syfoNarmesteLederPath);
         server.start();
     }
 
@@ -119,6 +121,14 @@ public class MockServer {
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("syfoOppgaver.json"))
                 ));
+    }
+    public static void mockSyfoNarmesteLeder(WireMockServer server, String syfoNarmesteLederPath){
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(syfoNarmesteLederPath))
+            .willReturn(WireMock.aResponse()
+                .withHeader("Content-Type","application/json")
+                .withBody(hentStringFraFil("narmesteLeder.json"))
+        ));
+
     }
 
     @SneakyThrows
