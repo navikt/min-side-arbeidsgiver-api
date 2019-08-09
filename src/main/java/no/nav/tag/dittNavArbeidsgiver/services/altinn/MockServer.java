@@ -2,6 +2,10 @@ package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import com.github.tomakehurst.wiremock.standalone.WireMockServerRunner;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -38,7 +42,7 @@ public class MockServer {
         log.info("starter mockserveren");
 
         this.altinnConfig = altinnConfig;
-        WireMockServer server = new WireMockServer(port);
+        WireMockServer server = new WireMockServer(new WireMockConfiguration().port(port).extensions(new ResponseTemplateTransformer(false)));
         String altinnPath = new URL(altinnUrl).getPath();
         String stsPath = new URL(stsUrl).getPath();
         String aadPath = new URL(aadUrl).getPath();
@@ -97,6 +101,7 @@ public class MockServer {
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("aktorer.json"))
+                        .withTransformers(ResponseTemplateTransformer.NAME)
                 ));
     }
 
