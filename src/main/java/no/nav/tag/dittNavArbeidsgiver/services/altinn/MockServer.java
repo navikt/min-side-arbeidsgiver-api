@@ -29,6 +29,7 @@ public class MockServer {
             @Value("${mock.port}") int port,
             AltinnConfig altinnConfig,
             @Value("${sts.stsUrl}") String stsUrl,
+            @Value("${aad.aadAccessTokenURL}") String aadUrl,
             @Value("${aktorregister.aktorUrl}") String aktorUrl,
             @Value("${digisyfo.sykemeldteURL}") String sykemeldteUrl,
             @Value("${digisyfo.syfooppgaveurl}") String syfoOpggaveUrl,
@@ -40,6 +41,7 @@ public class MockServer {
         WireMockServer server = new WireMockServer(port);
         String altinnPath = new URL(altinnUrl).getPath();
         String stsPath = new URL(stsUrl).getPath();
+        String aadPath = new URL(aadUrl).getPath();
         String aktorPath = new URL(aktorUrl).getPath();
         String sykemeldtePath = new URL(sykemeldteUrl).getPath();
         String syfoOppgavePath = new URL(syfoOpggaveUrl).getPath();
@@ -48,6 +50,7 @@ public class MockServer {
         mockInvalidSSN(altinnConfig, server, altinnPath);
         mockRoles(altinnConfig,server,altinnPath);
         mockSTSResponse(server, stsPath);
+        mockAadResponse(server, aadPath);
         mockAktorResponse(server, aktorPath);
         mockSykemeldingerResponse(server, sykemeldtePath);
         mockSyfoOppgaverResponse(server, syfoOppgavePath);
@@ -106,6 +109,15 @@ public class MockServer {
                         .withBody(hentStringFraFil("STStoken.json"))
                 ));
     }
+
+    private void mockAadResponse(WireMockServer server, String aadPath) {
+        server.stubFor(WireMock.post(WireMock.urlPathEqualTo(aadPath))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("aadtoken.json"))
+                ));
+    }
+
 
     public static void mockSykemeldingerResponse(WireMockServer server, String sykemeldtePath) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(sykemeldtePath))
