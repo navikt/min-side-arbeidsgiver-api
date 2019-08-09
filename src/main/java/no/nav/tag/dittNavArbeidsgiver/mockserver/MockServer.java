@@ -75,7 +75,7 @@ public class MockServer {
     }
 
     private static void mockForPath(WireMockServer server, String path, String responseFile){
-        server.stubFor(WireMock.get(WireMock.urlPathMatching(path + ".*"))
+        server.stubFor(WireMock.any(WireMock.urlPathMatching(path + ".*"))
             .willReturn(WireMock.aResponse()
                 .withHeader("Content-Type","application/json")
                 .withBody(hentStringFraFil(responseFile))
