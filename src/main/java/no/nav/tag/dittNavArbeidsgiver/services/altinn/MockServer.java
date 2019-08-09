@@ -140,7 +140,7 @@ public class MockServer {
                 ));
     }
     public static void mockSyfoNarmesteLeder(WireMockServer server, String syfoNarmesteLederPath){
-        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(syfoNarmesteLederPath))
+        server.stubFor(WireMock.get(WireMock.urlPathMatching(syfoNarmesteLederPath + ".*"))
             .willReturn(WireMock.aResponse()
                 .withHeader("Content-Type","application/json")
                 .withBody(hentStringFraFil("narmesteLeder.json"))
