@@ -1,18 +1,8 @@
 {
-  "07045700172": {
+  "{{request.headers.Nav-Personidenter}}": {
     "identer": [
       {
         "ident": "1000087745633",
-        "identgruppe": "AktoerId",
-        "gjeldende": true
-      }
-    ],
-    "feilmelding": null
-  },
-  "07063000250": {
-    "identer": [
-      {
-        "ident": "1000096233937",
         "identgruppe": "AktoerId",
         "gjeldende": true
       }
