@@ -42,7 +42,7 @@ digisyfo:
   syfooppgaveurl: "http://localhost:${mock.port}/syforest/oppgaver"
 
 aad:
-  aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
+  aadAccessTokenURL: "http://localhost:${mock.port}/aad"
 
 unleash:
   url: "https://unleash.herokuapp.com/api/"
