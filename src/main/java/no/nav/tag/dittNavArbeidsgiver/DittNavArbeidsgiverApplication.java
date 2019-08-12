@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 @EnableOIDCTokenValidation(ignore = { 
         "springfox.documentation.swagger.web.ApiResourceController",
-        "org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController" 
+        "org.springframework"
 })
 public class DittNavArbeidsgiverApplication {
     public static void main(String [] args) {
