@@ -6,7 +6,7 @@ metadata:
   labels:
     team: teamtag
 spec:
-  image: navikt/ditt-nav-arbeidsgiver-api:122
+  image: navikt/ditt-nav-arbeidsgiver-api:182
   team: teamtag
   port: 8080
   ingresses:
@@ -23,3 +23,6 @@ spec:
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: prod
+  prometheus:
+    enabled: true
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
