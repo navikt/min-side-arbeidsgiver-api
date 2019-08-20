@@ -3,6 +3,10 @@ server:
   servlet:
     context-path: /ditt-nav-arbeidsgiver-api
 
+management.endpoints.web:
+  exposure.include: info, health, metrics, prometheus
+  base-path: /internal/actuator
+
 spring:
   profiles:
     active: dev
