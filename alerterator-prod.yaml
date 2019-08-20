@@ -11,7 +11,12 @@ spec:
       prependText: '<!here> | '
   alerts:
     - alert: applikasjon nede
-      expr: up{app="ditt-nav-arbeidsgiver-api", job="kubernetes-pods"} == 0
+      expr: count(kube_pod_container_status_running{container="ditt-nav-arbeidsgiver-api"}) == 0
       for: 2m
       description: "{{ $labels.app }} er nede i {{ $labels.kubernetes_namespace }}"
+      action: "`kubectl describe pod {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for events, og `kubectl logs {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for logger"
+    - alert: Mange Feilmeldinger i api
+      expr: sum(increase(logback_events_total{level="error", app="ditt-nav-arbeidsgiver-api"}[10m]))>1
+      for: 10m
+      description: "{{ $labels.app }} får feil i {{ $labels.kubernetes_namespace }}"
       action: "`kubectl describe pod {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for events, og `kubectl logs {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for logger"
