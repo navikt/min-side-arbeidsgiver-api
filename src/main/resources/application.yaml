@@ -21,7 +21,7 @@ no.nav.security.oidc:
   issuer:
     selvbetjening:
       discoveryurl: http://metadata-selvbetjening
-      accepted_audience: aud-selvbetjening
+      accepted_audience: aud-localhost
 
 mock:
   enabled: true
