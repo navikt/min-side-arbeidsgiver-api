@@ -1,6 +1,4 @@
 package no.nav.security.spring.oidc;
-
-import no.nav.security.spring.oidc.EnableOIDCTokenValidationConfiguration;
 import no.nav.security.spring.oidc.api.EnableOIDCTokenValidation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
