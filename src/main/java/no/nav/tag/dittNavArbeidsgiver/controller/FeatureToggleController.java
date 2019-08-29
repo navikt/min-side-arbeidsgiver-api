@@ -4,6 +4,7 @@ import no.finn.unleash.Unleash;
 import no.finn.unleash.UnleashContext;
 import no.nav.security.oidc.api.Protected;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
+import no.nav.tag.dittNavArbeidsgiver.models.UnleashTilgang;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +28,14 @@ public class FeatureToggleController {
     }
 
     @GetMapping("api/feature")
-    public ResponseEntity<Boolean> feature(
+    public ResponseEntity<UnleashTilgang> feature(
             @RequestParam("feature") String features
     ) {
         String fnr = extract(requestContextHolder);
         UnleashContext context = UnleashContext.builder().userId(fnr).build();
-        return ResponseEntity.status(HttpStatus.OK).body(unleash.isEnabled(features, context));
+        UnleashTilgang respons = new UnleashTilgang();
 
+        respons.tilgang=unleash.isEnabled(features, context);
+        return ResponseEntity.status(HttpStatus.OK).body(respons);
     }
 }
