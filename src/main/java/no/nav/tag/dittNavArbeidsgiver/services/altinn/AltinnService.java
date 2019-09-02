@@ -2,7 +2,6 @@ package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
-import no.nav.tag.dittNavArbeidsgiver.models.Right;
 import no.nav.tag.dittNavArbeidsgiver.models.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -42,7 +41,7 @@ public class AltinnService {
         return respons.getBody();
     }
 
-    public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String orgnr, String serviceKode) {
+    public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode) {
         String query = "&subject=" + fnr + "&serviceCode=" + serviceKode + "&serviceEdition=1";
         String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication\"" + query;
         ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
