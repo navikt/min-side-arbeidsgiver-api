@@ -2,6 +2,7 @@ package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
+import no.nav.tag.dittNavArbeidsgiver.models.Right;
 import no.nav.tag.dittNavArbeidsgiver.models.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -40,6 +41,16 @@ public class AltinnService {
         log.info("Henter roller fra Altinn");
         return respons.getBody();
     }
+
+    public List<Right> hentRettigheter(String fnr, String orgnr) {
+        String query = "&subject=" + fnr + "&reportee="+orgnr;
+        String url = altinnConfig.getAltinnurl() + "/authorization/rights?ForceEIAuthentication" + query;
+        ResponseEntity<List<Right>> respons = getFromAltinn(new ParameterizedTypeReference<List<Right>>() {},url);
+        log.info("Henter rettigheter fra Altinn");
+        return respons.getBody();
+    }
+
+
 
     private HttpEntity<String>  getHeaderEntity() {
         HttpHeaders headers = new HttpHeaders();

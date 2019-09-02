@@ -3,6 +3,7 @@ package no.nav.tag.dittNavArbeidsgiver.controller;
 import no.nav.security.oidc.api.Protected;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
+import no.nav.tag.dittNavArbeidsgiver.models.Right;
 import no.nav.tag.dittNavArbeidsgiver.models.Role;
 import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnService;
 import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
@@ -39,6 +40,13 @@ public class OrganisasjonController {
     public ResponseEntity<List<Role>> hentRoller(@PathVariable String orgnr){
         String fnr = FnrExtractor.extract(requestContextHolder);
         List<Role> result = altinnService.hentRoller(fnr, orgnr);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping(value ="/api/rettigheter/{orgnr}")
+    public ResponseEntity<List<Right>> hentRettigheter(@PathVariable String orgnr){
+        String fnr = FnrExtractor.extract(requestContextHolder);
+        List<Right> result = altinnService.hentRettigheter(fnr, orgnr);
         return ResponseEntity.ok(result);
     }
 }
