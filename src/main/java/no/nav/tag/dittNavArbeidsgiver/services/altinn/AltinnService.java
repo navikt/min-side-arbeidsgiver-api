@@ -42,15 +42,13 @@ public class AltinnService {
         return respons.getBody();
     }
 
-    public List<Right> hentRettigheter(String fnr, String orgnr) {
-        String query = "&subject=" + fnr + "&reportee="+orgnr;
-        String url = altinnConfig.getAltinnurl() + "/authorization/rights?ForceEIAuthentication" + query;
-        ResponseEntity<List<Right>> respons = getFromAltinn(new ParameterizedTypeReference<List<Right>>() {},url);
+    public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String orgnr, String serviceKode) {
+        String query = "&subject=" + fnr + "&serviceCode=" + serviceKode + "&serviceEdition=1";
+        String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication\"" + query;
+        ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
         log.info("Henter rettigheter fra Altinn");
         return respons.getBody();
     }
-
-
 
     private HttpEntity<String>  getHeaderEntity() {
         HttpHeaders headers = new HttpHeaders();
