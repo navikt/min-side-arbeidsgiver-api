@@ -28,14 +28,14 @@ public class AltinnService {
 
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         String query = "&subject=" + fnr + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business'+or+Type+eq+'Enterprise'+or+Type+eq+'Foretak')+and+Status+eq+'Active'";
-        String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication" + query;
+        String url = altinnConfig.getAltinnurl() + "reportees/?ForceEIAuthentication" + query;
         ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
         log.info("Henter organisasjoner fra Altinn");
         return respons.getBody();
     }
     public List<Role> hentRoller(String fnr, String orgnr) {
         String query = "&subject=" + fnr + "&reportee="+orgnr;
-        String url = altinnConfig.getAltinnurl() + "/authorization/roles?ForceEIAuthentication" + query;
+        String url = altinnConfig.getAltinnurl() + "authorization/roles?ForceEIAuthentication" + query;
         ResponseEntity<List<Role>> respons = getFromAltinn(new ParameterizedTypeReference<List<Role>>() {},url);
         log.info("Henter roller fra Altinn");
         return respons.getBody();
