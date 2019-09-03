@@ -42,10 +42,10 @@ public class OrganisasjonController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping(value ="/api/rettigheter-til-skjema")
-    public ResponseEntity<List<Organisasjon>> hentRettigheter(String serviceKode){
+    @GetMapping(value ="/api/rettigheter-til-skjema/{serviceKode}")
+    public ResponseEntity<List<Organisasjon>> hentRettigheter(@PathVariable String serviceKode){
         String fnr = FnrExtractor.extract(requestContextHolder);
-        List<Organisasjon> result = altinnService.hentOrganisasjonerBasertPaRettigheter(serviceKode);
+        List<Organisasjon> result = altinnService.hentOrganisasjonerBasertPaRettigheter(fnr, serviceKode);
         return ResponseEntity.ok(result);
     }
 }
