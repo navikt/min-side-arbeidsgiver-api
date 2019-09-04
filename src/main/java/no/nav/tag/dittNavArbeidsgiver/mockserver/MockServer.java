@@ -47,7 +47,7 @@ public class MockServer {
         String syfoNarmesteLederPath = new URL(digisyfoUrl).getPath();
         mockOrganisasjoner(server, altinnPath);
         mockInvalidSSN(server, altinnPath);
-        mockForPath(server, altinnPath + "/authorization/roles", "roles.json");
+        mockForPath(server, altinnPath + "authorization/roles", "roles.json");
         mockForPath(server, stsPath, "STStoken.json");
         mockForPath(server, aadPath, "aadtoken.json");
         mockForPath(server, aktorPath, "aktorer.json");
@@ -58,7 +58,7 @@ public class MockServer {
     }
 
     private static void mockOrganisasjoner(WireMockServer server, String altinnPath) {
-        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "/reportees/"))
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
                 .withQueryParam("subject", equalTo("00000000000"))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -67,7 +67,7 @@ public class MockServer {
     }
 
     private static void mockInvalidSSN(WireMockServer server, String altinnPath) {
-        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "/reportees/"))
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
                 .withQueryParam("subject", WireMock.notMatching("00000000000"))
                 .willReturn(WireMock.aResponse().withStatusMessage("Invalid socialSecurityNumber").withStatus(400)
                         .withHeader("Content-Type", "application/octet-stream")
