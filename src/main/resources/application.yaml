@@ -36,7 +36,7 @@ aktorregister:
   aktorUrl: "http://localhost:${mock.port}/aktoerregister/api/v1/identer"
 
 altinn:
-  altinnUrl: "http://localhost:${mock.port}/altinn"
+  altinnUrl: "http://localhost:${mock.port}/altinn/"
   altinnHeader: "test"
   APIGwHeader: "test"
 
