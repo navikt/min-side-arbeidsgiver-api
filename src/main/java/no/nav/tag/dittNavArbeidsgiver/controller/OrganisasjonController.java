@@ -33,6 +33,7 @@ public class OrganisasjonController {
     public ResponseEntity<List<Organisasjon>> hentOrganisasjoner() {
         String fnr = FnrExtractor.extract(requestContextHolder);
         List <Organisasjon> result = altinnService.hentOrganisasjoner(fnr);
+        log.info("antall organisasjoner fra altinn:", result.size());
         return ResponseEntity.ok(result);
     }
     @GetMapping(value ="/api/roller/{orgnr}")
