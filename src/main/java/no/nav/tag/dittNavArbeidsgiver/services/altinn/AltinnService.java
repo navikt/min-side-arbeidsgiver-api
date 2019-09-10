@@ -41,9 +41,9 @@ public class AltinnService {
         return respons.getBody();
     }
 
-    public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode) {
-        String query = "&subject=" + fnr + "&serviceCode=" + serviceKode + "&serviceEdition=1";
-        String url = altinnConfig.getAltinnurl() + "/reportees/?ForceEIAuthentication" + query;
+    public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
+        String query = "&subject=" + fnr + "&serviceCode=" + serviceKode + "&serviceEdition="+serviceEdition;
+        String url = altinnConfig.getAltinnurl() + "reportees/?ForceEIAuthentication" + query;
         ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
         log.info("Henter rettigheter fra Altinn");
         return respons.getBody();
