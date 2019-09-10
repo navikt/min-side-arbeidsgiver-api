@@ -41,6 +41,14 @@ public class AltinnService {
         return respons.getBody();
     }
 
+    public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
+        String query = "&subject=" + fnr + "&serviceCode=" + serviceKode + "&serviceEdition="+serviceEdition;
+        String url = altinnConfig.getAltinnurl() + "reportees/?ForceEIAuthentication" + query;
+        ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
+        log.info("Henter rettigheter fra Altinn");
+        return respons.getBody();
+    }
+
     private HttpEntity<String>  getHeaderEntity() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-NAV-APIKEY", altinnConfig.getAPIGwHeader());

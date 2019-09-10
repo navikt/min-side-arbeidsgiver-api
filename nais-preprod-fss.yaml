@@ -6,7 +6,7 @@ metadata:
   labels:
     team: teamtag
 spec:
-  image: navikt/ditt-nav-arbeidsgiver-api:log-altinn-url_212
+  image: navikt/ditt-nav-arbeidsgiver-api:faInnIAWEB_806
   team: teamtag
   port: 8080
   ingresses:

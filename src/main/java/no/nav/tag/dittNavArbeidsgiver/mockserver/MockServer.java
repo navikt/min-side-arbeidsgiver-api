@@ -45,6 +45,7 @@ public class MockServer {
         String sykemeldtePath = new URL(sykemeldteUrl).getPath();
         String syfoOppgavePath = new URL(syfoOpggaveUrl).getPath();
         String syfoNarmesteLederPath = new URL(digisyfoUrl).getPath();
+        mocktilgangTilSkjemForBedrift(server,altinnPath);
         mockOrganisasjoner(server, altinnPath);
         mockInvalidSSN(server, altinnPath);
         mockForPath(server, altinnPath + "authorization/roles", "roles.json");
@@ -54,6 +55,7 @@ public class MockServer {
         mockForPath(server, sykemeldtePath, "sykemeldinger.json");
         mockForPath(server, syfoOppgavePath, "syfoOppgaver.json");
         mockForPath(server, syfoNarmesteLederPath, "narmesteLeder.json");
+
         server.start();
     }
 
@@ -65,14 +67,25 @@ public class MockServer {
                         .withBody(hentStringFraFil("organisasjoner.json"))
                 ));
     }
+    private static void mocktilgangTilSkjemForBedrift(WireMockServer server, String altinnPath) {
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
+                .withQueryParam("subject", equalTo("01065500791"))
+                .withQueryParam("serviceCode", equalTo("4936"))
+                .withQueryParam("serviceEdition", equalTo("1"))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("rettigheterTilSkjema.json"))
+                ));
+    }
 
     private static void mockInvalidSSN(WireMockServer server, String altinnPath) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
-                .withQueryParam("subject", WireMock.notMatching("00000000000"))
+                .withQueryParam("subject", WireMock.notMatching("00000000000|01065500791"))
                 .willReturn(WireMock.aResponse().withStatusMessage("Invalid socialSecurityNumber").withStatus(400)
                         .withHeader("Content-Type", "application/octet-stream")
                 ));
     }
+
 
     private static void mockForPath(WireMockServer server, String path, String responseFile){
         server.stubFor(WireMock.any(WireMock.urlPathMatching(path + ".*"))
@@ -80,7 +93,6 @@ public class MockServer {
                 .withHeader("Content-Type","application/json")
                 .withBody(hentStringFraFil(responseFile))
         ));
-
     }
 
     @SneakyThrows
