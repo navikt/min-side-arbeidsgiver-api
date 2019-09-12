@@ -62,7 +62,7 @@ public class AltinnService {
            return restTemplate.exchange(url,
                     HttpMethod.GET, headers, typeReference);
         } catch (RestClientException exception) {
-            log.error("Feil fra Altinn med spørring: " + url + " Exception: ", exception);
+            log.error("Feil fra Altinn med spørring: " + url + " Exception: " + exception.getMessage());
             throw new AltinnException("Feil fra Altinn", exception);
         }
     }
