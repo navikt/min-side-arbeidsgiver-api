@@ -16,6 +16,8 @@ import java.util.List;
 @Component
 public class AltinnService {
 
+    private static final int ALTINN_PAGE_SIZE = 500;
+
     private final AltinnConfig altinnConfig;
 
     private final RestTemplate restTemplate;
@@ -27,14 +29,17 @@ public class AltinnService {
     }
 
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
-        String query = "&subject=" + fnr + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business'+or+Type+eq+'Enterprise'+or+Type+eq+'Foretak')+and+Status+eq+'Active'";
+        String query = "&subject=" + fnr 
+                + "&$top=" + ALTINN_PAGE_SIZE 
+                + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business'+or+Type+eq+'Enterprise'+or+Type+eq+'Foretak')+and+Status+eq+'Active'";
         String url = altinnConfig.getAltinnurl() + "reportees/?ForceEIAuthentication" + query;
         ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
         log.info("Henter organisasjoner fra Altinn");
         return respons.getBody();
     }
+
     public List<Role> hentRoller(String fnr, String orgnr) {
-        String query = "&subject=" + fnr + "&reportee="+orgnr;
+        String query = "&subject=" + fnr + "&reportee=" + orgnr;
         String url = altinnConfig.getAltinnurl() + "authorization/roles?ForceEIAuthentication" + query;
         ResponseEntity<List<Role>> respons = getFromAltinn(new ParameterizedTypeReference<List<Role>>() {},url);
         log.info("Henter roller fra Altinn");
@@ -42,7 +47,10 @@ public class AltinnService {
     }
 
     public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
-        String query = "&subject=" + fnr + "&serviceCode=" + serviceKode + "&serviceEdition="+serviceEdition;
+        String query = "&subject=" + fnr 
+                + "&serviceCode=" + serviceKode 
+                + "&serviceEdition=" + serviceEdition 
+                + "&$top=" + ALTINN_PAGE_SIZE;
         String url = altinnConfig.getAltinnurl() + "reportees/?ForceEIAuthentication" + query;
         ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
         log.info("Henter rettigheter fra Altinn");
