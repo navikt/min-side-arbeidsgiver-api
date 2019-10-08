@@ -4,12 +4,14 @@ import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 
+@Slf4j
 @Component
 public class AktorClient {
 
@@ -36,15 +38,9 @@ public class AktorClient {
                 .queryParam("identgruppe","AktoerId")
                 .queryParam("gjeldende","true")
                 .toUriString();
-        ResponseEntity<AktorResponse> response = null; 
-        try {
-            response = restTemplate.exchange(uriString, HttpMethod.GET, getRequestEntity(fnr), AktorResponse.class);
-        } catch (RestClientException e) {
-            stsClient.evict();
-            response = restTemplate.exchange(uriString, HttpMethod.GET, getRequestEntity(fnr), AktorResponse.class);
-        }
+        HttpEntity<String> entity = getRequestEntity(fnr);
 
-        return response;
+        return restTemplate.exchange(uriString, HttpMethod.GET, entity, AktorResponse.class);
     }
 
     private HttpEntity<String> getRequestEntity(String fnr) {
