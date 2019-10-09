@@ -1,7 +1,5 @@
 package no.nav.tag.dittNavArbeidsgiver.models;
 
-
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -37,35 +35,37 @@ public class OversiktOverArbeidsForhold {
         private Arbeidsgiver arbeidsgiver;
         @JsonProperty("arbeidstaker")
         private Arbeidstaker arbeidstaker;
+        @JsonProperty("innrapportertEtterAOrdningen")
+        private String innrapportertEtterAOrdningen;
+        @JsonProperty("navArbeidsforholdId")
+        private String navArbeidsforholdId;
 
+        public class Opplysningspliktig {
+            @JsonProperty("type")
+            private String type;
+        }
 
-
-
-
-
-
-
-
-
-
-        @JsonProperty("ParentOrganizationNumber")
-        private String parentOrganizationNumber;
-        @JsonProperty("OrganizationNumber")
-        private String organizationNumber;
-        @JsonProperty("OrganizationForm")
-        private String organizationForm;
-        @JsonProperty("Status")
-        private String status;
+        @JsonProperty("opplysningspliktig")
+        private Opplysningspliktig opplysningspliktig;
+        @JsonProperty("permisjonPermitteringsprosent")
+        private String permisjonPermitteringsprosent;
+        @JsonProperty("sistBekreftet")
+        private String sistBekreftet;
+        @JsonProperty("stillingsprosent")
+        private String stillingsprosent;
+        @JsonProperty("type")
+        private String type;
+        @JsonProperty("varslingskode")
+        private String varslingskode;
+        @JsonProperty("yrke")
+        private String yrke;
     }
 
-    @JsonProperty("Type")
-    private String type;
-    @JsonProperty("ParentOrganizationNumber")
-    private String parentOrganizationNumber;
-    @JsonProperty("OrganizationNumber")
-    private String organizationNumber;
-    @JsonProperty("OrganizationForm")
-    private String organizationForm;
-    @JsonProperty("Status")
-    private String status;
+    @JsonProperty("arbeidsforholdoversikter")
+    private ArbeidsForhold[] arbeidsforholdoversikter;
+    @JsonProperty("startrad")
+    private String startrad;
+    @JsonProperty("totalAntall")
+    private String totalAntall;
+
 }
