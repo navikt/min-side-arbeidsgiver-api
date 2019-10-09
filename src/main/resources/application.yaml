@@ -60,6 +60,9 @@ digisyfo:
   sykemeldteURL: "https://tjenester-q1.nav.no/syforest/sykmeldinger"
   syfooppgaveurl: "https://tjenester-q1.nav.no/syforest/oppgaver"
 
+aareg:
+  aaregUrl: "https://modapp-q0.adeo.no/aareg-services/api/v1/arbeidsgiver/arbeidsforholdoversikt"
+
 sts:
   stsPass: ${STS_PASS}
   stsUrl: https://security-token-service.nais.preprod.local/rest/v1/sts/token
