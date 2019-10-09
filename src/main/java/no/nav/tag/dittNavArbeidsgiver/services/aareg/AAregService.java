@@ -1,25 +1,12 @@
 package no.nav.tag.dittNavArbeidsgiver.services.aareg;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.security.oidc.OIDCConstants;
-import no.nav.tag.dittNavArbeidsgiver.models.DigisyfoNarmesteLederRespons;
-import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
-import no.nav.tag.dittNavArbeidsgiver.services.aktor.AktorClient;
 import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
-import no.nav.tag.dittNavArbeidsgiver.utils.AccesstokenClient;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -37,7 +24,7 @@ public class AAregService {
 
     public OversiktOverArbeidsForhold hentArbeidsforhold(String orgnr) {
         String url = aaregUrl;
-        HttpEntity <String> entity = getRequestEntity();
+        HttpEntity <String> entity = getRequestEntity(orgnr);
         try {
             ResponseEntity<OversiktOverArbeidsForhold> respons = restTemplate.exchange(url,
                     HttpMethod.GET, entity, OversiktOverArbeidsForhold.class);
@@ -61,7 +48,7 @@ public class AAregService {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Authorization", "Bearer " + stsClient.getToken().getAccess_token());
         headers.set("Nav-Call-Id", appName);
-        headers.set("Nav-ArbeidsgiverArbeidsgiverident", orgnr);
+        headers.set("Nav-Arbeidsgiverident", orgnr);
         headers.set("Nav-Consumer-Token", stsClient.getToken().getAccess_token());
 
         return new HttpEntity<>(headers);
