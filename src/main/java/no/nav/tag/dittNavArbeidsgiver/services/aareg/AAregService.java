@@ -5,6 +5,7 @@ import no.nav.tag.dittNavArbeidsgiver.models.DigisyfoNarmesteLederRespons;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.services.aktor.AktorClient;
+import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.AccesstokenClient;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -24,13 +25,13 @@ import java.util.List;
 @Service
 
 public class AAregService {
-    private final AccesstokenClient accesstokenClient;
+    private final STSClient stsClient;
     private final RestTemplate restTemplate;
     @Value("${aareg.aaregUrl}")
     private String aaregUrl;
 
-    public AAregService(AccesstokenClient accesstokenClient, RestTemplate restTemplate) {
-        this.accesstokenClient = accesstokenClient;
+    public AAregService(STSClient stsClient, RestTemplate restTemplate) {
+        this.stsClient = stsClient;
         this.restTemplate = restTemplate;
     }
 
@@ -54,18 +55,16 @@ public class AAregService {
 
     }
 
-    private HttpEntity <String> getRequestEntity() {
+    private HttpEntity <String> getRequestEntity(String orgnr) {
+        String appName= "srvditt-nav-arbeid";
         HttpHeaders headers = new HttpHeaders();
-        headers.set(OIDCConstants.AUTHORIZATION_HEADER, "Bearer " + accesstokenClient.hentAccessToken().getAccess_token());
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.set("Authorization", "Bearer " + stsClient.getToken().getAccess_token());
+        headers.set("Nav-Call-Id", appName);
+        headers.set("Nav-ArbeidsgiverArbeidsgiverident", orgnr);
+        headers.set("Nav-Consumer-Token", stsClient.getToken().getAccess_token());
+
         return new HttpEntity<>(headers);
     }
-
-
-
-
-
-
-
 
 }
