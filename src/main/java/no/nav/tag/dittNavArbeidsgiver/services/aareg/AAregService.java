@@ -35,11 +35,30 @@ public class AAregService {
     }
 
     public OversiktOverArbeidsForhold hentArbeidsforhold(String orgnr) {
-
         String url = aaregUrl;
-        ResponseEntity<OversiktOverArbeidsForhold.ArbeidsForhold> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
-        log.info("Henter organisasjoner fra Altinn");
-        return respons.getBody();
+        HttpEntity <String> entity = getRequestEntity();
+        try {
+            ResponseEntity<OversiktOverArbeidsForhold> respons = restTemplate.exchange(url,
+                    HttpMethod.GET, entity, OversiktOverArbeidsForhold.class);
+            if (respons.getStatusCode() != HttpStatus.OK) {
+                String message = "Kall mot aareg feiler med HTTP-" + respons.getStatusCode();
+                log.error(message);
+                throw new RuntimeException(message);
+            }
+            return respons.getBody();
+        } catch (RestClientException exception) {
+            log.error(" Aareg Exception: ", exception);
+            throw new RuntimeException(" Aareg Exception: " + exception);
+        }
+
+
+    }
+
+    private HttpEntity <String> getRequestEntity() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(OIDCConstants.AUTHORIZATION_HEADER, "Bearer " + accesstokenClient.hentAccessToken().getAccess_token());
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        return new HttpEntity<>(headers);
     }
 
 
