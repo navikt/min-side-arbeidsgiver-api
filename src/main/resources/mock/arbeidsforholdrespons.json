@@ -1,0 +1,76 @@
+{
+  "antall": 0,
+  "arbeidsforholdoversikter": [
+    {
+      "ansattFom": "2017-07-01",
+      "ansattTom": "2019-12-31",
+      "arbeidsgiver": {
+        "type": "Organisasjon"
+      },
+      "arbeidstaker": {
+        "type": "Person",
+        "aktoerId": 1234567891,
+        "offentligIdent": 31126700011
+      },
+      "innrapportertEtterAOrdningen": true,
+      "navArbeidsforholdId": 123456,
+      "opplysningspliktig": {
+        "type": "Organisasjon"
+      },
+      "permisjonPermitteringsprosent": 50.5,
+      "sistBekreftet": "2018-09-19T12:10:31",
+      "stillingsprosent": 49.5,
+      "type": "ordinaertArbeidsforhold",
+      "varslingskode": "ERKONK",
+      "yrke": 2130123
+    },
+    {
+      "ansattFom": "2014-07-01",
+      "ansattTom": "2015-12-31",
+      "arbeidsgiver": {
+        "type": "Organisasjon"
+      },
+      "arbeidstaker": {
+        "type": "Person",
+        "aktoerId": 1234567892,
+        "offentligIdent": 31126700022
+      },
+      "innrapportertEtterAOrdningen": true,
+      "navArbeidsforholdId": 123456,
+      "opplysningspliktig": {
+        "type": "Organisasjon"
+      },
+      "permisjonPermitteringsprosent": 50.5,
+      "sistBekreftet": "2018-09-19T12:10:31",
+      "stillingsprosent": 49.5,
+      "type": "ordinaertArbeidsforhold",
+      "varslingskode": "ERKONK",
+      "yrke": 2130123
+    },
+    {
+      "ansattFom": "2014-07-01",
+      "ansattTom": "2015-12-31",
+      "arbeidsgiver": {
+        "type": "Organisasjon"
+      },
+      "arbeidstaker": {
+        "type": "Person",
+        "aktoerId": 1234567893,
+        "offentligIdent": 31126700033
+      },
+      "innrapportertEtterAOrdningen": true,
+      "navArbeidsforholdId": 123456,
+      "opplysningspliktig": {
+        "type": "Organisasjon"
+      },
+      "permisjonPermitteringsprosent": 50.5,
+      "sistBekreftet": "2018-09-19T12:10:31",
+      "stillingsprosent": 49.5,
+      "type": "ordinaertArbeidsforhold",
+      "varslingskode": "ERKONK",
+      "yrke": 2130123
+    }
+  ],
+  "startrad": 0,
+  "totalAntall": 0
+}

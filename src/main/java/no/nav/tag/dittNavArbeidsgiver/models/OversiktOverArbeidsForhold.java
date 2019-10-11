@@ -68,4 +68,8 @@ public class OversiktOverArbeidsForhold {
     @JsonProperty("totalAntall")
     private String totalAntall;
 
+    public String getAktorIDtilArbeidstaker(){
+        return this.arbeidsforholdoversikter[0].arbeidstaker.aktoerId;
+
+    }
 }
