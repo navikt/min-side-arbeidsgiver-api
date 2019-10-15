@@ -57,7 +57,7 @@ public class MockServer {
         mockForPath(server, sykemeldtePath, "sykemeldinger.json");
         mockForPath(server, syfoOppgavePath, "syfoOppgaver.json");
         mockForPath(server, syfoNarmesteLederPath, "narmesteLeder.json");
-        mockForPath(server, aaregPath, "arbeidsforhold.json");
+        mockForPath(server, aaregPath, "arbeidsforholdrespons.json");
 
         server.start();
     }
