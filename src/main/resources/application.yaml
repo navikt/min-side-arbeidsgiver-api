@@ -45,6 +45,9 @@ digisyfo:
   sykemeldteURL: "http://localhost:${mock.port}/syforest/sykmeldinger"
   syfooppgaveurl: "http://localhost:${mock.port}/syforest/oppgaver"
 
+aareg:
+  aaregUrl: "http://localhost:${mock.port}/aareg-services/api/v1/arbeidsgiver/arbeidsforholdoversikt"
+
 aad:
   aadAccessTokenURL: "http://localhost:${mock.port}/aad"
 
