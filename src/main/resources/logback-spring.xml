@@ -12,7 +12,7 @@
             <appender-ref ref="consoleAppender"/>
         </root>
         <logger name="org.springframework.cache" level="trace">
-            <appender-ref ref="STDOUT" />
+            <appender-ref ref="consoleAppender" />
         </logger>
     </springProfile>
     <springProfile name="dev">
