@@ -11,6 +11,9 @@
         <root level="INFO">
             <appender-ref ref="consoleAppender"/>
         </root>
+        <logger name="org.springframework.cache" level="trace">
+            <appender-ref ref="consoleAppender" />
+        </logger>
     </springProfile>
     <springProfile name="dev">
         <include resource="org/springframework/boot/logging/logback/base.xml"/>
