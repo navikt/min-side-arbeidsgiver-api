@@ -6,7 +6,7 @@ metadata:
   labels:
     team: teamtag
 spec:
-  image: navikt/ditt-nav-arbeidsgiver-api:92186ae15976b4946b01559c25a4c838153d6d64
+  image: navikt/ditt-nav-arbeidsgiver-api:{{version}}
   team: teamtag
   port: 8080
   ingresses:
@@ -15,10 +15,10 @@ spec:
     enabled: true
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/isAlive
-    initialDelay: 20
+    initialDelay: 60
   readiness:
     path: /ditt-nav-arbeidsgiver-api/internal/isReady
-    initialDelay: 20
+    initialDelay: 60
   webproxy: true
   env:
     - name: SPRING_PROFILES_ACTIVE
