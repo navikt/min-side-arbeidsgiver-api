@@ -1,8 +1,13 @@
 package no.nav.tag.dittNavArbeidsgiver.services.sts;
 
 import lombok.extern.slf4j.Slf4j;
+
+import static no.nav.tag.dittNavArbeidsgiver.services.sts.StsCacheConfig.STS_CACHE;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -17,6 +22,7 @@ public class STSClient {
     @Value("${sts.stsPass}")private String stsPass;
     @Value("${sts.stsUrl}")private String stsUrl;
 
+    @Cacheable(STS_CACHE)
     public STStoken getToken() {
         try {
             ResponseEntity<STStoken> response = buildUriAndExecuteRequest();
@@ -47,6 +53,10 @@ public class STSClient {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return new HttpEntity<>(headers);
+    }
+
+    @CacheEvict(STS_CACHE)
+    public void evict() {
     }
 
 

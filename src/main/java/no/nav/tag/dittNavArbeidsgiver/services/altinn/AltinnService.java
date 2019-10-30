@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.models.Role;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,9 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+
+import static no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnCacheConfig.ALTINN_CACHE;
+import static no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnCacheConfig.ALTINN_TJENESTE_CACHE;
 
 @Slf4j
 @Component
@@ -27,7 +31,7 @@ public class AltinnService {
         this.altinnConfig = altinnConfig;
         this.restTemplate = restTemplate;
     }
-
+    @Cacheable(ALTINN_CACHE)
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         String query = "&subject=" + fnr 
                 + "&$top=" + ALTINN_PAGE_SIZE 
@@ -45,7 +49,7 @@ public class AltinnService {
         log.info("Henter roller fra Altinn");
         return respons.getBody();
     }
-
+    @Cacheable(ALTINN_TJENESTE_CACHE)
     public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
         String query = "&subject=" + fnr 
                 + "&serviceCode=" + serviceKode 
