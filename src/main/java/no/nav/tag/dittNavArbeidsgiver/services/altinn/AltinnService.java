@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnCacheConfig.ALTINN_CACHE;
@@ -31,34 +32,31 @@ public class AltinnService {
         this.altinnConfig = altinnConfig;
         this.restTemplate = restTemplate;
     }
+
     @Cacheable(ALTINN_CACHE)
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         String query = "&subject=" + fnr 
-                + "&$top=" + ALTINN_PAGE_SIZE 
                 + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business'+or+Type+eq+'Enterprise'+or+Type+eq+'Foretak')+and+Status+eq+'Active'";
         String url = altinnConfig.getAltinnurl() + "reportees/?ForceEIAuthentication" + query;
-        ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
         log.info("Henter organisasjoner fra Altinn");
-        return respons.getBody();
+        return getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url, ALTINN_PAGE_SIZE);
     }
 
     public List<Role> hentRoller(String fnr, String orgnr) {
         String query = "&subject=" + fnr + "&reportee=" + orgnr;
         String url = altinnConfig.getAltinnurl() + "authorization/roles?ForceEIAuthentication" + query;
-        ResponseEntity<List<Role>> respons = getFromAltinn(new ParameterizedTypeReference<List<Role>>() {},url);
         log.info("Henter roller fra Altinn");
-        return respons.getBody();
+        return getFromAltinn(new ParameterizedTypeReference<List<Role>>() {},url, ALTINN_PAGE_SIZE);
     }
+
     @Cacheable(ALTINN_TJENESTE_CACHE)
     public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
         String query = "&subject=" + fnr 
                 + "&serviceCode=" + serviceKode 
-                + "&serviceEdition=" + serviceEdition 
-                + "&$top=" + ALTINN_PAGE_SIZE;
+                + "&serviceEdition=" + serviceEdition; 
         String url = altinnConfig.getAltinnurl() + "reportees/?ForceEIAuthentication" + query;
-        ResponseEntity<List<Organisasjon>> respons = getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url);
         log.info("Henter rettigheter fra Altinn");
-        return respons.getBody();
+        return getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url, ALTINN_PAGE_SIZE);
     }
 
     private HttpEntity<String>  getHeaderEntity() {
@@ -68,15 +66,25 @@ public class AltinnService {
         return new HttpEntity<>(headers);
     }
 
-    private <T> ResponseEntity<List<T>> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String url){
+    private <T> List<T> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String url, int pageSize) {
+
+        List<T> response = new ArrayList<T>();
         HttpEntity<String> headers = getHeaderEntity();
-        try {
-           return restTemplate.exchange(url,
-                    HttpMethod.GET, headers, typeReference);
-        } catch (RestClientException exception) {
-            log.error("Feil fra Altinn med spørring: " + url + " Exception: " + exception.getMessage());
-            throw new AltinnException("Feil fra Altinn", exception);
+        int pageNumber = 0;
+        boolean hasMore = true;
+        while (hasMore) {
+            pageNumber++;
+            try {
+                String urlWithPagesizeAndOffset = url + "&$top=" + pageSize + "&$skip=" + ((pageNumber-1) * pageSize);
+                List<T> currentResponseList = restTemplate.exchange(urlWithPagesizeAndOffset, HttpMethod.GET, headers, typeReference).getBody();
+                response.addAll(currentResponseList);
+                hasMore = currentResponseList.size() >= pageSize;
+            } catch (RestClientException exception) {
+                log.error("Feil fra Altinn med spørring: " + url + " Exception: " + exception.getMessage());
+                throw new AltinnException("Feil fra Altinn", exception);
+            }
         }
+        return response;
     }
 
 }
