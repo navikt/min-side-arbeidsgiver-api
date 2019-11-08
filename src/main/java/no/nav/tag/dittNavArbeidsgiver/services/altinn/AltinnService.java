@@ -69,7 +69,7 @@ public class AltinnService {
         return new HttpEntity<>(headers);
     }
 
-    private <T> List<T> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String url, int pageSize) {
+    <T> List<T> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String url, int pageSize) {
 
         Set<T> response = new HashSet<T>();
         HttpEntity<String> headers = getHeaderEntity();
@@ -79,7 +79,8 @@ public class AltinnService {
             pageNumber++;
             try {
                 String urlWithPagesizeAndOffset = url + "&$top=" + pageSize + "&$skip=" + ((pageNumber-1) * pageSize);
-                List<T> currentResponseList = restTemplate.exchange(urlWithPagesizeAndOffset, HttpMethod.GET, headers, typeReference).getBody();
+                ResponseEntity<List<T>> exchange = restTemplate.exchange(urlWithPagesizeAndOffset, HttpMethod.GET, headers, typeReference);
+                List<T> currentResponseList = exchange.getBody();
                 response.addAll(currentResponseList);
                 hasMore = currentResponseList.size() >= pageSize;
             } catch (RestClientException exception) {
