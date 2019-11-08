@@ -23,7 +23,8 @@ import static no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnCacheConfig.A
 @Component
 public class AltinnService {
 
-    private static final int ALTINN_PAGE_SIZE = 500;
+    private static final int ALTINN_ORG_PAGE_SIZE = 500;
+    private static final int ALTINN_ROLE_PAGE_SIZE = 50;
 
     private final AltinnConfig altinnConfig;
 
@@ -41,14 +42,14 @@ public class AltinnService {
                 + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business'+or+Type+eq+'Enterprise'+or+Type+eq+'Foretak')+and+Status+eq+'Active'";
         String url = altinnConfig.getAltinnurl() + "reportees/?ForceEIAuthentication" + query;
         log.info("Henter organisasjoner fra Altinn");
-        return getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url, ALTINN_PAGE_SIZE);
+        return getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url, ALTINN_ORG_PAGE_SIZE);
     }
 
     public List<Role> hentRoller(String fnr, String orgnr) {
         String query = "&subject=" + fnr + "&reportee=" + orgnr;
         String url = altinnConfig.getAltinnurl() + "authorization/roles?ForceEIAuthentication" + query;
         log.info("Henter roller fra Altinn");
-        return getFromAltinn(new ParameterizedTypeReference<List<Role>>() {},url, ALTINN_PAGE_SIZE);
+        return getFromAltinn(new ParameterizedTypeReference<List<Role>>() {},url, ALTINN_ROLE_PAGE_SIZE);
     }
 
     @Cacheable(ALTINN_TJENESTE_CACHE)
@@ -58,7 +59,7 @@ public class AltinnService {
                 + "&serviceEdition=" + serviceEdition; 
         String url = altinnConfig.getAltinnurl() + "reportees/?ForceEIAuthentication" + query;
         log.info("Henter rettigheter fra Altinn");
-        return getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url, ALTINN_PAGE_SIZE);
+        return getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url, ALTINN_ORG_PAGE_SIZE);
     }
 
     private HttpEntity<String>  getHeaderEntity() {
