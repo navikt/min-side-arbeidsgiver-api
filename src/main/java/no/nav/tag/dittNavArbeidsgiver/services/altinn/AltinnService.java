@@ -12,7 +12,9 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnCacheConfig.ALTINN_CACHE;
 import static no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnCacheConfig.ALTINN_TJENESTE_CACHE;
@@ -68,7 +70,7 @@ public class AltinnService {
 
     private <T> List<T> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String url, int pageSize) {
 
-        List<T> response = new ArrayList<T>();
+        Set<T> response = new HashSet<T>();
         HttpEntity<String> headers = getHeaderEntity();
         int pageNumber = 0;
         boolean hasMore = true;
@@ -84,7 +86,7 @@ public class AltinnService {
                 throw new AltinnException("Feil fra Altinn", exception);
             }
         }
-        return response;
+        return new ArrayList<T>(response);
     }
 
 }
