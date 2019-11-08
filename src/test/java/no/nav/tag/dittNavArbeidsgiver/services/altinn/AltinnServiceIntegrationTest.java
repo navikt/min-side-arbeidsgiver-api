@@ -24,7 +24,7 @@ import java.util.List;
 @SpringBootTest
 @ActiveProfiles("dev")
 @TestPropertySource(properties = {"mock.port=8082"})
-public class AltinnServiceTest {
+public class AltinnServiceIntegrationTest {
 
     @Autowired
     private AltinnService altinnService;
