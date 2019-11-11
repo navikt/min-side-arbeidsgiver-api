@@ -16,12 +16,18 @@ import org.springframework.stereotype.Component;
 import java.net.URL;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.notMatching;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Profile({"dev"})
 @Slf4j
 @Component
 public class MockServer {
+
+    public static final String SERVICE_EDITION = "1";
+    public static final String SERVICE_CODE = "4936";
+    public static final String FNR_MED_SKJEMATILGANG = "01065500791";
+    public static final String FNR_MED_ORGANISASJONER = "00000000000";
 
     @SneakyThrows
     @Autowired
@@ -66,7 +72,7 @@ public class MockServer {
 
     private static void mockOrganisasjoner(WireMockServer server, String altinnPath) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
-                .withQueryParam("subject", equalTo("00000000000"))
+                .withQueryParam("subject", equalTo(FNR_MED_ORGANISASJONER))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("organisasjoner.json"))
@@ -74,9 +80,9 @@ public class MockServer {
     }
     private static void mocktilgangTilSkjemForBedrift(WireMockServer server, String altinnPath) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
-                .withQueryParam("subject", equalTo("01065500791"))
-                .withQueryParam("serviceCode", equalTo("4936"))
-                .withQueryParam("serviceEdition", equalTo("1"))
+                .withQueryParam("subject", equalTo(FNR_MED_SKJEMATILGANG))
+                .withQueryParam("serviceCode", equalTo(SERVICE_CODE))
+                .withQueryParam("serviceEdition", equalTo(SERVICE_EDITION))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("rettigheterTilSkjema.json"))
@@ -85,12 +91,11 @@ public class MockServer {
 
     private static void mockInvalidSSN(WireMockServer server, String altinnPath) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
-                .withQueryParam("subject", WireMock.notMatching("00000000000|01065500791"))
+                .withQueryParam("subject", notMatching(FNR_MED_ORGANISASJONER + "|" + FNR_MED_SKJEMATILGANG))
                 .willReturn(WireMock.aResponse().withStatusMessage("Invalid socialSecurityNumber").withStatus(400)
                         .withHeader("Content-Type", "application/octet-stream")
                 ));
     }
-
 
     private static void mockForPath(WireMockServer server, String path, String responseFile){
         server.stubFor(WireMock.any(WireMock.urlPathMatching(path + ".*"))

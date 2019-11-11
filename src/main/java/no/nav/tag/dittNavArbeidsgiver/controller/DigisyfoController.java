@@ -38,8 +38,7 @@ public class DigisyfoController {
     @GetMapping(value = "/api/narmesteleder")
     public ResponseEntity<NarmesteLedertilgang> sjekkNarmestelederTilgang() {
         NarmesteLedertilgang response = new NarmesteLedertilgang();
-        response.tilgang = unleash.isEnabled("dna.digisyfo.hentSyfoTilgang") && 
-                digisyfoService.getNarmesteledere(extract(requestContextHolder)).getNarmesteLedere().length > 0;
+        response.tilgang = digisyfoService.getNarmesteledere(extract(requestContextHolder)).getNarmesteLedere().length > 0;
         return ResponseEntity.ok(response);
 
     }
@@ -51,7 +50,7 @@ public class DigisyfoController {
     
     @GetMapping(value = "/api/syfooppgaver")
     public String hentSyfoOppgaver(@CookieValue("nav-esso") String navesso) {
-        return unleash.isEnabled("dna.digisyfo.hentSyfoOppgaver") ? digisyfoService.hentSyfoOppgaver(navesso) : "[]";
+        return digisyfoService.hentSyfoOppgaver(navesso);
     }
 
 }
