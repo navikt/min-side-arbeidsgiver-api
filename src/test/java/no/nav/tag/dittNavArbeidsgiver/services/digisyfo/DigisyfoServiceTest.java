@@ -66,7 +66,7 @@ public class DigisyfoServiceTest {
             .thenThrow(RestClientException.class).thenReturn(ResponseEntity.ok(respons));
         assertThat(digisyfoService.getNarmesteledere(FNR)).isSameAs(respons);
 
-        verify(accesstokenClient, times(2)).hentAccessToken();
+        verify(accesstokenClient, times(3)).hentAccessToken();
         verify(accesstokenClient).evict();
         verify(restTemplate, times(2)).exchange(eq(SYFO_URL + AKTOERID), eq(HttpMethod.GET), any(HttpEntity.class), eq(DigisyfoNarmesteLederRespons.class));
 
@@ -81,7 +81,7 @@ public class DigisyfoServiceTest {
             digisyfoService.getNarmesteledere(FNR);
         } catch (Exception e) {
             //Må catche exception her for å kunne gjøre verifiseringer
-            verify(accesstokenClient, times(2)).hentAccessToken();
+            verify(accesstokenClient, times(3)).hentAccessToken();
             verify(accesstokenClient).evict();
             verify(restTemplate, times(2)).exchange(eq(SYFO_URL + AKTOERID), eq(HttpMethod.GET), any(HttpEntity.class), eq(DigisyfoNarmesteLederRespons.class));
             throw(e);

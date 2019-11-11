@@ -3,6 +3,7 @@ package no.nav.tag.dittNavArbeidsgiver.services.digisyfo;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.security.oidc.OIDCConstants;
 import no.nav.tag.dittNavArbeidsgiver.models.DigisyfoNarmesteLederRespons;
+import no.nav.tag.dittNavArbeidsgiver.services.aad.AadAccessToken;
 import no.nav.tag.dittNavArbeidsgiver.services.aad.AccesstokenClient;
 import no.nav.tag.dittNavArbeidsgiver.services.aktor.AktorClient;
 
@@ -43,6 +44,12 @@ public class DigisyfoService {
         try {
             return hentNarmesteLederFraDigiSyfo(getRequestEntity(), url);
         } catch (RestClientException e1) {
+            AadAccessToken token = accesstokenClient.hentAccessToken();
+            log.warn("Kall mot digisyfo feilet - kan skyldes utløpt token. expires_in: {}, ext_expires_in: {}, expires_on: {}", 
+                    token.getExpires_in(),
+                    token.getExt_expires_in(), 
+                    token.getExpires_on(), 
+                    e1);
             accesstokenClient.evict();
             try {
                 return hentNarmesteLederFraDigiSyfo(getRequestEntity(), url);
