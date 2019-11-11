@@ -38,8 +38,6 @@ public class AAregService {
             log.error(" Aareg Exception: ", exception);
             throw new RuntimeException(" Aareg Exception: " + exception);
         }
-
-
     }
 
     private HttpEntity <String> getRequestEntity(String orgnr) {

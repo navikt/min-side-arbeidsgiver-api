@@ -50,8 +50,9 @@ public class PdlService {
             }
             return result.getBody().data.hentPerson.navn[0];
         } catch (RestClientException exception) {
-            log.error("Feil fra Altinn med spørring: " + pdlUrl + " Exception: " + exception.getMessage());
-            throw new AltinnException("Feil fra Altinn", exception);
+            log.error("Feil fra PDL med spørring:{} ", pdlUrl);
+                    log.error(" Exception: {}" , exception.getMessage());
+            throw new AltinnException("Feil fra PDL", exception);
         }
     }
 

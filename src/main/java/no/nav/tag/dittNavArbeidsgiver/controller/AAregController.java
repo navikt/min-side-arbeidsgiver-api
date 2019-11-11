@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 @Protected
 @Slf4j
 @RestController
-
 public class AAregController {
 
     private final AAregService aAregServiceService;
