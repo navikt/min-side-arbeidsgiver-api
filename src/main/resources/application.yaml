@@ -86,7 +86,7 @@ altinn:
   APIGwHeader: ${APIGW_HEADER}
 
 unleash:
-  url: ${UNLEASH_URL}
+  url: https://unleash.nais.adeo.no/api
 
 ---
 
@@ -124,5 +124,4 @@ altinn:
   APIGwHeader: ${APIGW_HEADER}
 
 unleash:
-  url: ${UNLEASH_URL}
-
+  url: https://unleash.nais.adeo.no/api
