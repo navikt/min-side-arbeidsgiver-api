@@ -49,6 +49,7 @@ public class PdlService {
                 log.error(message);
                 throw new RuntimeException(message);
             }
+            log.trace("result get body:{} ",result.getBody());
             return result.getBody().data.hentPerson.navn[0];
         } catch (RestClientException exception) {
             log.error("Feil fra PDL med spørring:{} ", pdlUrl);
