@@ -1,10 +1,14 @@
-package no.nav.tag.dittNavArbeidsgiver.utils;
+package no.nav.tag.dittNavArbeidsgiver.services.aad;
 
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import static no.nav.tag.dittNavArbeidsgiver.services.aad.AadCacheConfig.AAD_CACHE;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -14,26 +18,16 @@ import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Component
+@Setter
 @ConfigurationProperties("aad")
 public class AccesstokenClient {
 
-    public void setAadAccessTokenURL(String aadAccessTokenURL) {
-        this.aadAccessTokenURL = aadAccessTokenURL;
-
-    }
-
     private String aadAccessTokenURL;
-    @Setter
     private String clientid;
-    @Setter
     private String azureClientSecret;
-    @Setter
     private String scope;
-    @Autowired
-    public AccesstokenClient( ){
 
-    }
-
+    @Cacheable(AAD_CACHE)
     public AadAccessToken hentAccessToken() {
         RestTemplate template = new RestTemplate();
         HttpEntity<MultiValueMap<String, String>> entity = getRequestEntity();
@@ -59,4 +53,9 @@ public class AccesstokenClient {
 
         return new HttpEntity<>(map, headers);
     }
+    
+    @CacheEvict(AAD_CACHE)
+    public void evict() {
+    }
+
 }

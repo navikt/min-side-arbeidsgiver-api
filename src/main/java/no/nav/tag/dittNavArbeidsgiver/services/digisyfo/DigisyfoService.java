@@ -3,8 +3,10 @@ package no.nav.tag.dittNavArbeidsgiver.services.digisyfo;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.security.oidc.OIDCConstants;
 import no.nav.tag.dittNavArbeidsgiver.models.DigisyfoNarmesteLederRespons;
+import no.nav.tag.dittNavArbeidsgiver.services.aad.AadAccessToken;
+import no.nav.tag.dittNavArbeidsgiver.services.aad.AccesstokenClient;
 import no.nav.tag.dittNavArbeidsgiver.services.aktor.AktorClient;
-import no.nav.tag.dittNavArbeidsgiver.utils.AccesstokenClient;
+
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.*;
@@ -23,8 +25,9 @@ public class DigisyfoService {
     private final AccesstokenClient accesstokenClient;
     private final AktorClient aktorClient;
     private final RestTemplate restTemplate;
+
     @Value("${digisyfo.digisyfoUrl}")
-    private String digisyfoUrl;
+    String digisyfoUrl;
     @Value("${digisyfo.sykemeldteURL}")
     private String sykemeldteURL;
     @Value("${digisyfo.syfooppgaveurl}")
@@ -37,25 +40,39 @@ public class DigisyfoService {
     }
 
     public DigisyfoNarmesteLederRespons getNarmesteledere(String fnr) {
-            /*
-            TODO: lagre accestoken fra AD (med en session?) så man slipper å spørre AD hver gang man skal sjekke nærmeste leder tilgang
-             */
-        HttpEntity <String> entity = getRequestEntity();
-        String url = UriComponentsBuilder.fromHttpUrl(digisyfoUrl+ aktorClient.getAktorId(fnr))
-                .toUriString();
+        String url = UriComponentsBuilder.fromHttpUrl(digisyfoUrl+ aktorClient.getAktorId(fnr)).toUriString();
         try {
-            ResponseEntity<DigisyfoNarmesteLederRespons> respons = restTemplate.exchange(url,
-                    HttpMethod.GET, entity, DigisyfoNarmesteLederRespons.class);
-            if (respons.getStatusCode() != HttpStatus.OK) {
-                String message = "Kall mot digisyfo feiler med HTTP-" + respons.getStatusCode();
-                log.error(message);
-                throw new RuntimeException(message);
+            return hentNarmesteLederFraDigiSyfo(getRequestEntity(), url);
+        } catch (RestClientException e1) {
+            AadAccessToken token = accesstokenClient.hentAccessToken();
+            log.warn("Kall mot digisyfo feilet - kan skyldes utløpt token. expires_in: {}, ext_expires_in: {}, expires_on: {}", 
+                    token.getExpires_in(),
+                    token.getExt_expires_in(), 
+                    token.getExpires_on(), 
+                    e1);
+            accesstokenClient.evict();
+            try {
+                return hentNarmesteLederFraDigiSyfo(getRequestEntity(), url);
+            } catch (RestClientException e2) {
+                log.error(" Digisyfo Exception: ", e2);
+                throw new RuntimeException(" Digisyfo Exception: " + e2);
             }
-            return respons.getBody();
-        } catch (RestClientException exception) {
-            log.error(" Digisyfo Exception: ", exception);
-            throw new RuntimeException(" Digisyfo Exception: " + exception);
         }
+    }
+
+    private DigisyfoNarmesteLederRespons hentNarmesteLederFraDigiSyfo(HttpEntity<String> entity, String url) {
+        ResponseEntity<DigisyfoNarmesteLederRespons> respons = restTemplate.exchange(
+                url,
+                HttpMethod.GET, 
+                entity, 
+                DigisyfoNarmesteLederRespons.class);
+        
+        if (respons.getStatusCode() != HttpStatus.OK) {
+            String message = "Kall mot digisyfo feiler med HTTP-" + respons.getStatusCode();
+            log.error(message);
+            throw new RuntimeException(message);
+        }
+        return respons.getBody();
     }
 
     private HttpEntity <String> getRequestEntity() {
