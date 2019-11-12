@@ -25,17 +25,15 @@ public class PdlService {
     }
     public String hentNavnMedFnr(String fnr){
 
-        String result = getFraPdl(fnr);
-        //return result.fornavn +" "+ result.mellomNavn + " "+result.etternavn;
-        log.info("hentNavnMedFnr: {}",result);
-        return result;
+        Navn result = getFraPdl(fnr);
+        return result.fornavn +" "+ result.mellomNavn + " "+result.etternavn;
 
     }
     private HttpEntity<String> createRequestEntity(String fnr) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + stsClient.getToken().getAccess_token());
         headers.set("Tema", "GEN");
-        headers.set("Nav-Consumer-Token", "Bearer " + stsClient.getToken().getAccess_token());
+        headers.set("Nav-Consumer-Token","Bearer " + stsClient.getToken().getAccess_token());
         headers.set("Content-Type","application/json");
         return new HttpEntity<>(createQuery(fnr),headers);
     }
@@ -43,16 +41,22 @@ public class PdlService {
     private String createQuery(String fnr) {
         return "{\"query\" : \"query{ hentPerson( ident: \\\"" + fnr + "\\\") {navn(historikk: false) {fornavn mellomnavn etternavn} } }\"}";
     }
-    private String getFraPdl(String fnr){
+    private Navn getFraPdl(String fnr){
         try {
-            ResponseEntity<String> result = restTemplate.exchange(pdlUrl, HttpMethod.POST, createRequestEntity(fnr), String.class);
+            ResponseEntity<PdlPerson> result = restTemplate.exchange(pdlUrl, HttpMethod.POST, createRequestEntity(fnr), PdlPerson.class);
             if (result.getStatusCode()!= HttpStatus.OK){
                 String message = "Kall mot pdl feiler med HTTP-" + result.getStatusCode();
                 log.error(message);
                 throw new RuntimeException(message);
             }
             log.trace("result get body:{} ",result.getBody());
-            return result.getBody();
+            try{
+                return result.getBody().data.hentPerson.navn[0];
+            }catch(NullPointerException e){
+                Navn exceptionNavn = new Navn();
+                exceptionNavn.fornavn="kunne ikke hente navn fra persondataregisteret";
+                return exceptionNavn;
+            }
         } catch (RestClientException exception) {
             log.error("Feil fra PDL med spørring:{} ", pdlUrl);
                     log.error(" Exception: {}" , exception.getMessage());
