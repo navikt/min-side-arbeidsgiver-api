@@ -39,7 +39,7 @@ public class PdlService {
     }
 
     private String createQuery(String fnr) {
-        return "{\"query\" : query{ hentPerson( ident: \" "+fnr +"\") {navn(historikk: false) {fornavn mellomnavn etternavn} } }}";
+        return "{\"query\" : query{ hentPerson( ident: \" " + fnr + "\") {navn(historikk: false) {fornavn mellomnavn etternavn} } }}";
     }
     private Navn getFraPdl(String fnr){
         try {
@@ -53,6 +53,7 @@ public class PdlService {
         } catch (RestClientException exception) {
             log.error("Feil fra PDL med spørring:{} ", pdlUrl);
                     log.error(" Exception: {}" , exception.getMessage());
+                    log.error("query til pdl: {}",createRequestEntity(fnr));
             throw new AltinnException("Feil fra PDL", exception);
         }
     }
