@@ -25,8 +25,10 @@ public class PdlService {
     }
     public String hentNavnMedFnr(String fnr){
 
-        Navn result = getFraPdl(fnr);
-        return result.fornavn +" "+ result.mellomNavn + " "+result.etternavn;
+        String result = getFraPdl(fnr);
+        //return result.fornavn +" "+ result.mellomNavn + " "+result.etternavn;
+        log.info("hentNavnMedFnr: {}",result);
+        return result;
 
     }
     private HttpEntity<String> createRequestEntity(String fnr) {
@@ -41,16 +43,16 @@ public class PdlService {
     private String createQuery(String fnr) {
         return "{\"query\" : \"query{ hentPerson( ident: \\\"" + fnr + "\\\") {navn(historikk: false) {fornavn mellomnavn etternavn} } }\"}";
     }
-    private Navn getFraPdl(String fnr){
+    private String getFraPdl(String fnr){
         try {
-            ResponseEntity<PdlPerson> result = restTemplate.exchange(pdlUrl, HttpMethod.POST, createRequestEntity(fnr), PdlPerson.class);
+            ResponseEntity<String> result = restTemplate.exchange(pdlUrl, HttpMethod.POST, createRequestEntity(fnr), String.class);
             if (result.getStatusCode()!= HttpStatus.OK){
                 String message = "Kall mot pdl feiler med HTTP-" + result.getStatusCode();
                 log.error(message);
                 throw new RuntimeException(message);
             }
             log.trace("result get body:{} ",result.getBody());
-            return result.getBody().data.hentPerson.navn[0];
+            return result.getBody();
         } catch (RestClientException exception) {
             log.error("Feil fra PDL med spørring:{} ", pdlUrl);
                     log.error(" Exception: {}" , exception.getMessage());
