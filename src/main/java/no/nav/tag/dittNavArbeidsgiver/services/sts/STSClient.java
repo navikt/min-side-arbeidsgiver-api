@@ -59,6 +59,4 @@ public class STSClient {
     public void evict() {
     }
 
-
-
 }
