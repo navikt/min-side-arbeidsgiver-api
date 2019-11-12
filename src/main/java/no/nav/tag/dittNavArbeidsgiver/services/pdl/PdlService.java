@@ -35,7 +35,7 @@ public class PdlService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + stsClient.getToken().getAccess_token());
         headers.set("Tema", "GEN");
-        headers.set("Nav-Consumer-Token", stsClient.getToken().getAccess_token());
+        headers.set("Nav-Consumer-Token", "Bearer " + stsClient.getToken().getAccess_token());
         headers.set("Content-Type","application/json");
         return new HttpEntity<>(createQuery(fnr),headers);
     }
