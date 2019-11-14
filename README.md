@@ -2,15 +2,24 @@
 ===========================
 [![CircleCI](https://circleci.com/gh/navikt/ditt-nav-arbeidsgiver-api.svg?style=svg)](https://circleci.com/gh/navikt/ditt-nav-arbeidsgiver-api)
 
-### Hensikt
-
 Applikasjonen tilbyr et API som brukes fra ditt nav arbeidsgiver og potensielt andre arbeidsgiver-applikasjoner. Api-et leverer tilgjengelige bedrifter for en pålogget bruker og har noen endepunkter som integrerer mot Digisyfo for å kunne vise overordnet informasjon derfra.
 
 
-### Oppsett
+### Komme i gang
 
-Applikasjonen bruker Spring boot 
+Applikasjonen bruker Spring boot. Ved lokal kjøring brukes Wiremock for mocking av integrasjoner.
 
-Åpnes i browser: [http://localhost:8080/](http://localhost:8080/)
+* Swagger finner du her: http://localhost:8080/ditt-nav-arbeidsgiver-api/swagger-ui.html#/
+* For å teste endpunktene lokalt kan man hente autorisasjons cookie fra http://localhost:8080/ditt-nav-arbeidsgiver-api/local/cookie
+med cookiename: selvbetjening-idtoken
 
-For lokal kjøring brukes Wiremock for mocking av andre integrasjoner.
+## Henvendelser
+Spørsmål knyttet til koden eller prosjektet kan rettes mot:
+
+* Bendik Segrov Ibenholt, bendik.segrov.ibenholt@nav.no
+* Hilde Steinbru Heggstad, hilde.steinbru.heggstad@nav.no
+* Torstein Gjengedal, torstein.gjengedal@nav.no
+
+## For NAV-ansatte
+
+Interne henvendelser kan sendes via Slack i kanalen #tag-min-side-arbeidsgiver
