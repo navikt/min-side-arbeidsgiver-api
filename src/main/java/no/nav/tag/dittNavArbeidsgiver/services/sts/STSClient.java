@@ -5,8 +5,8 @@ import no.nav.tag.dittNavArbeidsgiver.DittNavArbeidsgiverApplication;
 
 import static no.nav.tag.dittNavArbeidsgiver.services.sts.StsCacheConfig.STS_CACHE;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
@@ -19,13 +19,37 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 public class STSClient {
 
-    @Value("${sts.stsPass}")private String stsPass;
-    @Value("${sts.stsUrl}")private String stsUrl;
+    private RestTemplate restTemplate;
+    private HttpEntity<String> requestEntity;
+    private String uriString;
+
+    @Autowired
+    public STSClient(@Value("${sts.stsPass}") String stsPass, 
+            @Value("${sts.stsUrl}") String stsUrl, 
+            RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+        this.requestEntity = getRequestEntity(stsPass);
+        this.uriString = buildUriString(stsUrl);
+    }
+
+    private HttpEntity<String> getRequestEntity(String stsPass) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth(DittNavArbeidsgiverApplication.APP_NAME, stsPass);
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        return new HttpEntity<>(headers);
+    }
+
+    private String buildUriString(String stsUrl) {
+        return UriComponentsBuilder.fromHttpUrl(stsUrl)
+                .queryParam("grant_type","client_credentials")
+                .queryParam("scope","openid")
+                .toUriString();
+    }
 
     @Cacheable(STS_CACHE)
     public STStoken getToken() {
         try {
-            ResponseEntity<STStoken> response = buildUriAndExecuteRequest();
+            ResponseEntity<STStoken> response = restTemplate.exchange(uriString, HttpMethod.GET, requestEntity, STStoken.class);
             if(response.getStatusCode() != HttpStatus.OK){
                 String message = "Kall mot STS feiler med HTTP-" + response.getStatusCode();
                 log.error(message);
@@ -37,22 +61,6 @@ public class STSClient {
             log.error("Feil ved oppslag i STS", e);
             throw new RuntimeException(e);
         }
-    }
-
-    private ResponseEntity<STStoken> buildUriAndExecuteRequest(){
-        RestTemplate basicAuthRestTemplate = new RestTemplateBuilder().basicAuthentication(DittNavArbeidsgiverApplication.APP_NAME, stsPass).build();
-        String uriString = UriComponentsBuilder.fromHttpUrl(stsUrl)
-                .queryParam("grant_type","client_credentials")
-                .queryParam("scope","openid")
-                .toUriString();
-        HttpEntity<String> entity = getRequestEntity();
-        return basicAuthRestTemplate.exchange(uriString, HttpMethod.GET,entity,STStoken.class);
-    }
-
-    private HttpEntity<String> getRequestEntity() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        return new HttpEntity<>(headers);
     }
 
     @CacheEvict(STS_CACHE)
