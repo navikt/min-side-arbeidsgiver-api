@@ -1,6 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.services.sts;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.tag.dittNavArbeidsgiver.DittNavArbeidsgiverApplication;
 
 import static no.nav.tag.dittNavArbeidsgiver.services.sts.StsCacheConfig.STS_CACHE;
 
@@ -17,7 +18,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 @Component
 public class STSClient {
-
 
     @Value("${sts.stsPass}")private String stsPass;
     @Value("${sts.stsUrl}")private String stsUrl;
@@ -40,7 +40,7 @@ public class STSClient {
     }
 
     private ResponseEntity<STStoken> buildUriAndExecuteRequest(){
-        RestTemplate basicAuthRestTemplate = new RestTemplateBuilder().basicAuthentication("srvditt-nav-arbeid",stsPass).build();
+        RestTemplate basicAuthRestTemplate = new RestTemplateBuilder().basicAuthentication(DittNavArbeidsgiverApplication.APP_NAME, stsPass).build();
         String uriString = UriComponentsBuilder.fromHttpUrl(stsUrl)
                 .queryParam("grant_type","client_credentials")
                 .queryParam("scope","openid")
