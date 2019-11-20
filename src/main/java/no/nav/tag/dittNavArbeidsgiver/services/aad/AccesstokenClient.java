@@ -1,6 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.services.aad;
 
 
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,19 +21,20 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @Setter
 @ConfigurationProperties("aad")
+@RequiredArgsConstructor
 public class AccesstokenClient {
 
     private String aadAccessTokenURL;
     private String clientid;
     private String azureClientSecret;
     private String scope;
+    
+    private final RestTemplate template;
 
     @Cacheable(AAD_CACHE)
     public AadAccessToken hentAccessToken() {
-        RestTemplate template = new RestTemplate();
-        HttpEntity<MultiValueMap<String, String>> entity = getRequestEntity();
         try {
-            ResponseEntity <AadAccessToken> response = template.exchange(aadAccessTokenURL, HttpMethod.POST, entity, AadAccessToken.class);
+            ResponseEntity <AadAccessToken> response = template.exchange(aadAccessTokenURL, HttpMethod.POST, getRequestEntity(), AadAccessToken.class);
             return response.getBody();
 
         } catch (RestClientException exception) {
