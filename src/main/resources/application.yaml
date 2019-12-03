@@ -68,7 +68,7 @@ digisyfo:
 
 
 aareg:
-  aaregUrl: "https://modapp-q0.adeo.no/aareg-services/api/v1/arbeidsgiver/arbeidsforholdoversikt"
+  aaregUrl: "https://modapp-q0.adeo.no/aareg-services/api/v1/opplysningspliktig/arbeidsforholdoversikt"
 
 sts:
   stsPass: ${STS_PASS}

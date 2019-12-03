@@ -46,7 +46,8 @@ public class AAregService {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Authorization", "Bearer " + stsClient.getToken().getAccess_token());
         headers.set("Nav-Call-Id", appName);
-        headers.set("Nav-Arbeidsgiverident", orgnr);
+        headers.set("Nav-Arbeidsgiverident", "910825496");
+        headers.set("Nav-Opplysningspliktigident","810825472");
         headers.set("Nav-Consumer-Token", stsClient.getToken().getAccess_token());
 
         return new HttpEntity<>(headers);
