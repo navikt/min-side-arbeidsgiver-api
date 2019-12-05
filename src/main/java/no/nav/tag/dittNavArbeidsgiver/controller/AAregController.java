@@ -25,10 +25,10 @@ public class AAregController {
     }
 
 
-    @GetMapping(value = "/api/arbeidsforhold/{orgnr}")
+    @GetMapping(value = "/api/arbeidsforhold")
     @ResponseBody
-    public ResponseEntity<OversiktOverArbeidsForhold> hentArbeidsforhold(@PathVariable String orgnr) {
-        OversiktOverArbeidsForhold result = aAregServiceService.hentArbeidsforhold(orgnr);
+    public ResponseEntity<OversiktOverArbeidsForhold> hentArbeidsforhold(@RequestHeader("orgnr") String orgnr, @RequestHeader("jurenhet") String juridiskEnhetOrgnr,@CookieValue("selvbetjening-idtoken") String idToken) {
+        OversiktOverArbeidsForhold result = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         for (ArbeidsForhold arbeidsforhold : result.getArbeidsforholdoversikter()){
             String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
             String navn = pdlService.hentNavnMedFnr(fnr);

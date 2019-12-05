@@ -143,4 +143,6 @@ unleash:
 pdl:
   pdlUrl: "https://pdl-api.nais.adeo.no/graphql"
 
+aareg:
+  aaregUrl: "https://modapp-q0.adeo.no/aareg-services/api/v1/opplysningspliktig/arbeidsforholdoversikt"
 

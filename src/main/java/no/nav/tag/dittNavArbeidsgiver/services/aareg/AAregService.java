@@ -22,9 +22,9 @@ public class AAregService {
         this.restTemplate = restTemplate;
     }
 
-    public OversiktOverArbeidsForhold hentArbeidsforhold(String orgnr) {
+    public OversiktOverArbeidsForhold hentArbeidsforhold(String orgnr,String juridiskEnheOrgnr, String idPortenToken) {
         String url = aaregUrl;
-        HttpEntity <String> entity = getRequestEntity(orgnr);
+        HttpEntity <String> entity = getRequestEntity(orgnr,juridiskEnheOrgnr,idPortenToken);
         try {
             ResponseEntity<OversiktOverArbeidsForhold> respons = restTemplate.exchange(url,
                     HttpMethod.GET, entity, OversiktOverArbeidsForhold.class);
@@ -40,11 +40,11 @@ public class AAregService {
         }
     }
 
-    private HttpEntity <String> getRequestEntity(String orgnr) {
+    private HttpEntity <String> getRequestEntity(String bedriftsnr, String juridiskEnhetOrgnr, String idPortenToken) {
         String appName= "srvditt-nav-arbeid";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.set("Authorization", "Bearer " + stsClient.getToken().getAccess_token());
+        headers.set("Authorization", "Bearer " + idPortenToken);
         headers.set("Nav-Call-Id", appName);
         headers.set("Nav-Arbeidsgiverident", "910825496");
         headers.set("Nav-Opplysningspliktigident","810825472");

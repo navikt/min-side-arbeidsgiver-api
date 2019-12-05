@@ -1,76 +1,29 @@
 {
-  "antall": 0,
   "arbeidsforholdoversikter": [
     {
-      "ansattFom": "2017-07-01",
-      "ansattTom": "2019-12-31",
-      "arbeidsgiver": {
-        "type": "Organisasjon"
-      },
+      "navArbeidsforholdId": 47720600,
       "arbeidstaker": {
         "type": "Person",
-        "aktoerId": 1234567891,
-        "offentligIdent": 31126700011
+        "offentligIdent": "01088723275",
+        "aktoerId": "1442495989754"
       },
-      "innrapportertEtterAOrdningen": true,
-      "navArbeidsforholdId": 123456,
-      "opplysningspliktig": {
-        "type": "Organisasjon"
-      },
-      "permisjonPermitteringsprosent": 50.5,
-      "sistBekreftet": "2018-09-19T12:10:31",
-      "stillingsprosent": 49.5,
-      "type": "ordinaertArbeidsforhold",
-      "varslingskode": "ERKONK",
-      "yrke": 2130123
-    },
-    {
-      "ansattFom": "2014-07-01",
-      "ansattTom": "2015-12-31",
       "arbeidsgiver": {
-        "type": "Organisasjon"
+        "type": "Organisasjon",
+        "organisasjonsnummer": "910825518"
       },
-      "arbeidstaker": {
-        "type": "Person",
-        "aktoerId": 1234567892,
-        "offentligIdent": 31126700022
-      },
-      "innrapportertEtterAOrdningen": true,
-      "navArbeidsforholdId": 123456,
       "opplysningspliktig": {
-        "type": "Organisasjon"
+        "type": "Organisasjon",
+        "organisasjonsnummer": "810825472"
       },
-      "permisjonPermitteringsprosent": 50.5,
-      "sistBekreftet": "2018-09-19T12:10:31",
-      "stillingsprosent": 49.5,
       "type": "ordinaertArbeidsforhold",
-      "varslingskode": "ERKONK",
-      "yrke": 2130123
-    },
-    {
-      "ansattFom": "2014-07-01",
-      "ansattTom": "2015-12-31",
-      "arbeidsgiver": {
-        "type": "Organisasjon"
-      },
-      "arbeidstaker": {
-        "type": "Person",
-        "aktoerId": 1234567893,
-        "offentligIdent": 31126700033
-      },
+      "ansattFom": "2015-12-03",
+      "yrke": "3431129",
+      "stillingsprosent": 100,
       "innrapportertEtterAOrdningen": true,
-      "navArbeidsforholdId": 123456,
-      "opplysningspliktig": {
-        "type": "Organisasjon"
-      },
-      "permisjonPermitteringsprosent": 50.5,
-      "sistBekreftet": "2018-09-19T12:10:31",
-      "stillingsprosent": 49.5,
-      "type": "ordinaertArbeidsforhold",
-      "varslingskode": "ERKONK",
-      "yrke": 2130123
+      "sistBekreftet": "2019-12-03T10:57:36"
     }
   ],
   "startrad": 0,
-  "totalAntall": 0
+  "antall": 1,
+  "totalAntall": 1
 }
