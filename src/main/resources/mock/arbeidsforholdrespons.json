@@ -1,29 +1,6 @@
-{
-  "arbeidsforholdoversikter": [
-    {
-      "navArbeidsforholdId": 47720600,
-      "arbeidstaker": {
-        "type": "Person",
-        "offentligIdent": "01088723275",
-        "aktoerId": "1442495989754"
-      },
-      "arbeidsgiver": {
-        "type": "Organisasjon",
-        "organisasjonsnummer": "910825518"
-      },
-      "opplysningspliktig": {
-        "type": "Organisasjon",
-        "organisasjonsnummer": "810825472"
-      },
-      "type": "ordinaertArbeidsforhold",
-      "ansattFom": "2015-12-03",
-      "yrke": "3431129",
-      "stillingsprosent": 100,
-      "innrapportertEtterAOrdningen": true,
-      "sistBekreftet": "2019-12-03T10:57:36"
-    }
-  ],
-  "startrad": 0,
-  "antall": 1,
-  "totalAntall": 1
-}
+<html>
+<head>
+<title>Error</title>
+</head>
+<body>Unauthorized</body>
+</html>

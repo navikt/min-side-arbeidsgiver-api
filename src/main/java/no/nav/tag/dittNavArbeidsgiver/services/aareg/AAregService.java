@@ -41,13 +41,16 @@ public class AAregService {
     }
 
     private HttpEntity <String> getRequestEntity(String bedriftsnr, String juridiskEnhetOrgnr, String idPortenToken) {
+        System.out.println("getRequestEntity bedriftsnr: " + bedriftsnr);
+        System.out.println("getRequestEntity juridiskEnhetOrgnr: " + juridiskEnhetOrgnr);
+        System.out.println("getRequestEntity idPortenToken: " + idPortenToken);
         String appName= "srvditt-nav-arbeid";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Authorization", "Bearer " + idPortenToken);
         headers.set("Nav-Call-Id", appName);
-        headers.set("Nav-Arbeidsgiverident", "910825496");
-        headers.set("Nav-Opplysningspliktigident","810825472");
+        headers.set("Nav-Arbeidsgiverident", bedriftsnr);
+        headers.set("Nav-Opplysningspliktigident",juridiskEnhetOrgnr);
         headers.set("Nav-Consumer-Token", stsClient.getToken().getAccess_token());
 
         return new HttpEntity<>(headers);
