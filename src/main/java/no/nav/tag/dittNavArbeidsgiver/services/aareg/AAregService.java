@@ -52,7 +52,6 @@ public class AAregService {
         headers.set("Nav-Arbeidsgiverident", bedriftsnr);
         headers.set("Nav-Opplysningspliktigident",juridiskEnhetOrgnr);
         headers.set("Nav-Consumer-Token", stsClient.getToken().getAccess_token());
-
         return new HttpEntity<>(headers);
     }
 
