@@ -29,11 +29,17 @@ public class AAregController {
     @ResponseBody
     public ResponseEntity<OversiktOverArbeidsForhold> hentArbeidsforhold(@RequestHeader("orgnr") String orgnr, @RequestHeader("jurenhet") String juridiskEnhetOrgnr,@CookieValue("selvbetjening-idtoken") String idToken) {
         OversiktOverArbeidsForhold result = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
-        for (ArbeidsForhold arbeidsforhold : result.getArbeidsforholdoversikter()){
-            String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-            String navn = pdlService.hentNavnMedFnr(fnr);
-            arbeidsforhold.getArbeidstaker().setNavn(navn);
+        System.out.println("kommer hit");
+        System.out.println("result.getArbeidsforholdoversikter().length: "+result.getArbeidsforholdoversikter().length);
+        if (result.getArbeidsforholdoversikter().length>0) {
+            System.out.println("result.getArbeidsforholdoversikter().length: "+result.getArbeidsforholdoversikter().length);
+            for (ArbeidsForhold arbeidsforhold : result.getArbeidsforholdoversikter()) {
+                String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
+                String navn = pdlService.hentNavnMedFnr(fnr);
+                arbeidsforhold.getArbeidstaker().setNavn(navn);
+            }
         }
+        System.out.println("result.getArbeidsforholdoversikter().length: "+result);
         return ResponseEntity.ok(result);
     }
 }

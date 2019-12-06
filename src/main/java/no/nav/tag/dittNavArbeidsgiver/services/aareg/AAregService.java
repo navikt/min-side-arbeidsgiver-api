@@ -25,6 +25,7 @@ public class AAregService {
     public OversiktOverArbeidsForhold hentArbeidsforhold(String orgnr,String juridiskEnheOrgnr, String idPortenToken) {
         String url = aaregUrl;
         HttpEntity <String> entity = getRequestEntity(orgnr,juridiskEnheOrgnr,idPortenToken);
+        System.out.println("har laget request entity");
         try {
             ResponseEntity<OversiktOverArbeidsForhold> respons = restTemplate.exchange(url,
                     HttpMethod.GET, entity, OversiktOverArbeidsForhold.class);
@@ -41,9 +42,6 @@ public class AAregService {
     }
 
     private HttpEntity <String> getRequestEntity(String bedriftsnr, String juridiskEnhetOrgnr, String idPortenToken) {
-        System.out.println("getRequestEntity bedriftsnr: " + bedriftsnr);
-        System.out.println("getRequestEntity juridiskEnhetOrgnr: " + juridiskEnhetOrgnr);
-        System.out.println("getRequestEntity idPortenToken: " + idPortenToken);
         String appName= "srvditt-nav-arbeid";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
