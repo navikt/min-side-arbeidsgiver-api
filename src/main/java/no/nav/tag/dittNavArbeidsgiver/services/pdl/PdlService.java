@@ -57,7 +57,7 @@ public class PdlService {
     private Navn lesNavnFraPdlRespons(ResponseEntity<PdlPerson> respons){
         try{
             return respons.getBody().data.hentPerson.navn[0];
-        }catch(NullPointerException e){
+        }catch(NullPointerException | ArrayIndexOutOfBoundsException e){
             log.error("nullpointer exception: {} ", e.getMessage());
             return lagManglerNavnException();
         }
