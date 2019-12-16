@@ -1,0 +1,41 @@
+{
+  "beskrivelser": {
+    "1227184": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "bm": {
+            "term": "PLANSJEF (OFFENTLIG VIRKSOMHET)",
+            "tekst": "PLANSJEF (OFFENTLIG VIRKSOMHET)"
+          }
+        }
+      }
+    ],
+    "1227186": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "bm": {
+            "term": "OPPSYNSSJEF (OFFENTLIG VIRKSOMHET)",
+            "tekst": "OPPSYNSSJEF (OFFENTLIG VIRKSOMHET)"
+          }
+        }
+      }
+    ],
+    "1227187": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "bm": {
+            "term": "KONTORSJEF (OFFENTLIG VIRKSOMHET)",
+            "tekst": "KONTORSJEF (OFFENTLIG VIRKSOMHET)"
+          }
+        }
+      }
+    ]
+  }
+}
+

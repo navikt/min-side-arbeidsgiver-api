@@ -50,6 +50,9 @@ aad:
 
 unleash:
   url: "https://unleash.herokuapp.com/api/"
+
+yrkeskodeverk:
+  yrkeskodeUrl: "http://localhost:${mock.port}/kodeverk/api/"
 ---
 
 spring:
@@ -88,6 +91,9 @@ altinn:
 unleash:
   url: https://unleash.nais.adeo.no/api
 
+yrkeskodeverk:
+  yrkeskodeUrl: "https://kodeverk.nais.preprod.local/api/v1/kodeverk/Yrker/koder/betydninger?spraak=bm"
+
 ---
 
 spring:
@@ -125,3 +131,7 @@ altinn:
 
 unleash:
   url: https://unleash.nais.adeo.no/api
+
+yrkeskodeverk:
+  yrkeskodeUrl: "https://kodeverk.nais.prod.local/api/v1/kodeverk/Yrker/koder/betydninger?spraak=bm"
+
