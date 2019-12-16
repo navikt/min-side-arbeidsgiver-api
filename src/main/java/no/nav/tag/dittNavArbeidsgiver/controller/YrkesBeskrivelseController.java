@@ -1,11 +1,15 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
+import no.nav.security.oidc.api.Unprotected;
 import no.nav.tag.dittNavArbeidsgiver.services.kodeverk.Betydninger;
 import no.nav.tag.dittNavArbeidsgiver.services.kodeverk.KodeverkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+@Unprotected
+@RestController
 public class YrkesBeskrivelseController {
     private final KodeverkService kodeverkService;
 
