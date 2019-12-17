@@ -45,6 +45,7 @@ public class KodeverkService {
             log.error(message);
             throw new RuntimeException(message);
         }
+        log.info("objekt returnert: ", respons);
         return respons.getBody();
     }
 }
