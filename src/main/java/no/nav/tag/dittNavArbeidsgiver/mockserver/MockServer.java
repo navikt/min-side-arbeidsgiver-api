@@ -39,7 +39,8 @@ public class MockServer {
             @Value("${aktorregister.aktorUrl}") String aktorUrl,
             @Value("${digisyfo.sykemeldteURL}") String sykemeldteUrl,
             @Value("${digisyfo.syfooppgaveurl}") String syfoOpggaveUrl,
-            @Value("${digisyfo.digisyfoUrl}") String digisyfoUrl
+            @Value("${digisyfo.digisyfoUrl}") String digisyfoUrl,
+            @Value("${yrkeskodeverk.yrkeskodeUrl}") String yrkeskodeUrl
     ) {
         log.info("starter mockserveren");
 
@@ -51,6 +52,7 @@ public class MockServer {
         String sykemeldtePath = new URL(sykemeldteUrl).getPath();
         String syfoOppgavePath = new URL(syfoOpggaveUrl).getPath();
         String syfoNarmesteLederPath = new URL(digisyfoUrl).getPath();
+        String kodeverkPath = new URL(yrkeskodeUrl).getPath();
         mocktilgangTilSkjemForBedrift(server,altinnPath);
         mockOrganisasjoner(server, altinnPath);
         mockInvalidSSN(server, altinnPath);
@@ -61,6 +63,7 @@ public class MockServer {
         mockForPath(server, sykemeldtePath, "sykemeldinger.json");
         mockForPath(server, syfoOppgavePath, "syfoOppgaver.json");
         mockForPath(server, syfoNarmesteLederPath, "narmesteLeder.json");
+        mockForPath(server, kodeverkPath, "betydninger.json");
 
         server.start();
     }
