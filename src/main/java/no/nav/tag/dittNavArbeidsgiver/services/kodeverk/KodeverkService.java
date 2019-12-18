@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import no.nav.tag.dittNavArbeidsgiver.DittNavArbeidsgiverApplication;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -34,17 +37,19 @@ public class KodeverkService {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Nav-Call-Id", UUID.randomUUID().toString());
         headers.set("Nav-Consumer-Id", DittNavArbeidsgiverApplication.APP_NAME);
-        ResponseEntity<Betydninger> respons = restTemplate.exchange(
+        ResponseEntity <HashMap<String,Betydninger>> respons = restTemplate.exchange(
                 yrkeskodeUrl,
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
-                Betydninger.class);
+                Class<HashMap<String,Betydninger>>
+                );
 
         if (respons.getStatusCode() != HttpStatus.OK) {
             String message = "Kall mot kodeverksoversikt feiler med HTTP-" + respons.getStatusCode();
             log.error(message);
             throw new RuntimeException(message);
         }
+        Map<String, String> map = mapper.readValue(json, Map.class);
         log.info("objekt status: ", respons.getStatusCode());
         log.info("objekt returnert: ", respons.getBody());
         return respons.getBody();
