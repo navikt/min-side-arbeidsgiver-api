@@ -1,5 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.services.aktor;
 
+import no.nav.tag.dittNavArbeidsgiver.DittNavArbeidsgiverApplication;
 import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -48,12 +49,11 @@ public class AktorClient {
     }
 
     private HttpEntity<String> getRequestEntity(String fnr) {
-        String appName= "srvditt-nav-arbeid";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Authorization", "Bearer " + stsClient.getToken().getAccess_token());
         headers.set("Nav-Call-Id", UUID.randomUUID().toString());
-        headers.set("Nav-Consumer-Id", appName);
+        headers.set("Nav-Consumer-Id", DittNavArbeidsgiverApplication.APP_NAME);
         headers.set("Nav-Personidenter", fnr);
         return new HttpEntity<>(headers);
     }

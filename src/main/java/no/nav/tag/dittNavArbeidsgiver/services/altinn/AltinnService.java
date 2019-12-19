@@ -26,28 +26,33 @@ public class AltinnService {
     private static final int ALTINN_ORG_PAGE_SIZE = 500;
     private static final int ALTINN_ROLE_PAGE_SIZE = 50;
 
-    private final AltinnConfig altinnConfig;
-
     private final RestTemplate restTemplate;
+    private final HttpEntity<String> headerEntity;
+    private final String altinnUrl;
 
     @Autowired
     public AltinnService(AltinnConfig altinnConfig, RestTemplate restTemplate) {
-        this.altinnConfig = altinnConfig;
         this.restTemplate = restTemplate;
+        this.altinnUrl = altinnConfig.getAltinnurl();
+    
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-NAV-APIKEY", altinnConfig.getAPIGwHeader());
+        headers.set("APIKEY", altinnConfig.getAltinnHeader());
+        this.headerEntity = new HttpEntity<>(headers);
     }
 
     @Cacheable(ALTINN_CACHE)
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         String query = "&subject=" + fnr 
                 + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business'+or+Type+eq+'Enterprise'+or+Type+eq+'Foretak')+and+Status+eq+'Active'";
-        String url = altinnConfig.getAltinnurl() + "reportees/?ForceEIAuthentication" + query;
+        String url = altinnUrl + "reportees/?ForceEIAuthentication" + query;
         log.info("Henter organisasjoner fra Altinn");
         return getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url, ALTINN_ORG_PAGE_SIZE);
     }
 
     public List<Role> hentRoller(String fnr, String orgnr) {
         String query = "&subject=" + fnr + "&reportee=" + orgnr;
-        String url = altinnConfig.getAltinnurl() + "authorization/roles?ForceEIAuthentication" + query;
+        String url = altinnUrl + "authorization/roles?ForceEIAuthentication" + query;
         log.info("Henter roller fra Altinn");
         return getFromAltinn(new ParameterizedTypeReference<List<Role>>() {},url, ALTINN_ROLE_PAGE_SIZE);
     }
@@ -57,29 +62,21 @@ public class AltinnService {
         String query = "&subject=" + fnr 
                 + "&serviceCode=" + serviceKode 
                 + "&serviceEdition=" + serviceEdition; 
-        String url = altinnConfig.getAltinnurl() + "reportees/?ForceEIAuthentication" + query;
+        String url = altinnUrl + "reportees/?ForceEIAuthentication" + query;
         log.info("Henter rettigheter fra Altinn");
         return getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},url, ALTINN_ORG_PAGE_SIZE);
-    }
-
-    private HttpEntity<String>  getHeaderEntity() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-NAV-APIKEY", altinnConfig.getAPIGwHeader());
-        headers.set("APIKEY", altinnConfig.getAltinnHeader());
-        return new HttpEntity<>(headers);
     }
 
     <T> List<T> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String url, int pageSize) {
 
         Set<T> response = new HashSet<T>();
-        HttpEntity<String> headers = getHeaderEntity();
         int pageNumber = 0;
         boolean hasMore = true;
         while (hasMore) {
             pageNumber++;
             try {
                 String urlWithPagesizeAndOffset = url + "&$top=" + pageSize + "&$skip=" + ((pageNumber-1) * pageSize);
-                ResponseEntity<List<T>> exchange = restTemplate.exchange(urlWithPagesizeAndOffset, HttpMethod.GET, headers, typeReference);
+                ResponseEntity<List<T>> exchange = restTemplate.exchange(urlWithPagesizeAndOffset, HttpMethod.GET, headerEntity, typeReference);
                 List<T> currentResponseList = exchange.getBody();
                 response.addAll(currentResponseList);
                 hasMore = currentResponseList.size() >= pageSize;
