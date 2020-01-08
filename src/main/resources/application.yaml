@@ -57,6 +57,9 @@ aad:
 
 unleash:
   url: "https://unleash.herokuapp.com/api/"
+
+ereg:
+  url: "http://localhost:${mock.port}/ereg/api/v1/organisasjon/"
 ---
 
 spring:
@@ -103,6 +106,8 @@ unleash:
 pdl:
   pdlUrl: "https://pdl-api.nais.preprod.local/graphql"
 
+ereg:
+  url: "https://modapp-q0.adeo.no/ereg/api/v1/organisasjon/"
 
 ---
 

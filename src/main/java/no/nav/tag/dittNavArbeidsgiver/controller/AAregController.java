@@ -5,6 +5,7 @@ import no.nav.tag.dittNavArbeidsgiver.models.OversiktArbeidsgiver;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsgiver;
 import no.nav.tag.dittNavArbeidsgiver.services.aareg.AAregService;
+import no.nav.tag.dittNavArbeidsgiver.services.enhetsregisteret.EnhetsregisterService;
 import no.nav.tag.dittNavArbeidsgiver.services.pdl.PdlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +21,13 @@ public class AAregController {
 
     private final AAregService aAregServiceService;
     private final PdlService pdlService;
+    private final EnhetsregisterService enhetsregisterService;
 
     @Autowired
-    public AAregController(AAregService aAService, PdlService pdlService) {
+    public AAregController(AAregService aAService, PdlService pdlService, EnhetsregisterService enhetsregisterService) {
         this.aAregServiceService = aAService;
         this.pdlService = pdlService;
+        this.enhetsregisterService = enhetsregisterService;
 
     }
 
@@ -61,6 +64,7 @@ public class AAregController {
             }
         }
         System.out.println("result.getArbeidsforholdoversikter().length: "+result);
+        enhetsregisterService.hentOrgnaisasjonFraEnhetsregisteret(orgnr);
         return ResponseEntity.ok(result);
     }
 }

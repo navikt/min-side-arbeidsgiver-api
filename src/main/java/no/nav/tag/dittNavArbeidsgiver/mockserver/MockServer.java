@@ -42,10 +42,10 @@ public class MockServer {
             @Value("${digisyfo.digisyfoUrl}") String digisyfoUrl,
             @Value("${pdl.pdlUrl}") String pdlUrl,
             @Value("${aareg.aaregArbeidsforhold}") String aaregArbeidsforholdUrl,
-            @Value("${aareg.aaregArbeidsgivere}") String aaregArbeidsgivereUrl
+            @Value("${aareg.aaregArbeidsgivere}") String aaregArbeidsgivereUrl,
+            @Value("${ereg.url}") String eregUrl
     ) {
         log.info("starter mockserveren");
-
         WireMockServer server = new WireMockServer(new WireMockConfiguration().port(port).extensions(new ResponseTemplateTransformer(true)));
         String altinnPath = new URL(altinnUrl).getPath();
         String stsPath = new URL(stsUrl).getPath();
@@ -57,6 +57,7 @@ public class MockServer {
         String aaregArbeidsforholdPath = new URL(aaregArbeidsforholdUrl).getPath();
         String aaregArbeidsgiverePath = new URL(aaregArbeidsgivereUrl).getPath();
         String pdlPath = new URL(pdlUrl).getPath();
+        String eregPath = new URL(eregUrl).getPath();
         mocktilgangTilSkjemForBedrift(server,altinnPath);
         mockOrganisasjoner(server, altinnPath);
         mockInvalidSSN(server, altinnPath);
@@ -70,6 +71,7 @@ public class MockServer {
         mockForPath(server, pdlPath,"pdlRespons.json");
         mockForPath(server, aaregArbeidsforholdPath,"arbeidsforholdrespons.json");
         mockForPath(server, aaregArbeidsgiverePath,"arbeidsgiveroversiktaareg.json");
+        mockForPath(server, eregPath,"enhetsregisteret.json");
 
         server.start();
     }
