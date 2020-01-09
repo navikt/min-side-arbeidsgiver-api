@@ -53,7 +53,7 @@ public class AAregService {
         System.out.println("har laget request entity");
         try {
             ResponseEntity<List<OversiktOverArbeidsgiver>> respons = restTemplate.exchange(url,
-                    HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
+                    HttpMethod.GET, entity, new ParameterizedTypeReference<List<OversiktOverArbeidsgiver>>() {
                     });
             if (respons.getStatusCode() != HttpStatus.OK) {
                 String message = "Kall mot aareg feiler med HTTP-" + respons.getStatusCode();
