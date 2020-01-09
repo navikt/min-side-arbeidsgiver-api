@@ -15,8 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URL;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.notMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Profile({"dev"})
@@ -69,10 +68,10 @@ public class MockServer {
         mockForPath(server, syfoOppgavePath, "syfoOppgaver.json");
         mockForPath(server, syfoNarmesteLederPath, "narmesteLeder.json");
         mockForPath(server, pdlPath,"pdlRespons.json");
-        mockForPath(server, aaregArbeidsforholdPath,"arbeidsforholdrespons.json");
+        mockForPath(server, aaregArbeidsforholdPath,"tomRespons.json");
         mockForPath(server, aaregArbeidsgiverePath,"arbeidsgiveroversiktaareg.json");
         mockForPath(server, eregPath,"enhetsregisteret.json");
-
+        mockArbeidsforholdmedJuridiskEnhet(server, aaregArbeidsforholdPath);
         server.start();
     }
 
@@ -102,6 +101,15 @@ public class MockServer {
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("rettigheterTilSkjema.json"))
+                ));
+    }
+
+    private static void mockArbeidsforholdmedJuridiskEnhet(WireMockServer server, String path) {
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path))
+                .withHeader("Nav-Opplysningspliktigident", equalTo("983887457") )
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("arbeidsforholdrespons.json"))
                 ));
     }
 

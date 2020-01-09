@@ -38,19 +38,21 @@ public class AAregController {
     @GetMapping(value = "/api/arbeidsforhold")
     @ResponseBody
     public ResponseEntity<OversiktOverArbeidsForhold> hentArbeidsforhold(@RequestHeader("orgnr") String orgnr, @RequestHeader("jurenhet") String juridiskEnhetOrgnr,@CookieValue("selvbetjening-idtoken") String idToken) {
-        OversiktOverArbeidsForhold result = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
+        OversiktOverArbeidsForhold response = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         System.out.println("kommer hit");
-        System.out.println("result.getArbeidsforholdoversikter().length: "+result.getArbeidsforholdoversikter().length);
-        if (result.getArbeidsforholdoversikter().length>0) {
-            System.out.println("result.getArbeidsforholdoversikter().length: "+result.getArbeidsforholdoversikter().length);
-            for (ArbeidsForhold arbeidsforhold : result.getArbeidsforholdoversikter()) {
-                String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-                String navn = pdlService.hentNavnMedFnr(fnr);
-                arbeidsforhold.getArbeidstaker().setNavn(navn);
-            }
+        if (response.getArbeidsforholdoversikter()==null) {
+            response = finnOpplysningspliktigorg(orgnr, idToken);
+            System.out.println("finnOpplysningspliktigorg(orgnr, idToken): result "+response.getArbeidsforholdoversikter().length);
         }
-        System.out.println("result.getArbeidsforholdoversikter().length: "+result);
-        return ResponseEntity.ok(result);
+        System.out.println("result.getArbeidsforholdoversikter().length: "+response.getArbeidsforholdoversikter().length);
+        for (ArbeidsForhold arbeidsforhold : response.getArbeidsforholdoversikter()) {
+            String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
+            String navn = pdlService.hentNavnMedFnr(fnr);
+            arbeidsforhold.getArbeidstaker().setNavn(navn);
+        }
+        System.out.println("result.getArbeidsforholdoversikter().length: "+response.getArbeidsforholdoversikter().length);
+        enhetsregisterService.hentOrgnaisasjonFraEnhetsregisteret(orgnr);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping(value = "/api/arbeidsgivere")
@@ -66,34 +68,31 @@ public class AAregController {
                 System.out.println("hentArbeidsgiver orgnummer: "+arbeidsgiver.getOrganisasjonsnummer());
             }
         }
-        else{
-            result = finnOpplysningspliktigorg(orgnr, idToken);
-        }
-        System.out.println("result.getArbeidsforholdoversikter().length: "+result);
-        enhetsregisterService.hentOrgnaisasjonFraEnhetsregisteret(orgnr);
+
         return ResponseEntity.ok(result);
     }
 
-    public List<OversiktOverArbeidsgiver> finnOpplysningspliktigorg(String orgnr, String idToken){
+    public OversiktOverArbeidsForhold finnOpplysningspliktigorg(String orgnr, String idToken){
         System.out.println("finnOpplysningspliktigorg: orgnr" + orgnr);
         EnhetsRegisterOrg orgtreFraEnhetsregisteret = enhetsregisterService.hentOrgnaisasjonFraEnhetsregisteret(orgnr);
         if(orgtreFraEnhetsregisteret.getBestaarAvOrganisasjonsledd().size() > 0){
            return itererOverOrgTre(orgnr,orgtreFraEnhetsregisteret.getBestaarAvOrganisasjonsledd().get(0).getOrganisasjonsledd(), idToken );
-
         }
-        return new ArrayList<OversiktOverArbeidsgiver>();
+        return new OversiktOverArbeidsForhold();
     }
 
-    public List<OversiktOverArbeidsgiver> itererOverOrgTre(String orgnr, Organisasjoneledd orgledd, String idToken){
+    public OversiktOverArbeidsForhold itererOverOrgTre(String orgnr, Organisasjoneledd orgledd, String idToken){
         System.out.println("itererOverOrgTre orgnr: " + orgnr);
         System.out.println("itererOverOrgTre orgledd: " + orgledd);
-        List<OversiktOverArbeidsgiver> result = aAregServiceService.hentArbeidsgiverefraRapporteringsplikig(orgnr,orgledd.getOrganisasjonsnummer(),idToken);
-        if(result.size() > 0){
+        OversiktOverArbeidsForhold result = aAregServiceService.hentArbeidsforhold(orgnr,orgledd.getOrganisasjonsnummer(),idToken);
+        if(result.getArbeidsforholdoversikter()!=null){
+            System.out.println("result.getArbeidsforholdoversikter()!=null");
             return result;
         }
-        else if(orgledd.getInngaarIJuridiskEnheter().size()>0){
+        else if(orgledd.getInngaarIJuridiskEnheter()!=null){
+            System.out.println("orgledd.getInngaarIJuridiskEnheter()!=null");
             String juridiskEnhetOrgnr = orgledd.getInngaarIJuridiskEnheter().get(0).getOrganisasjonsnummer();
-            return aAregServiceService.hentArbeidsgiverefraRapporteringsplikig(orgnr,juridiskEnhetOrgnr,idToken);
+            return aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         }
         else{
             return itererOverOrgTre(orgnr, orgledd.getOrganisasjonsleddOver().get(0).getOrganisasjonsledd(), idToken);

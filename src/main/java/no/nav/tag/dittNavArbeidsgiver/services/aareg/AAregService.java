@@ -41,6 +41,7 @@ public class AAregService {
                 log.error(message);
                 throw new RuntimeException(message);
             }
+            System.out.println(" hentArbeidsforhold respons.getBody()" + respons.getBody());
             return respons.getBody();
         } catch (RestClientException exception) {
             log.error(" Aareg Exception: ", exception);
