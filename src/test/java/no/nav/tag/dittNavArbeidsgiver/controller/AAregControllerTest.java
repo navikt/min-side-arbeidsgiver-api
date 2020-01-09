@@ -20,7 +20,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
 @ActiveProfiles("dev")
-@TestPropertySource(properties = {"mock.port=8082"})
 public class AAregControllerTest {
 
     @Autowired
