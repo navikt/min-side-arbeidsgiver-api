@@ -15,7 +15,6 @@ import java.util.List;
 
 @Slf4j
 @Service
-
 public class AAregService {
     private final STSClient stsClient;
     private final RestTemplate restTemplate;

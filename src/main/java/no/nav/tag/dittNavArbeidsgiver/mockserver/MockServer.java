@@ -83,16 +83,6 @@ public class MockServer {
                         .withBody(hentStringFraFil("organisasjoner.json"))
                 ));
     }
-    private static void mockAaRegMedHeader(WireMockServer server, String aaRegPath){
-        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(aaRegPath + ""))
-                .withQueryParam("subject", equalTo(FNR_MED_SKJEMATILGANG))
-                .withQueryParam("serviceCode", equalTo(SERVICE_CODE))
-                .withQueryParam("serviceEdition", equalTo(SERVICE_EDITION))
-                .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil("rettigheterTilSkjema.json"))
-                ));
-    }
     private static void mocktilgangTilSkjemForBedrift(WireMockServer server, String altinnPath) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
                 .withQueryParam("subject", equalTo(FNR_MED_SKJEMATILGANG))
