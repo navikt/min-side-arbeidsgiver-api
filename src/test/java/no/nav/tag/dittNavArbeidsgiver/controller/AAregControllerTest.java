@@ -1,22 +1,24 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.services.aareg.AAregService;
 import no.nav.tag.dittNavArbeidsgiver.services.enhetsregisteret.EnhetsregisterService;
 import no.nav.tag.dittNavArbeidsgiver.services.pdl.PdlService;
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.junit.Assert.assertThat;
 
 
 @SpringBootTest
@@ -41,12 +43,13 @@ public class AAregControllerTest {
     @Before
     public void setUp() {
         aAregController = new AAregController(aAregService,pdlService,enhetsregisterService);
-
     }
 
     @Test
     public void hentArbeidsforhold() {
-        aAregController.hentArbeidsforhold("123","132","132");
+        ResponseEntity<OversiktOverArbeidsForhold> tomRespons= aAregController.hentArbeidsforhold("123","132","132");
+        Assert.assertNull(tomRespons.getBody().getArbeidsforholdoversikter());
+        ResponseEntity<OversiktOverArbeidsForhold> ResponsMedInnhold= aAregController.hentArbeidsforhold("910825518","132","132");
     }
 
 }

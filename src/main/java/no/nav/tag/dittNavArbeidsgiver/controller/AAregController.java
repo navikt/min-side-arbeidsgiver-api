@@ -41,11 +41,7 @@ public class AAregController {
         if (response.getArbeidsforholdoversikter()==null) {
             response = finnOpplysningspliktigorg(orgnr, idToken);
         }
-        for (ArbeidsForhold arbeidsforhold : response.getArbeidsforholdoversikter()) {
-            String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-            String navn = pdlService.hentNavnMedFnr(fnr);
-            arbeidsforhold.getArbeidstaker().setNavn(navn);
-        }
+        OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
         return ResponseEntity.ok(response);
     }
 
@@ -65,12 +61,12 @@ public class AAregController {
     public OversiktOverArbeidsForhold finnOpplysningspliktigorg(String orgnr, String idToken){
         EnhetsRegisterOrg orgtreFraEnhetsregisteret = enhetsregisterService.hentOrgnaisasjonFraEnhetsregisteret(orgnr);
         if(orgtreFraEnhetsregisteret.getBestaarAvOrganisasjonsledd().size() > 0){
-           return itererOverOrgTre(orgnr,orgtreFraEnhetsregisteret.getBestaarAvOrganisasjonsledd().get(0).getOrganisasjonsledd(), idToken );
+           return itererOverOrgtre(orgnr,orgtreFraEnhetsregisteret.getBestaarAvOrganisasjonsledd().get(0).getOrganisasjonsledd(), idToken );
         }
         return new OversiktOverArbeidsForhold();
     }
 
-    public OversiktOverArbeidsForhold itererOverOrgTre(String orgnr, Organisasjoneledd orgledd, String idToken){
+    public OversiktOverArbeidsForhold itererOverOrgtre(String orgnr, Organisasjoneledd orgledd, String idToken){
         OversiktOverArbeidsForhold result = aAregServiceService.hentArbeidsforhold(orgnr,orgledd.getOrganisasjonsnummer(),idToken);
         if(result.getArbeidsforholdoversikter()!=null){
             return result;
@@ -80,8 +76,19 @@ public class AAregController {
             return aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         }
         else{
-            return itererOverOrgTre(orgnr, orgledd.getOrganisasjonsleddOver().get(0).getOrganisasjonsledd(), idToken);
+            return itererOverOrgtre(orgnr, orgledd.getOrganisasjonsleddOver().get(0).getOrganisasjonsledd(), idToken);
             }
+        }
+        public OversiktOverArbeidsForhold settNavnPåArbeidsforhold (OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
+            if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
+                for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
+                    String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
+                    String navn = pdlService.hentNavnMedFnr(fnr);
+                    arbeidsforhold.getArbeidstaker().setNavn(navn);
+                }
+
+            }
+            return arbeidsforholdOversikt;
         }
 }
 
