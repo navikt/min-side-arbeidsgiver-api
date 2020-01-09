@@ -1,9 +1,11 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import no.nav.tag.dittNavArbeidsgiver.services.aareg.AAregService;
 import no.nav.tag.dittNavArbeidsgiver.services.enhetsregisteret.EnhetsregisterService;
 import no.nav.tag.dittNavArbeidsgiver.services.pdl.PdlService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -16,10 +18,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
 @ActiveProfiles("dev")
+@TestPropertySource(properties = {"mock.port=8084"})
 public class AAregControllerTest {
 
     @Autowired
@@ -37,6 +41,7 @@ public class AAregControllerTest {
     @Before
     public void setUp() {
         aAregController = new AAregController(aAregService,pdlService,enhetsregisterService);
+
     }
 
     @Test
