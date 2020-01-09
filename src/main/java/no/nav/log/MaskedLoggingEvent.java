@@ -80,12 +80,11 @@ public class MaskedLoggingEvent implements ILoggingEvent {
     public Map<String, String> getMDCPropertyMap() {
         return new MaskedMap(iLoggingEvent.getMDCPropertyMap());
     }
-
+    @SuppressWarnings("deprecation")
     @Override
     public Map<String, String> getMdc() {
         return new MaskedMap(iLoggingEvent.getMdc());
     }
-
     @Override
     public long getTimeStamp() {
         return iLoggingEvent.getTimeStamp();
