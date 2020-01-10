@@ -49,12 +49,6 @@ public class AAregController {
     @ResponseBody
     public ResponseEntity<List<OversiktOverArbeidsgiver>> hentArbeidsgivere(@RequestHeader("orgnr") String orgnr, @RequestHeader("opplysningspliktig") String opplysningspliktig, @CookieValue("selvbetjening-idtoken") String idToken) {
         List<OversiktOverArbeidsgiver> result = aAregServiceService.hentArbeidsgiverefraRapporteringsplikig(orgnr,opplysningspliktig,idToken);
-        if (result.size()>0) {
-            for (OversiktOverArbeidsgiver oversikt : result) {
-                OversiktArbeidsgiver arbeidsgiver = oversikt.getArbeidsgiver();
-                System.out.println("hentArbeidsgiver orgnummer: "+arbeidsgiver.getOrganisasjonsnummer());
-            }
-        }
         return ResponseEntity.ok(result);
     }
 
