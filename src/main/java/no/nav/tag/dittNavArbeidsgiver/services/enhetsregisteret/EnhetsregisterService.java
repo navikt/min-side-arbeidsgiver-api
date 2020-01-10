@@ -25,7 +25,8 @@ public class EnhetsregisterService {
     }
 
     public EnhetsRegisterOrg hentOrgnaisasjonFraEnhetsregisteret(String orgnr){
-        ResponseEntity <EnhetsRegisterOrg> response =  restTemplate.exchange(eregUrl, HttpMethod.GET,requestEntity,EnhetsRegisterOrg.class );
+        String eregurMedParam = eregUrl + orgnr + "?inkluderHistorikk=false&inkluderHierarki=true";
+        ResponseEntity <EnhetsRegisterOrg> response =  restTemplate.exchange(eregurMedParam, HttpMethod.GET,requestEntity,EnhetsRegisterOrg.class );
       return response.getBody();
     }
 }

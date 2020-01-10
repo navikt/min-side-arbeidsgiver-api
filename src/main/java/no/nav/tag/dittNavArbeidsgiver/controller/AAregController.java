@@ -42,7 +42,7 @@ public class AAregController {
             response = finnOpplysningspliktigorg(orgnr, idToken);
         }
         OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(arbeidsforholdMedNavn);
     }
 
     @GetMapping(value = "/api/arbeidsgivere")

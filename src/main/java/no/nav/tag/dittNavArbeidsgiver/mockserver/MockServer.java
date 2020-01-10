@@ -70,8 +70,9 @@ public class MockServer {
         mockForPath(server, pdlPath,"pdlRespons.json");
         mockForPath(server, aaregArbeidsforholdPath,"tomRespons.json");
         mockForPath(server, aaregArbeidsgiverePath,"arbeidsgiveroversiktaareg.json");
-        mockForPath(server, eregPath,"enhetsregisteret.json");
         mockArbeidsforholdmedJuridiskEnhet(server, aaregArbeidsforholdPath);
+        mockForPath(server, eregPath +"910825518","enhetsregisteret.json");
+        mockForPath(server, eregPath +"910825517","enhetsregisteret.json");
         server.start();
     }
 
@@ -95,7 +96,7 @@ public class MockServer {
     }
 
     private static void mockArbeidsforholdmedJuridiskEnhet(WireMockServer server, String path) {
-        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path))
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path ))
                 .withHeader("Nav-Opplysningspliktigident", equalTo("983887457") ).
                 withHeader("Nav-Arbeidsgiverident",equalTo("910825518"))
                 .willReturn(WireMock.aResponse()
