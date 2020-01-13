@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import no.nav.tag.dittNavArbeidsgiver.DittNavArbeidsgiverApplication;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -32,16 +30,16 @@ public class KodeverkService {
 
     }
 
-    public Betydninger hentBetydningerAvYrkeskoder() {
+    public Yrkeskoderespons hentBetydningerAvYrkeskoder() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Nav-Call-Id", UUID.randomUUID().toString());
         headers.set("Nav-Consumer-Id", DittNavArbeidsgiverApplication.APP_NAME);
-        ResponseEntity <HashMap<String,Betydninger>> respons = restTemplate.exchange(
+        ResponseEntity <Yrkeskoderespons> respons = restTemplate.exchange(
                 yrkeskodeUrl,
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
-                Class<HashMap<String,Betydninger>>
+                Yrkeskoderespons.class
                 );
 
         if (respons.getStatusCode() != HttpStatus.OK) {
@@ -49,9 +47,9 @@ public class KodeverkService {
             log.error(message);
             throw new RuntimeException(message);
         }
-        Map<String, String> map = mapper.readValue(json, Map.class);
-        log.info("objekt status: ", respons.getStatusCode());
-        log.info("objekt returnert: ", respons.getBody());
+        System.out.println("respons getbody" + respons.getBody());
+        System.out.println("yrkekodemap er tom" + respons.getBody().getBetydninger().isEmpty());
+        System.out.println("betydninger 1227184" + respons.getBody().getBetydninger().get("1227184"));
         return respons.getBody();
     }
 }

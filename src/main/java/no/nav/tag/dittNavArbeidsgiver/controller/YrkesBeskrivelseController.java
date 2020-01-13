@@ -1,7 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import no.nav.security.oidc.api.Unprotected;
-import no.nav.tag.dittNavArbeidsgiver.services.kodeverk.Betydninger;
+import no.nav.tag.dittNavArbeidsgiver.services.kodeverk.Yrkeskoderespons;
 import no.nav.tag.dittNavArbeidsgiver.services.kodeverk.KodeverkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +19,8 @@ public class YrkesBeskrivelseController {
     }
 
     @GetMapping(value = "/api/yrkeskoder")
-    public ResponseEntity<Betydninger> hentBeskrivelser() {
-        Betydninger response = kodeverkService.hentBetydningerAvYrkeskoder();
+    public ResponseEntity<Yrkeskoderespons> hentBeskrivelser() {
+        Yrkeskoderespons response = kodeverkService.hentBetydningerAvYrkeskoder();
         return ResponseEntity.ok(response);
 
     }

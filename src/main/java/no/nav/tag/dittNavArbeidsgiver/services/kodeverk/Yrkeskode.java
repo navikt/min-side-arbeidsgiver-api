@@ -7,6 +7,10 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 public class Yrkeskode {
-    @JsonProperty("listeMedYrkeskodeInfo")
-    private YrkeskodeInfo[] listrMedYrkeskodeInfo;
+    @JsonProperty("gyldigFra")
+    private String gyldigFra;
+    @JsonProperty("gyldigTil")
+    private String gyldigTil;
+    @JsonProperty("beskrivelser")
+    private Beskrivelser beskrivelser;
 }
