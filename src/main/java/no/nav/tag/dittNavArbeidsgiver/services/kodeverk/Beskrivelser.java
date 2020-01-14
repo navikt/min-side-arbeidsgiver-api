@@ -9,6 +9,6 @@ import lombok.Data;
 public class Beskrivelser {
     @JsonProperty("nn")
     private Sprak nn;
-    @JsonProperty("bm")
-    private Sprak bm;
+    @JsonProperty("nb")
+    private Sprak nb;
 }

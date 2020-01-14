@@ -18,7 +18,7 @@ public class YrkeskoderesponsTest {
                 "        \"gyldigFra\": \"2011-01-01\"," +
                 "        \"gyldigTil\": \"9999-12-31\"," +
                 "        \"beskrivelser\": {" +
-                "          \"bm\": {" +
+                "          \"nb\": {" +
                 "            \"term\": \"PLANSJEF (OFFENTLIG VIRKSOMHET)\"," +
                 "            \"tekst\": \"PLANSJEF (OFFENTLIG VIRKSOMHET)\"" +
                 "          }" +
@@ -31,7 +31,7 @@ public class YrkeskoderesponsTest {
         Yrkeskoderespons hei = objectMapper.readValue(json, Yrkeskoderespons.class);
 
         String jsonTilBeskrivelse = "{\n" +
-                "          \"bm\": {\n" +
+                "          \"nb\": {\n" +
                 "            \"term\": \"KONTORSJEF (OFFENTLIG VIRKSOMHET)\",\n" +
                 "            \"tekst\": \"KONTORSJEF (OFFENTLIG VIRKSOMHET)\"\n" +
                 "          }\n" +

@@ -5,7 +5,7 @@
         "gyldigFra": "2011-01-01",
         "gyldigTil": "9999-12-31",
         "beskrivelser": {
-          "bm": {
+          "nb": {
             "term": "PLANSJEF (OFFENTLIG VIRKSOMHET)",
             "tekst": "PLANSJEF (OFFENTLIG VIRKSOMHET)"
           }
@@ -17,7 +17,7 @@
         "gyldigFra": "2011-01-01",
         "gyldigTil": "9999-12-31",
         "beskrivelser": {
-          "bm": {
+          "nb": {
             "term": "OPPSYNSSJEF (OFFENTLIG VIRKSOMHET)",
             "tekst": "OPPSYNSSJEF (OFFENTLIG VIRKSOMHET)"
           }
@@ -29,7 +29,7 @@
         "gyldigFra": "2011-01-01",
         "gyldigTil": "9999-12-31",
         "beskrivelser": {
-          "bm": {
+          "nb": {
             "term": "KONTORSJEF (OFFENTLIG VIRKSOMHET)",
             "tekst": "KONTORSJEF (OFFENTLIG VIRKSOMHET)"
           }
