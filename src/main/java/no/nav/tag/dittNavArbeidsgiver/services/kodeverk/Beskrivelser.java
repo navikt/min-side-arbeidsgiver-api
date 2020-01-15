@@ -11,4 +11,7 @@ public class Beskrivelser {
     private Sprak nn;
     @JsonProperty("nb")
     private Sprak nb;
+
+
+
 }

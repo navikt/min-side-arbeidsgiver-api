@@ -16,7 +16,6 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Yrkeskoderespons {
     private Map<String, List<Yrkeskode>> betydninger;
-
     public Map<String, List<Yrkeskode>> getBetydninger() {
         return betydninger;
     }

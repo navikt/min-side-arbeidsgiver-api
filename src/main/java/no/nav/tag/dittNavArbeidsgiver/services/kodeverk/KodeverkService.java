@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 public class KodeverkService {
     private final RestTemplate restTemplate;
     private final HttpEntity<String> headerEntity;
+    private final Yrkeskoderespons yrkeskodeBeskrivelser;
 
     @Value("${yrkeskodeverk.yrkeskodeUrl}") private String yrkeskodeUrl;
 
@@ -26,8 +27,14 @@ public class KodeverkService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Nav-Call-Id", UUID.randomUUID().toString());
         headers.set("Nav-Consumer-Id", DittNavArbeidsgiverApplication.APP_NAME);
+        this.yrkeskodeBeskrivelser = hentBetydningerAvYrkeskoder();
         this.headerEntity = new HttpEntity<>(headers);
 
+    }
+
+    public String finnYrkeskodebetydnning(String yrkeskodenokkel) {
+        int kode = this.yrkeskodeBeskrivelser.getBetydninger().get(yrkeskodenokkel).indexOf(yrkeskodenokkel);
+        return this.yrkeskodeBeskrivelser.getBetydninger().get(yrkeskodenokkel).get(kode).getBeskrivelser().getNn().getTekst();
     }
 
     public Yrkeskoderespons hentBetydningerAvYrkeskoder() {
