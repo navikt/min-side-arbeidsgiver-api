@@ -1,4 +1,4 @@
-package no.nav.tag.dittNavArbeidsgiver.services.kodeverk;
+package no.nav.tag.dittNavArbeidsgiver.models.Yrkeskoderespons;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

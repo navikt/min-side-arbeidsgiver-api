@@ -1,7 +1,10 @@
-package no.nav.tag.dittNavArbeidsgiver.services.kodeverk;
+package no.nav.tag.dittNavArbeidsgiver.models.kodeverk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import no.nav.tag.dittNavArbeidsgiver.models.Yrkeskoderespons.Beskrivelser;
+import no.nav.tag.dittNavArbeidsgiver.models.Yrkeskoderespons.Sprak;
+import no.nav.tag.dittNavArbeidsgiver.models.Yrkeskoderespons.Yrkeskoderespons;
 import org.junit.Test;
 
 public class YrkeskoderesponsTest {

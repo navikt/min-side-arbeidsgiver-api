@@ -1,8 +1,8 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import no.nav.security.oidc.api.Unprotected;
-import no.nav.tag.dittNavArbeidsgiver.services.kodeverk.Yrkeskoderespons;
-import no.nav.tag.dittNavArbeidsgiver.services.kodeverk.KodeverkService;
+import no.nav.tag.dittNavArbeidsgiver.models.Yrkeskoderespons.Yrkeskoderespons;
+import no.nav.tag.dittNavArbeidsgiver.services.yrkeskode.KodeverkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
