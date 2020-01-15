@@ -1,7 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 import no.nav.security.oidc.api.Protected;
 import no.nav.tag.dittNavArbeidsgiver.models.ArbeidsForhold;
-import no.nav.tag.dittNavArbeidsgiver.models.OversiktArbeidsgiver;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsgiver;
 import no.nav.tag.dittNavArbeidsgiver.models.enhetsregisteret.EnhetsRegisterOrg;
@@ -30,9 +29,7 @@ public class AAregController {
         this.aAregServiceService = aAService;
         this.pdlService = pdlService;
         this.enhetsregisterService = enhetsregisterService;
-
     }
-
 
     @GetMapping(value = "/api/arbeidsforhold")
     @ResponseBody
@@ -71,19 +68,19 @@ public class AAregController {
         }
         else{
             return itererOverOrgtre(orgnr, orgledd.getOrganisasjonsleddOver().get(0).getOrganisasjonsledd(), idToken);
-            }
         }
-        public OversiktOverArbeidsForhold settNavnPåArbeidsforhold (OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
-            if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
-                for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
-                    String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-                    String navn = pdlService.hentNavnMedFnr(fnr);
-                    arbeidsforhold.getArbeidstaker().setNavn(navn);
-                }
+    }
 
+    public OversiktOverArbeidsForhold settNavnPåArbeidsforhold (OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
+        if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
+            for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
+                String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
+                String navn = pdlService.hentNavnMedFnr(fnr);
+                arbeidsforhold.getArbeidstaker().setNavn(navn);
             }
-            return arbeidsforholdOversikt;
         }
+        return arbeidsforholdOversikt;
+    }
 }
 
 

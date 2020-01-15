@@ -44,7 +44,6 @@ public class AktorClient {
             stsClient.evict();
             response = restTemplate.exchange(uriString, HttpMethod.GET, getRequestEntity(fnr), AktorResponse.class);
         }
-
         return response;
     }
 
