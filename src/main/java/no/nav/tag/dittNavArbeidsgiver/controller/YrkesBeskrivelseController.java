@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Unprotected
 @RestController
 public class YrkesBeskrivelseController {
-    private final KodeverkService kodeverkService;
-
     @Autowired
+    private KodeverkService kodeverkService;
+
     public YrkesBeskrivelseController(KodeverkService kodeverkService) {
         this.kodeverkService = kodeverkService;
     }
