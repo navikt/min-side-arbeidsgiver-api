@@ -30,7 +30,6 @@ public class KodeverkService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Nav-Call-Id", UUID.randomUUID().toString());
         headers.set("Nav-Consumer-Id", DittNavArbeidsgiverApplication.APP_NAME);
-        //this.yrkeskodeBeskrivelser = hentBetydningerAvYrkeskoder();
         this.headerEntity = new HttpEntity<>(headers);
 
     }

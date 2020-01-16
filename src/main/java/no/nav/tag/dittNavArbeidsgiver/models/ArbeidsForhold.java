@@ -42,6 +42,8 @@ public class ArbeidsForhold {
     private String varslingskode;
     @JsonProperty("yrke")
     private String yrke;
+    @JsonProperty("yrkesbeskrivelse")
+    private String yrkesbeskrivelse;
     private void setVarslingskode(String varslingskode){
         this.varslingskode=varslingskode;
         if(varslingskode!=null) {
