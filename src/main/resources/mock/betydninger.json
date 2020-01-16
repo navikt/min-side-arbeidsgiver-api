@@ -35,6 +35,30 @@
           }
         }
       }
+    ],
+    "3231109": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "SYKEPLEIER",
+            "tekst": "SYKEPLEIER"
+          }
+        }
+      }
+    ],
+    "3431129": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "ADMINISTRASJONSMEDARBEIDER",
+            "tekst": "ADMINISTRASJONSMEDARBEIDER"
+          }
+        }
+      }
     ]
   }
 }
