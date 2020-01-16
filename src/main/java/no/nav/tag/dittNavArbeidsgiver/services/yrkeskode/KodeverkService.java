@@ -20,7 +20,6 @@ import org.springframework.web.client.RestTemplate;
 public class KodeverkService {
     private final RestTemplate restTemplate;
     private final HttpEntity<String> headerEntity;
-    //private Yrkeskoderespons yrkeskodeBeskrivelser;
 
     @Value("${yrkeskodeverk.yrkeskodeUrl}") private String yrkeskodeUrl;
 
@@ -33,10 +32,6 @@ public class KodeverkService {
         this.headerEntity = new HttpEntity<>(headers);
 
     }
-
-    //public String finnYrkeskodebetydnning(String yrkeskodenokkel) {
-      //  return this.yrkeskodeBeskrivelser.getBetydninger().get(yrkeskodenokkel).get(0).getBeskrivelser().getNb().getTekst();
-    //}
 
     @Cacheable(YRKESKODE_CACHE)
     public Yrkeskoderespons hentBetydningerAvYrkeskoder() {

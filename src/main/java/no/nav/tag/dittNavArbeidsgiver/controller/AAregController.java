@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
@@ -37,7 +38,10 @@ public class AAregController {
 
     @GetMapping(value = "/api/arbeidsforhold")
     @ResponseBody
-    public ResponseEntity<OversiktOverArbeidsForhold> hentArbeidsforhold(@RequestHeader("orgnr") String orgnr, @RequestHeader("jurenhet") String juridiskEnhetOrgnr,@CookieValue("selvbetjening-idtoken") String idToken) {
+    public ResponseEntity<OversiktOverArbeidsForhold> hentArbeidsforhold(
+            @RequestHeader("orgnr") String orgnr,
+            @RequestHeader("jurenhet") String juridiskEnhetOrgnr,
+            @ApiIgnore @CookieValue("selvbetjening-idtoken") String idToken) {
         OversiktOverArbeidsForhold response = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         if (response.getArbeidsforholdoversikter()==null) {
             response = finnOpplysningspliktigorg(orgnr, idToken);

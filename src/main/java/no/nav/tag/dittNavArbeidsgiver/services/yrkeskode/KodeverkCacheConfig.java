@@ -10,7 +10,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 @Configuration
 public class KodeverkCacheConfig {
-    final static String YRKESKODE_CACHE = "sts_cache";
+    final static String YRKESKODE_CACHE = "yrkeskode_cache";
 
     @Bean
     public CaffeineCache kodeverkCache() {
