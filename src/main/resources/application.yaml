@@ -40,10 +40,17 @@ altinn:
   altinnHeader: "test"
   APIGwHeader: "test"
 
+pdl:
+  pdlUrl: "http://localhost:${mock.port}/graphql"
+
 digisyfo:
   digisyfoUrl: "http://localhost:${mock.port}/digisyfo/api/"
   sykemeldteURL: "http://localhost:${mock.port}/syforest/sykmeldinger"
   syfooppgaveurl: "http://localhost:${mock.port}/syforest/oppgaver"
+
+aareg:
+  aaregArbeidsforhold: "http://localhost:${mock.port}/aareg-services/api/v1/opplysningspliktig/arbeidsforholdoversikt"
+  aaregArbeidsgivere: "http://localhost:${mock.port}/aareg-services/api/v1/opplysningspliktig/arbeidsgiveroversikt"
 
 aad:
   aadAccessTokenURL: "http://localhost:${mock.port}/aad"
@@ -53,6 +60,9 @@ unleash:
 
 yrkeskodeverk:
   yrkeskodeUrl: "http://localhost:${mock.port}/kodeverk/api/"
+
+ereg:
+  url: "http://localhost:${mock.port}/ereg/api/v1/organisasjon/"
 ---
 
 spring:
@@ -62,6 +72,11 @@ digisyfo:
   digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.preprod.local/api/"
   sykemeldteURL: "https://tjenester-q1.nav.no/syforest/sykmeldinger"
   syfooppgaveurl: "https://tjenester-q1.nav.no/syforest/oppgaver"
+
+
+aareg:
+  aaregArbeidsforhold: "https://modapp-q0.adeo.no/aareg-services/api/v1/opplysningspliktig/arbeidsforholdoversikt"
+  aaregArbeidsgivere: "https://modapp-q0.adeo.no/aareg-services/api/v1/opplysningspliktig/arbeidsgiveroversikt"
 
 sts:
   stsPass: ${STS_PASS}
@@ -93,6 +108,12 @@ unleash:
 
 yrkeskodeverk:
   yrkeskodeUrl: "https://kodeverk.nais.preprod.local/api/v1/kodeverk/Yrker/koder/betydninger??spraak=nb&spraak=nn"
+
+pdl:
+  pdlUrl: "https://pdl-api.nais.preprod.local/graphql"
+
+ereg:
+  url: "https://modapp-q0.adeo.no/ereg/api/v1/organisasjon/"
 
 ---
 
@@ -134,4 +155,12 @@ unleash:
 
 yrkeskodeverk:
   yrkeskodeUrl: "https://kodeverk.nais.prod.local/api/v1/kodeverk/Yrker/koder/betydninger?spraak=nb&spraak=nn"
+
+
+
+pdl:
+  pdlUrl: "https://pdl-api.nais.adeo.no/graphql"
+
+aareg:
+  aaregUrl: "https://modapp-q0.adeo.no/aareg-services/api/v1/opplysningspliktig/arbeidsforholdoversikt"
 

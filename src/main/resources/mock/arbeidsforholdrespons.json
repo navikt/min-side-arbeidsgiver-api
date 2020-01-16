@@ -1,0 +1,118 @@
+{
+  "arbeidsforholdoversikter": [
+    {
+      "navArbeidsforholdId": 47720602,
+      "arbeidstaker": {
+        "type": "Person",
+        "offentligIdent": "27127424204",
+        "aktoerId": "1071346840074"
+      },
+      "arbeidsgiver": {
+        "type": "Organisasjon",
+        "organisasjonsnummer": "910825518"
+      },
+      "opplysningspliktig": {
+        "type": "Organisasjon",
+        "organisasjonsnummer": "810825472"
+      },
+      "type": "ordinaertArbeidsforhold",
+      "ansattFom": "2017-12-01",
+      "yrke": "3231109",
+      "stillingsprosent": 100,
+      "innrapportertEtterAOrdningen": true,
+      "sistBekreftet": "2019-12-06T10:46:25",
+      "varslingskode": "ERKONK"
+    },
+    {
+      "navArbeidsforholdId": 47720501,
+      "arbeidstaker": {
+        "type": "Person",
+        "offentligIdent": "09067525067",
+        "aktoerId": "1171206315983"
+      },
+      "arbeidsgiver": {
+        "type": "Organisasjon",
+        "organisasjonsnummer": "910825518"
+      },
+      "opplysningspliktig": {
+        "type": "Organisasjon",
+        "organisasjonsnummer": "810825472"
+      },
+      "type": "ordinaertArbeidsforhold",
+      "ansattFom": "2017-12-01",
+      "yrke": "3231109",
+      "stillingsprosent": 100,
+      "innrapportertEtterAOrdningen": true,
+      "sistBekreftet": "2019-12-06T10:46:32"
+    },
+    {
+      "navArbeidsforholdId": 47720603,
+      "arbeidstaker": {
+        "type": "Person",
+        "offentligIdent": "09077729434",
+        "aktoerId": "1231810853405"
+      },
+      "arbeidsgiver": {
+        "type": "Organisasjon",
+        "organisasjonsnummer": "910825518"
+      },
+      "opplysningspliktig": {
+        "type": "Organisasjon",
+        "organisasjonsnummer": "810825472"
+      },
+      "type": "ordinaertArbeidsforhold",
+      "ansattFom": "2017-12-01",
+      "yrke": "3231109",
+      "stillingsprosent": 100,
+      "innrapportertEtterAOrdningen": true,
+      "sistBekreftet": "2019-12-06T10:46:50"
+    },
+    {
+      "navArbeidsforholdId": 47720502,
+      "arbeidstaker": {
+        "type": "Person",
+        "offentligIdent": "14016027252",
+        "aktoerId": "1304655821090"
+      },
+      "arbeidsgiver": {
+        "type": "Organisasjon",
+        "organisasjonsnummer": "910825518"
+      },
+      "opplysningspliktig": {
+        "type": "Organisasjon",
+        "organisasjonsnummer": "810825472"
+      },
+      "type": "ordinaertArbeidsforhold",
+      "ansattFom": "2017-12-01",
+      "yrke": "3231109",
+      "stillingsprosent": 100,
+      "innrapportertEtterAOrdningen": true,
+      "sistBekreftet": "2019-12-06T10:46:40"
+    },
+    {
+      "navArbeidsforholdId": 47720600,
+      "arbeidstaker": {
+        "type": "Person",
+        "offentligIdent": "01088723275",
+        "aktoerId": "1442495989754"
+      },
+      "arbeidsgiver": {
+        "type": "Organisasjon",
+        "organisasjonsnummer": "910825518"
+      },
+      "opplysningspliktig": {
+        "type": "Organisasjon",
+        "organisasjonsnummer": "810825472"
+      },
+      "type": "ordinaertArbeidsforhold",
+      "ansattFom": "2015-12-03",
+      "yrke": "3431129",
+      "stillingsprosent": 100,
+      "innrapportertEtterAOrdningen": true,
+      "sistBekreftet": "2019-12-03T10:57:36"
+    }
+  ],
+  "startrad": 0,
+  "antall": 5,
+  "totalAntall": 5
+}

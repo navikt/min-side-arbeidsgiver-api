@@ -11,5 +11,4 @@ public class AltinnConfig {
     private String altinnHeader;
     private String altinnurl;
     private String APIGwHeader;
-
 }
