@@ -1,0 +1,190 @@
+{
+  "organisasjonsnummer": "910825518",
+  "type": "Virksomhet",
+  "navn": {
+    "redigertnavn": "NAV NORDRE LAND",
+    "navnelinje1": "NAV NORDRE LAND",
+    "bruksperiode": {
+      "fom": "2015-02-23T08:04:53.2"
+    },
+    "gyldighetsperiode": {
+      "fom": "2007-06-14"
+    }
+  },
+  "organisasjonDetaljer": {
+    "registreringsdato": "2007-06-14T00:00:00",
+    "enhetstyper": [
+      {
+        "enhetstype": "BEDR",
+        "bruksperiode": {
+          "fom": "2014-05-21T14:57:54.381"
+        },
+        "gyldighetsperiode": {
+          "fom": "2007-06-14"
+        }
+      }
+    ],
+    "naeringer": [
+      {
+        "naeringskode": "84.300",
+        "hjelpeenhet": false,
+        "bruksperiode": {
+          "fom": "2014-05-22T00:42:59.141"
+        },
+        "gyldighetsperiode": {
+          "fom": "2007-02-19"
+        }
+      }
+    ],
+    "navn": [
+      {
+        "redigertnavn": "NAV NORDRE LAND",
+        "navnelinje1": "NAV NORDRE LAND",
+        "bruksperiode": {
+          "fom": "2015-02-23T08:04:53.2"
+        },
+        "gyldighetsperiode": {
+          "fom": "2007-06-14"
+        }
+      }
+    ],
+    "forretningsadresser": [
+      {
+        "adresselinje1": "Storgata 28",
+        "postnummer": "2870",
+        "landkode": "NO",
+        "kommunenummer": "0538",
+        "bruksperiode": {
+          "fom": "2015-02-23T10:38:34.403"
+        },
+        "gyldighetsperiode": {
+          "fom": "2007-06-14"
+        }
+      }
+    ],
+    "postadresser": [
+      {
+        "adresselinje1": "Postboks 53",
+        "postnummer": "2882",
+        "landkode": "NO",
+        "kommunenummer": "0538",
+        "bruksperiode": {
+          "fom": "2014-12-09T04:03:37.34"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-12-08"
+        }
+      }
+    ],
+    "sistEndret": "2019-02-04",
+    "ansatte": [
+      {
+        "antall": 7,
+        "bruksperiode": {
+          "fom": "2019-05-02T15:10:34"
+        },
+        "gyldighetsperiode": {
+          "fom": "2018-02-10"
+        }
+      }
+    ]
+  },
+  "virksomhetDetaljer": {
+    "enhetstype": "BEDR",
+    "oppstartsdato": "2007-02-19",
+    "eierskiftedato": "2019-01-01"
+  },
+  "bestaarAvOrganisasjonsledd": [
+    {
+      "organisasjonsledd": {
+        "organisasjonsnummer": "874652202",
+        "type": "Organisasjonsledd",
+        "navn": {
+          "redigertnavn": "NAV INNLANDET",
+          "navnelinje1": "NAV INNLANDET",
+          "bruksperiode": {
+            "fom": "2019-02-05T04:00:42.568"
+          },
+          "gyldighetsperiode": {
+            "fom": "2019-02-04"
+          }
+        },
+        "organisasjonsleddOver": [
+          {
+            "organisasjonsledd": {
+              "organisasjonsnummer": "991012133",
+              "type": "Organisasjonsledd",
+              "navn": {
+                "redigertnavn": "NAV ARBEIDS- OG TJENESTELINJEN",
+                "navnelinje1": "NAV ARBEIDS- OG TJENESTELINJEN",
+                "bruksperiode": {
+                  "fom": "2016-02-02T04:02:14.967"
+                },
+                "gyldighetsperiode": {
+                  "fom": "2016-02-01"
+                }
+              },
+              "organisasjonsleddOver": [
+                {
+                  "organisasjonsledd": {
+                    "organisasjonsnummer": "889640782",
+                    "type": "Organisasjonsledd",
+                    "navn": {
+                      "redigertnavn": "ARBEIDS- OG VELFERDSETATEN",
+                      "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
+                      "bruksperiode": {
+                        "fom": "2015-02-23T08:04:53.2"
+                      },
+                      "gyldighetsperiode": {
+                        "fom": "2006-03-23"
+                      }
+                    },
+                    "inngaarIJuridiskEnheter": [
+                      {
+                        "organisasjonsnummer": "983887457",
+                        "navn": {
+                          "redigertnavn": "ARBEIDS- OG SOSIALDEPARTEMENTET",
+                          "navnelinje1": "ARBEIDS- OG SOSIALDEPARTEMENTET",
+                          "bruksperiode": {
+                            "fom": "2015-02-23T08:04:53.2"
+                          },
+                          "gyldighetsperiode": {
+                            "fom": "2014-02-14"
+                          }
+                        },
+                        "bruksperiode": {
+                          "fom": "2014-05-23T15:42:14.826"
+                        },
+                        "gyldighetsperiode": {
+                          "fom": "2006-03-23"
+                        }
+                      }
+                    ]
+                  },
+                  "bruksperiode": {
+                    "fom": "2014-05-23T20:17:58.879"
+                  },
+                  "gyldighetsperiode": {
+                    "fom": "2007-03-12"
+                  }
+                }
+              ]
+            },
+            "bruksperiode": {
+              "fom": "2014-05-23T15:21:58.298"
+            },
+            "gyldighetsperiode": {
+              "fom": "2007-09-10"
+            }
+          }
+        ]
+      },
+      "bruksperiode": {
+        "fom": "2019-02-05T04:00:42.814"
+      },
+      "gyldighetsperiode": {
+        "fom": "2019-02-04"
+      }
+    }
+  ]
+}

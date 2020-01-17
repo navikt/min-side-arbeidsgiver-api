@@ -1,10 +1,12 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import no.finn.unleash.Unleash;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -14,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -28,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
 @ActiveProfiles("dev")
+@TestPropertySource(properties = {"mock.port=8083"})
 public class DigisyfoControllerTest {
 
     @Autowired

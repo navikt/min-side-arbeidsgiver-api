@@ -15,8 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URL;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.notMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Profile({"dev"})
@@ -39,10 +38,13 @@ public class MockServer {
             @Value("${aktorregister.aktorUrl}") String aktorUrl,
             @Value("${digisyfo.sykemeldteURL}") String sykemeldteUrl,
             @Value("${digisyfo.syfooppgaveurl}") String syfoOpggaveUrl,
-            @Value("${digisyfo.digisyfoUrl}") String digisyfoUrl
+            @Value("${digisyfo.digisyfoUrl}") String digisyfoUrl,
+            @Value("${pdl.pdlUrl}") String pdlUrl,
+            @Value("${aareg.aaregArbeidsforhold}") String aaregArbeidsforholdUrl,
+            @Value("${aareg.aaregArbeidsgivere}") String aaregArbeidsgivereUrl,
+            @Value("${ereg.url}") String eregUrl
     ) {
         log.info("starter mockserveren");
-
         WireMockServer server = new WireMockServer(new WireMockConfiguration().port(port).extensions(new ResponseTemplateTransformer(true)));
         String altinnPath = new URL(altinnUrl).getPath();
         String stsPath = new URL(stsUrl).getPath();
@@ -51,6 +53,10 @@ public class MockServer {
         String sykemeldtePath = new URL(sykemeldteUrl).getPath();
         String syfoOppgavePath = new URL(syfoOpggaveUrl).getPath();
         String syfoNarmesteLederPath = new URL(digisyfoUrl).getPath();
+        String aaregArbeidsforholdPath = new URL(aaregArbeidsforholdUrl).getPath();
+        String aaregArbeidsgiverePath = new URL(aaregArbeidsgivereUrl).getPath();
+        String pdlPath = new URL(pdlUrl).getPath();
+        String eregPath = new URL(eregUrl).getPath();
         mocktilgangTilSkjemForBedrift(server,altinnPath);
         mockOrganisasjoner(server, altinnPath);
         mockInvalidSSN(server, altinnPath);
@@ -61,7 +67,12 @@ public class MockServer {
         mockForPath(server, sykemeldtePath, "sykemeldinger.json");
         mockForPath(server, syfoOppgavePath, "syfoOppgaver.json");
         mockForPath(server, syfoNarmesteLederPath, "narmesteLeder.json");
-
+        mockForPath(server, pdlPath,"pdlRespons.json");
+        mockForPath(server, aaregArbeidsforholdPath,"tomRespons.json");
+        mockForPath(server, aaregArbeidsgiverePath,"arbeidsgiveroversiktaareg.json");
+        mockArbeidsforholdmedJuridiskEnhet(server, aaregArbeidsforholdPath);
+        mockForPath(server, eregPath +"910825518","enhetsregisteret.json");
+        mockForPath(server, eregPath +"910825517","enhetsregisteret.json");
         server.start();
     }
 
@@ -81,6 +92,16 @@ public class MockServer {
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("rettigheterTilSkjema.json"))
+                ));
+    }
+
+    private static void mockArbeidsforholdmedJuridiskEnhet(WireMockServer server, String path) {
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path ))
+                .withHeader("Nav-Opplysningspliktigident", equalTo("983887457") ).
+                withHeader("Nav-Arbeidsgiverident",equalTo("910825518"))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("arbeidsforholdrespons.json"))
                 ));
     }
 

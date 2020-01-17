@@ -1,0 +1,18 @@
+[
+  {
+    "arbeidsgiver": {
+      "type": "Organisasjon",
+      "organisasjonsnummer": "910825518"
+    },
+    "aktiveArbeidsforhold": 5,
+    "inaktiveArbeidsforhold": 0
+  },
+  {
+    "arbeidsgiver": {
+      "type": "Organisasjon",
+      "organisasjonsnummer": "910825496"
+    },
+    "aktiveArbeidsforhold": 5,
+    "inaktiveArbeidsforhold": 0
+  }
+]
