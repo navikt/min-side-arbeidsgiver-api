@@ -49,7 +49,7 @@ digisyfo:
   syfooppgaveurl: "http://localhost:${mock.port}/syforest/oppgaver"
 
 aareg:
-  aaregArbeidsforhold: "http://localhost:${mock.port}/aareg-services/api/v1/opplysningspliktig/arbeidsforholdoversikt"
+  aaregArbeidsforhold: "http://localhost:${mock.port}/aareg-services/api/v1/opplysningspliktig/arbeidsforholdoversikt?status= ALLE"
   aaregArbeidsgivere: "http://localhost:${mock.port}/aareg-services/api/v1/opplysningspliktig/arbeidsgiveroversikt"
 
 aad:
@@ -75,7 +75,7 @@ digisyfo:
 
 
 aareg:
-  aaregArbeidsforhold: "https://modapp-q0.adeo.no/aareg-services/api/v1/opplysningspliktig/arbeidsforholdoversikt"
+  aaregArbeidsforhold: "https://modapp-q0.adeo.no/aareg-services/api/v1/opplysningspliktig/arbeidsforholdoversikt?status= ALLE"
   aaregArbeidsgivere: "https://modapp-q0.adeo.no/aareg-services/api/v1/opplysningspliktig/arbeidsgiveroversikt"
 
 sts:
