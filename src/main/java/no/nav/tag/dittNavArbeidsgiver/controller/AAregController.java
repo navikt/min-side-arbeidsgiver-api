@@ -104,6 +104,7 @@ public class AAregController {
     }
 
     public String finnYrkeskodebetydningPaYrke(String yrkeskodenokkel, Yrkeskoderespons yrkeskoderespons) {
+        log.debug("finnYrkeskodebetydningPaYrke yrkeskoderespons" + yrkeskoderespons);
      return yrkeskoderespons.getBetydninger().get(yrkeskodenokkel).get(0).getBeskrivelser().getNb().getTekst();
     }
 }

@@ -6,7 +6,7 @@ metadata:
   labels:
     team: teamtag
 spec:
-  image: navikt/ditt-nav-arbeidsgiver-api:c1111f924ed8f909e85870c21b9da5395599699e
+  image: navikt/ditt-nav-arbeidsgiver-api:1b5f631f8afcc9f45fab7ff75f7046e67b02d8fc
   team: teamtag
   port: 8080
   ingresses:
