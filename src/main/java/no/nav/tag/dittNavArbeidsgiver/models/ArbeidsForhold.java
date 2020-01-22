@@ -50,17 +50,11 @@ public class ArbeidsForhold {
             this.varslingskodeForklaring = varselKodeOppslag.get(varslingskode);
         }
     }
-@JsonIgnore
+    @JsonIgnore
     private Map<String,String> varselKodeOppslag = Map.of(
             "ERKONK","Maskinell sluttdato: Konkurs",
             "EROPPH","Maskinell sluttdato: Opphørt i Enhetsregisteret",
             "ERVIRK","Maskinell sluttdato: Virksomhetoverdragelse",
             "IBARBG","Maskinell sluttdato: Ikke bekreftet",
             "IBKAOR","Maskinell sluttdato: Ikke bekreftet i a-ordningen");
-    /*private void setVarslingskodeForklaring(){
-        this.varslingskodeForklaring = "forklaring";
-    };
-    private String getVarslingskodeForklaring(){
-            return "forklaring";
-    };*/
 }
