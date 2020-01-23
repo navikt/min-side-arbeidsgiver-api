@@ -22,7 +22,7 @@ public class ArbeidsforholdServiceTest {
     @Test
     public void hentArbeidsforhold() {
         String result = oversiktOverArbeidsForhold.hentArbeidsforhold("910825518","983887457","9999").getAktorIDtilArbeidstaker();
-        assertEquals("1071346840074",result);
+        assertEquals("1157442896316",result);
     }
 }
 

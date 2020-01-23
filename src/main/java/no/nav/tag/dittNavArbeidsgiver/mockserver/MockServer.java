@@ -39,6 +39,7 @@ public class MockServer {
             @Value("${digisyfo.sykemeldteURL}") String sykemeldteUrl,
             @Value("${digisyfo.syfooppgaveurl}") String syfoOpggaveUrl,
             @Value("${digisyfo.digisyfoUrl}") String digisyfoUrl,
+            @Value("${yrkeskodeverk.yrkeskodeUrl}") String yrkeskodeUrl,
             @Value("${pdl.pdlUrl}") String pdlUrl,
             @Value("${aareg.aaregArbeidsforhold}") String aaregArbeidsforholdUrl,
             @Value("${aareg.aaregArbeidsgivere}") String aaregArbeidsgivereUrl,
@@ -53,6 +54,7 @@ public class MockServer {
         String sykemeldtePath = new URL(sykemeldteUrl).getPath();
         String syfoOppgavePath = new URL(syfoOpggaveUrl).getPath();
         String syfoNarmesteLederPath = new URL(digisyfoUrl).getPath();
+        String kodeverkPath = new URL(yrkeskodeUrl).getPath();
         String aaregArbeidsforholdPath = new URL(aaregArbeidsforholdUrl).getPath();
         String aaregArbeidsgiverePath = new URL(aaregArbeidsgivereUrl).getPath();
         String pdlPath = new URL(pdlUrl).getPath();
@@ -67,6 +69,8 @@ public class MockServer {
         mockForPath(server, sykemeldtePath, "sykemeldinger.json");
         mockForPath(server, syfoOppgavePath, "syfoOppgaver.json");
         mockForPath(server, syfoNarmesteLederPath, "narmesteLeder.json");
+        mockForPath(server, kodeverkPath, "betydninger.json");
+
         mockForPath(server, pdlPath,"pdlRespons.json");
         mockForPath(server, aaregArbeidsforholdPath,"tomRespons.json");
         mockForPath(server, aaregArbeidsgiverePath,"arbeidsgiveroversiktaareg.json");

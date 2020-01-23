@@ -58,6 +58,9 @@ aad:
 unleash:
   url: "https://unleash.herokuapp.com/api/"
 
+yrkeskodeverk:
+  yrkeskodeUrl: "http://localhost:${mock.port}/kodeverk/api/"
+
 ereg:
   url: "http://localhost:${mock.port}/ereg/api/v1/organisasjon/"
 ---
@@ -103,6 +106,9 @@ altinn:
 unleash:
   url: https://unleash.nais.adeo.no/api
 
+yrkeskodeverk:
+  yrkeskodeUrl: "https://kodeverk.nais.preprod.local/api/v1/kodeverk/Yrker/koder/betydninger?spraak=nb"
+
 pdl:
   pdlUrl: "https://pdl-api.nais.preprod.local/graphql"
 
@@ -146,6 +152,11 @@ altinn:
 
 unleash:
   url: https://unleash.nais.adeo.no/api
+
+yrkeskodeverk:
+  yrkeskodeUrl: "https://kodeverk.nais.prod.local/api/v1/kodeverk/Yrker/koder/betydninger?spraak=nb&spraak=nn"
+
+
 
 pdl:
   pdlUrl: "https://pdl-api.nais.adeo.no/graphql"

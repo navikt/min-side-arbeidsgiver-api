@@ -1,0 +1,160 @@
+{
+  "betydninger": {
+    "1227184": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "PLANSJEF (OFFENTLIG VIRKSOMHET)",
+            "tekst": "PLANSJEF (OFFENTLIG VIRKSOMHET)"
+          }
+        }
+      }
+    ],
+    "1227186": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "OPPSYNSSJEF (OFFENTLIG VIRKSOMHET)",
+            "tekst": "OPPSYNSSJEF (OFFENTLIG VIRKSOMHET)"
+          }
+        }
+      }
+    ],
+    "1227187": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "KONTORSJEF (OFFENTLIG VIRKSOMHET)",
+            "tekst": "KONTORSJEF (OFFENTLIG VIRKSOMHET)"
+          }
+        }
+      }
+    ],
+    "3231109": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "SYKEPLEIER",
+            "tekst": "SYKEPLEIER"
+          }
+        }
+      }
+    ],
+    "3431129": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "ADMINISTRASJONSMEDARBEIDER",
+            "tekst": "ADMINISTRASJONSMEDARBEIDER"
+          }
+        }
+      }
+    ],
+    "0017041": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "DISPONENT",
+            "tekst": "DISPONENT"
+          }
+        }
+      }
+    ],
+    "6129109": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "KENNELASSISTENT",
+            "tekst": "KENNELASSISTENT"
+          }
+        }
+      }
+    ],
+    "5149124": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "MYSTERY SHOPPER",
+            "tekst": "MYSTERY SHOPPER"
+          }
+        }
+      }
+    ],
+    "4223102": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "DROSJESENTRALVAKTSJEF",
+            "tekst": "DROSJESENTRALVAKTSJEF"
+          }
+        }
+      }
+    ],
+    "3310101": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "ALLMENNLÆRER",
+            "tekst": "ALLMENNLÆRER"
+          }
+        }
+      }
+    ],
+    "7435101": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "PARYKKMAKER",
+            "tekst": "PARYKKMAKER"
+          }
+        }
+      }
+    ],
+    "3119140": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "SENIOR KONTROLLINGENIØR (ØVRIG TEKNISK VIRKSOMHET)",
+            "tekst": "SENIOR KONTROLLINGENIØR (ØVRIG TEKNISK VIRKSOMHET)"
+          }
+        }
+      }
+    ],
+    "0030220": [
+      {
+        "gyldigFra": "2011-01-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "1. STYRMANN",
+            "tekst": "1. STYRMANN"
+          }
+        }
+      }
+    ]
+  }
+}
