@@ -8,7 +8,6 @@ import lombok.Getter;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
-
 public class OversiktOverArbeidsForhold {
     @JsonProperty("antall")
     private String antall;

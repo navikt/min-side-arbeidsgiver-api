@@ -71,6 +71,9 @@
         {
           "entitet": "ANSETTELSESPERIODE",
           "varslingskode": "ERKONK"
+        },{
+          "entitet": "PERMITTERINGSPERIODE",
+          "varslingskode": "EROPPH"
         }
       ]
     },
