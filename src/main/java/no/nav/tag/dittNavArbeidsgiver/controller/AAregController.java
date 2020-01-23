@@ -107,6 +107,3 @@ public class AAregController {
         return yrkeskoderespons.getBetydninger().get(yrkeskodenokkel).get(0).getBeskrivelser().getNb().getTekst();
     }
 }
-
-
-

@@ -52,11 +52,8 @@ public class KodeverkService {
                 log.error(message);
                 throw new RuntimeException(message);
             }
-            System.out.println("respons getbody" + respons.getBody());
-            System.out.println("yrkekodemap er tom" + respons.getBody().getBetydninger().isEmpty());
-            System.out.println("betydninger 1227184" + respons.getBody().getBetydninger().get("1227184"));
+          ;
             return respons.getBody();
-
         }
         catch(HttpClientErrorException e){
             log.error("Feil ved oppslag i yrkeskodeverk", e);
