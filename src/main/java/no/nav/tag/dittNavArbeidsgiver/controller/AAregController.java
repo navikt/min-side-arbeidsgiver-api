@@ -1,4 +1,5 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
+import no.nav.metrics.aspects.Timed;
 import no.nav.security.oidc.api.Protected;
 import no.nav.tag.dittNavArbeidsgiver.models.ArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
@@ -35,15 +36,17 @@ public class AAregController {
         this.enhetsregisterService = enhetsregisterService;
         this.kodeverkService = kodeverkService;
     }
-
+    @Timed
     @GetMapping(value = "/api/arbeidsforhold")
     @ResponseBody
     public ResponseEntity<OversiktOverArbeidsForhold> hentArbeidsforhold(
             @RequestHeader("orgnr") String orgnr,
             @RequestHeader("jurenhet") String juridiskEnhetOrgnr,
             @ApiIgnore @CookieValue("selvbetjening-idtoken") String idToken) {
+        log.info("controller hentArbeidsforhold orgnr: " + orgnr + " jurenhet: " + juridiskEnhetOrgnr );
         OversiktOverArbeidsForhold response = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         if (response.getArbeidsforholdoversikter()==null) {
+            log.info("controller hentArbeidsforhold fant ingen arbeidsforhold. Prøver å med overordnete enheter");
             response = finnOpplysningspliktigorg(orgnr, idToken);
         }
         OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
@@ -60,7 +63,9 @@ public class AAregController {
 
     public OversiktOverArbeidsForhold finnOpplysningspliktigorg(String orgnr, String idToken){
         EnhetsRegisterOrg orgtreFraEnhetsregisteret = enhetsregisterService.hentOrgnaisasjonFraEnhetsregisteret(orgnr);
+        log.info("finnOpplysningspliktigorg, orgtreFraEnhetsregisteret: " + orgtreFraEnhetsregisteret);
         if(orgtreFraEnhetsregisteret.getBestaarAvOrganisasjonsledd().size() > 0){
+
            return itererOverOrgtre(orgnr,orgtreFraEnhetsregisteret.getBestaarAvOrganisasjonsledd().get(0).getOrganisasjonsledd(), idToken );
         }
         return new OversiktOverArbeidsForhold();
@@ -68,11 +73,13 @@ public class AAregController {
 
     public OversiktOverArbeidsForhold itererOverOrgtre(String orgnr, Organisasjoneledd orgledd, String idToken){
         OversiktOverArbeidsForhold result = aAregServiceService.hentArbeidsforhold(orgnr,orgledd.getOrganisasjonsnummer(),idToken);
+        log.info("itererOverOrgtre orgnr: " +orgnr + "orgledd: "+ orgledd);
         if(result.getArbeidsforholdoversikter()!=null){
             return result;
         }
         else if(orgledd.getInngaarIJuridiskEnheter()!=null){
             String juridiskEnhetOrgnr = orgledd.getInngaarIJuridiskEnheter().get(0).getOrganisasjonsnummer();
+            log.info("itererOverOrgtre orgnr: " +orgnr + "juridiskEnhetOrgnr: "+ juridiskEnhetOrgnr);
             return aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         }
         else{

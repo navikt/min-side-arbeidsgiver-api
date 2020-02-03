@@ -115,6 +115,12 @@
             <artifactId>unleash-client-java</artifactId>
             <version>3.2.5</version>
         </dependency>
+        <!--Metrikker-->
+        <dependency>
+            <groupId>no.nav.common</groupId>
+            <artifactId>metrics</artifactId>
+            <version>1.2019.07.25-08.54-f2bfe18c24bc</version>
+        </dependency>
     </dependencies>
 
     <build>

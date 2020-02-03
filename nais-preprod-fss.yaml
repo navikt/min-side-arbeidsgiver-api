@@ -14,11 +14,11 @@ spec:
   vault:
     enabled: true
   liveness:
-    path: /ditt-nav-arbeidsgiver-api/internal/isAlive
-    initialDelay: 90
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
+    initialDelay: 30
   readiness:
-    path: /ditt-nav-arbeidsgiver-api/internal/isReady
-    initialDelay: 90
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
+    initialDelay: 30
   webproxy: true
   env:
     - name: SPRING_PROFILES_ACTIVE
