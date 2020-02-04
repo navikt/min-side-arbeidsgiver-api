@@ -6,9 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile({ "dev", "prod" })
-public class SensuConfig {
-    public SensuConfig() {
+@Profile({ "preprod", "prod" })
+public class MetrikkConfig {
+    public MetrikkConfig() {
         String miljø = System.getenv("NAIS_CLUSTER_NAME");
         MetricsClient.enableMetrics(MetricsConfig.resolveNaisConfig().withEnvironment(miljø));
     }
