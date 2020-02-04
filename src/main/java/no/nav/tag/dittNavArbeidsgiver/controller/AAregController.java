@@ -53,7 +53,7 @@ public class AAregController {
         }
         OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
-        timer.stop().report();
+        timer.stop().addFieldToReport("antallArbeidsforhold",arbeidsforholdMedYrkesbeskrivelse.getAntall()).report();
         return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);
     }
 
