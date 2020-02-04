@@ -1,4 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
+import no.nav.metrics.MetricsFactory;
+import no.nav.metrics.Timer;
 import no.nav.metrics.aspects.Timed;
 import no.nav.security.oidc.api.Protected;
 import no.nav.tag.dittNavArbeidsgiver.models.ArbeidsForhold;
@@ -36,13 +38,13 @@ public class AAregController {
         this.enhetsregisterService = enhetsregisterService;
         this.kodeverkService = kodeverkService;
     }
-    @Timed
     @GetMapping(value = "/api/arbeidsforhold")
     @ResponseBody
     public ResponseEntity<OversiktOverArbeidsForhold> hentArbeidsforhold(
             @RequestHeader("orgnr") String orgnr,
             @RequestHeader("jurenhet") String juridiskEnhetOrgnr,
             @ApiIgnore @CookieValue("selvbetjening-idtoken") String idToken) {
+        Timer timer = MetricsFactory.createTimer("ditt-nav-arbeidsgiver-api.hentArbeidsforhold").start();
         log.info("controller hentArbeidsforhold orgnr: " + orgnr + " jurenhet: " + juridiskEnhetOrgnr );
         OversiktOverArbeidsForhold response = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         if (response.getArbeidsforholdoversikter()==null) {
@@ -51,6 +53,7 @@ public class AAregController {
         }
         OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
+        timer.stop().addFieldToReport("antallArbeidsforhold", arbeidsforholdMedYrkesbeskrivelse.getAntall()).report();
         return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);
     }
 
