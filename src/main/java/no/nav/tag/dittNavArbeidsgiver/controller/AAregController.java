@@ -44,7 +44,7 @@ public class AAregController {
             @RequestHeader("orgnr") String orgnr,
             @RequestHeader("jurenhet") String juridiskEnhetOrgnr,
             @ApiIgnore @CookieValue("selvbetjening-idtoken") String idToken) {
-        Timer timer = MetricsFactory.createTimer("ditt-nav-arbeidsgiver-api.hentArbeidsforhold").start();
+        Timer timer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentArbeidsforhold").start();
         log.info("controller hentArbeidsforhold orgnr: " + orgnr + " jurenhet: " + juridiskEnhetOrgnr );
         OversiktOverArbeidsForhold response = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         if (response.getArbeidsforholdoversikter()==null) {
