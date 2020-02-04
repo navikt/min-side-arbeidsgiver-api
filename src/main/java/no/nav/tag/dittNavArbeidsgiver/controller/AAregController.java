@@ -55,7 +55,7 @@ public class AAregController {
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
         timer.stop()
                 .addFieldToReport("antallArbeidsforhold",arbeidsforholdMedYrkesbeskrivelse.getTotalAntall())
-                .addFieldToReport("antallArbeidsforholdArbeidsforholdOversikter",arbeidsforholdMedYrkesbeskrivelse.getArbeidsforholdoversikter().length)
+               // .addFieldToReport("antallArbeidsforholdArbeidsforholdOversikter",arbeidsforholdMedYrkesbeskrivelse.getArbeidsforholdoversikter().length)
                 .addFieldToReport("antallArbeidsforholdtestint", 123)
                 .addFieldToReport("antallArbeidsforholdteststring", "123")
                 .report();
