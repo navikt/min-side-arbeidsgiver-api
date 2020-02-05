@@ -1,6 +1,5 @@
 package no.nav.tag.dittNavArbeidsgiver.services.aareg;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsgiver;
 import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
