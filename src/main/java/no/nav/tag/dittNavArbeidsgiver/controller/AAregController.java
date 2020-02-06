@@ -44,6 +44,11 @@ public class AAregController {
             @RequestHeader("orgnr") String orgnr,
             @RequestHeader("jurenhet") String juridiskEnhetOrgnr,
             @ApiIgnore @CookieValue("selvbetjening-idtoken") String idToken) {
+
+        //test hentkoder
+        Yrkeskoderespons yrkeskodeBeskrivelser =kodeverkService.hentBetydningerAvYrkeskoder();
+        log.info("hentet yrkeskoder + "+yrkeskodeBeskrivelser.getBetydninger().size());
+
         Timer timer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentArbeidsforhold").start();
         log.info("controller hentArbeidsforhold orgnr: " + orgnr + " jurenhet: " + juridiskEnhetOrgnr );
         Timer kunArbeidstimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.kunArbeidsforhold").start();
