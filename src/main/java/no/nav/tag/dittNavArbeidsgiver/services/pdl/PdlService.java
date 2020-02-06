@@ -26,7 +26,9 @@ public class PdlService {
     }
 
     public String hentNavnMedFnr(String fnr){
+        log.info(" hentNavnMedFnr ");
         Navn result = getFraPdl(fnr);
+        log.info(" hentNavnMedFnr fikk navn: " + result);
         String navn = "";
         if(result.fornavn!=null) navn += result.fornavn;
         if(result.mellomNavn!=null) navn += " " +result.mellomNavn;
@@ -55,6 +57,7 @@ public class PdlService {
     }
 
     private Navn lesNavnFraPdlRespons(ResponseEntity<PdlPerson> respons){
+        log.info(" lesNavnFraPdlRespons respons: " + respons);
         try{
             return respons.getBody().data.hentPerson.navn[0];
         }catch(NullPointerException | ArrayIndexOutOfBoundsException e){
@@ -64,6 +67,7 @@ public class PdlService {
     }
 
     private Navn getFraPdl(String fnr){
+        log.info("getFraPdl ");
         try {
             ResponseEntity<PdlPerson> respons = restTemplate.exchange(pdlUrl, HttpMethod.POST, createRequestEntity(fnr), PdlPerson.class);
             if (respons.getStatusCode() != HttpStatus.OK){
