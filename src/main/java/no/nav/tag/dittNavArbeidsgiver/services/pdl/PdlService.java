@@ -28,7 +28,6 @@ public class PdlService {
     public String hentNavnMedFnr(String fnr){
         log.info("MSA-AAREG hentNavnMedFnr ");
         Navn result = getFraPdl(fnr);
-        log.info("MSA-AAREG hentNavnMedFnr fikk navn: " + result);
         String navn = "";
         if(result.fornavn!=null) navn += result.fornavn;
         if(result.mellomNavn!=null) navn += " " +result.mellomNavn;
@@ -59,6 +58,7 @@ public class PdlService {
     private Navn lesNavnFraPdlRespons(ResponseEntity<PdlPerson> respons){
         log.info("MSA-AAREG lesNavnFraPdlRespons respons: " + respons);
         try{
+            log.info("MSA-AAREG lesNavnFraPdlRespons respons: " + respons.getBody());
             return respons.getBody().data.hentPerson.navn[0];
         }catch(NullPointerException | ArrayIndexOutOfBoundsException e){
             log.error("MSA-AAREG nullpointer exception: {} ", e.getMessage());
