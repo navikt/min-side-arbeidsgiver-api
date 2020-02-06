@@ -44,18 +44,23 @@ public class AAregController {
             @RequestHeader("orgnr") String orgnr,
             @RequestHeader("jurenhet") String juridiskEnhetOrgnr,
             @ApiIgnore @CookieValue("selvbetjening-idtoken") String idToken) {
+
+        //test hentkoder
+        Yrkeskoderespons yrkeskodeBeskrivelser =kodeverkService.hentBetydningerAvYrkeskoder();
+        log.info("hentet yrkeskoder + "+yrkeskodeBeskrivelser.getBetydninger().size());
+
         Timer timer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentArbeidsforhold").start();
         log.info("controller hentArbeidsforhold orgnr: " + orgnr + " jurenhet: " + juridiskEnhetOrgnr );
+        Timer kunArbeidstimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.kunArbeidsforhold").start();
         OversiktOverArbeidsForhold response = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         if (response.getArbeidsforholdoversikter()==null) {
             log.info("controller hentArbeidsforhold fant ingen arbeidsforhold. Prøver å med overordnete enheter");
             response = finnOpplysningspliktigorg(orgnr, idToken);
         }
+        kunArbeidstimer.stop().report();
         OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
-        timer.stop()
-                .addFieldToReport("antallArbeidsforhold",Integer.getInteger(arbeidsforholdMedYrkesbeskrivelse.getTotalAntall()))
-                .report();
+        timer.stop().report();
         return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);
     }
 
@@ -93,6 +98,7 @@ public class AAregController {
     }
 
     public OversiktOverArbeidsForhold settNavnPåArbeidsforhold (OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
+        Timer hentNavntimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentNavn").start();
         if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
                 String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
@@ -100,10 +106,12 @@ public class AAregController {
                 arbeidsforhold.getArbeidstaker().setNavn(navn);
             }
         }
+        hentNavntimer.stop().report();
         return arbeidsforholdOversikt;
     }
 
     public OversiktOverArbeidsForhold settYrkeskodebetydningPaAlleArbeidsforhold (OversiktOverArbeidsForhold arbeidsforholdOversikt) {
+        Timer hentYrkerTimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentYrker").start();
         Yrkeskoderespons yrkeskodeBeskrivelser = kodeverkService.hentBetydningerAvYrkeskoder();
         if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
@@ -112,6 +120,7 @@ public class AAregController {
                 arbeidsforhold.setYrkesbeskrivelse(yrkeskodeBeskrivelse);
             }
         }
+        hentYrkerTimer.stop().report();
         return arbeidsforholdOversikt;
     }
 

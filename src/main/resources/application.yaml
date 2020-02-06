@@ -154,7 +154,7 @@ unleash:
   url: https://unleash.nais.adeo.no/api
 
 yrkeskodeverk:
-  yrkeskodeUrl: "https://kodeverk.nais.prod.local/api/v1/kodeverk/Yrker/koder/betydninger?spraak=nb&spraak=nn"
+  yrkeskodeUrl: "https://kodeverk.nais.adeo.no/api/v1/kodeverk/Yrker/koder/betydninger?spraak=nb&spraak=nn"
 
 pdl:
   pdlUrl: "https://pdl-api.nais.adeo.no/graphql"
