@@ -161,7 +161,7 @@ pdl:
 
 
 aareg:
-  aaregArbeidsforhold: "https://modapp.adeo.no/aareg-services/api/v1/opplysningspliktig/arbeidsforholdoversikt?status=ALLE"
+  aaregArbeidsforhold: "https://modapp.adeo.no/aareg-services/api/v1/opplysningspliktig/arbeidsforholdoversikt?regelverk=A_ORDNINGEN&status=ALLE"
   aaregArbeidsgivere: "https://modapp.adeo.no/aareg-services/api/v1/opplysningspliktig/arbeidsgiveroversikt"
 
 ereg:
