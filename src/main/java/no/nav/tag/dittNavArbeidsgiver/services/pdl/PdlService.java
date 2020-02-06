@@ -46,7 +46,7 @@ public class PdlService {
     }
 
     private String createQuery(String fnr) {
-        return "{\"query\" : \"query{ hentPerson( ident: \\\"" + fnr + "\\\") {navn(historikk: false) {fornavn mellomnavn etternavn} } }\"}";
+        return "{\"query\" : \"query{ hentPerson( ident: \\\"" + fnr + "\\\") {navn(historikk: false) {fornavn, mellomnavn, etternavn} } }\"}";
     }
 
     private Navn lagManglerNavnException(){
