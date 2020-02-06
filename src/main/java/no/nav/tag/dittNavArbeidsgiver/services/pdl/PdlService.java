@@ -58,11 +58,10 @@ public class PdlService {
     private Navn lesNavnFraPdlRespons(ResponseEntity<PdlPerson> respons){
         log.info("MSA-AAREG lesNavnFraPdlRespons respons: " + respons);
         try{
-            log.info("MSA-AAREG lesNavnFraPdlRespons respons.getBody(): " + respons.getBody());
-            log.info("MSA-AAREG lesNavnFraPdlRespons respons: respons.getBody().data" + respons.getBody().data);
             return respons.getBody().data.hentPerson.navn[0];
         }catch(NullPointerException | ArrayIndexOutOfBoundsException e){
             log.error("MSA-AAREG nullpointer exception: {} ", e.getMessage());
+            log.error("MSA-AAREG pdlerror: " + respons.getBody().errors.get(0).message);
             return lagManglerNavnException();
         }
     }
