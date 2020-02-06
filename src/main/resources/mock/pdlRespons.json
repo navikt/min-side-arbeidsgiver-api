@@ -1,23 +1,13 @@
 {
-    "errors": [
-        {
-            "message": "Fant ikke person",
-            "locations": [
-                {
-                    "line": 1,
-                    "column": 8
-                }
-            ],
-            "path": [
-                "hentPerson"
-            ],
-            "extensions": {
-                "code": "not_found",
-                "classification": "ExecutionAborted"
-            }
-        }
-    ],
     "data": {
-        "hentPerson": null
+        "hentPerson": {
+            "navn": [
+                {
+                    "fornavn": "Ola",
+                    "mellomnavn": null,
+                    "etternavn": "Normann"
+                }
+            ]
+        }
     }
 }
