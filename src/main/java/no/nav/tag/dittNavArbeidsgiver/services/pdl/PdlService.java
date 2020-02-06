@@ -26,9 +26,9 @@ public class PdlService {
     }
 
     public String hentNavnMedFnr(String fnr){
-        log.info(" hentNavnMedFnr ");
+        log.info("MSA-AAREG hentNavnMedFnr ");
         Navn result = getFraPdl(fnr);
-        log.info(" hentNavnMedFnr fikk navn: " + result);
+        log.info("MSA-AAREG hentNavnMedFnr fikk navn: " + result);
         String navn = "";
         if(result.fornavn!=null) navn += result.fornavn;
         if(result.mellomNavn!=null) navn += " " +result.mellomNavn;
@@ -57,28 +57,28 @@ public class PdlService {
     }
 
     private Navn lesNavnFraPdlRespons(ResponseEntity<PdlPerson> respons){
-        log.info(" lesNavnFraPdlRespons respons: " + respons);
+        log.info("MSA-AAREG lesNavnFraPdlRespons respons: " + respons);
         try{
             return respons.getBody().data.hentPerson.navn[0];
         }catch(NullPointerException | ArrayIndexOutOfBoundsException e){
-            log.error("nullpointer exception: {} ", e.getMessage());
+            log.error("MSA-AAREG nullpointer exception: {} ", e.getMessage());
             return lagManglerNavnException();
         }
     }
 
     private Navn getFraPdl(String fnr){
-        log.info("getFraPdl ");
+        log.info("MSA-AAREG getFraPdl ");
         try {
             ResponseEntity<PdlPerson> respons = restTemplate.exchange(pdlUrl, HttpMethod.POST, createRequestEntity(fnr), PdlPerson.class);
             if (respons.getStatusCode() != HttpStatus.OK){
                 String message = "Kall mot pdl feiler med HTTP-" + respons.getStatusCode();
-                log.error(message);
+                log.error("MSA-AAREG " +message);
                 return lagManglerNavnException();
             }
-            log.trace("result get body:{} ",respons.getBody());
+            log.trace("MSA-AAREG result get body:{} ",respons.getBody());
             return lesNavnFraPdlRespons(respons);
         } catch (RestClientException exception) {
-            log.error(" Exception: {}" , exception.getMessage());
+            log.error("MSA-AAREG Exception: {}" , exception.getMessage());
             return lagManglerNavnException();
         }
     }

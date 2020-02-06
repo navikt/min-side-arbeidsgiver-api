@@ -47,17 +47,17 @@ public class AAregController {
 
         //test hentkoder
         Yrkeskoderespons yrkeskodeBeskrivelser =kodeverkService.hentBetydningerAvYrkeskoder();
-        log.info("hentet yrkeskoder + "+yrkeskodeBeskrivelser.getBetydninger().size());
+        log.info("MSA-AAREG hentet yrkeskoder + "+yrkeskodeBeskrivelser.getBetydninger().size());
 
         Timer timer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentArbeidsforhold").start();
-        log.info("controller hentArbeidsforhold orgnr: " + orgnr + " jurenhet: " + juridiskEnhetOrgnr );
+        log.info("MSA-AAREG controller hentArbeidsforhold orgnr: " + orgnr + " jurenhet: " + juridiskEnhetOrgnr );
         Timer kunArbeidstimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.kunArbeidsforhold").start();
         OversiktOverArbeidsForhold response = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         if (response.getArbeidsforholdoversikter()==null) {
-            log.info("controller hentArbeidsforhold fant ingen arbeidsforhold. Prøver å med overordnete enheter");
+            log.info("MSA-AAREG controller hentArbeidsforhold fant ingen arbeidsforhold. Prøver å med overordnete enheter");
             response = finnOpplysningspliktigorg(orgnr, idToken);
         }
-        log.info("controller hentArbeidsforhold fant arbeidsforhold: " + response.getArbeidsforholdoversikter());
+        log.info("MSA-AAREG controller hentArbeidsforhold fant arbeidsforhold: " + response.getArbeidsforholdoversikter());
         kunArbeidstimer.stop().report();
         OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
@@ -74,7 +74,7 @@ public class AAregController {
 
     public OversiktOverArbeidsForhold finnOpplysningspliktigorg(String orgnr, String idToken){
         EnhetsRegisterOrg orgtreFraEnhetsregisteret = enhetsregisterService.hentOrgnaisasjonFraEnhetsregisteret(orgnr);
-        log.info("finnOpplysningspliktigorg, orgtreFraEnhetsregisteret: " + orgtreFraEnhetsregisteret);
+        log.info("MSA-AAREG finnOpplysningspliktigorg, orgtreFraEnhetsregisteret: " + orgtreFraEnhetsregisteret);
         if(orgtreFraEnhetsregisteret.getBestaarAvOrganisasjonsledd().size() > 0){
 
            return itererOverOrgtre(orgnr,orgtreFraEnhetsregisteret.getBestaarAvOrganisasjonsledd().get(0).getOrganisasjonsledd(), idToken );
@@ -84,13 +84,13 @@ public class AAregController {
 
     public OversiktOverArbeidsForhold itererOverOrgtre(String orgnr, Organisasjoneledd orgledd, String idToken){
         OversiktOverArbeidsForhold result = aAregServiceService.hentArbeidsforhold(orgnr,orgledd.getOrganisasjonsnummer(),idToken);
-        log.info("itererOverOrgtre orgnr: " +orgnr + "orgledd: "+ orgledd);
+        log.info("MSA-AAREG itererOverOrgtre orgnr: " +orgnr + "orgledd: "+ orgledd);
         if(result.getArbeidsforholdoversikter()!=null){
             return result;
         }
         else if(orgledd.getInngaarIJuridiskEnheter()!=null){
             String juridiskEnhetOrgnr = orgledd.getInngaarIJuridiskEnheter().get(0).getOrganisasjonsnummer();
-            log.info("itererOverOrgtre orgnr: " +orgnr + "juridiskEnhetOrgnr: "+ juridiskEnhetOrgnr);
+            log.info("MSA-AAREG itererOverOrgtre orgnr: " +orgnr + "juridiskEnhetOrgnr: "+ juridiskEnhetOrgnr);
             return aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         }
         else{
@@ -99,7 +99,7 @@ public class AAregController {
     }
 
     public OversiktOverArbeidsForhold settNavnPåArbeidsforhold (OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
-        log.info("hent navn på arbeidsforhold fra pdl");
+        log.info("MSA-AAREG hent navn på arbeidsforhold fra pdl");
         Timer hentNavntimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentNavn").start();
         if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {

@@ -48,7 +48,7 @@ public class KodeverkService {
             );
 
             if (respons.getStatusCode() != HttpStatus.OK) {
-                String message = "Kall mot kodeverksoversikt feiler med HTTP-" + respons.getStatusCode();
+                String message = "MSA-AAREG Kall mot kodeverksoversikt feiler med HTTP-" + respons.getStatusCode();
                 log.error(message);
                 throw new RuntimeException(message);
             }
@@ -56,7 +56,7 @@ public class KodeverkService {
             return respons.getBody();
         }
         catch(HttpClientErrorException e){
-            log.error("Feil ved oppslag i yrkeskodeverk", e);
+            log.error("MSA-AAREG Feil ved oppslag i yrkeskodeverk", e);
             throw new RuntimeException(e);
         }
     }
