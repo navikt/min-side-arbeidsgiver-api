@@ -86,6 +86,15 @@ public class PdlServiceTest {
     }
 
     @Test
+    public void hentNavnMedFnr_skal_hente_sts_token_og_returnere_ikke_funnet_person_v_helt_tomPdlRespons() {
+        PdlPerson tomRespons = new PdlPerson();
+        when(restTemplate.exchange(eq(PDL_URL), eq(HttpMethod.POST), any(HttpEntity.class), eq(PdlPerson.class)))
+                .thenReturn(ResponseEntity.ok(tomRespons));
+        assertThat(pdlService.hentNavnMedFnr(FNR)).isEqualTo("Kunne ikke hente navn");
+        verify(stsClient).getToken();
+    }
+
+    @Test
     public void hentNavnMedFnr_skal_hente_sts_token_fange_opp_feil() {
         when(restTemplate.exchange(eq(PDL_URL), eq(HttpMethod.POST), any(HttpEntity.class), eq(PdlPerson.class)))
                 .thenReturn(ResponseEntity.status(401).body(respons));
