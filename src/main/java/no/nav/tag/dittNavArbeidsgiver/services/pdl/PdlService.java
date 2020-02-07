@@ -66,10 +66,10 @@ public class PdlService {
             }else {
                 log.error("MSA-AAREG nullpointer: helt tom respons fra pdl");
             }
-            }
-            return lagManglerNavnException();
         }
+        return lagManglerNavnException();
     }
+
 
     private Navn getFraPdl(String fnr){
         log.info("MSA-AAREG getFraPdl ");
