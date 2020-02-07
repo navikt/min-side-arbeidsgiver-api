@@ -61,7 +61,9 @@ public class PdlService {
             return respons.getBody().data.hentPerson.navn[0];
         }catch(NullPointerException | ArrayIndexOutOfBoundsException e){
             log.error("MSA-AAREG nullpointer exception: {} ", e.getMessage());
-            log.error("MSA-AAREG pdlerror: " + respons.getBody().errors.get(0).message);
+            if(!respons.getBody().errors.isEmpty()){
+                log.error("MSA-AAREG pdlerror: " + respons.getBody().errors.get(0).message);
+            }
             return lagManglerNavnException();
         }
     }
