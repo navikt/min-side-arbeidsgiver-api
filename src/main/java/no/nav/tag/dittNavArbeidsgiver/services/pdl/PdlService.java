@@ -56,8 +56,7 @@ public class PdlService {
     }
 
     private Navn lesNavnFraPdlRespons(ResponseEntity<PdlPerson> respons){
-        log.info("MSA-AAREG lesNavnFraPdlRespons respons: " + respons);
-        try{
+           try{
             return respons.getBody().data.hentPerson.navn[0];
         }catch(NullPointerException | ArrayIndexOutOfBoundsException e){
             log.error("MSA-AAREG nullpointer exception: {} ", e.getMessage());
