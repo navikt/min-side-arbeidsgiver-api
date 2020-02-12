@@ -26,7 +26,6 @@ public class PdlService {
     }
 
     public String hentNavnMedFnr(String fnr){
-        log.info("MSA-AAREG hentNavnMedFnr ");
         Navn result = getFraPdl(fnr);
         String navn = "";
         if(result.fornavn!=null) navn += result.fornavn;
@@ -71,7 +70,6 @@ public class PdlService {
 
 
     private Navn getFraPdl(String fnr){
-        log.info("MSA-AAREG getFraPdl ");
         try {
             ResponseEntity<PdlPerson> respons = restTemplate.exchange(pdlUrl, HttpMethod.POST, createRequestEntity(fnr), PdlPerson.class);
             if (respons.getStatusCode() != HttpStatus.OK){
@@ -79,7 +77,6 @@ public class PdlService {
                 log.error("MSA-AAREG " +message);
                 return lagManglerNavnException();
             }
-            log.trace("MSA-AAREG result get body:{} ",respons.getBody());
             return lesNavnFraPdlRespons(respons);
         } catch (RestClientException exception) {
             log.error("MSA-AAREG Exception: {}" , exception.getMessage());
