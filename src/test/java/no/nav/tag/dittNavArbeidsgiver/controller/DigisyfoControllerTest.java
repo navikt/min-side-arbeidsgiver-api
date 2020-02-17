@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import no.finn.unleash.Unleash;
 import no.nav.security.oidc.context.OIDCRequestContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoService;
+import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

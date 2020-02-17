@@ -4,7 +4,7 @@ import no.nav.tag.dittNavArbeidsgiver.models.enhetsregisteret.OrganisasjonsleddO
 
 import java.util.ArrayList;
 
-public class PdlPerson {
+public class PdlRespons {
     public Data data;
     public ArrayList<Error> errors;
 
