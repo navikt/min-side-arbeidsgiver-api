@@ -11,8 +11,12 @@ import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 
@@ -20,11 +24,12 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class PdlService {
-    private final RestTemplate restTemplate;
+
     private final STSClient stsClient;
     private final GraphQlUtils graphQlUtils;
     @Value("${pdl.pdlUrl}")
     String pdlUrl;
+    WebClient client = WebClient.create(pdlUrl);
 
     public String hentNavnMedFnr(String fnr){
         Navn result = getFraPdl(fnr);
@@ -34,15 +39,17 @@ public class PdlService {
         if(result.etternavn!=null) navn += " " + result.etternavn;
         return navn;
     }
-
-    private HttpEntity<String> createRequestEntity(PdlRequest pdlRequest) {
+    private HttpHeaders createHeaders () {
         String stsToken = stsClient.getToken().getAccess_token();
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(stsToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Tema", "GEN");
         headers.set("Nav-Consumer-Token", "Bearer " + stsToken);
-        return new HttpEntity(pdlRequest, headers);
+        return headers;
+    }
+    private HttpEntity<String> createRequestEntity(PdlRequest pdlRequest) {
+        return new HttpEntity(pdlRequest,createHeaders());
     }
 
     private Navn lagManglerNavnException(){
@@ -66,9 +73,17 @@ public class PdlService {
     }
 
     private Navn getFraPdl(String fnr){
+        String stsToken = stsClient.getToken().getAccess_token();
         try {
-            PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
-            PdlRespons respons = restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlRespons.class);
+             PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
+            PdlRespons respons = client.post()
+                    .body(BodyInserters.fromValue(pdlRequest))
+                    .header("Nav-Consumer-Token", "Bearer " + stsToken)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString())
+                    .header("Authorization","Bearer " + stsToken)
+                    .header("Tema", "GEN").retrieve().bodyToMono(PdlRespons.class).block();
+           //PdlRespons =monoRespons.
+            //PdlRespons respons = restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlRespons.class).completable();;
             return lesNavnFraPdlRespons(respons);
         } catch (RestClientException | IOException exception) {
             log.error("MSA-AAREG Exception: {}" , exception.getMessage());
