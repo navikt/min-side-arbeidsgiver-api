@@ -107,9 +107,10 @@ public class AAregController {
                 String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
                 String navn = "Kunne ikke hente navn";
                 try {
-                    navn = pdlService.hentNavnMedFnr(fnr).;
+                    navn = pdlService.hentNavnMedFnr(fnr).get();
                 } catch (InterruptedException|ExecutionException e) {
                     e.printStackTrace();
+
                 }
                 arbeidsforhold.getArbeidstaker().setNavn(navn);
             }

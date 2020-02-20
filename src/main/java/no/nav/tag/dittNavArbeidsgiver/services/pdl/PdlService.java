@@ -43,7 +43,7 @@ public class PdlService {
         if(result.fornavn!=null) navn += result.fornavn;
         if(result.mellomNavn!=null) navn += " " +result.mellomNavn;
         if(result.etternavn!=null) navn += " " + result.etternavn;
-        return CompletableFuture.completedFuture(navn);
+         return CompletableFuture.completedFuture(navn);
     }
     private HttpHeaders createHeaders () {
         String stsToken = stsClient.getToken().getAccess_token();
