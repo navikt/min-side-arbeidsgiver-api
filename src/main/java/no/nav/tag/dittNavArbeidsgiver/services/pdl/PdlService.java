@@ -1,6 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.services.pdl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Navn;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRequest;
@@ -10,34 +11,39 @@ import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PdlService {
 
-    private final STSClient stsClient;
     private final GraphQlUtils graphQlUtils;
+    private final STSClient stsClient;
+    private final RestTemplate restTemplate;
     @Value("${pdl.pdlUrl}")
     String pdlUrl;
-    WebClient client = WebClient.create(pdlUrl);
 
-    public String hentNavnMedFnr(String fnr){
+    @SneakyThrows
+    @Async
+    public CompletableFuture<String> hentNavnMedFnr(String fnr){
+        if(fnr.equals("27106124243")){
+            log.info("sover tråd");
+            Thread.sleep(2000);
+            log.info("våkner tråd");
+        }
         Navn result = getFraPdl(fnr);
         String navn = "";
         if(result.fornavn!=null) navn += result.fornavn;
         if(result.mellomNavn!=null) navn += " " +result.mellomNavn;
         if(result.etternavn!=null) navn += " " + result.etternavn;
-        return navn;
+        return CompletableFuture.completedFuture(navn);
     }
     private HttpHeaders createHeaders () {
         String stsToken = stsClient.getToken().getAccess_token();
@@ -75,15 +81,8 @@ public class PdlService {
     private Navn getFraPdl(String fnr){
         String stsToken = stsClient.getToken().getAccess_token();
         try {
-             PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
-            PdlRespons respons = client.post()
-                    .body(BodyInserters.fromValue(pdlRequest))
-                    .header("Nav-Consumer-Token", "Bearer " + stsToken)
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString())
-                    .header("Authorization","Bearer " + stsToken)
-                    .header("Tema", "GEN").retrieve().bodyToMono(PdlRespons.class).block();
-           //PdlRespons =monoRespons.
-            //PdlRespons respons = restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlRespons.class).completable();;
+            PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
+            PdlRespons respons = restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlRespons.class);
             return lesNavnFraPdlRespons(respons);
         } catch (RestClientException | IOException exception) {
             log.error("MSA-AAREG Exception: {}" , exception.getMessage());

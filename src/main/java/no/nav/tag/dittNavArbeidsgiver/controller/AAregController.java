@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Protected
 @Slf4j
@@ -104,7 +105,12 @@ public class AAregController {
         if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
                 String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-                String navn = pdlService.hentNavnMedFnr(fnr);
+                String navn = "Kunne ikke hente navn";
+                try {
+                    navn = pdlService.hentNavnMedFnr(fnr).;
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                }
                 arbeidsforhold.getArbeidstaker().setNavn(navn);
             }
         }
