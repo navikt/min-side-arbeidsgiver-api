@@ -79,7 +79,6 @@ public class PdlService {
     }
 
     private Navn getFraPdl(String fnr){
-        String stsToken = stsClient.getToken().getAccess_token();
         try {
             PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
             PdlRespons respons = restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlRespons.class);

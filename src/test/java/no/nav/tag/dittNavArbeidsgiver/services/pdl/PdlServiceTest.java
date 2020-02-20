@@ -70,7 +70,7 @@ public class PdlServiceTest {
         when(restTemplate.postForObject(eq(PDL_URL), any(HttpEntity.class), eq(PdlRespons.class)))
                 .thenReturn(respons);
         assertThat(pdlService.hentNavnMedFnr(FNR).get()).isEqualTo(navn);
-        //verify(stsClient).getToken();
+        verify(stsClient).getToken();
     }
 
     @Test
@@ -85,7 +85,7 @@ public class PdlServiceTest {
         when(restTemplate.postForObject(eq(PDL_URL), any(HttpEntity.class), eq(PdlRespons.class)))
                 .thenReturn(tomRespons);
         assertThat(pdlService.hentNavnMedFnr(FNR).get()).isEqualTo("Kunne ikke hente navn");
-        //verify(stsClient).getToken();
+        verify(stsClient).getToken();
     }
 
     @Test
@@ -94,13 +94,13 @@ public class PdlServiceTest {
         when(restTemplate.postForObject(eq(PDL_URL), any(HttpEntity.class), eq(PdlRespons.class)))
                 .thenReturn(tomRespons);
         assertThat(pdlService.hentNavnMedFnr(FNR).get()).isEqualTo("Kunne ikke hente navn");
-        //verify(stsClient).getToken();
+        verify(stsClient).getToken();
     }
 
     @Test
     public void hentNavnMedFnr_skal_hente_sts_token_fange_opp_feil() throws ExecutionException, InterruptedException {
         when(restTemplate.postForObject(eq(PDL_URL), any(HttpEntity.class), eq(PdlRespons.class))).thenThrow(new RestClientException("401"));
         assertThat(pdlService.hentNavnMedFnr(FNR).get()).isEqualTo("Kunne ikke hente navn");
-        //verify(stsClient).getToken();
+        verify(stsClient).getToken();
     }
 }
