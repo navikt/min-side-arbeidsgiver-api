@@ -33,6 +33,7 @@ public class PdlService {
     @SneakyThrows
     @Async
     public CompletableFuture<String> hentNavnMedFnr(String fnr){
+        log.info("henter navn");
         if(fnr.equals("27106124243")){
             log.info("sover tråd");
             Thread.sleep(2000);
