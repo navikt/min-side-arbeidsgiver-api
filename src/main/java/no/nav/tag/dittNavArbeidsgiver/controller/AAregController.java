@@ -114,6 +114,7 @@ public class AAregController {
             }
             log.info("!! kjør !!");
             CompletableFuture.allOf(allFutures.values().toArray(new CompletableFuture[0])).join();
+            log.info("!! sett inn navn !!");
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
                 String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
                 String navn = "Kunne ikke hente navn";
