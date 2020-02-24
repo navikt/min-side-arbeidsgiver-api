@@ -108,18 +108,8 @@ public class AAregController {
         if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
                 String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-
-                String navn = "Kunne ikke hente navn";
-                try {
-                    navn = pdlService.hentNavnMedFnr(fnr)
-                            .get();
-                    allFutures.put(fnr, pdlService.hentNavnMedFnr(fnr));
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
+                allFutures.put(fnr, pdlService.hentNavnMedFnr(fnr));
                 CompletableFuture.allOf(allFutures.values().toArray(new CompletableFuture[0])).join();
-                arbeidsforhold.getArbeidstaker().setNavn(navn);
-
             }
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
                 String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
