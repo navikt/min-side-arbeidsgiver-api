@@ -9,6 +9,7 @@ import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Data;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Error;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.HentPerson;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Navn;
+import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,13 +17,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
 import no.nav.tag.dittNavArbeidsgiver.services.sts.STStoken;
-import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlPerson;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRespons;
 
 import java.util.ArrayList;
 
@@ -31,8 +31,7 @@ public class PdlServiceTest {
     private static final String FNR = "123";
     private static final String PDL_URL = "http://test";
 
-    @Mock
-    PdlPerson respons;
+    PdlRespons respons;
 
     @Mock
     private RestTemplate restTemplate;
@@ -43,11 +42,14 @@ public class PdlServiceTest {
     @Mock
     STSClient stsClient;
 
+    @Mock
+    private GraphQlUtils graphQlUtils;
+
     @Before
     public void setUp() {
         pdlService.pdlUrl = PDL_URL;
         when(stsClient.getToken()).thenReturn(new STStoken());
-        respons = new PdlPerson();
+        respons = new PdlRespons();
         lagPdlObjekt();
     }
 
@@ -64,40 +66,39 @@ public class PdlServiceTest {
     @Test
     public void hentNavnMedFnr_skal_hente_sts_token_og_returnere_navn_på_person() {
         String navn = "Ole Dole";
-        when(restTemplate.exchange(eq(PDL_URL), eq(HttpMethod.POST), any(HttpEntity.class), eq(PdlPerson.class)))
-                .thenReturn(ResponseEntity.ok(respons));
+        when(restTemplate.postForObject(eq(PDL_URL), any(HttpEntity.class), eq(PdlRespons.class)))
+                .thenReturn(respons);
         assertThat(pdlService.hentNavnMedFnr(FNR)).isEqualTo(navn);
         verify(stsClient).getToken();
     }
 
     @Test
     public void hentNavnMedFnr_skal_hente_sts_token_og_returnere_ikke_funnet_person() {
-        PdlPerson tomRespons = new PdlPerson();
+        PdlRespons tomRespons = new PdlRespons();
         Error ingenPersonError = new Error();
         ingenPersonError.message = "Fant ikke Person";
         tomRespons.data = new Data();
         tomRespons.data.hentPerson =  null;
         tomRespons.errors = new ArrayList<>();
         tomRespons.errors.add( ingenPersonError);
-        when(restTemplate.exchange(eq(PDL_URL), eq(HttpMethod.POST), any(HttpEntity.class), eq(PdlPerson.class)))
-                .thenReturn(ResponseEntity.ok(tomRespons));
+        when(restTemplate.postForObject(eq(PDL_URL), any(HttpEntity.class), eq(PdlRespons.class)))
+                .thenReturn(tomRespons);
         assertThat(pdlService.hentNavnMedFnr(FNR)).isEqualTo("Kunne ikke hente navn");
         verify(stsClient).getToken();
     }
 
     @Test
     public void hentNavnMedFnr_skal_hente_sts_token_og_returnere_ikke_funnet_person_v_helt_tomPdlRespons() {
-        PdlPerson tomRespons = new PdlPerson();
-        when(restTemplate.exchange(eq(PDL_URL), eq(HttpMethod.POST), any(HttpEntity.class), eq(PdlPerson.class)))
-                .thenReturn(ResponseEntity.ok(tomRespons));
+        PdlRespons tomRespons = new PdlRespons();
+        when(restTemplate.postForObject(eq(PDL_URL), any(HttpEntity.class), eq(PdlRespons.class)))
+                .thenReturn(tomRespons);
         assertThat(pdlService.hentNavnMedFnr(FNR)).isEqualTo("Kunne ikke hente navn");
         verify(stsClient).getToken();
     }
 
     @Test
     public void hentNavnMedFnr_skal_hente_sts_token_fange_opp_feil() {
-        when(restTemplate.exchange(eq(PDL_URL), eq(HttpMethod.POST), any(HttpEntity.class), eq(PdlPerson.class)))
-                .thenReturn(ResponseEntity.status(401).body(respons));
+        when(restTemplate.postForObject(eq(PDL_URL), any(HttpEntity.class), eq(PdlRespons.class))).thenThrow(new RestClientException("401"));
         assertThat(pdlService.hentNavnMedFnr(FNR)).isEqualTo("Kunne ikke hente navn");
         verify(stsClient).getToken();
     }
