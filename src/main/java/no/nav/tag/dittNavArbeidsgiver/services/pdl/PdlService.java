@@ -11,13 +11,11 @@ import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -31,8 +29,7 @@ public class PdlService {
     String pdlUrl;
 
     @SneakyThrows
-    @Async
-    public CompletableFuture<String> hentNavnMedFnr(String fnr){
+    public String hentNavnMedFnr(String fnr){
         log.info("henter navn");
         if(fnr.equals("27106124243")){
             log.info("sover tråd");
@@ -43,7 +40,7 @@ public class PdlService {
         if(result.fornavn!=null) navn += result.fornavn;
         if(result.mellomNavn!=null) navn += " " +result.mellomNavn;
         if(result.etternavn!=null) navn += " " + result.etternavn;
-        return CompletableFuture.completedFuture(navn);
+        return navn;
     }
     private HttpHeaders createHeaders () {
         String stsToken = stsClient.getToken().getAccess_token();

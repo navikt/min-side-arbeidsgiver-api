@@ -10,7 +10,7 @@ import java.util.concurrent.Executor;
 public class ConcurrencyConfig {
 
     @Bean
-    public Executor executor() {
+    public Executor myExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
         executor.setMaxPoolSize(5);

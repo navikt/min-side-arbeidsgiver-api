@@ -110,15 +110,9 @@ public class AAregController {
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
                 String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
                 allFutures.put(fnr, CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return pdlService.hentNavnMedFnr(fnr).get();
-                    } catch (InterruptedException |ExecutionException e) {
-                        e.printStackTrace();
-                        return "Kunne ikke hente navn";
-                    }
+                    return pdlService.hentNavnMedFnr(fnr);
                 }));
             }
-
             log.info("!! kjør !!");
             CompletableFuture.allOf(allFutures.values().toArray(new CompletableFuture[0]));
             log.info("!! sett inn navn !!");
