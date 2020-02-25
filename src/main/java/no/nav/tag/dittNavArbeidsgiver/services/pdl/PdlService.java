@@ -30,11 +30,6 @@ public class PdlService {
 
     @SneakyThrows
     public String hentNavnMedFnr(String fnr){
-        log.info("henter navn");
-        if(fnr.equals("27106124243")){
-            log.info("sover tråd");
-            log.info("våkner tråd");
-        }
         Navn result = getFraPdl(fnr);
         String navn = "";
         if(result.fornavn!=null) navn += result.fornavn;

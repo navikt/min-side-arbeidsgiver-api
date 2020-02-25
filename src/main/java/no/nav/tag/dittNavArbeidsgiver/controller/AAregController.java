@@ -106,16 +106,13 @@ public class AAregController {
         HashMap<String, CompletableFuture<String>> allFutures = new HashMap<>();
         Timer hentNavntimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentNavn").start();
         if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
-            log.info("!! sett opp tråder !!");
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
                 String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
                 allFutures.put(fnr, CompletableFuture.supplyAsync(() -> {
                     return pdlService.hentNavnMedFnr(fnr);
                 }));
             }
-            log.info("!! kjør !!");
             CompletableFuture.allOf(allFutures.values().toArray(new CompletableFuture[0]));
-            log.info("!! sett inn navn !!");
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
                 String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
                 String navn = "Kunne ikke hente navn";
