@@ -71,10 +71,6 @@
             <artifactId>oidc-test-support</artifactId>
             <version>${oidc-support.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
-        </dependency>
 
         <!-- Swagger -->
         <dependency>
