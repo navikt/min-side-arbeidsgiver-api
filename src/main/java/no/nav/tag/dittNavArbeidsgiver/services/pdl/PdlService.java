@@ -1,6 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.services.pdl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Navn;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRequest;
@@ -20,12 +21,14 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class PdlService {
-    private final RestTemplate restTemplate;
-    private final STSClient stsClient;
+
     private final GraphQlUtils graphQlUtils;
+    private final STSClient stsClient;
+    private final RestTemplate restTemplate;
     @Value("${pdl.pdlUrl}")
     String pdlUrl;
 
+    @SneakyThrows
     public String hentNavnMedFnr(String fnr){
         Navn result = getFraPdl(fnr);
         String navn = "";
@@ -34,15 +37,17 @@ public class PdlService {
         if(result.etternavn!=null) navn += " " + result.etternavn;
         return navn;
     }
-
-    private HttpEntity<String> createRequestEntity(PdlRequest pdlRequest) {
+    private HttpHeaders createHeaders () {
         String stsToken = stsClient.getToken().getAccess_token();
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(stsToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Tema", "GEN");
         headers.set("Nav-Consumer-Token", "Bearer " + stsToken);
-        return new HttpEntity(pdlRequest, headers);
+        return headers;
+    }
+    private HttpEntity<String> createRequestEntity(PdlRequest pdlRequest) {
+        return new HttpEntity(pdlRequest,createHeaders());
     }
 
     private Navn lagManglerNavnException(){

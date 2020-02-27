@@ -54,6 +54,6 @@ public class AAregControllerTest {
         ResponseEntity<OversiktOverArbeidsForhold> tomRespons= aAregController.hentArbeidsforhold("910825517","132","132");
         Assert.assertNull(tomRespons.getBody().getArbeidsforholdoversikter());
         ResponseEntity<OversiktOverArbeidsForhold> responsMedInnhold= aAregController.hentArbeidsforhold("910825518","132","132");
-        Assert.assertEquals(13,responsMedInnhold.getBody().getArbeidsforholdoversikter().length );
+       Assert.assertEquals(13,responsMedInnhold.getBody().getArbeidsforholdoversikter().length );
     }
 }

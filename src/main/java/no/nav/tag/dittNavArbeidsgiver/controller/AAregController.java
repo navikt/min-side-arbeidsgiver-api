@@ -19,7 +19,10 @@ import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Protected
 @Slf4j
@@ -100,14 +103,29 @@ public class AAregController {
 
     public OversiktOverArbeidsForhold settNavnPåArbeidsforhold (OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
         log.info("MSA-AAREG hent navn på arbeidsforhold fra pdl");
+        HashMap<String, CompletableFuture<String>> allFutures = new HashMap<>();
         Timer hentNavntimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentNavn").start();
         if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
                 String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-                String navn = pdlService.hentNavnMedFnr(fnr);
-                arbeidsforhold.getArbeidstaker().setNavn(navn);
+                allFutures.put(fnr, CompletableFuture.supplyAsync(() -> {
+                    return pdlService.hentNavnMedFnr(fnr);
+                }));
+            }
+            CompletableFuture.allOf(allFutures.values().toArray(new CompletableFuture[0]));
+            for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
+                String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
+                String navn = "Kunne ikke hente navn";
+                try {
+                    navn = allFutures.get(fnr).get();
+                    arbeidsforhold.getArbeidstaker().setNavn(navn);
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    arbeidsforhold.getArbeidstaker().setNavn(navn);
+                }
             }
         }
+
         hentNavntimer.stop().report();
         return arbeidsforholdOversikt;
     }

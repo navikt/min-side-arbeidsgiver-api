@@ -64,7 +64,7 @@ public class PdlServiceTest {
     }
 
     @Test
-    public void hentNavnMedFnr_skal_hente_sts_token_og_returnere_navn_på_person() {
+    public void hentNavnMedFnr_skal_hente_sts_token_og_returnere_navn_på_person(){
         String navn = "Ole Dole";
         when(restTemplate.postForObject(eq(PDL_URL), any(HttpEntity.class), eq(PdlRespons.class)))
                 .thenReturn(respons);
@@ -73,7 +73,7 @@ public class PdlServiceTest {
     }
 
     @Test
-    public void hentNavnMedFnr_skal_hente_sts_token_og_returnere_ikke_funnet_person() {
+    public void hentNavnMedFnr_skal_hente_sts_token_og_returnere_ikke_funnet_person(){
         PdlRespons tomRespons = new PdlRespons();
         Error ingenPersonError = new Error();
         ingenPersonError.message = "Fant ikke Person";
@@ -88,7 +88,7 @@ public class PdlServiceTest {
     }
 
     @Test
-    public void hentNavnMedFnr_skal_hente_sts_token_og_returnere_ikke_funnet_person_v_helt_tomPdlRespons() {
+    public void hentNavnMedFnr_skal_hente_sts_token_og_returnere_ikke_funnet_person_v_helt_tomPdlRespons(){
         PdlRespons tomRespons = new PdlRespons();
         when(restTemplate.postForObject(eq(PDL_URL), any(HttpEntity.class), eq(PdlRespons.class)))
                 .thenReturn(tomRespons);
