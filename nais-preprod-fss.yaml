@@ -1,10 +1,10 @@
 apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
-  name: arbeidsgiver
+  name: ditt-nav-arbeidsgiver-api
   namespace: default
   labels:
-    team: teamtag
+    team: arbeidsgiver
 spec:
   image: navikt/ditt-nav-arbeidsgiver-api:{{version}}
   team: arbeidsgiver
