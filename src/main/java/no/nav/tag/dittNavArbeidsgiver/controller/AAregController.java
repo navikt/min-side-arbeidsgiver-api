@@ -1,7 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 import no.nav.metrics.MetricsFactory;
 import no.nav.metrics.Timer;
-import no.nav.metrics.aspects.Timed;
 import no.nav.security.oidc.api.Protected;
 import no.nav.tag.dittNavArbeidsgiver.models.ArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
