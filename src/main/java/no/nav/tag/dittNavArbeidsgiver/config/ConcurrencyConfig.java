@@ -13,8 +13,8 @@ public class ConcurrencyConfig {
     public Executor myExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
-        executor.setMaxPoolSize(5);
-        executor.setQueueCapacity(2);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(1000);
         executor.initialize();
         return executor;
     }
