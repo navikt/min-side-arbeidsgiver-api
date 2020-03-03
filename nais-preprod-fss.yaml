@@ -1,13 +1,13 @@
 apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
-  name: ditt-nav-arbeidsgiver-api
+  name: arbeidsgiver
   namespace: default
   labels:
     team: teamtag
 spec:
   image: navikt/ditt-nav-arbeidsgiver-api:{{version}}
-  team: teamtag
+  team: arbeidsgiver
   port: 8080
   ingresses:
     - https://arbeidsgiver.nais.preprod.local/ditt-nav-arbeidsgiver-api/
