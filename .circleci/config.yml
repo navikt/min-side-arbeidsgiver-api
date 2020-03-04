@@ -46,7 +46,7 @@ commands:
       - checkout
       - run:
           name: Deploy til << parameters.cluster >>
-          command: deployment-cli deploy create --cluster=<< parameters.cluster >> --repository=navikt/ditt-nav-arbeidsgiver-api --team=teamtag --resource=<< parameters.nais-yaml >> --var version=$CIRCLE_SHA1 --ref=$CIRCLE_BRANCH
+          command: deployment-cli deploy create --cluster=<< parameters.cluster >> --repository=navikt/ditt-nav-arbeidsgiver-api --team=arbeidsgiver --resource=<< parameters.nais-yaml >> --var version=$CIRCLE_SHA1 --ref=$CIRCLE_BRANCH
 
 workflows:
   version: 2.1
