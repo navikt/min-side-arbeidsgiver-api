@@ -76,3 +76,18 @@ workflows:
             branches:
               only:
                 - master
+      - godkjenn-til-dev:
+          type: approval
+          requires:
+            - bygg
+          filters:
+            branches:
+              ignore:
+                - master
+      - deploy-til-dev:
+          requires:
+            - godkjenn-til-dev
+          filters:
+            branches:
+              ingore:
+                - master
