@@ -89,5 +89,5 @@ workflows:
             - godkjenn-til-dev
           filters:
             branches:
-              ingore:
+              ignore:
                 - master
