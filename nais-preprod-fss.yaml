@@ -4,10 +4,10 @@ metadata:
   name: ditt-nav-arbeidsgiver-api
   namespace: default
   labels:
-    team: teamtag
+    team: arbeidsgiver
 spec:
   image: navikt/ditt-nav-arbeidsgiver-api:{{version}}
-  team: teamtag
+  team: arbeidsgiver
   port: 8080
   ingresses:
     - https://arbeidsgiver.nais.preprod.local/ditt-nav-arbeidsgiver-api/
