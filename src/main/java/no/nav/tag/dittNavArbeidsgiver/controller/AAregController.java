@@ -1,8 +1,8 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 import no.nav.metrics.MetricsFactory;
 import no.nav.metrics.Timer;
-import no.nav.metrics.aspects.Timed;
 import no.nav.security.oidc.api.Protected;
+import no.nav.tag.dittNavArbeidsgiver.config.ConcurrencyConfig;
 import no.nav.tag.dittNavArbeidsgiver.models.ArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsgiver;
@@ -33,13 +33,14 @@ public class AAregController {
     private final PdlService pdlService;
     private final EnhetsregisterService enhetsregisterService;
     private final KodeverkService kodeverkService;
-
+    private final ConcurrencyConfig concurrencyconfig;
     @Autowired
-    public AAregController(AAregService aAService, PdlService pdlService, EnhetsregisterService enhetsregisterService, KodeverkService kodeverkService) {
+    public AAregController(AAregService aAService, PdlService pdlService, EnhetsregisterService enhetsregisterService, KodeverkService kodeverkService, ConcurrencyConfig concurrencyconfig) {
         this.aAregServiceService = aAService;
         this.pdlService = pdlService;
         this.enhetsregisterService = enhetsregisterService;
         this.kodeverkService = kodeverkService;
+        this.concurrencyconfig = concurrencyconfig;
     }
     @GetMapping(value = "/api/arbeidsforhold")
     @ResponseBody
@@ -110,7 +111,7 @@ public class AAregController {
                 String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
                 allFutures.put(fnr, CompletableFuture.supplyAsync(() -> {
                     return pdlService.hentNavnMedFnr(fnr);
-                }));
+                },concurrencyconfig.hentNavnExecutor()));
             }
             CompletableFuture.allOf(allFutures.values().toArray(new CompletableFuture[0]));
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {

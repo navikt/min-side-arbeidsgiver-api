@@ -1,5 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
+import no.nav.tag.dittNavArbeidsgiver.config.ConcurrencyConfig;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.services.aareg.AAregService;
 import no.nav.tag.dittNavArbeidsgiver.services.enhetsregisteret.EnhetsregisterService;
@@ -41,12 +42,15 @@ public class AAregControllerTest {
     @Autowired
     private KodeverkService kodeverkService;
 
+    @Autowired
+    private ConcurrencyConfig concurrencyconfig;
+
     @MockBean
     private AAregController aAregController;
 
     @Before
     public void setUp() {
-        aAregController = new AAregController(aAregService,pdlService,enhetsregisterService, kodeverkService);
+        aAregController = new AAregController(aAregService,pdlService,enhetsregisterService, kodeverkService, concurrencyconfig);
     }
 
     @Test
