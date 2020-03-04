@@ -15,7 +15,7 @@ public class ConcurrencyConfig {
     public Executor hentNavnExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
-        executor.setMaxPoolSize(5);
+        executor.setMaxPoolSize(10);
         executor.setQueueCapacity(1000);
         executor.initialize();
         executor.setThreadNamePrefix("MSA-AAREG-Thread-");
