@@ -1,5 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
+import no.finn.unleash.Unleash;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.models.Role;
 
@@ -7,6 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -23,8 +25,11 @@ import java.util.List;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ActiveProfiles("dev")
-@TestPropertySource(properties = {"mock.port=8082"})
+@TestPropertySource(properties = {"mock.port=8085"})
 public class AltinnServiceIntegrationTest {
+
+    @MockBean
+    private Unleash unleash;
 
     @Autowired
     private AltinnService altinnService;
