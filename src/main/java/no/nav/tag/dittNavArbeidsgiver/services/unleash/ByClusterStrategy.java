@@ -1,4 +1,4 @@
-package no.nav.tag.dittNavArbeidsgiver.config;
+package no.nav.tag.dittNavArbeidsgiver.services.unleash;
 
 import no.finn.unleash.strategy.Strategy;
 import org.springframework.beans.factory.annotation.Value;

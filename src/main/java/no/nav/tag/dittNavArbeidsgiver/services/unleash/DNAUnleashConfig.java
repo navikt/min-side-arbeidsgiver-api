@@ -16,8 +16,14 @@ import java.util.List;
 @Configuration
 public class DNAUnleashConfig {
 
+    private final ByClusterStrategy byClusterStrategy;
+
     @Value("${unleash.url}")
     private String api;
+
+    public DNAUnleashConfig(ByClusterStrategy byClusterStrategy) {
+        this.byClusterStrategy = byClusterStrategy;
+    }
 
     @Profile("dev")
     @Bean
@@ -34,7 +40,7 @@ public class DNAUnleashConfig {
                     .unleashAPI(api)
                     .build();
 
-        return new DefaultUnleash(conf);
+        return new DefaultUnleash(conf, byClusterStrategy);
     }
 
     private static class LocalLeash implements Unleash {
