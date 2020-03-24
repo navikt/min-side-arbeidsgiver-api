@@ -39,6 +39,7 @@ altinn:
   altinnUrl: "http://localhost:${mock.port}/altinn/"
   altinnHeader: "test"
   APIGwHeader: "test"
+  proxyUrl: "http://localhost:${mock.port}/altinn/"
 
 pdl:
   pdlUrl: "http://localhost:${mock.port}/graphql"
@@ -102,6 +103,7 @@ altinn:
   altinnUrl: "https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/"
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
+  proxyUrl: https://arbeidsgiver.nais.preprod.local/altinn-rettigheter-proxy/ekstern/altinn/api/serviceowner/
 
 unleash:
   url: https://unleash.nais.adeo.no/api
@@ -149,6 +151,7 @@ altinn:
   altinnUrl: "https://api-gw.adeo.no/ekstern/altinn/api/serviceowner/"
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
+  proxyUrl: https://arbeidsgiver.nais.adeo.no/altinn-rettigheter-proxy/ekstern/altinn/api/serviceowner/
 
 unleash:
   url: https://unleash.nais.adeo.no/api
