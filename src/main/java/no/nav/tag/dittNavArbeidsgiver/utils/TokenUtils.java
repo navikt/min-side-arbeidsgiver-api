@@ -9,7 +9,6 @@ import static no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor.ISSUER_SELVBETJE
 public class TokenUtils {
     private final OIDCRequestContextHolder requestContextHolder;
 
-
     public TokenUtils(OIDCRequestContextHolder requestContextHolder) {
         this.requestContextHolder = requestContextHolder;
     }

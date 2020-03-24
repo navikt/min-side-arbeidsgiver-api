@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.finn.unleash.Unleash;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.models.Role;
-import no.nav.tag.dittNavArbeidsgiver.utils.TokenExtractor;
 import no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -65,8 +64,7 @@ public class AltinnService {
         String query = "&subject=" + fnr + "&reportee=" + orgnr;
         String url = altinnUrl + "authorization/roles?ForceEIAuthentication" + query;
         log.info("Henter roller fra Altinn");
-        return getFromAltinn(new ParameterizedTypeReference<List<Role>>() {
-        }, url, ALTINN_ROLE_PAGE_SIZE, headerEntity);
+        return getFromAltinn(new ParameterizedTypeReference<List<Role>>() {}, url, ALTINN_ROLE_PAGE_SIZE, headerEntity);
     }
 
     @Cacheable(ALTINN_TJENESTE_CACHE)
