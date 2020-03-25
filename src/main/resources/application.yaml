@@ -16,6 +16,8 @@ spring:
 spring:
   profiles: dev
 
+nais.cluster.name: local
+
 no.nav.security.oidc:
   issuers: selvbetjening
   issuer:
