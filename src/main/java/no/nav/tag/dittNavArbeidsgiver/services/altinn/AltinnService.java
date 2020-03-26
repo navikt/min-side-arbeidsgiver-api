@@ -54,10 +54,9 @@ public class AltinnService {
 
     @Cacheable(ALTINN_CACHE)
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
-        String query = "&subject=" + fnr
-                + "&$filter=Type+ne+'Person'+and+Status+eq+'Active'";
+        String query = "&$filter=Type+ne+'Person'+and+Status+eq+'Active'";
         log.info("Henter organisasjoner fra Altinn");
-        return hentReporteesFraAltinn(query);
+        return hentReporteesFraAltinn(query, fnr);
     }
 
     public List<Role> hentRoller(String fnr, String orgnr) {
@@ -69,14 +68,13 @@ public class AltinnService {
 
     @Cacheable(ALTINN_TJENESTE_CACHE)
     public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
-        String query = "&subject=" + fnr
-                + "&serviceCode=" + serviceKode
+        String query = "&serviceCode=" + serviceKode
                 + "&serviceEdition=" + serviceEdition;
         log.info("Henter rettigheter fra Altinn");
-        return hentReporteesFraAltinn(query);
+        return hentReporteesFraAltinn(query, fnr);
     }
 
-    private List<Organisasjon> hentReporteesFraAltinn(String query) {
+    private List<Organisasjon> hentReporteesFraAltinn(String query, String fnr) {
         String baseUrl;
         HttpEntity<HttpHeaders> headers;
 
@@ -86,6 +84,7 @@ public class AltinnService {
         } else {
             baseUrl = altinnUrl;
             headers = headerEntity;
+            query += "&subject=" + fnr;
         }
 
         String url = baseUrl + "reportees/?ForceEIAuthentication" + query;
