@@ -55,7 +55,7 @@ public class AltinnService {
     @Cacheable(ALTINN_CACHE)
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         String query = "&subject=" + fnr
-                + "&$filter=(Type+eq+'Bedrift'+or+Type+eq+'Business'+or+Type+eq+'Enterprise'+or+Type+eq+'Foretak')+and+Status+eq+'Active'";
+                + "&$filter=Type+ne+'Person'+and+Status+eq+'Active'";
         log.info("Henter organisasjoner fra Altinn");
         return hentReporteesFraAltinn(query);
     }
