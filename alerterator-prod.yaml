@@ -3,11 +3,11 @@ kind: "Alert"
 metadata:
   name: ditt-nav-arbeidsgiver-api-alert
   labels:
-    team: teamtag
+    team: arbeidsgiver
 spec:
   receivers:
     slack:
-      channel: 'tag-notifications'
+      channel: 'arbeidsgiver-notifications'
       prependText: '<!here> | '
   alerts:
     - alert: applikasjon nede
@@ -15,7 +15,3 @@ spec:
       for: 2m
       description: "ditt-nav-arbeidsgiver er nede i prod"
       action: "finn podden i kubectl og undersøk loggene for å finne feilen"
-    - alert: høy feilrate i logger
-      expr: logback_events_total{level="error", app="ditt-nav-arbeidsgiver-api"}>0
-      for: 3m
-      action: "Sjekk loggene til ditt-nav-arbeidsgiver, for å se hvorfor det er så mye feil"
