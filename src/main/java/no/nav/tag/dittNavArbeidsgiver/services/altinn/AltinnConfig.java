@@ -12,4 +12,5 @@ public class AltinnConfig {
     private String altinnurl;
     private String APIGwHeader;
     private String proxyUrl;
+    private String proxyFallbackUrl;
 }

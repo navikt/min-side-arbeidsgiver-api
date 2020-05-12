@@ -3,6 +3,7 @@ package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 import no.finn.unleash.Unleash;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -28,11 +29,22 @@ public class AltinnServiceTest {
         when(restTemplate.exchange(any(String.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
             .thenReturn(ResponseEntity.ok(asList(new Organisasjon())))
             .thenReturn(ResponseEntity.ok(emptyList()));
-        AltinnService altinnService = new AltinnService(new AltinnConfig(), restTemplate, tokenUtils, unleash);
+        AltinnService altinnService = new AltinnService(getAltinnConfigForTest(), restTemplate, tokenUtils, unleash);
         altinnService.getFromAltinn(new ParameterizedTypeReference<List<Organisasjon>>() {},"http://blabla", 1, new HttpEntity<>(null));
         verify(restTemplate, times(1)).exchange(endsWith("&$top=1&$skip=0"), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class));
         verify(restTemplate, times(1)).exchange(endsWith("&$top=1&$skip=1"), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class));
         verifyNoMoreInteractions(restTemplate);
     }
 
+    @NotNull
+    private AltinnConfig getAltinnConfigForTest() {
+        AltinnConfig altinnConfig = new AltinnConfig();
+        altinnConfig.setAltinnHeader("TEST");
+        altinnConfig.setAltinnurl("localhost/altinn");
+        altinnConfig.setAPIGwHeader("API_GW_Test");
+        altinnConfig.setProxyUrl("localhost/altinn-rettigheter-proxy");
+        altinnConfig.setProxyFallbackUrl("localhost/altinn");
+
+        return altinnConfig;
+    }
 }

@@ -2,6 +2,12 @@ package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
 import lombok.extern.slf4j.Slf4j;
 import no.finn.unleash.Unleash;
+import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlient;
+import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlientConfig;
+import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.ProxyConfig;
+import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.model.AltinnReportee;
+import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.model.Subject;
+import no.nav.security.oidc.context.TokenContext;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.models.Role;
 import no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils;
@@ -16,10 +22,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnCacheConfig.ALTINN_CACHE;
 import static no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnCacheConfig.ALTINN_TJENESTE_CACHE;
@@ -35,6 +40,8 @@ public class AltinnService {
     private final HttpEntity<HttpHeaders> headerEntity;
     private final String altinnUrl;
     private final String altinnProxyUrl;
+    private final String altinnProxyFallbackUrl;
+    private final AltinnrettigheterProxyKlient klient;
     private final TokenUtils tokenUtils;
     private final Unleash unleash;
 
@@ -43,6 +50,7 @@ public class AltinnService {
         this.restTemplate = restTemplate;
         this.altinnUrl = altinnConfig.getAltinnurl();
         this.altinnProxyUrl = altinnConfig.getProxyUrl();
+        this.altinnProxyFallbackUrl = altinnConfig.getProxyFallbackUrl();
         this.tokenUtils = tokenUtils;
         this.unleash = unleash;
 
@@ -50,13 +58,39 @@ public class AltinnService {
         headers.set("X-NAV-APIKEY", altinnConfig.getAPIGwHeader());
         headers.set("APIKEY", altinnConfig.getAltinnHeader());
         this.headerEntity = new HttpEntity<>(headers);
+
+        AltinnrettigheterProxyKlientConfig proxyKlientConfig = new AltinnrettigheterProxyKlientConfig(
+                new ProxyConfig("ditt-nav-arbeidsgiver-api", altinnProxyUrl),
+                new no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnConfig(
+                        altinnProxyFallbackUrl,
+                        altinnConfig.getAltinnHeader(),
+                        altinnConfig.getAPIGwHeader()
+                )
+        );
+        this.klient = new AltinnrettigheterProxyKlient(proxyKlientConfig);
     }
 
     @Cacheable(ALTINN_CACHE)
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
-        String query = "&$filter=Type+ne+'Person'+and+Status+eq+'Active'";
-        log.info("Henter organisasjoner fra Altinn");
-        return hentReporteesFraAltinn(query, fnr);
+        String filterParamVerdi = "Type+ne+'Person'+and+Status+eq+'Active'";
+
+        if (unleash.isEnabled("arbeidsgiver.ditt-nav-arbeidsgiver-api.bruk-altinn-proxy")) {
+            Map<String, String> parametre = new ConcurrentHashMap<>();
+            parametre.put("$filter", filterParamVerdi);
+            log.info("Henter organisasjoner fra Altinn via proxy");
+
+            return getReporteesFromAltinnViaProxy(
+                    tokenUtils.getSelvbetjeningTokenContext(),
+                    new Subject(fnr),
+                    parametre,
+                    altinnProxyUrl,
+                    ALTINN_ORG_PAGE_SIZE
+            );
+        } else {
+            String query = String.format("&$filter=%s", filterParamVerdi);
+            log.info("Henter organisasjoner fra Altinn");
+            return hentReporteesFraAltinn(query, fnr);
+        }
     }
 
     public List<Role> hentRoller(String fnr, String orgnr) {
@@ -68,28 +102,65 @@ public class AltinnService {
 
     @Cacheable(ALTINN_TJENESTE_CACHE)
     public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
-        String query = "&serviceCode=" + serviceKode
-                + "&serviceEdition=" + serviceEdition;
-        log.info("Henter rettigheter fra Altinn");
-        return hentReporteesFraAltinn(query, fnr);
+        if (unleash.isEnabled("arbeidsgiver.ditt-nav-arbeidsgiver-api.bruk-altinn-proxy")) {
+            Map<String, String> parametre = new ConcurrentHashMap<>();
+            parametre.put("serviceCode", serviceKode);
+            parametre.put("serviceEdition", serviceEdition);
+            log.info("Henter rettigheter fra Altinn via proxy");
+
+            return getReporteesFromAltinnViaProxy(
+                    tokenUtils.getSelvbetjeningTokenContext(),
+                    new Subject(fnr),
+                    parametre,
+                    altinnProxyUrl,
+                    ALTINN_ORG_PAGE_SIZE
+            );
+        } else {
+            String query = "&serviceCode=" + serviceKode
+                    + "&serviceEdition=" + serviceEdition;
+            log.info("Henter rettigheter fra Altinn");
+            return hentReporteesFraAltinn(query, fnr);
+        }
     }
+
 
     private List<Organisasjon> hentReporteesFraAltinn(String query, String fnr) {
         String baseUrl;
         HttpEntity<HttpHeaders> headers;
 
-        if (unleash.isEnabled("arbeidsgiver.ditt-nav-arbeidsgiver-api.bruk-altinn-proxy")) {
-            baseUrl = altinnProxyUrl;
-            headers = getAuthHeadersForInnloggetBruker();
-        } else {
-            baseUrl = altinnUrl;
-            headers = headerEntity;
-            query += "&subject=" + fnr;
-        }
-
+        baseUrl = altinnUrl;
+        headers = headerEntity;
+        query += "&subject=" + fnr;
         String url = baseUrl + "reportees/?ForceEIAuthentication" + query;
 
         return getFromAltinn(new ParameterizedTypeReference<>() {}, url, ALTINN_ORG_PAGE_SIZE, headers);
+    }
+
+    List<Organisasjon> getReporteesFromAltinnViaProxy(
+            TokenContext tokenContext,
+            Subject subject,
+            Map<String, String> parametre,
+            String url,
+            int pageSize
+    ) {
+        Set<Organisasjon> response = new HashSet<>();
+        int pageNumber = 0;
+        boolean hasMore = true;
+
+        while (hasMore) {
+            pageNumber++;
+            try {
+                parametre.put("$top", String.valueOf(pageSize));
+                parametre.put("$skip", String.valueOf(((pageNumber - 1) * pageSize)));
+                List<Organisasjon> collection = mapTo(klient.hentOrganisasjoner(tokenContext, subject, parametre));
+                response.addAll(collection);
+                hasMore = collection.size() >= pageSize;
+            } catch (RestClientException exception) {
+                log.error("Feil fra Altinn-proxy med spørring: " + url + " Exception: " + exception.getMessage());
+                throw new AltinnException("Feil fra Altinn", exception);
+            }
+        }
+        return new ArrayList<>(response);
     }
 
     <T> List<T> getFromAltinn(ParameterizedTypeReference<List<T>> typeReference, String url, int pageSize, HttpEntity<HttpHeaders> headers) {
@@ -113,10 +184,18 @@ public class AltinnService {
         return new ArrayList<T>(response);
     }
 
-    private HttpEntity<HttpHeaders> getAuthHeadersForInnloggetBruker() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(tokenUtils.getTokenForInnloggetBruker());
-        return new HttpEntity<>(headers);
-    }
+    private List<Organisasjon> mapTo(List<AltinnReportee> altinnReportees) {
+        return altinnReportees.stream().map(org -> {
+                    Organisasjon altinnOrganisasjon = new Organisasjon();
+                    altinnOrganisasjon.setName(org.getName());
+                    altinnOrganisasjon.setType(org.getType());
+                    altinnOrganisasjon.setParentOrganizationNumber(org.getParentOrganizationNumber());
+                    altinnOrganisasjon.setOrganizationNumber(org.getOrganizationNumber());
+                    altinnOrganisasjon.setOrganizationForm(org.getOrganizationForm());
+                    altinnOrganisasjon.setStatus(org.getStatus());
 
+                    return altinnOrganisasjon;
+                }
+        ).collect(Collectors.toList());
+    }
 }
