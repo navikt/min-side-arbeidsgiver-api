@@ -2,9 +2,10 @@ package no.nav.tag.dittNavArbeidsgiver.mockserver;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
-
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -14,6 +15,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -32,6 +35,7 @@ public class MockServer {
     @Autowired
     MockServer(
             @Value("${altinn.altinnUrl}") String altinnUrl,
+            @Value("${altinn.proxyUrl}") String altinnProxyUrl,
             @Value("${mock.port}") int port,
             @Value("${sts.stsUrl}") String stsUrl,
             @Value("${aad.aadAccessTokenURL}") String aadUrl,
@@ -46,8 +50,14 @@ public class MockServer {
             @Value("${ereg.url}") String eregUrl
     ) {
         log.info("starter mockserveren");
-        WireMockServer server = new WireMockServer(new WireMockConfiguration().port(port).extensions(new ResponseTemplateTransformer(true)));
+        WireMockServer server = new WireMockServer(
+                new WireMockConfiguration()
+                        .port(port)
+                        .extensions(new ResponseTemplateTransformer(true))
+                        .notifier(new ConsoleNotifier(true))
+        );
         String altinnPath = new URL(altinnUrl).getPath();
+        String altinnProxyPath = new URL(altinnProxyUrl+"/ekstern/altinn/api/serviceowner/").getPath();
         String stsPath = new URL(stsUrl).getPath();
         String aadPath = new URL(aadUrl).getPath();
         String aktorPath = new URL(aktorUrl).getPath();
@@ -59,9 +69,13 @@ public class MockServer {
         String aaregArbeidsgiverePath = new URL(aaregArbeidsgivereUrl).getPath();
         String pdlPath = new URL(pdlUrl).getPath();
         String eregPath = new URL(eregUrl).getPath();
+
         mocktilgangTilSkjemForBedrift(server,altinnPath);
+        mocktilgangTilSkjemForBedriftForAltinnProxy(server,altinnProxyPath);
         mockOrganisasjoner(server, altinnPath);
+        mockOrganisasjonerForAltinnProxy(server, altinnProxyPath);
         mockInvalidSSN(server, altinnPath);
+
         mockForPath(server, altinnPath + "authorization/roles", "roles.json");
         mockForPath(server, stsPath, "STStoken.json");
         mockForPath(server, aadPath, "aadtoken.json");
@@ -93,6 +107,35 @@ public class MockServer {
                 .withQueryParam("subject", equalTo(FNR_MED_SKJEMATILGANG))
                 .withQueryParam("serviceCode", equalTo(SERVICE_CODE))
                 .withQueryParam("serviceEdition", equalTo(SERVICE_EDITION))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("rettigheterTilSkjema.json"))
+                ));
+    }
+
+    private static void mockOrganisasjonerForAltinnProxy(
+            WireMockServer server,
+            String path
+    ) {
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path + "reportees"))
+                .withHeader("Authorization", containing(FNR_MED_ORGANISASJONER))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("organisasjoner.json"))
+                ));
+    }
+
+    private static void mocktilgangTilSkjemForBedriftForAltinnProxy(
+            WireMockServer server,
+            String path
+    ) {
+        Map<String, StringValuePattern> parametre = new HashMap<>();
+        parametre.put("serviceCode", equalTo(SERVICE_CODE));
+        parametre.put("serviceEdition", equalTo(SERVICE_EDITION));
+
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path + "reportees"))
+                .withHeader("Authorization", containing(FNR_MED_SKJEMATILGANG))
+                .withQueryParams(parametre)
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("rettigheterTilSkjema.json"))

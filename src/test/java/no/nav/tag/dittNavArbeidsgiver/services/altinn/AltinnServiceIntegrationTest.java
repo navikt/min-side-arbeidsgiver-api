@@ -3,7 +3,6 @@ package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 import no.finn.unleash.Unleash;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.models.Role;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +12,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static no.nav.tag.dittNavArbeidsgiver.mockserver.MockServer.FNR_MED_ORGANISASJONER;
-import static no.nav.tag.dittNavArbeidsgiver.mockserver.MockServer.FNR_MED_SKJEMATILGANG;
-import static no.nav.tag.dittNavArbeidsgiver.mockserver.MockServer.SERVICE_CODE;
-import static no.nav.tag.dittNavArbeidsgiver.mockserver.MockServer.SERVICE_EDITION;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
+
+import static no.nav.tag.dittNavArbeidsgiver.mockserver.MockServer.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @RunWith(SpringRunner.class)
@@ -37,7 +33,15 @@ public class AltinnServiceIntegrationTest {
     @Test
     public void hentOrganisasjoner__skal_fungere_med_gyldig_fnr() {
         List<Organisasjon> organisasjoner = altinnService.hentOrganisasjoner(FNR_MED_ORGANISASJONER);
-        assertThat(organisasjoner).contains(Organisasjon.builder().name("SKOTSELV OG HJELSET").type("Enterprise").organizationNumber("910720120").organizationForm("AS").status("Active").build());
+        assertThat(organisasjoner).contains(
+                Organisasjon.builder()
+                        .name("SKOTSELV OG HJELSET")
+                        .type("Enterprise")
+                        .organizationNumber("910720120")
+                        .organizationForm("AS")
+                        .status("Active")
+                        .build()
+        );
     }
 
     @Test(expected = AltinnException.class)

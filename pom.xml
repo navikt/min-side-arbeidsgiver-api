@@ -21,6 +21,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>11</java.version>
         <oidc-support.version>0.2.18</oidc-support.version>
+        <altinn-rettigheter-proxy-klient.version>0.1.1</altinn-rettigheter-proxy-klient.version>
     </properties>
 
     <dependencies>
@@ -70,6 +71,11 @@
             <groupId>no.nav.security</groupId>
             <artifactId>oidc-test-support</artifactId>
             <version>${oidc-support.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.arbeidsgiver</groupId>
+            <artifactId>altinn-rettigheter-proxy-klient</artifactId>
+            <version>${altinn-rettigheter-proxy-klient.version}</version>
         </dependency>
 
         <!-- Swagger -->
