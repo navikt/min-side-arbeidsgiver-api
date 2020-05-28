@@ -57,11 +57,11 @@ public class AAregController {
         log.info("MSA-AAREG controller hentArbeidsforhold orgnr: " + orgnr + " jurenhet: " + juridiskEnhetOrgnr );
         Timer kunArbeidstimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.kunArbeidsforhold").start();
         OversiktOverArbeidsForhold response = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
-        if (response.getArbeidsforholdoversikter()==null) {
+        if (response.getArbeidsforholdoversikter()==null || response.getArbeidsforholdoversikter().length<=0) {
             log.info("MSA-AAREG controller hentArbeidsforhold fant ingen arbeidsforhold. Prøver å med overordnete enheter");
             response = finnOpplysningspliktigorg(orgnr, idToken);
         }
-        log.info("MSA-AAREG controller hentArbeidsforhold fant arbeidsforhold: " + response.getArbeidsforholdoversikter());
+        log.info("MSA-AAREG controller hentArbeidsforhold fant arbeidsforhold: {}", response.getArbeidsforholdoversikter());
         kunArbeidstimer.stop().report();
         OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
@@ -89,13 +89,18 @@ public class AAregController {
     public OversiktOverArbeidsForhold itererOverOrgtre(String orgnr, Organisasjoneledd orgledd, String idToken){
         OversiktOverArbeidsForhold result = aAregServiceService.hentArbeidsforhold(orgnr,orgledd.getOrganisasjonsnummer(),idToken);
         log.info("MSA-AAREG itererOverOrgtre orgnr: " +orgnr + "orgledd: "+ orgledd);
-        if(result.getArbeidsforholdoversikter()!=null){
+        if(result.getArbeidsforholdoversikter()!=null&&result.getArbeidsforholdoversikter().length>0){
             return result;
         }
         else if(orgledd.getInngaarIJuridiskEnheter()!=null){
             String juridiskEnhetOrgnr = orgledd.getInngaarIJuridiskEnheter().get(0).getOrganisasjonsnummer();
             log.info("MSA-AAREG itererOverOrgtre orgnr: " +orgnr + "juridiskEnhetOrgnr: "+ juridiskEnhetOrgnr);
-            return aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
+            OversiktOverArbeidsForhold juridiskenhetRespons = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
+            if(juridiskenhetRespons.getArbeidsforholdoversikter().length>0){
+                juridiskenhetRespons.setAntall(0);
+                juridiskenhetRespons.setTotalAntall(0);
+            }
+            return juridiskenhetRespons;
         }
         else{
             return itererOverOrgtre(orgnr, orgledd.getOrganisasjonsleddOver().get(0).getOrganisasjonsledd(), idToken);

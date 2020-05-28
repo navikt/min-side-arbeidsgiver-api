@@ -20,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 
@@ -56,7 +57,7 @@ public class AAregControllerTest {
     @Test
     public void hentArbeidsforhold() {
         ResponseEntity<OversiktOverArbeidsForhold> tomRespons= aAregController.hentArbeidsforhold("910825517","132","132");
-        Assert.assertNull(tomRespons.getBody().getArbeidsforholdoversikter());
+        assertEquals(0,tomRespons.getBody().getArbeidsforholdoversikter().length);
         ResponseEntity<OversiktOverArbeidsForhold> responsMedInnhold= aAregController.hentArbeidsforhold("910825518","132","132");
        Assert.assertEquals(13,responsMedInnhold.getBody().getArbeidsforholdoversikter().length );
     }
