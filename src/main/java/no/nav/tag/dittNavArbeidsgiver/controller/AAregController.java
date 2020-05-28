@@ -96,7 +96,7 @@ public class AAregController {
             String juridiskEnhetOrgnr = orgledd.getInngaarIJuridiskEnheter().get(0).getOrganisasjonsnummer();
             log.info("MSA-AAREG itererOverOrgtre orgnr: " +orgnr + "juridiskEnhetOrgnr: "+ juridiskEnhetOrgnr);
             OversiktOverArbeidsForhold juridiskenhetRespons = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
-            if(juridiskenhetRespons.getArbeidsforholdoversikter().length>0){
+            if(juridiskenhetRespons.getArbeidsforholdoversikter().length<=0){
                 juridiskenhetRespons.setAntall(0);
                 juridiskenhetRespons.setTotalAntall(0);
                 juridiskenhetRespons.setArbeidsforholdoversikter(new ArbeidsForhold[0]);
