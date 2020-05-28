@@ -99,6 +99,7 @@ public class AAregController {
             if(juridiskenhetRespons.getArbeidsforholdoversikter().length>0){
                 juridiskenhetRespons.setAntall(0);
                 juridiskenhetRespons.setTotalAntall(0);
+                juridiskenhetRespons.setArbeidsforholdoversikter(new ArbeidsForhold[0]);
             }
             return juridiskenhetRespons;
         }
