@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -61,7 +62,7 @@ public class AAregController {
             log.info("MSA-AAREG controller hentArbeidsforhold fant ingen arbeidsforhold. Prøver å med overordnete enheter");
             response = finnOpplysningspliktigorg(orgnr, idToken);
         }
-        log.info("MSA-AAREG controller hentArbeidsforhold fant arbeidsforhold: {}", response.getArbeidsforholdoversikter());
+        log.info("MSA-AAREG controller hentArbeidsforhold fant arbeidsforhold: " + Arrays.toString(response.getArbeidsforholdoversikter()));
         kunArbeidstimer.stop().report();
         OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
@@ -96,9 +97,11 @@ public class AAregController {
             String juridiskEnhetOrgnr = orgledd.getInngaarIJuridiskEnheter().get(0).getOrganisasjonsnummer();
             log.info("MSA-AAREG itererOverOrgtre orgnr: " +orgnr + "juridiskEnhetOrgnr: "+ juridiskEnhetOrgnr);
             OversiktOverArbeidsForhold juridiskenhetRespons = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
-            if(juridiskenhetRespons.getArbeidsforholdoversikter().length>0){
+            if(juridiskenhetRespons.getArbeidsforholdoversikter().length<=0){
+                ArbeidsForhold[] tomtarbeidsforholdArray ={};
                 juridiskenhetRespons.setAntall(0);
                 juridiskenhetRespons.setTotalAntall(0);
+                juridiskenhetRespons.setArbeidsforholdoversikter(tomtarbeidsforholdArray);
             }
             return juridiskenhetRespons;
         }
