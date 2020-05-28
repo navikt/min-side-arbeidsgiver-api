@@ -84,7 +84,7 @@ public class AAregController {
 
            return itererOverOrgtre(orgnr,orgtreFraEnhetsregisteret.getBestaarAvOrganisasjonsledd().get(0).getOrganisasjonsledd(), idToken );
         }
-        return new OversiktOverArbeidsForhold();
+        return tomOversiktOverArbeidsforhold();
     }
 
     public OversiktOverArbeidsForhold itererOverOrgtre(String orgnr, Organisasjoneledd orgledd, String idToken){
@@ -97,11 +97,8 @@ public class AAregController {
             String juridiskEnhetOrgnr = orgledd.getInngaarIJuridiskEnheter().get(0).getOrganisasjonsnummer();
             log.info("MSA-AAREG itererOverOrgtre orgnr: " +orgnr + "juridiskEnhetOrgnr: "+ juridiskEnhetOrgnr);
             OversiktOverArbeidsForhold juridiskenhetRespons = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
-            if(juridiskenhetRespons.getArbeidsforholdoversikter().length<=0){
-                ArbeidsForhold[] tomtarbeidsforholdArray ={};
-                juridiskenhetRespons.setAntall(0);
-                juridiskenhetRespons.setTotalAntall(0);
-                juridiskenhetRespons.setArbeidsforholdoversikter(tomtarbeidsforholdArray);
+            if(juridiskenhetRespons.getArbeidsforholdoversikter().length<=0||juridiskenhetRespons.getArbeidsforholdoversikter()==null){
+                juridiskenhetRespons= tomOversiktOverArbeidsforhold();
             }
             return juridiskenhetRespons;
         }
@@ -155,5 +152,13 @@ public class AAregController {
 
     public String finnYrkeskodebetydningPaYrke(String yrkeskodenokkel, Yrkeskoderespons yrkeskoderespons) {
         return yrkeskoderespons.getBetydninger().get(yrkeskodenokkel).get(0).getBeskrivelser().getNb().getTekst();
+    }
+    public OversiktOverArbeidsForhold tomOversiktOverArbeidsforhold(){
+        OversiktOverArbeidsForhold tomOversikt = new OversiktOverArbeidsForhold();
+        ArbeidsForhold[] tomtarbeidsforholdArray ={};
+        tomOversikt.setAntall(0);
+        tomOversikt.setTotalAntall(0);
+        tomOversikt.setArbeidsforholdoversikter(tomtarbeidsforholdArray);
+        return tomOversikt;
     }
 }
