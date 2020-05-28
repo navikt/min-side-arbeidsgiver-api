@@ -10,14 +10,14 @@ import lombok.Data;
 @Data
 public class OversiktOverArbeidsForhold {
     @JsonProperty("antall")
-    private String antall;
+    private int antall;
 
     @JsonProperty("arbeidsforholdoversikter")
     private ArbeidsForhold[] arbeidsforholdoversikter;
     @JsonProperty("startrad")
     private String startrad;
     @JsonProperty("totalAntall")
-    private String totalAntall;
+    private int totalAntall;
 
     @JsonIgnore
     public String getAktorIDtilArbeidstaker(){

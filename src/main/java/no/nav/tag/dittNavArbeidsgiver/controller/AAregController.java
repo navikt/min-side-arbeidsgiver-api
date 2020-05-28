@@ -95,7 +95,12 @@ public class AAregController {
         else if(orgledd.getInngaarIJuridiskEnheter()!=null){
             String juridiskEnhetOrgnr = orgledd.getInngaarIJuridiskEnheter().get(0).getOrganisasjonsnummer();
             log.info("MSA-AAREG itererOverOrgtre orgnr: " +orgnr + "juridiskEnhetOrgnr: "+ juridiskEnhetOrgnr);
-            return aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
+            OversiktOverArbeidsForhold juridiskenhetRespons = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
+            if(juridiskenhetRespons.getArbeidsforholdoversikter().length>0){
+                juridiskenhetRespons.setAntall(0);
+                juridiskenhetRespons.setTotalAntall(0);
+            }
+            return juridiskenhetRespons;
         }
         else{
             return itererOverOrgtre(orgnr, orgledd.getOrganisasjonsleddOver().get(0).getOrganisasjonsledd(), idToken);
