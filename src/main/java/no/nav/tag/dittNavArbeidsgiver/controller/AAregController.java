@@ -62,7 +62,7 @@ public class AAregController {
             log.info("MSA-AAREG controller hentArbeidsforhold fant ingen arbeidsforhold. Prøver å med overordnete enheter");
             response = finnOpplysningspliktigorg(orgnr, idToken);
         }
-        log.info("MSA-AAREG controller hentArbeidsforhold fant arbeidsforhold: " + Arrays.toString(response.getArbeidsforholdoversikter()));
+        log.info("MSA-AAREG controller hentArbeidsforhold fant arbeidsforhold: " + response.getArbeidsforholdoversikter().length);
         kunArbeidstimer.stop().report();
         OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
