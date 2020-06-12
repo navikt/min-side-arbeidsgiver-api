@@ -126,6 +126,7 @@ public class AAregController {
                     navn = allFutures.get(fnr).get();
                     arbeidsforhold.getArbeidstaker().setNavn(navn);
                 } catch (InterruptedException | ExecutionException e) {
+                    log.info("MSA-AAREG Feil i pdl-oppslag, parallelisering feiler ", e.getMessage());
                     e.printStackTrace();
                     arbeidsforhold.getArbeidstaker().setNavn(navn);
                 }
