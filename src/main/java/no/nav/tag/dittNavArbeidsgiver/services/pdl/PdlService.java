@@ -3,6 +3,8 @@ package no.nav.tag.dittNavArbeidsgiver.services.pdl;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.Data;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRespons;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Navn;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRequest;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRespons;
@@ -78,6 +80,15 @@ public class PdlService {
         } catch (RestClientException | IOException exception) {
             log.error("MSA-AAREG Exception: {}" , exception.getMessage());
             return lagManglerNavnException();
+        }
+    }
+
+    private PdlBatchRespons getBatchFraPdl(String fnr){
+        try {
+            PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
+            return  restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlBatchRespons.class);
+        } catch (RestClientException | IOException exception) {
+            log.error("MSA-AAREG Exception: {}" , exception.getMessage());
         }
     }
 }

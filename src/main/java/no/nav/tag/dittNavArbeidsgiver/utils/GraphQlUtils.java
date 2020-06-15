@@ -10,7 +10,7 @@ import java.io.IOException;
 
 @Service
 public class GraphQlUtils {
-    @Value("classpath:pdl/hentPerson.navn.graphql")
+    @Value("classpath:pdl/hentPerson.batch.graphql")
     Resource navnQueryResource;
 
     public String resourceAsString() throws IOException {
@@ -18,3 +18,4 @@ public class GraphQlUtils {
         return filinnhold.replaceAll("\\s+", " ");
     }
 }
+
