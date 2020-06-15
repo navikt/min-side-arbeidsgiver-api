@@ -3,7 +3,6 @@ package no.nav.tag.dittNavArbeidsgiver.services.pdl;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.Data;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRespons;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Navn;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRequest;
@@ -59,7 +58,7 @@ public class PdlService {
     }
 
     private Navn lesNavnFraPdlRespons(PdlRespons respons){
-           try{
+        try{
             return respons.data.hentPerson.navn[0];
         }catch(NullPointerException | ArrayIndexOutOfBoundsException e){
             log.error("MSA-AAREG nullpointer exception: {} ", e.getMessage());
@@ -83,6 +82,7 @@ public class PdlService {
         }
     }
 
+
     private PdlBatchRespons getBatchFraPdl(String fnr){
         try {
             PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
@@ -90,6 +90,7 @@ public class PdlService {
         } catch (RestClientException | IOException exception) {
             log.error("MSA-AAREG Exception: {}" , exception.getMessage());
         }
-    }
+        return null;
+    };
 }
 
