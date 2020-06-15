@@ -1,0 +1,30 @@
+{
+  "data": {
+    "hentPersonBolk": [
+      {
+        "ident": "12345678910",
+        "person": {
+          "navn": [
+            {
+              "fornavn": "Ola",
+              "mellomnavn": null,
+              "etternavn": "Normann"
+            }
+          ]
+        },
+        "code": "ok"
+      },
+      {
+        "ident": "12345678911",
+        "person": null,
+        "code": "not_found"
+      },
+      {
+        "ident": "test",
+        "person": null,
+        "code": "bad_request"
+      }
+    ]
+  }
+}
+
