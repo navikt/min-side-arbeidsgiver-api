@@ -31,5 +31,9 @@ public class ArbeidsForholdVarsel {
             "EROPPH","Maskinell sluttdato: Opphørt i Enhetsregisteret",
             "ERVIRK","Maskinell sluttdato: Virksomhetoverdragelse",
             "IBARBG","Maskinell sluttdato: Ikke bekreftet",
-            "IBKAOR","Maskinell sluttdato: Ikke bekreftet i a-ordningen");
+            "IBKAOR","Maskinell sluttdato: Ikke bekreftet i a-ordningen",
+            "PPIDHI", "Permisjonen/Permitteringen har id-historikk",
+            "NAVEND", "NAV har opprettet eller endret arbeidsforholdet",
+            "IBPPAG", "Maskinell sluttdato: Arbeidsgiver har ikke bekreftet permisjon/permitteringen.",
+            "AFIDHI", "Arbeidsforholdet har id-historikk");
 }
