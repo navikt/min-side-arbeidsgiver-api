@@ -168,10 +168,10 @@ public class AAregController {
     @ResponseBody
     public ResponseEntity<PdlBatchRespons> hentArbeidsforhold(
             @ApiIgnore @CookieValue("selvbetjening-idtoken") String idToken) {
-        String[] fnrs = new String[]{
-                "21076824670",
-                "28088222220"};
-
+        String[] fnrs = new String[2];
+        fnrs[0] = "28088222220";
+        fnrs[1] = "28088222220";
+        log.info("FNRS I KALL " +fnrs);
         return ResponseEntity.ok(pdlService.getBatchFraPdl(fnrs));
     }
 }

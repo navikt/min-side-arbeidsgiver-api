@@ -82,7 +82,6 @@ public class PdlService {
     private Navn getFraPdl(String fnr){
         try {
             PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
-            log.info("PDL enkel sporring" + pdlRequest);
             PdlRespons respons = restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlRespons.class);
             return lesNavnFraPdlRespons(respons);
         } catch (RestClientException | IOException exception) {
@@ -99,17 +98,24 @@ public class PdlService {
             log.info("MSA-AAREG: PDLBATCHREQUEST: " +pdlRequest);
             return  restTemplate.postForObject(pdlUrl, createRequestEntityBatchSporring(pdlRequest), PdlBatchRespons.class);
         } catch (RestClientException | IOException exception) {
-            log.error("MSA-AAREG Exception: {}" , exception.getMessage());
+            log.error("MSA-AAREG Exception: {} i PDLBATCH" , exception.getMessage());
         }
         return null;
     };
 
     public String arrayTilString(String [] array) {
-        StringBuilder tilString = new StringBuilder("[" + array[0]);
-        for (int i = 1; i < array.length; i++) {
-            tilString.append(",").append(array[i]);
+        try {
+            StringBuilder tilString = new StringBuilder("[" + array[0]);
+            for (int i = 1; i < array.length; i++) {
+                tilString.append(",").append(array[i]);
+            }
+            return tilString.toString() + "]";
         }
-        return tilString.toString() + "]";
+        catch (IndexOutOfBoundsException exception) {
+            log.error("MSA AAREG error" + exception.getMessage());
+
+        }
+        return null;
     }
 
     public PdlBatchRequest getBatchFraPdltest(String [] listeMEdFnr){

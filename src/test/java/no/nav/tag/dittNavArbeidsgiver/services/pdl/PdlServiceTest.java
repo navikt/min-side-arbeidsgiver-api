@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 
 
+import lombok.extern.slf4j.Slf4j;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Data;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Error;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.HentPerson;
@@ -27,6 +28,7 @@ import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRespons;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
+@Slf4j
 @RunWith(MockitoJUnitRunner.class)
 public class PdlServiceTest {
     private static final String FNR = "123";
