@@ -171,7 +171,8 @@ public class AAregController {
         String[] fnrs = new String[2];
         fnrs[0] = "28088222220";
         fnrs[1] = "28088222220";
-        log.info("FNRS I KALL " +fnrs);
+        PdlBatchRespons responsen = pdlService.getBatchFraPdl(fnrs);
+        log.info("PDL BATCHREPSONS: " + responsen);
         return ResponseEntity.ok(pdlService.getBatchFraPdl(fnrs));
     }
 }
