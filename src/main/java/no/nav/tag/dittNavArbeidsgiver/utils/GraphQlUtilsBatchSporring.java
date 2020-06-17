@@ -12,7 +12,7 @@ import java.io.IOException;
 @Slf4j
 @Service
 public class GraphQlUtilsBatchSporring {
-    @Value("classpath:pdl/hentPerson.batch.graphql")
+    @Value("classpath:pdl/hentPersonBolkRespons.person.graphql")
     Resource navnQueryResource;
 
 

@@ -3,6 +3,6 @@ import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Navn;
 
 public class Person {
     public String ident;
-    public Navn person;
+    public Navn navn;
     public String code;
 }
