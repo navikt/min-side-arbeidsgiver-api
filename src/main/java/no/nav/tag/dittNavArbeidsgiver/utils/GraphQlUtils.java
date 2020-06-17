@@ -10,7 +10,7 @@ import java.io.IOException;
 
 @Service
 public class GraphQlUtils {
-    @Value("classpath:pdl/hentPerson.batch.graphql")
+    @Value("classpath:pdl/hentPerson.navn.graphql")
     Resource navnQueryResource;
 
     public String resourceAsString() throws IOException {

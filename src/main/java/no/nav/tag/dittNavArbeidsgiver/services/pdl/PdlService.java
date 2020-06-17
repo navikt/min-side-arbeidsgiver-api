@@ -55,6 +55,10 @@ public class PdlService {
         return new HttpEntity(pdlRequest,createHeaders());
     }
 
+    private HttpEntity<String> createRequestEntityBatchSporring(PdlBatchRequest pdlRequest) {
+        return new HttpEntity(pdlRequest,createHeaders());
+    }
+
     private Navn lagManglerNavnException(){
         Navn exceptionNavn = new Navn();
         exceptionNavn.fornavn="Kunne ikke hente navn";
@@ -78,9 +82,7 @@ public class PdlService {
     private Navn getFraPdl(String fnr){
         try {
             PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
-            log.info("Pdl request: " + pdlRequest);
-            log.info("Pdl request: " + graphQlUtils.resourceAsString());
-
+            log.info("PDL enkel sporring" + pdlRequest);
             PdlRespons respons = restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlRespons.class);
             return lesNavnFraPdlRespons(respons);
         } catch (RestClientException | IOException exception) {
@@ -90,11 +92,12 @@ public class PdlService {
     }
 
 
-    private PdlBatchRespons getBatchFraPdl(String fnr){
+    public PdlBatchRespons getBatchFraPdl(String[] fnrs){
+        String listeMedFnrSomString = arrayTilString(fnrs);
         try {
-            PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
-            log.info("Pdl request: " + pdlRequest);
-            return  restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlBatchRespons.class);
+            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new VariablesPdlBatch(listeMedFnrSomString));
+            log.info("MSA-AAREG: PDLBATCHREQUEST: " +pdlRequest);
+            return  restTemplate.postForObject(pdlUrl, createRequestEntityBatchSporring(pdlRequest), PdlBatchRespons.class);
         } catch (RestClientException | IOException exception) {
             log.error("MSA-AAREG Exception: {}" , exception.getMessage());
         }
@@ -109,25 +112,15 @@ public class PdlService {
         return tilString.toString() + "]";
     }
 
-    public void getBatchFraPdltest(String [] listeMEdFnr){
+    public PdlBatchRequest getBatchFraPdltest(String [] listeMEdFnr){
         String listeMedFnrSomString = arrayTilString(listeMEdFnr);
-        Variables variables = new Variables(listeMedFnrSomString);
-        log.info("Pdl request: " + variables);
         try {
-            log.info(graphQlUtilsBatch.resourceAsString());
+            return new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new VariablesPdlBatch(listeMedFnrSomString));
         }
         catch (IOException exception) {
             log.info("FAIL");
         }
-
-        /*try {
-            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new VariablesPdlBatch(listeMEdFnr));
-            log.info("Pdl request: " + pdlRequest);
-            //return  restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlBatchRespons.class);
-        } catch (RestClientException | IOException exception) {
-            log.error("MSA-AAREG Exception: {}" , exception.getMessage());
-        }
-        */
+        return null;
 
     };
 }

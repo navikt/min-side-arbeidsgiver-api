@@ -9,6 +9,7 @@ import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsgiver;
 import no.nav.tag.dittNavArbeidsgiver.models.Yrkeskoderespons.Yrkeskoderespons;
 import no.nav.tag.dittNavArbeidsgiver.models.enhetsregisteret.EnhetsRegisterOrg;
 import no.nav.tag.dittNavArbeidsgiver.models.enhetsregisteret.Organisasjoneledd;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRespons;
 import no.nav.tag.dittNavArbeidsgiver.services.aareg.AAregService;
 import no.nav.tag.dittNavArbeidsgiver.services.enhetsregisteret.EnhetsregisterService;
 import no.nav.tag.dittNavArbeidsgiver.services.pdl.PdlService;
@@ -161,5 +162,16 @@ public class AAregController {
         tomOversikt.setTotalAntall(0);
         tomOversikt.setArbeidsforholdoversikter(tomtarbeidsforholdArray);
         return tomOversikt;
+    }
+
+    @GetMapping(value = "/api/navn")
+    @ResponseBody
+    public ResponseEntity<PdlBatchRespons> hentArbeidsforhold(
+            @ApiIgnore @CookieValue("selvbetjening-idtoken") String idToken) {
+        String[] fnrs = new String[]{
+                "21076824670",
+                "28088222220"};
+
+        return ResponseEntity.ok(pdlService.getBatchFraPdl(fnrs));
     }
 }
