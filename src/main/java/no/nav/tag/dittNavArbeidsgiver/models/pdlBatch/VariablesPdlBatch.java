@@ -4,6 +4,6 @@ import lombok.Value;
 
 @Value
 
-public class Variables {
-    private final String identer;
+public class VariablesPdlBatch {
+    private final String [] identer;
 }

@@ -3,13 +3,16 @@ package no.nav.tag.dittNavArbeidsgiver.services.pdl;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRequest;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRespons;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.VariablesPdlBatch;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Navn;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRequest;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRespons;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Variables;
 import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtils;
+import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtilsBatchSporring;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ import java.io.IOException;
 public class PdlService {
 
     private final GraphQlUtils graphQlUtils;
+    private final GraphQlUtilsBatchSporring graphQlUtilsBatch;
     private final STSClient stsClient;
     private final RestTemplate restTemplate;
     @Value("${pdl.pdlUrl}")
@@ -74,6 +78,9 @@ public class PdlService {
     private Navn getFraPdl(String fnr){
         try {
             PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
+            log.info("Pdl request: " + pdlRequest);
+            log.info("Pdl request: " + graphQlUtils.resourceAsString());
+
             PdlRespons respons = restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlRespons.class);
             return lesNavnFraPdlRespons(respons);
         } catch (RestClientException | IOException exception) {
@@ -86,11 +93,42 @@ public class PdlService {
     private PdlBatchRespons getBatchFraPdl(String fnr){
         try {
             PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
+            log.info("Pdl request: " + pdlRequest);
             return  restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlBatchRespons.class);
         } catch (RestClientException | IOException exception) {
             log.error("MSA-AAREG Exception: {}" , exception.getMessage());
         }
         return null;
+    };
+
+    public String arrayTilString(String [] array) {
+        StringBuilder tilString = new StringBuilder("[" + array[0]);
+        for (int i = 1; i < array.length; i++) {
+            tilString.append(",").append(array[i]);
+        }
+        return tilString.toString() + "]";
+    }
+
+    public void getBatchFraPdltest(String [] listeMEdFnr){
+        String listeMedFnrSomString = arrayTilString(listeMEdFnr);
+        Variables variables = new Variables(listeMedFnrSomString);
+        log.info("Pdl request: " + variables);
+        try {
+            log.info(graphQlUtilsBatch.resourceAsString());
+        }
+        catch (IOException exception) {
+            log.info("FAIL");
+        }
+
+        /*try {
+            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new VariablesPdlBatch(listeMEdFnr));
+            log.info("Pdl request: " + pdlRequest);
+            //return  restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlBatchRespons.class);
+        } catch (RestClientException | IOException exception) {
+            log.error("MSA-AAREG Exception: {}" , exception.getMessage());
+        }
+        */
+
     };
 }
 

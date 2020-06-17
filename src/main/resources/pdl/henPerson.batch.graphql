@@ -1,9 +1,13 @@
 query($ident: ID!) {
-    hentPerson(ident: $ident) {
-        navn {
-            fornavn
-            mellomnavn
-            etternavn
-        }
+    hentPersonBolk(identer: $ident) {
+        ident,
+        person {
+            navn {
+                fornavn
+                mellomnavn
+                etternavn
+            }
+        },
+        code
     }
 }
