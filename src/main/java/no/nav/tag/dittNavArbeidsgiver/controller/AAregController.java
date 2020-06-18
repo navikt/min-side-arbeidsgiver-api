@@ -166,13 +166,14 @@ public class AAregController {
 
     @GetMapping(value = "/api/navn")
     @ResponseBody
-    public ResponseEntity<PdlBatchRespons> hentArbeidsforhold(
+    public ResponseEntity<PdlBatchRespons> hentNavn(
             @ApiIgnore @CookieValue("selvbetjening-idtoken") String idToken) {
         String[] fnrs = new String[2];
         fnrs[0] = "28088222220";
         fnrs[1] = "28088222220";
         PdlBatchRespons responsen = pdlService.getBatchFraPdl(fnrs);
-        log.info("PDL BATCHREPSONS: " + responsen);
-        return ResponseEntity.ok(pdlService.getBatchFraPdl(fnrs));
+        log.info("PDL BATCHREPSONS: " + ResponseEntity.ok(responsen));
+        return ResponseEntity.ok(responsen);
+
     }
 }
