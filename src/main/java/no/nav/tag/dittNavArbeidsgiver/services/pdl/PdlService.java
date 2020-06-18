@@ -82,8 +82,10 @@ public class PdlService {
     private Navn getFraPdl(String fnr){
         try {
             PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
-            PdlRespons respons = restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlRespons.class);
-            log.info("MSA AAREG" + pdlRequest + createRequestEntity(pdlRequest));
+            log.info("MSA AAREG request enkel respons" + pdlRequest);
+            HttpEntity entity = createRequestEntity(pdlRequest);
+            PdlRespons respons = restTemplate.postForObject(pdlUrl, entity, PdlRespons.class);
+            log.info("MSA AAREG entity enkel respons" + entity);
             return lesNavnFraPdlRespons(respons);
         } catch (RestClientException | IOException exception) {
             log.error("MSA-AAREG Exception: {}" , exception.getMessage());
@@ -96,9 +98,10 @@ public class PdlService {
         String listeMedFnrSomString = arrayTilString(fnrs);
         try {
             PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new VariablesPdlBatch(listeMedFnrSomString));
+            HttpEntity entity = createRequestEntityBatchSporring(pdlRequest);
             log.info("MSA-AAREG: PDLBATCHREQUEST: " +pdlRequest);
-            log.info( "MSA-AAREG requestEntity i batch " + createRequestEntityBatchSporring(pdlRequest));
-            return  restTemplate.postForObject(pdlUrl, createRequestEntityBatchSporring(pdlRequest), PdlBatchRespons.class);
+            log.info( "MSA-AAREG requestEntity i batch " + entity);
+            return  restTemplate.postForObject(pdlUrl, entity, PdlBatchRespons.class);
         } catch (RestClientException | IOException exception) {
             log.error("MSA-AAREG Exception: {} i PDLBATCH" , exception.getMessage());
         }
@@ -123,7 +126,9 @@ public class PdlService {
     public PdlBatchRequest getBatchFraPdltest(String [] listeMEdFnr){
         String listeMedFnrSomString = arrayTilString(listeMEdFnr);
         try {
-            return new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new VariablesPdlBatch(listeMedFnrSomString));
+            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new VariablesPdlBatch(listeMedFnrSomString));
+            HttpEntity entity = createRequestEntityBatchSporring(pdlRequest);
+            return pdlRequest;
         }
         catch (IOException exception) {
             log.info("FAIL");

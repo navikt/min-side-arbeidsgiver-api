@@ -1,7 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.services.pdl;
 
 import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRequest;
-import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRequest;
 import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtilsBatchSporring;
 import org.junit.Test;
 import org.junit.runner.RunWith;
