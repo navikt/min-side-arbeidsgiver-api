@@ -1,6 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.services.pdl;
 
 import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRequest;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRequest;
 import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtilsBatchSporring;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +24,8 @@ public class PdlBatchTester {
     public void lagRequest() {
         String[] fnrs = new String[]{"111111111","22222222"};
         PdlBatchRequest request =pdlService.getBatchFraPdltest(fnrs);
-        assertEquals("1010", request );
+        assertEquals("query($identer: ID!) { hentPersonBolk(identer: $identer) { ident, person { navn { fornavn mellomnavn etternavn } }, code } }",
+                request.getQuery() );
     }
 }
 

@@ -69,8 +69,6 @@ public class PdlServiceTest {
     @Test
     public void hentNavnMedFnr_skal_hente_sts_token_og_returnere_navn_på_person() throws ExecutionException, InterruptedException {
         String navn = "Ole Dole";
-        String[] fnrs = new String[]{"111111111","22222222"};
-        //pdlService.getBatchFraPdltest(fnrs);
         when(restTemplate.postForObject(eq(PDL_URL), any(HttpEntity.class), eq(PdlRespons.class)))
                 .thenReturn(respons);
         assertThat(pdlService.hentNavnMedFnr(FNR)).isEqualTo(navn);
