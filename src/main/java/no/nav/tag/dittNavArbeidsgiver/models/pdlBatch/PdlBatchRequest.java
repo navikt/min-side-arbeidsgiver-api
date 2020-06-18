@@ -5,6 +5,6 @@ import lombok.Value;
 @Value
 public class PdlBatchRequest {
     private final String query;
-    private final VariablesPdlBatch variables;
+    private final Variables variables;
 }
 

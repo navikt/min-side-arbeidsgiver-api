@@ -5,11 +5,10 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRequest;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRespons;
-import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.VariablesPdlBatch;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.Variables;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Navn;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRequest;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRespons;
-import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Variables;
 import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtils;
 import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtilsBatchSporring;
@@ -81,7 +80,7 @@ public class PdlService {
 
     private Navn getFraPdl(String fnr){
         try {
-            PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
+            PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Variables(fnr));
             log.info("MSA AAREG request enkel respons" + pdlRequest);
             HttpEntity entity = createRequestEntity(pdlRequest);
             PdlRespons respons = restTemplate.postForObject(pdlUrl, entity, PdlRespons.class);
@@ -97,7 +96,7 @@ public class PdlService {
     public PdlBatchRespons getBatchFraPdl(String[] fnrs){
         String listeMedFnrSomString = arrayTilString(fnrs);
         try {
-            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new VariablesPdlBatch(listeMedFnrSomString));
+            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(listeMedFnrSomString));
             HttpEntity entity = createRequestEntityBatchSporring(pdlRequest);
             log.info("MSA-AAREG: PDLBATCHREQUEST: " +pdlRequest);
             log.info( "MSA-AAREG requestEntity i batch " + entity);
@@ -126,7 +125,7 @@ public class PdlService {
     public PdlBatchRequest getBatchFraPdltest(String [] listeMEdFnr){
         String listeMedFnrSomString = arrayTilString(listeMEdFnr);
         try {
-            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new VariablesPdlBatch(listeMedFnrSomString));
+            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(listeMedFnrSomString));
             HttpEntity entity = createRequestEntityBatchSporring(pdlRequest);
             return pdlRequest;
         }
