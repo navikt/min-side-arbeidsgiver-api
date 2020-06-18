@@ -83,7 +83,7 @@ public class PdlService {
         try {
             PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
             PdlRespons respons = restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlRespons.class);
-            log.info("MSA AAREG", pdlRequest, createRequestEntity(pdlRequest));
+            log.info("MSA AAREG" + pdlRequest + createRequestEntity(pdlRequest));
             return lesNavnFraPdlRespons(respons);
         } catch (RestClientException | IOException exception) {
             log.error("MSA-AAREG Exception: {}" , exception.getMessage());
@@ -97,7 +97,7 @@ public class PdlService {
         try {
             PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new VariablesPdlBatch(listeMedFnrSomString));
             log.info("MSA-AAREG: PDLBATCHREQUEST: " +pdlRequest);
-            log.info( "MSA-AAREG requestEntity i batch ", createRequestEntityBatchSporring(pdlRequest));
+            log.info( "MSA-AAREG requestEntity i batch " + createRequestEntityBatchSporring(pdlRequest));
             return  restTemplate.postForObject(pdlUrl, createRequestEntityBatchSporring(pdlRequest), PdlBatchRespons.class);
         } catch (RestClientException | IOException exception) {
             log.error("MSA-AAREG Exception: {} i PDLBATCH" , exception.getMessage());
