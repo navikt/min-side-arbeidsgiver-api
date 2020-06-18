@@ -14,9 +14,11 @@ import no.nav.tag.dittNavArbeidsgiver.services.enhetsregisteret.EnhetsregisterSe
 import no.nav.tag.dittNavArbeidsgiver.services.pdl.PdlService;
 import no.nav.tag.dittNavArbeidsgiver.services.yrkeskode.KodeverkService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.client.HttpClientErrorException;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.Arrays;
@@ -57,6 +59,7 @@ public class AAregController {
         Timer timer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentArbeidsforhold").start();
         log.info("MSA-AAREG controller hentArbeidsforhold orgnr: " + orgnr + " jurenhet: " + juridiskEnhetOrgnr );
         Timer kunArbeidstimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.kunArbeidsforhold").start();
+        try{
         OversiktOverArbeidsForhold response = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         if (response.getArbeidsforholdoversikter()==null || response.getArbeidsforholdoversikter().length<=0) {
             log.info("MSA-AAREG controller hentArbeidsforhold fant ingen arbeidsforhold. Prøver å med overordnete enheter");
@@ -67,7 +70,10 @@ public class AAregController {
         OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
         timer.stop().report();
-        return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);
+        return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);}
+        catch(HttpClientErrorException e){
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "bli blop");
+        }
     }
 
     @GetMapping(value = "/api/arbeidsgivere")

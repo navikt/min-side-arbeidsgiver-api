@@ -30,7 +30,7 @@ public class AAregService {
     public OversiktOverArbeidsForhold hentArbeidsforhold(String orgnr,String juridiskEnheOrgnr, String idPortenToken) {
         String url = aaregArbeidsforholdUrl;
         HttpEntity <String> entity = getRequestEntity(orgnr,juridiskEnheOrgnr,idPortenToken);
-        try {
+
             ResponseEntity<OversiktOverArbeidsForhold> respons = restTemplate.exchange(url,
                     HttpMethod.GET, entity, OversiktOverArbeidsForhold.class);
             if (respons.getStatusCode() != HttpStatus.OK) {
@@ -39,10 +39,7 @@ public class AAregService {
                 throw new RuntimeException(message);
             }
             return respons.getBody();
-        } catch (RestClientException exception) {
-            log.error(" Aareg Exception: ", exception);
-            throw new RuntimeException(" Aareg Exception: " + exception);
-        }
+
     }
     public List<OversiktOverArbeidsgiver> hentArbeidsgiverefraRapporteringsplikig(String orgnr, String opplysningspliktig, String idPortenToken) {
         String url = aaregArbeidsgivereUrl;

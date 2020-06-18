@@ -118,7 +118,7 @@ public class MockServer {
             String path
     ) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path + "reportees"))
-                .withHeader("Authorization", containing(FNR_MED_ORGANISASJONER))
+                //.withHeader("Authorization", containing(FNR_MED_ORGANISASJONER))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("organisasjoner.json"))
@@ -146,9 +146,7 @@ public class MockServer {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path ))
                 .withHeader("Nav-Opplysningspliktigident", equalTo("983887457") ).
                 withHeader("Nav-Arbeidsgiverident",equalTo("910825518"))
-                .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil("arbeidsforholdrespons.json"))
+                .willReturn(WireMock.forbidden().withStatusMessage("Ikke tilgang til enhet")
                 ));
     }
 
