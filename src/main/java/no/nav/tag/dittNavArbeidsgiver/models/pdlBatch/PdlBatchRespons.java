@@ -1,6 +1,5 @@
 package no.nav.tag.dittNavArbeidsgiver.models.pdlBatch;
 
-import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.Data;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Error;
 
 import java.util.ArrayList;
