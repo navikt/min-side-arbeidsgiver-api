@@ -94,7 +94,7 @@ public class PdlService {
 
     private HttpEntity<String> createRequestEntityBatchSporring() {
         String request ="{\n" +
-                "  \"query\": \"query { hentPersonBolk(identer: [\\\"13116224741\\\",\\\"17108025425\\\"]) { ident, person { navn { fornavn,etternavn } }, code } }\"\n" +
+                "  \"query\": \"query { hentPersonBolk(identer: [13116224741,17108025425]) { ident, person { navn { fornavn,etternavn } }, code } }\"\n" +
                 "}";
         return new HttpEntity(request,createHeaders());
     }
