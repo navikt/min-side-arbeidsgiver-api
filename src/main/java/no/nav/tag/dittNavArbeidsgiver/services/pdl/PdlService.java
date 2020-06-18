@@ -92,6 +92,13 @@ public class PdlService {
         }
     }
 
+    private HttpEntity<String> createRequestEntityBatchSporring() {
+        String request ="{\n" +
+                "  \"query\": \"query { hentPersonBolk(identer: [\\\"13116224741\\\",\\\"17108025425\\\"]) { ident, person { navn { fornavn,etternavn } }, code } }\"\n" +
+                "}";
+        return new HttpEntity(request,createHeaders());
+    }
+
 
     public PdlBatchRespons getBatchFraPdl(String[] fnrs){
         String listeMedFnrSomString = arrayTilString(fnrs);
@@ -126,7 +133,7 @@ public class PdlService {
         String listeMedFnrSomString = arrayTilString(listeMEdFnr);
         try {
             PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(listeMedFnrSomString));
-            HttpEntity entity = createRequestEntityBatchSporring(pdlRequest);
+            HttpEntity entity = createRequestEntityBatchSporring();
             return pdlRequest;
         }
         catch (IOException exception) {
