@@ -173,7 +173,7 @@ public class AAregController {
         fnrs[1] = "28088222220";
         PdlBatchRespons responsen = pdlService.getBatchFraPdl(fnrs);
         log.info( "Errorliste: ", responsen.errors.get(0));
-         log.info("Dataobjekt", responsen.data.hentPersonBolk);
+         log.info("Dataobjekt", responsen.data.hentPersonBolk[0].ident);
         return ResponseEntity.ok(responsen);
 
     }
