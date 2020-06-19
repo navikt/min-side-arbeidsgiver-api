@@ -104,12 +104,12 @@ public class PdlService {
         String listeMedFnrSomString = arrayTilString(fnrs);
         try {
             PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(listeMedFnrSomString));
-            HttpEntity entity = createRequestEntityBatchSporring();
-            log.info("MSA-AAREG: PDLBATCHREQUEST: " +pdlRequest);
-            log.info( "MSA-AAREG requestEntity i batch " + entity);
+            HttpEntity entity = createRequestEntityBatchSporring(pdlRequest);
+            log.info("MSA-AAREG-BATCH: PDLBATCHREQUEST: " +pdlRequest);
+            log.info( "MSA-AAREG-BATCH: requestEntity i batch " + entity);
             return  restTemplate.postForObject(pdlUrl, entity, PdlBatchRespons.class);
         } catch (RestClientException | IOException exception) {
-            log.error("MSA-AAREG Exception: {} i PDLBATCH" , exception.getMessage());
+            log.error("MSA-AAREG-BATCH: Exception: {} i PDLBATCH" , exception.getMessage());
         }
         return null;
     };
