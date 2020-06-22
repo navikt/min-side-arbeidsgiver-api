@@ -99,7 +99,6 @@ public class PdlService {
         return new HttpEntity(request,createHeaders());
     }
 
-
     public PdlBatchRespons getBatchFraPdl(String[] fnrs){
         String listeMedFnrSomString = arrayTilString(fnrs);
         try {
@@ -109,7 +108,7 @@ public class PdlService {
             log.info( "MSA-AAREG-BATCH: requestEntity i batch " + entity);
             return  restTemplate.postForObject(pdlUrl, entity, PdlBatchRespons.class);
         } catch (RestClientException | IOException exception) {
-            log.error("MSA-AAREG-BATCH: Exception: {} i PDLBATCH" , exception.getMessage());
+            log.error("MSA-AAREG-BATCH: Exception: {} i PDLBATCH" + exception.getMessage());
         }
         return null;
     };
@@ -134,7 +133,6 @@ public class PdlService {
         try {
             PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(listeMedFnrSomString));
             HttpEntity entity = createRequestEntityBatchSporring();
-            log.info("FAIL entity", entity);
             return pdlRequest;
         }
         catch (IOException exception) {
