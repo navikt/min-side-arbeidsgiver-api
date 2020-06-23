@@ -26,5 +26,14 @@ public class PdlBatchTester {
         assertEquals("query($identer: ID!) { hentPersonBolk(identer: $identer) { ident, person { navn { fornavn mellomnavn etternavn } }, code } }",
                 request.getQuery() );
     }
+
+    @Test
+    public void hentNavn() {
+        String[] fnrs = new String[]{"111111111","22222222"};
+        PdlBatchRequest request =pdlService.getBatchFraPdltest(fnrs);
+        assertEquals("query($identer: ID!) { hentPersonBolk(identer: $identer) { ident, person { navn { fornavn mellomnavn etternavn } }, code } }",
+                request.getQuery() );
+    }
+
 }
 
