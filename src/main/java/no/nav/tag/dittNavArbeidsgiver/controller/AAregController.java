@@ -172,12 +172,11 @@ public class AAregController {
         fnrs[0] = "28088222220";
         fnrs[1] = "28088222220";
         PdlBatchRespons responsen = pdlService.getBatchFraPdl(fnrs);
-        log.info( "MSA-AAREG-BATCH:Errorliste: " + responsen.errors.get(0));
         try {
             return ResponseEntity.ok(responsen);
         }
         catch (Exception e) {
-            log.info("MSA-AAREG-BATCH-Dataobjekt Klarte ikke lese" + responsen.data.hentPersonBolk[0].ident, e.getMessage());
+            log.info("MSA-AAREG-BATCH-Dataobjekt Klarte ikke lese");
         }
         return null;
     }
