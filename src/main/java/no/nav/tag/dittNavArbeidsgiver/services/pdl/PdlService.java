@@ -41,6 +41,15 @@ public class PdlService {
         if(result.etternavn!=null) navn += " " + result.etternavn;
         return navn;
     }
+    @SneakyThrows
+    public String settSammenNavn(Navn result){
+        String navn = "";
+        if(result.fornavn!=null) navn += result.fornavn;
+        if(result.mellomNavn!=null) navn += " " +result.mellomNavn;
+        if(result.etternavn!=null) navn += " " + result.etternavn;
+        return navn;
+    }
+
     private HttpHeaders createHeaders () {
         String stsToken = stsClient.getToken().getAccess_token();
         HttpHeaders headers = new HttpHeaders();
@@ -58,13 +67,13 @@ public class PdlService {
         return new HttpEntity(pdlRequest,createHeaders());
     }
 
-    private Navn lagManglerNavnException(){
+    public Navn lagManglerNavnException(){
         Navn exceptionNavn = new Navn();
         exceptionNavn.fornavn="Kunne ikke hente navn";
         return exceptionNavn;
     }
 
-    private Navn lesNavnFraPdlRespons(PdlRespons respons){
+    public Navn lesNavnFraPdlRespons(PdlRespons respons){
         try{
             return respons.data.hentPerson.navn[0];
         }catch(NullPointerException | ArrayIndexOutOfBoundsException e){

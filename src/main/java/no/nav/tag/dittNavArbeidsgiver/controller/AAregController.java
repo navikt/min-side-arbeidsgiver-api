@@ -10,6 +10,7 @@ import no.nav.tag.dittNavArbeidsgiver.models.Yrkeskoderespons.Yrkeskoderespons;
 import no.nav.tag.dittNavArbeidsgiver.models.enhetsregisteret.EnhetsRegisterOrg;
 import no.nav.tag.dittNavArbeidsgiver.models.enhetsregisteret.Organisasjoneledd;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRespons;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Navn;
 import no.nav.tag.dittNavArbeidsgiver.services.aareg.AAregService;
 import no.nav.tag.dittNavArbeidsgiver.services.enhetsregisteret.EnhetsregisterService;
 import no.nav.tag.dittNavArbeidsgiver.services.pdl.PdlService;
@@ -135,6 +136,39 @@ public class AAregController {
         }
 
         hentNavntimer.stop().report();
+        return arbeidsforholdOversikt;
+    }
+
+    public OversiktOverArbeidsForhold settNavnPåArbeidsforholdMedBatch(OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
+        int lengde = arbeidsforholdOversikt.getArbeidsforholdoversikter().length;
+        String[] fnrs = new String[lengde];
+        int iteratorIndex = 0;
+        for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
+            fnrs[iteratorIndex] = arbeidsforhold.getArbeidstaker().getOffentligIdent();
+            iteratorIndex++;
+        }
+        PdlBatchRespons respons = pdlService.getBatchFraPdl(fnrs);
+        for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
+            fnrs[iteratorIndex] = arbeidsforhold.getArbeidstaker().getOffentligIdent();
+            iteratorIndex++;
+            for (int i = 0 ; i < respons.data.hentPersonBolk.length; i++) {
+                if (respons.data.hentPersonBolk[i].ident.equals(arbeidsforhold.getArbeidstaker().getOffentligIdent())) {
+                    try {
+                        Navn navn = respons.data.hentPersonBolk[i].person.navn[0];
+                        arbeidsforhold.getArbeidstaker().setNavn(pdlService.settSammenNavn(navn));
+                    }
+                    catch(NullPointerException | ArrayIndexOutOfBoundsException e){
+                        log.error("MSA-AAREG nullpointer exception: {} ", e.getMessage());
+                        if(respons.errors!=null && !respons.errors.isEmpty()){
+                            log.error("MSA-AAREG pdlerror: " + respons.errors.get(0).message);
+                        }else {
+                            log.error("MSA-AAREG nullpointer: helt tom respons fra pdl");
+                        }
+                    }
+                    arbeidsforhold.getArbeidstaker().setNavn(pdlService.settSammenNavn(pdlService.lagManglerNavnException()));
+                }
+            }
+        }
         return arbeidsforholdOversikt;
     }
 
