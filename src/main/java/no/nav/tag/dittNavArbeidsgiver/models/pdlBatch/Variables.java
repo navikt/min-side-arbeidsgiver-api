@@ -4,5 +4,5 @@ import lombok.Value;
 
 @Value
 public class Variables {
-    private final String identer;
+    private final String [] identer;
 }

@@ -100,9 +100,8 @@ public class PdlService {
     }
 
     public PdlBatchRespons getBatchFraPdl(String[] fnrs){
-        String listeMedFnrSomString = arrayTilString(fnrs);
         try {
-            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(listeMedFnrSomString));
+            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(fnrs));
             HttpEntity entity = createRequestEntityBatchSporring(pdlRequest);
             log.info("MSA-AAREG-PDL: PDLBATCHREQUEST: " +createRequestEntityBatchSporring(pdlRequest));
             log.info( "MSA-AAREG-PDL: requestEntity i batch " + entity);
@@ -132,7 +131,7 @@ public class PdlService {
     public PdlBatchRequest getBatchFraPdltest(String [] listeMEdFnr){
         String listeMedFnrSomString = arrayTilString(listeMEdFnr);
         try {
-            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(listeMedFnrSomString));
+            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(listeMEdFnr));
             HttpEntity entity = createRequestEntityBatchSporring();
             log.info("Sporring: " + createRequestEntityBatchSporring());
             return pdlRequest;

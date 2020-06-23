@@ -1,7 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.services.pdl;
 
 import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRequest;
-import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtilsBatchSporring;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,7 @@ public class PdlBatchTester {
     public void lagRequest() {
         String[] fnrs = new String[]{"111111111","22222222"};
         PdlBatchRequest request =pdlService.getBatchFraPdltest(fnrs);
-        assertEquals("query($identer: ID!) { hentPersonBolk(identer: $identer) { ident, person { navn { fornavn mellomnavn etternavn } }, code } }",
+        assertEquals("query($identer: [ID!]!) { hentPersonBolk(identer: $identer) { ident, person { navn { fornavn mellomnavn etternavn } }, code } }",
                 request.getQuery() );
     }
 
@@ -31,7 +30,7 @@ public class PdlBatchTester {
     public void hentNavn() {
         String[] fnrs = new String[]{"111111111","22222222"};
         PdlBatchRequest request =pdlService.getBatchFraPdltest(fnrs);
-        assertEquals("query($identer: ID!) { hentPersonBolk(identer: $identer) { ident, person { navn { fornavn mellomnavn etternavn } }, code } }",
+        assertEquals("query($identer: [ID!]!) { hentPersonBolk(identer: $identer) { ident, person { navn { fornavn mellomnavn etternavn } }, code } }",
                 request.getQuery() );
     }
 
