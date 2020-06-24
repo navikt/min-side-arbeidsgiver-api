@@ -67,7 +67,7 @@ public class AAregController {
         }
         log.info("MSA-AAREG controller hentArbeidsforhold fant arbeidsforhold: " + response.getArbeidsforholdoversikter().length);
         kunArbeidstimer.stop().report();
-        OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
+        OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforholdBatch(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
         timer.stop().report();
         return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);
@@ -147,11 +147,15 @@ public class AAregController {
         for (int i = 0 ; i < respons.data.hentPersonBolk.length; i++) {
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
                 if (respons.data.hentPersonBolk[i].ident.equals(arbeidsforhold.getArbeidstaker().getOffentligIdent())) {
-                    log.info("NAVN: " +respons.data.hentPersonBolk[i].person);
                     try {
-                        Navn navn = respons.data.hentPersonBolk[i].person.navn[0];
-                        log.info("NAVN: " +navn);
-                        arbeidsforhold.getArbeidstaker().setNavn(pdlService.settSammenNavn(navn));
+                        Navn navnObjekt = respons.data.hentPersonBolk[i].person.navn[0];
+                        String navn = "";
+                        if(navnObjekt.fornavn!=null) navn += navnObjekt.fornavn;
+                        if(navnObjekt.mellomNavn!=null) navn += " " +navnObjekt.mellomNavn;
+                        if(navnObjekt.etternavn!=null) navn += " " + navnObjekt.etternavn;
+                        arbeidsforhold.getArbeidstaker().setNavn(navn);
+                        log.info("NAVN: "+ arbeidsforhold.getArbeidstaker().getNavn());
+
                     }
                     catch(NullPointerException | ArrayIndexOutOfBoundsException e){
                         log.error("MSA-AAREG nullpointer exception i batch: {} ", e.getMessage());
@@ -161,7 +165,6 @@ public class AAregController {
                             log.error("MSA-AAREG nullpointer: helt tom respons fra pdl");
                         }
                     }
-                    arbeidsforhold.getArbeidstaker().setNavn(pdlService.settSammenNavn(pdlService.lagManglerNavnException()));
                 }
             }
         }

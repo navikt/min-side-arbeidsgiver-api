@@ -29,6 +29,11 @@ public class OversiktOverArbeidsForhold {
         return this.arbeidsforholdoversikter[0].getArbeidstaker().getNavn();
     }
 
+    @JsonIgnore
+    public String getIdentTilArbeidstaker(){
+        return this.arbeidsforholdoversikter[0].getArbeidstaker().getOffentligIdent();
+    }
+
 }
 
 @Data

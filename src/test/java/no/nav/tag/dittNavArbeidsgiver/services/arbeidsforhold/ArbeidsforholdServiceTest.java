@@ -38,9 +38,6 @@ public class ArbeidsforholdServiceTest {
     public void settNavn() {
         OversiktOverArbeidsForhold oversikt = oversiktOverArbeidsForhold.hentArbeidsforhold("910825518","983887457","9999");
         oversiktOverArbeidsForholdController.settNavnPåArbeidsforholdBatch(oversikt);
-        log.info("NAVN: "+ oversikt.getNavnTilArbeidstaker());
+        assertEquals("Ola Normann",oversikt.getNavnTilArbeidstaker());
     }
-
 }
-
-
