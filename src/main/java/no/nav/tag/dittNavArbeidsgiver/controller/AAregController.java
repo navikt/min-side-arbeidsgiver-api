@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +67,7 @@ public class AAregController {
         }
         log.info("MSA-AAREG controller hentArbeidsforhold fant arbeidsforhold: " + response.getArbeidsforholdoversikter().length);
         kunArbeidstimer.stop().report();
-        OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
+        OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforholdBatch(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
         timer.stop().report();
         return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);
@@ -139,17 +140,12 @@ public class AAregController {
         return arbeidsforholdOversikt;
     }
 
-    public OversiktOverArbeidsForhold settNavnPåArbeidsforholdMedBatch(OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
-        int lengde = arbeidsforholdOversikt.getArbeidsforholdoversikter().length;
-        String[] fnrs = new String[lengde];
+    public void settNavnPåArbeidsforholdMedBatchMaxHundre(OversiktOverArbeidsForhold arbeidsforholdOversikt, List<String> fnrs ) {
+        String[] maksHundreFnrs = fnrs.toArray(new String[0]);
+        PdlBatchRespons respons = pdlService.getBatchFraPdl(maksHundreFnrs);
         int iteratorIndex = 0;
         for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
-            fnrs[iteratorIndex] = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-            iteratorIndex++;
-        }
-        PdlBatchRespons respons = pdlService.getBatchFraPdl(fnrs);
-        for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
-            fnrs[iteratorIndex] = arbeidsforhold.getArbeidstaker().getOffentligIdent();
+            maksHundreFnrs[iteratorIndex] = arbeidsforhold.getArbeidstaker().getOffentligIdent();
             iteratorIndex++;
             for (int i = 0 ; i < respons.data.hentPersonBolk.length; i++) {
                 if (respons.data.hentPersonBolk[i].ident.equals(arbeidsforhold.getArbeidstaker().getOffentligIdent())) {
@@ -168,6 +164,25 @@ public class AAregController {
                     arbeidsforhold.getArbeidstaker().setNavn(pdlService.settSammenNavn(pdlService.lagManglerNavnException()));
                 }
             }
+        }
+
+    }
+
+    public OversiktOverArbeidsForhold settNavnPåArbeidsforholdBatch(OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
+        int lengde = arbeidsforholdOversikt.getArbeidsforholdoversikter().length;
+        ArrayList<String> fnrs = new ArrayList<>(lengde);
+        for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
+            fnrs.add(arbeidsforhold.getArbeidstaker().getOffentligIdent());
+        }
+        int tempStartIndeks = 0;
+        int gjenVarendelengde = lengde;
+        while (gjenVarendelengde > 100) {
+            settNavnPåArbeidsforholdMedBatchMaxHundre(arbeidsforholdOversikt, fnrs.subList(tempStartIndeks, tempStartIndeks+100));
+            tempStartIndeks = tempStartIndeks + 100;
+            gjenVarendelengde = gjenVarendelengde - 100;
+        }
+        if (gjenVarendelengde > 0) {
+            settNavnPåArbeidsforholdMedBatchMaxHundre(arbeidsforholdOversikt, fnrs.subList(tempStartIndeks, lengde));
         }
         return arbeidsforholdOversikt;
     }
