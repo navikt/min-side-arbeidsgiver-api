@@ -1,5 +1,8 @@
 package no.nav.tag.dittNavArbeidsgiver.services.arbeidsforhold;
 
+import lombok.extern.slf4j.Slf4j;
+import no.nav.tag.dittNavArbeidsgiver.controller.AAregController;
+import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.services.aareg.AAregService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,16 +17,30 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @ActiveProfiles("dev")
 @TestPropertySource(properties = {"mock.port=8082"})
+
+@Slf4j
 public class ArbeidsforholdServiceTest {
 
     @Autowired
     private AAregService oversiktOverArbeidsForhold;
 
+    @Autowired
+    private AAregController oversiktOverArbeidsForholdController;
+
     @Test
     public void hentArbeidsforhold() {
         String result = oversiktOverArbeidsForhold.hentArbeidsforhold("910825518","983887457","9999").getAktorIDtilArbeidstaker();
+        log.info(result);
         assertEquals("1157442896316",result);
     }
+
+    @Test
+    public void settNavn() {
+        OversiktOverArbeidsForhold oversikt = oversiktOverArbeidsForhold.hentArbeidsforhold("910825518","983887457","9999");
+        oversiktOverArbeidsForholdController.settNavnPåArbeidsforholdBatch(oversikt);
+        log.info("NAVN: "+ oversikt.getNavnTilArbeidstaker());
+    }
+
 }
 
 

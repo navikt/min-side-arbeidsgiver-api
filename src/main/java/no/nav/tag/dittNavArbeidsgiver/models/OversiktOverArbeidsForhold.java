@@ -23,6 +23,12 @@ public class OversiktOverArbeidsForhold {
     public String getAktorIDtilArbeidstaker(){
         return this.arbeidsforholdoversikter[0].getArbeidstaker().getAktoerId();
     }
+
+    @JsonIgnore
+    public String getNavnTilArbeidstaker(){
+        return this.arbeidsforholdoversikter[0].getArbeidstaker().getNavn();
+    }
+
 }
 
 @Data

@@ -67,7 +67,7 @@ public class AAregController {
         }
         log.info("MSA-AAREG controller hentArbeidsforhold fant arbeidsforhold: " + response.getArbeidsforholdoversikter().length);
         kunArbeidstimer.stop().report();
-        OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforholdBatch(response);
+        OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
         timer.stop().report();
         return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);
@@ -142,19 +142,19 @@ public class AAregController {
 
     public void settNavnPåArbeidsforholdMedBatchMaxHundre(OversiktOverArbeidsForhold arbeidsforholdOversikt, List<String> fnrs ) {
         String[] maksHundreFnrs = fnrs.toArray(new String[0]);
+        log.info("FODSELSNR MAX= " + maksHundreFnrs[0]);
         PdlBatchRespons respons = pdlService.getBatchFraPdl(maksHundreFnrs);
-        int iteratorIndex = 0;
-        for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
-            maksHundreFnrs[iteratorIndex] = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-            iteratorIndex++;
-            for (int i = 0 ; i < respons.data.hentPersonBolk.length; i++) {
+        for (int i = 0 ; i < respons.data.hentPersonBolk.length; i++) {
+            for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
                 if (respons.data.hentPersonBolk[i].ident.equals(arbeidsforhold.getArbeidstaker().getOffentligIdent())) {
+                    log.info("NAVN: " +respons.data.hentPersonBolk[i].person);
                     try {
                         Navn navn = respons.data.hentPersonBolk[i].person.navn[0];
+                        log.info("NAVN: " +navn);
                         arbeidsforhold.getArbeidstaker().setNavn(pdlService.settSammenNavn(navn));
                     }
                     catch(NullPointerException | ArrayIndexOutOfBoundsException e){
-                        log.error("MSA-AAREG nullpointer exception: {} ", e.getMessage());
+                        log.error("MSA-AAREG nullpointer exception i batch: {} ", e.getMessage());
                         if(respons.errors!=null && !respons.errors.isEmpty()){
                             log.error("MSA-AAREG pdlerror: " + respons.errors.get(0).message);
                         }else {
@@ -174,6 +174,7 @@ public class AAregController {
         for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
             fnrs.add(arbeidsforhold.getArbeidstaker().getOffentligIdent());
         }
+        log.info("FODSELSNR= " + fnrs);
         int tempStartIndeks = 0;
         int gjenVarendelengde = lengde;
         while (gjenVarendelengde > 100) {

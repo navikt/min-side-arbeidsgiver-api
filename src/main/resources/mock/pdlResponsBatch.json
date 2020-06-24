@@ -2,7 +2,7 @@
   "data": {
     "hentPersonBolk": [
       {
-        "ident": "12345678910",
+        "ident": "28078523168",
         "person": {
           "navn": [
             {
@@ -15,7 +15,33 @@
         "code": "ok"
       },
       {
-        "ident": "12345678911",
+        "ident": "31087426516",
+        "person": {
+          "navn": [
+            {
+              "fornavn": "Grethe",
+              "mellomnavn": null,
+              "etternavn": "Klaus"
+            }
+          ]
+        },
+        "code": "ok"
+      },
+      {
+        "ident": "09118524109",
+        "person": {
+          "navn": [
+            {
+              "fornavn": "Petter",
+              "mellomnavn": "Sandberg",
+              "etternavn": "Stordalen"
+            }
+          ]
+        },
+        "code": "ok"
+      },
+      {
+        "ident": "22107627085",
         "person": null,
         "code": "not_found"
       },

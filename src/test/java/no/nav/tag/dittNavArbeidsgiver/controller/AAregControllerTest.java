@@ -44,6 +44,9 @@ public class AAregControllerTest {
     private KodeverkService kodeverkService;
 
     @Autowired
+    private AAregController pdlController;
+
+    @Autowired
     private ConcurrencyConfig concurrencyconfig;
 
     @MockBean

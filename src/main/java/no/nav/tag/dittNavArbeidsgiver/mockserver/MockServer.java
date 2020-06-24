@@ -85,7 +85,7 @@ public class MockServer {
         mockForPath(server, syfoNarmesteLederPath, "narmesteLeder.json");
         mockForPath(server, kodeverkPath, "betydninger.json");
 
-        mockForPath(server, pdlPath,"pdlRespons.json");
+        mockForPath(server, pdlPath,"pdlResponsBatch.json");
         mockForPath(server, aaregArbeidsforholdPath,"tomArbeidsforholdRespons.json");
         mockForPath(server, aaregArbeidsgiverePath,"arbeidsgiveroversiktaareg.json");
         mockArbeidsforholdmedJuridiskEnhet(server, aaregArbeidsforholdPath);
