@@ -110,36 +110,6 @@ public class AAregController {
         }
     }
 
-    public OversiktOverArbeidsForhold settNavnPåArbeidsforhold (OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
-        log.info("MSA-AAREG hent navn på arbeidsforhold fra pdl");
-        HashMap<String, CompletableFuture<String>> allFutures = new HashMap<>();
-        Timer hentNavntimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentNavn").start();
-        if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
-            for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
-                String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-                allFutures.put(fnr, CompletableFuture.supplyAsync(() -> {
-                    return pdlService.hentNavnMedFnr(fnr);
-                },concurrencyconfig.hentNavnExecutor()));
-            }
-            CompletableFuture.allOf(allFutures.values().toArray(new CompletableFuture[0]));
-            for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
-                String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-                String navn = "Kunne ikke hente navn";
-                try {
-                    navn = allFutures.get(fnr).get();
-                    arbeidsforhold.getArbeidstaker().setNavn(navn);
-                } catch (InterruptedException | ExecutionException e) {
-                    log.info("MSA-AAREG Feil i pdl-oppslag, parallelisering feiler ", e.getMessage());
-                    e.printStackTrace();
-                    arbeidsforhold.getArbeidstaker().setNavn(navn);
-                }
-            }
-        }
-
-        hentNavntimer.stop().report();
-        return arbeidsforholdOversikt;
-    }
-
     public void settNavnPåArbeidsforholdMedBatchMaxHundre(OversiktOverArbeidsForhold arbeidsforholdOversikt, List<String> fnrs ) {
         String[] maksHundreFnrs = fnrs.toArray(new String[0]);
         log.info("FODSELSNR MAX= " + maksHundreFnrs[0]);

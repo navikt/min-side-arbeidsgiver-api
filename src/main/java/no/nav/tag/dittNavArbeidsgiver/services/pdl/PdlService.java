@@ -25,30 +25,11 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class PdlService {
 
-    private final GraphQlUtils graphQlUtils;
     private final GraphQlUtilsBatchSporring graphQlUtilsBatch;
     private final STSClient stsClient;
     private final RestTemplate restTemplate;
     @Value("${pdl.pdlUrl}")
     String pdlUrl;
-
-    @SneakyThrows
-    public String hentNavnMedFnr(String fnr){
-        Navn result = getFraPdl(fnr);
-        String navn = "";
-        if(result.fornavn!=null) navn += result.fornavn;
-        if(result.mellomNavn!=null) navn += " " +result.mellomNavn;
-        if(result.etternavn!=null) navn += " " + result.etternavn;
-        return navn;
-    }
-    @SneakyThrows
-    public String settSammenNavn(Navn result){
-        String navn = "";
-        if(result.fornavn!=null) navn += result.fornavn;
-        if(result.mellomNavn!=null) navn += " " +result.mellomNavn;
-        if(result.etternavn!=null) navn += " " + result.etternavn;
-        return navn;
-    }
 
     private HttpHeaders createHeaders () {
         String stsToken = stsClient.getToken().getAccess_token();
@@ -67,47 +48,6 @@ public class PdlService {
         return new HttpEntity(pdlRequest,createHeaders());
     }
 
-    public Navn lagManglerNavnException(){
-        Navn exceptionNavn = new Navn();
-        exceptionNavn.fornavn="Kunne ikke hente navn";
-        return exceptionNavn;
-    }
-
-    public Navn lesNavnFraPdlRespons(PdlRespons respons){
-        try{
-            return respons.data.hentPerson.navn[0];
-        }catch(NullPointerException | ArrayIndexOutOfBoundsException e){
-            log.error("MSA-AAREG nullpointer exception: {} ", e.getMessage());
-            if(respons.errors!=null && !respons.errors.isEmpty()){
-                log.error("MSA-AAREG pdlerror: " + respons.errors.get(0).message);
-            }else {
-                log.error("MSA-AAREG nullpointer: helt tom respons fra pdl");
-            }
-        }
-        return lagManglerNavnException();
-    }
-
-    private Navn getFraPdl(String fnr){
-        try {
-            PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Variables(fnr));
-            HttpEntity entity = createRequestEntity(pdlRequest);
-            PdlRespons respons = restTemplate.postForObject(pdlUrl, entity, PdlRespons.class);
-            log.info("MSA-AAREG-PDL: PDLBATCHREQUEST: " +pdlRequest);
-            log.info( "MSA-AAREG-PDL: requestEntity i batch " + entity);
-            return lesNavnFraPdlRespons(respons);
-        } catch (RestClientException | IOException exception) {
-            log.error("MSA-AAREG Exception: {}" , exception.getMessage());
-            return lagManglerNavnException();
-        }
-    }
-
-    private HttpEntity<String> createRequestEntityBatchSporring() {
-        String request ="{\n" +
-                "  \"query\": \"query { hentPersonBolk(identer: [13116224741,17108025425]) { ident, person { navn { fornavn,etternavn } }, code } }\"\n" +
-                "}";
-        return new HttpEntity(request,createHeaders());
-    }
-
     public PdlBatchRespons getBatchFraPdl(String[] fnrs){
         try {
             PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(fnrs));
@@ -121,35 +61,4 @@ public class PdlService {
         }
         return null;
     };
-
-    public String arrayTilString(String [] array) {
-        try {
-            StringBuilder tilString = new StringBuilder("[" + array[0]);
-            for (int i = 1; i < array.length; i++) {
-                tilString.append(",").append(array[i]);
-            }
-            return tilString.toString() + "]";
-        }
-        catch (IndexOutOfBoundsException exception) {
-            log.error("MSA AAREG error" + exception.getMessage());
-
-        }
-        return null;
-    }
-
-    public PdlBatchRequest getBatchFraPdltest(String [] listeMEdFnr){
-        String listeMedFnrSomString = arrayTilString(listeMEdFnr);
-        try {
-            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(listeMEdFnr));
-            HttpEntity entity = createRequestEntityBatchSporring();
-            log.info("Sporring: " + createRequestEntityBatchSporring());
-            return pdlRequest;
-        }
-        catch (IOException exception) {
-            log.info("FAIL");
-        }
-        return null;
-
-    };
 }
-
