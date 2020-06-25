@@ -3,6 +3,7 @@ import no.nav.metrics.MetricsFactory;
 import no.nav.metrics.Timer;
 import no.nav.security.oidc.api.Protected;
 import no.nav.tag.dittNavArbeidsgiver.config.ConcurrencyConfig;
+import no.nav.tag.dittNavArbeidsgiver.exceptions.TilgangskontrollException;
 import no.nav.tag.dittNavArbeidsgiver.models.ArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsgiver;
@@ -72,7 +73,7 @@ public class AAregController {
         timer.stop().report();
         return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);}
         catch(HttpClientErrorException e){
-            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "bli blop");
+            throw new TilgangskontrollException("Ikke tilgang til entitet i aareg");
         }
     }
 
