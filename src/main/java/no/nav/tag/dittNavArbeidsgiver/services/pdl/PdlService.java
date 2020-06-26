@@ -52,7 +52,6 @@ public class PdlService {
         try {
             PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(fnrs));
             HttpEntity entity = createRequestEntityBatchSporring(pdlRequest);
-            //return  restTemplate.postForObject(pdlUrl, createRequestEntityBatchSporring(), PdlBatchRespons.class);
             return  restTemplate.postForObject(pdlUrl, createRequestEntityBatchSporring(pdlRequest), PdlBatchRespons.class);
         } catch (RestClientException | IOException exception) {
             log.error("MSA-AAREG-PDL: Exception: {} i PDLBATCH" + exception.getMessage());

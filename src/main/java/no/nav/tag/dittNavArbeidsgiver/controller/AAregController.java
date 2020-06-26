@@ -22,11 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 @Protected
 @Slf4j
@@ -123,16 +119,10 @@ public class AAregController {
                         if(navnObjekt.mellomNavn!=null) navn += " " +navnObjekt.mellomNavn;
                         if(navnObjekt.etternavn!=null) navn += " " + navnObjekt.etternavn;
                         arbeidsforhold.getArbeidstaker().setNavn(navn);
-
                     }
                     catch(NullPointerException | ArrayIndexOutOfBoundsException e){
                         arbeidsforhold.getArbeidstaker().setNavn("Kunne ikke hente navn");
-                        log.error("MSA-AAREG nullpointer exception i batch: {} ", e.getMessage());
-                        if(respons.errors!=null && !respons.errors.isEmpty()){
-                            log.error("MSA-AAREG pdlerror: " + respons.errors.get(0).message);
-                        }else {
-                            log.error("MSA-AAREG nullpointer: helt tom respons fra pdl");
-                        }
+                        log.error("MSA-AAREG pdlerror Kunne ikke hente navn: " + respons.data.hentPersonBolk[i].code, e.getMessage());
                     }
                 }
             }
