@@ -17,9 +17,7 @@ public class GraphQlUtilsBatchSporring {
 
 
     public String resourceAsString() throws IOException {
-
         String filinnhold = StreamUtils.copyToString(navnQueryResource.getInputStream(), Charsets.UTF_8);
-        log.info("AAREG filinnhold i GraphQLBatch");
         return filinnhold.replaceAll("\\s+", " ");
     }
 }

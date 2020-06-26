@@ -112,7 +112,6 @@ public class AAregController {
 
     public void settNavnPåArbeidsforholdMedBatchMaxHundre(OversiktOverArbeidsForhold arbeidsforholdOversikt, List<String> fnrs ) {
         String[] maksHundreFnrs = fnrs.toArray(new String[0]);
-        log.info("FODSELSNR MAX= " + maksHundreFnrs[0]);
         PdlBatchRespons respons = pdlService.getBatchFraPdl(maksHundreFnrs);
         for (int i = 0 ; i < respons.data.hentPersonBolk.length; i++) {
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
@@ -124,10 +123,10 @@ public class AAregController {
                         if(navnObjekt.mellomNavn!=null) navn += " " +navnObjekt.mellomNavn;
                         if(navnObjekt.etternavn!=null) navn += " " + navnObjekt.etternavn;
                         arbeidsforhold.getArbeidstaker().setNavn(navn);
-                        log.info("NAVN: "+ arbeidsforhold.getArbeidstaker().getNavn());
 
                     }
                     catch(NullPointerException | ArrayIndexOutOfBoundsException e){
+                        arbeidsforhold.getArbeidstaker().setNavn("Kunne ikke hente navn");
                         log.error("MSA-AAREG nullpointer exception i batch: {} ", e.getMessage());
                         if(respons.errors!=null && !respons.errors.isEmpty()){
                             log.error("MSA-AAREG pdlerror: " + respons.errors.get(0).message);
@@ -147,7 +146,6 @@ public class AAregController {
         for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
             fnrs.add(arbeidsforhold.getArbeidstaker().getOffentligIdent());
         }
-        log.info("FODSELSNR= " + fnrs);
         int tempStartIndeks = 0;
         int gjenVarendelengde = lengde;
         while (gjenVarendelengde > 100) {
@@ -187,21 +185,4 @@ public class AAregController {
         return tomOversikt;
     }
 
-    @GetMapping(value = "/api/navn")
-    @ResponseBody
-    public ResponseEntity<PdlBatchRespons> hentNavn(
-            @ApiIgnore @CookieValue("selvbetjening-idtoken") String idToken) {
-        String[] fnrs = new String[2];
-        fnrs[0] = "13116224741";
-        fnrs[1] = "17108025425";
-        PdlBatchRespons responsen = pdlService.getBatchFraPdl(fnrs);
-        try {
-            log.info("PDL-BATCH-OBJEKTET: " + responsen );
-            return ResponseEntity.ok(responsen);
-        }
-        catch (Exception e) {
-            log.info("MSA-AAREG-BATCH-Dataobjekt Klarte ikke lese");
-        }
-        return null;
-    }
 }
