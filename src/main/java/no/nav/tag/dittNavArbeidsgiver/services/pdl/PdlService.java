@@ -3,12 +3,15 @@ package no.nav.tag.dittNavArbeidsgiver.services.pdl;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRequest;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRespons;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.Variables;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Navn;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRequest;
 import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.PdlRespons;
-import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Variables;
 import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtils;
+import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtilsBatchSporring;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -22,21 +25,12 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class PdlService {
 
-    private final GraphQlUtils graphQlUtils;
+    private final GraphQlUtilsBatchSporring graphQlUtilsBatch;
     private final STSClient stsClient;
     private final RestTemplate restTemplate;
     @Value("${pdl.pdlUrl}")
     String pdlUrl;
 
-    @SneakyThrows
-    public String hentNavnMedFnr(String fnr){
-        Navn result = getFraPdl(fnr);
-        String navn = "";
-        if(result.fornavn!=null) navn += result.fornavn;
-        if(result.mellomNavn!=null) navn += " " +result.mellomNavn;
-        if(result.etternavn!=null) navn += " " + result.etternavn;
-        return navn;
-    }
     private HttpHeaders createHeaders () {
         String stsToken = stsClient.getToken().getAccess_token();
         HttpHeaders headers = new HttpHeaders();
@@ -50,35 +44,18 @@ public class PdlService {
         return new HttpEntity(pdlRequest,createHeaders());
     }
 
-    private Navn lagManglerNavnException(){
-        Navn exceptionNavn = new Navn();
-        exceptionNavn.fornavn="Kunne ikke hente navn";
-        return exceptionNavn;
+    private HttpEntity<String> createRequestEntityBatchSporring(PdlBatchRequest pdlRequest) {
+        return new HttpEntity(pdlRequest,createHeaders());
     }
 
-    private Navn lesNavnFraPdlRespons(PdlRespons respons){
-           try{
-            return respons.data.hentPerson.navn[0];
-        }catch(NullPointerException | ArrayIndexOutOfBoundsException e){
-            log.error("MSA-AAREG nullpointer exception: {} ", e.getMessage());
-            if(respons.errors!=null && !respons.errors.isEmpty()){
-                log.error("MSA-AAREG pdlerror: " + respons.errors.get(0).message);
-            }else {
-                log.error("MSA-AAREG nullpointer: helt tom respons fra pdl");
-            }
-        }
-        return lagManglerNavnException();
-    }
-
-    private Navn getFraPdl(String fnr){
+    public PdlBatchRespons getBatchFraPdl(String[] fnrs){
         try {
-            PdlRequest pdlRequest = new PdlRequest(graphQlUtils.resourceAsString(), new Variables(fnr));
-            PdlRespons respons = restTemplate.postForObject(pdlUrl, createRequestEntity(pdlRequest), PdlRespons.class);
-            return lesNavnFraPdlRespons(respons);
+            PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(fnrs));
+            HttpEntity entity = createRequestEntityBatchSporring(pdlRequest);
+            return  restTemplate.postForObject(pdlUrl, createRequestEntityBatchSporring(pdlRequest), PdlBatchRespons.class);
         } catch (RestClientException | IOException exception) {
-            log.error("MSA-AAREG Exception: {}" , exception.getMessage());
-            return lagManglerNavnException();
+            log.error("MSA-AAREG-PDL: Exception: {} i PDLBATCH" + exception.getMessage());
         }
-    }
+        return null;
+    };
 }
-

@@ -9,6 +9,8 @@ import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsgiver;
 import no.nav.tag.dittNavArbeidsgiver.models.Yrkeskoderespons.Yrkeskoderespons;
 import no.nav.tag.dittNavArbeidsgiver.models.enhetsregisteret.EnhetsRegisterOrg;
 import no.nav.tag.dittNavArbeidsgiver.models.enhetsregisteret.Organisasjoneledd;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlBatch.PdlBatchRespons;
+import no.nav.tag.dittNavArbeidsgiver.models.pdlPerson.Navn;
 import no.nav.tag.dittNavArbeidsgiver.services.aareg.AAregService;
 import no.nav.tag.dittNavArbeidsgiver.services.enhetsregisteret.EnhetsregisterService;
 import no.nav.tag.dittNavArbeidsgiver.services.pdl.PdlService;
@@ -19,11 +21,8 @@ import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 @Protected
 @Slf4j
@@ -64,7 +63,7 @@ public class AAregController {
         }
         log.info("MSA-AAREG controller hentArbeidsforhold fant arbeidsforhold: " + response.getArbeidsforholdoversikter().length);
         kunArbeidstimer.stop().report();
-        OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforhold(response);
+        OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforholdBatch(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
         timer.stop().report();
         return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);
@@ -107,33 +106,46 @@ public class AAregController {
         }
     }
 
-    public OversiktOverArbeidsForhold settNavnPåArbeidsforhold (OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
-        log.info("MSA-AAREG hent navn på arbeidsforhold fra pdl");
-        HashMap<String, CompletableFuture<String>> allFutures = new HashMap<>();
-        Timer hentNavntimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentNavn").start();
-        if (arbeidsforholdOversikt.getArbeidsforholdoversikter() != null) {
+    public void settNavnPåArbeidsforholdMedBatchMaxHundre(OversiktOverArbeidsForhold arbeidsforholdOversikt, List<String> fnrs ) {
+        String[] maksHundreFnrs = fnrs.toArray(new String[0]);
+        PdlBatchRespons respons = pdlService.getBatchFraPdl(maksHundreFnrs);
+        for (int i = 0 ; i < respons.data.hentPersonBolk.length; i++) {
             for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
-                String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-                allFutures.put(fnr, CompletableFuture.supplyAsync(() -> {
-                    return pdlService.hentNavnMedFnr(fnr);
-                },concurrencyconfig.hentNavnExecutor()));
-            }
-            CompletableFuture.allOf(allFutures.values().toArray(new CompletableFuture[0]));
-            for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
-                String fnr = arbeidsforhold.getArbeidstaker().getOffentligIdent();
-                String navn = "Kunne ikke hente navn";
-                try {
-                    navn = allFutures.get(fnr).get();
-                    arbeidsforhold.getArbeidstaker().setNavn(navn);
-                } catch (InterruptedException | ExecutionException e) {
-                    log.info("MSA-AAREG Feil i pdl-oppslag, parallelisering feiler ", e.getMessage());
-                    e.printStackTrace();
-                    arbeidsforhold.getArbeidstaker().setNavn(navn);
+                if (respons.data.hentPersonBolk[i].ident.equals(arbeidsforhold.getArbeidstaker().getOffentligIdent())) {
+                    try {
+                        Navn navnObjekt = respons.data.hentPersonBolk[i].person.navn[0];
+                        String navn = "";
+                        if(navnObjekt.fornavn!=null) navn += navnObjekt.fornavn;
+                        if(navnObjekt.mellomNavn!=null) navn += " " +navnObjekt.mellomNavn;
+                        if(navnObjekt.etternavn!=null) navn += " " + navnObjekt.etternavn;
+                        arbeidsforhold.getArbeidstaker().setNavn(navn);
+                    }
+                    catch(NullPointerException | ArrayIndexOutOfBoundsException e){
+                        arbeidsforhold.getArbeidstaker().setNavn("Kunne ikke hente navn");
+                        log.error("MSA-AAREG pdlerror Kunne ikke hente navn: " + respons.data.hentPersonBolk[i].code, e.getMessage());
+                    }
                 }
             }
         }
 
-        hentNavntimer.stop().report();
+    }
+
+    public OversiktOverArbeidsForhold settNavnPåArbeidsforholdBatch(OversiktOverArbeidsForhold arbeidsforholdOversikt ) {
+        int lengde = arbeidsforholdOversikt.getArbeidsforholdoversikter().length;
+        ArrayList<String> fnrs = new ArrayList<>(lengde);
+        for (ArbeidsForhold arbeidsforhold : arbeidsforholdOversikt.getArbeidsforholdoversikter()) {
+            fnrs.add(arbeidsforhold.getArbeidstaker().getOffentligIdent());
+        }
+        int tempStartIndeks = 0;
+        int gjenVarendelengde = lengde;
+        while (gjenVarendelengde > 100) {
+            settNavnPåArbeidsforholdMedBatchMaxHundre(arbeidsforholdOversikt, fnrs.subList(tempStartIndeks, tempStartIndeks+100));
+            tempStartIndeks = tempStartIndeks + 100;
+            gjenVarendelengde = gjenVarendelengde - 100;
+        }
+        if (gjenVarendelengde > 0) {
+            settNavnPåArbeidsforholdMedBatchMaxHundre(arbeidsforholdOversikt, fnrs.subList(tempStartIndeks, lengde));
+        }
         return arbeidsforholdOversikt;
     }
 
@@ -162,4 +174,5 @@ public class AAregController {
         tomOversikt.setArbeidsforholdoversikter(tomtarbeidsforholdArray);
         return tomOversikt;
     }
+
 }
