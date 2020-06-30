@@ -164,8 +164,16 @@ public class AAregController {
     }
 
     public String finnYrkeskodebetydningPaYrke(String yrkeskodenokkel, Yrkeskoderespons yrkeskoderespons) {
-        return yrkeskoderespons.getBetydninger().get(yrkeskodenokkel).get(0).getBeskrivelser().getNb().getTekst();
+        try {
+            String betydning = yrkeskoderespons.getBetydninger().get(yrkeskodenokkel).get(0).getBeskrivelser().getNb().getTekst();
+            return betydning;
+        }
+        catch (Exception e) {
+            log.error("Klarte ikke finne yrkeskodebskrivelse for yrkeskode: " + yrkeskodenokkel, e.getMessage());
+        }
+        return "Fant ikke yrkeskodebeskrivelse";
     }
+
     public OversiktOverArbeidsForhold tomOversiktOverArbeidsforhold(){
         OversiktOverArbeidsForhold tomOversikt = new OversiktOverArbeidsForhold();
         ArbeidsForhold[] tomtarbeidsforholdArray ={};

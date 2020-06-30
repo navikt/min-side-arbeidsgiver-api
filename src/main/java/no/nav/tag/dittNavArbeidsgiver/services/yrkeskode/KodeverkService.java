@@ -52,7 +52,9 @@ public class KodeverkService {
                 log.error(message);
                 throw new RuntimeException(message);
             }
-          ;
+            if (respons.getBody().getBetydninger().isEmpty()) {
+                log.error("MSA-AAREG fant ingen betydninger i yrkeskodeoppslag");
+            }
             return respons.getBody();
         }
         catch(HttpClientErrorException e){
