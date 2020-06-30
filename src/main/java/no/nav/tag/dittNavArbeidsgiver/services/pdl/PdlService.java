@@ -49,6 +49,7 @@ public class PdlService {
     }
 
     public PdlBatchRespons getBatchFraPdl(String[] fnrs){
+        log.info("MSA-AAREG-PDL: henter navn fra PDL: antall:" + fnrs.length);
         try {
             PdlBatchRequest pdlRequest = new PdlBatchRequest(graphQlUtilsBatch.resourceAsString(), new Variables(fnrs));
             HttpEntity entity = createRequestEntityBatchSporring(pdlRequest);
