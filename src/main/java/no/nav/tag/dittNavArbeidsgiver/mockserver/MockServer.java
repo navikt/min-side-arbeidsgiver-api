@@ -84,7 +84,7 @@ public class MockServer {
         mockForPath(server, syfoOppgavePath, "syfoOppgaver.json");
         mockForPath(server, syfoNarmesteLederPath, "narmesteLeder.json");
         mockForPath(server, kodeverkPath, "betydninger.json");
-
+        mockBackupOrganisasjoner(server);
         mockForPath(server, pdlPath,"pdlRespons.json");
         mockForPath(server, aaregArbeidsforholdPath,"tomArbeidsforholdRespons.json");
         mockForPath(server, aaregArbeidsgiverePath,"arbeidsgiveroversiktaareg.json");
@@ -96,10 +96,20 @@ public class MockServer {
 
     private static void mockOrganisasjoner(WireMockServer server, String altinnPath) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
-                .withQueryParam("subject", equalTo(FNR_MED_ORGANISASJONER))
-                .willReturn(WireMock.aResponse()
+                //.withQueryParam("subject", equalTo(FNR_MED_ORGANISASJONER))
+                .willReturn(WireMock.forbidden().withStatusMessage("User does not have an active Altinn profile.")
+               /* .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil("organisasjoner.json"))
+                        .withBody(hentStringFraFil("organisasjoner.json"))*/
+                ));
+    }
+    private static void mockBackupOrganisasjoner(WireMockServer server) {
+        server.stubFor(WireMock.get(WireMock.urlPathEqualTo("/altinn/ekstern/altinn/api/serviceowner/reportees"))
+                //.withQueryParam("subject", equalTo(FNR_MED_ORGANISASJONER))
+                .willReturn(WireMock.forbidden().withStatusMessage("User does not have an active Altinn profile.")
+               /* .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("organisasjoner.json"))*/
                 ));
     }
     private static void mocktilgangTilSkjemForBedrift(WireMockServer server, String altinnPath) {
@@ -118,10 +128,11 @@ public class MockServer {
             String path
     ) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path + "reportees"))
+                .willReturn(WireMock.forbidden().withStatusMessage("User does not have an active Altinn profile.")
                 //.withHeader("Authorization", containing(FNR_MED_ORGANISASJONER))
-                .willReturn(WireMock.aResponse()
+                /*.willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil("organisasjoner.json"))
+                        .withBody(hentStringFraFil("organisasjoner.json"))*/
                 ));
     }
 
@@ -136,9 +147,10 @@ public class MockServer {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path + "reportees"))
                 .withHeader("Authorization", containing(FNR_MED_SKJEMATILGANG))
                 .withQueryParams(parametre)
-                .willReturn(WireMock.aResponse()
+                .willReturn(WireMock.forbidden().withStatusMessage("User does not have an active Altinn profile.")
+                /*.willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil("rettigheterTilSkjema.json"))
+                        .withBody(hentStringFraFil("rettigheterTilSkjema.json"))*/
                 ));
     }
 
