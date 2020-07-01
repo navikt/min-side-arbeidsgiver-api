@@ -84,8 +84,8 @@ public class MockServer {
         mockForPath(server, syfoOppgavePath, "syfoOppgaver.json");
         mockForPath(server, syfoNarmesteLederPath, "narmesteLeder.json");
         mockForPath(server, kodeverkPath, "betydninger.json");
-        mockBackupOrganisasjoner(server);
-        mockForPath(server, pdlPath,"pdlRespons.json");
+
+        mockForPath(server, pdlPath,"pdlResponsBatch.json");
         mockForPath(server, aaregArbeidsforholdPath,"tomArbeidsforholdRespons.json");
         mockForPath(server, aaregArbeidsgiverePath,"arbeidsgiveroversiktaareg.json");
         mockArbeidsforholdmedJuridiskEnhet(server, aaregArbeidsforholdPath);
@@ -96,20 +96,10 @@ public class MockServer {
 
     private static void mockOrganisasjoner(WireMockServer server, String altinnPath) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
-                //.withQueryParam("subject", equalTo(FNR_MED_ORGANISASJONER))
-                .willReturn(WireMock.forbidden().withStatusMessage("User does not have an active Altinn profile.")
-               /* .willReturn(WireMock.aResponse()
+                .withQueryParam("subject", equalTo(FNR_MED_ORGANISASJONER))
+                .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil("organisasjoner.json"))*/
-                ));
-    }
-    private static void mockBackupOrganisasjoner(WireMockServer server) {
-        server.stubFor(WireMock.get(WireMock.urlPathEqualTo("/altinn/ekstern/altinn/api/serviceowner/reportees"))
-                //.withQueryParam("subject", equalTo(FNR_MED_ORGANISASJONER))
-                .willReturn(WireMock.forbidden().withStatusMessage("User does not have an active Altinn profile.")
-               /* .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil("organisasjoner.json"))*/
+                        .withBody(hentStringFraFil("organisasjoner.json"))
                 ));
     }
     private static void mocktilgangTilSkjemForBedrift(WireMockServer server, String altinnPath) {
@@ -128,11 +118,10 @@ public class MockServer {
             String path
     ) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path + "reportees"))
-                .willReturn(WireMock.forbidden().withStatusMessage("User does not have an active Altinn profile.")
-                //.withHeader("Authorization", containing(FNR_MED_ORGANISASJONER))
-                /*.willReturn(WireMock.aResponse()
+                .withHeader("Authorization", containing(FNR_MED_ORGANISASJONER))
+                .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil("organisasjoner.json"))*/
+                        .withBody(hentStringFraFil("organisasjoner.json"))
                 ));
     }
 
@@ -147,18 +136,19 @@ public class MockServer {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path + "reportees"))
                 .withHeader("Authorization", containing(FNR_MED_SKJEMATILGANG))
                 .withQueryParams(parametre)
-                .willReturn(WireMock.forbidden().withStatusMessage("User does not have an active Altinn profile.")
-                /*.willReturn(WireMock.aResponse()
+                .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil("rettigheterTilSkjema.json"))*/
+                        .withBody(hentStringFraFil("rettigheterTilSkjema.json"))
                 ));
     }
 
     private static void mockArbeidsforholdmedJuridiskEnhet(WireMockServer server, String path) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path ))
                 .withHeader("Nav-Opplysningspliktigident", equalTo("983887457") ).
-                withHeader("Nav-Arbeidsgiverident",equalTo("910825518"))
-                .willReturn(WireMock.forbidden().withStatusMessage("Ikke tilgang til enhet")
+                        withHeader("Nav-Arbeidsgiverident",equalTo("910825518"))
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(hentStringFraFil("arbeidsforholdrespons.json"))
                 ));
     }
 
@@ -172,10 +162,10 @@ public class MockServer {
 
     private static void mockForPath(WireMockServer server, String path, String responseFile){
         server.stubFor(WireMock.any(WireMock.urlPathMatching(path + ".*"))
-            .willReturn(WireMock.aResponse()
-                .withHeader("Content-Type","application/json")
-                .withBody(hentStringFraFil(responseFile))
-        ));
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type","application/json")
+                        .withBody(hentStringFraFil(responseFile))
+                ));
     }
 
     @SneakyThrows

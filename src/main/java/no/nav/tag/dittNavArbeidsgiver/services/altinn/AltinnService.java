@@ -1,5 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
+import com.github.kittinunf.fuel.core.HttpException;
 import lombok.extern.slf4j.Slf4j;
 import no.finn.unleash.Unleash;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlient;
@@ -8,6 +9,7 @@ import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.ProxyConfig;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.model.AltinnReportee;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.model.Subject;
 import no.nav.security.oidc.context.TokenContext;
+import no.nav.tag.dittNavArbeidsgiver.exceptions.TilgangskontrollException;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.models.Role;
 import no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils;
@@ -73,20 +75,27 @@ public class AltinnService {
     @Cacheable(ALTINN_CACHE)
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         String filterParamVerdi = "Type+ne+'Person'+and+Status+eq+'Active'";
-
         if (unleash.isEnabled("arbeidsgiver.ditt-nav-arbeidsgiver-api.bruk-altinn-proxy")) {
             Map<String, String> parametre = new ConcurrentHashMap<>();
             parametre.put("$filter", filterParamVerdi);
             log.info("Henter organisasjoner fra Altinn via proxy");
-
+        try {
             return getReporteesFromAltinnViaProxy(
-                    tokenUtils.getSelvbetjeningTokenContext(),
-                    new Subject(fnr),
-                    parametre,
-                    altinnProxyUrl,
-                    ALTINN_ORG_PAGE_SIZE
-            );
-        } else {
+                tokenUtils.getSelvbetjeningTokenContext(),
+                new Subject(fnr),
+                parametre,
+                altinnProxyUrl,
+                ALTINN_ORG_PAGE_SIZE
+                );
+        }  catch (Exception exception) {
+            log.error("Feil fra Altinn: Exception: " + exception.getMessage());
+            if(exception.getMessage().contains("403")){
+                throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil");
+            }
+            else{
+                throw new AltinnException("Feil fra Altinn", exception);
+            }
+        }} else {
             String query = String.format("&$filter=%s", filterParamVerdi);
             log.info("Henter organisasjoner fra Altinn");
             return hentReporteesFraAltinn(query, fnr);
@@ -155,9 +164,15 @@ public class AltinnService {
                 List<Organisasjon> collection = mapTo(klient.hentOrganisasjoner(tokenContext, subject, parametre));
                 response.addAll(collection);
                 hasMore = collection.size() >= pageSize;
-            } catch (RestClientException exception) {
-                log.error("Feil fra Altinn-proxy med spørring: " + url + " Exception: " + exception.getMessage());
-                throw new AltinnException("Feil fra Altinn", exception);
+            } catch (Exception exception) {
+                log.error("Feil fra Altinn: Exception: " + exception.getMessage());
+                if(exception.getMessage().contains("403")){
+                    throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil");
+                }
+                else{
+                    throw new AltinnException("Feil fra Altinn", exception);
+                }
+
             }
         }
         return new ArrayList<>(response);
@@ -177,8 +192,13 @@ public class AltinnService {
                 response.addAll(currentResponseList);
                 hasMore = currentResponseList.size() >= pageSize;
             } catch (RestClientException exception) {
-                log.error("Feil fra Altinn med spørring: " + url + " Exception: " + exception.getMessage());
-                throw new AltinnException("Feil fra Altinn", exception);
+                log.error("Feil fra Altinn: Exception: " + exception.getMessage());
+                if(exception.getMessage().contains("403")){
+                    throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil");
+                }
+                else{
+                    throw new AltinnException("Feil fra Altinn", exception);
+                }
             }
         }
         return new ArrayList<T>(response);
