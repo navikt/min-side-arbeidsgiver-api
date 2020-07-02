@@ -30,7 +30,6 @@ public class AAregService {
     public OversiktOverArbeidsForhold hentArbeidsforhold(String orgnr,String juridiskEnheOrgnr, String idPortenToken) {
         String url = aaregArbeidsforholdUrl;
         HttpEntity <String> entity = getRequestEntity(orgnr,juridiskEnheOrgnr,idPortenToken);
-
             ResponseEntity<OversiktOverArbeidsForhold> respons = restTemplate.exchange(url,
                     HttpMethod.GET, entity, OversiktOverArbeidsForhold.class);
             return respons.getBody();
@@ -39,20 +38,10 @@ public class AAregService {
     public List<OversiktOverArbeidsgiver> hentArbeidsgiverefraRapporteringsplikig(String orgnr, String opplysningspliktig, String idPortenToken) {
         String url = aaregArbeidsgivereUrl;
         HttpEntity <String> entity = getRequestEntity(orgnr,opplysningspliktig,idPortenToken);
-        try {
             ResponseEntity<List<OversiktOverArbeidsgiver>> respons = restTemplate.exchange(url,
                     HttpMethod.GET, entity, new ParameterizedTypeReference<List<OversiktOverArbeidsgiver>>() {
                     });
-            if (respons.getStatusCode() != HttpStatus.OK) {
-                String message = "Kall mot aareg feiler med HTTP-" + respons.getStatusCode();
-                log.error(message);
-                throw new RuntimeException(message);
-            }
             return respons.getBody();
-        } catch (RestClientException exception) {
-            log.error(" Aareg Exception: ", exception);
-            throw new RuntimeException(" Aareg Exception: " + exception);
-        }
     }
 
     private HttpEntity <String> getRequestEntity(String bedriftsnr, String juridiskEnhetOrgnr, String idPortenToken) {
