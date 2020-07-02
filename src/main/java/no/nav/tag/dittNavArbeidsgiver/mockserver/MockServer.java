@@ -145,7 +145,7 @@ public class MockServer {
     private static void mockArbeidsforholdmedJuridiskEnhet(WireMockServer server, String path) {
         server.stubFor(WireMock.get(WireMock.urlPathEqualTo(path ))
                 .withHeader("Nav-Opplysningspliktigident", equalTo("983887457") ).
-                withHeader("Nav-Arbeidsgiverident",equalTo("910825518"))
+                        withHeader("Nav-Arbeidsgiverident",equalTo("910825518"))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("arbeidsforholdrespons.json"))
@@ -162,10 +162,10 @@ public class MockServer {
 
     private static void mockForPath(WireMockServer server, String path, String responseFile){
         server.stubFor(WireMock.any(WireMock.urlPathMatching(path + ".*"))
-            .willReturn(WireMock.aResponse()
-                .withHeader("Content-Type","application/json")
-                .withBody(hentStringFraFil(responseFile))
-        ));
+                .willReturn(WireMock.aResponse()
+                        .withHeader("Content-Type","application/json")
+                        .withBody(hentStringFraFil(responseFile))
+                ));
     }
 
     @SneakyThrows

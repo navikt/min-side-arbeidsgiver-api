@@ -3,6 +3,7 @@ import no.nav.metrics.MetricsFactory;
 import no.nav.metrics.Timer;
 import no.nav.security.oidc.api.Protected;
 import no.nav.tag.dittNavArbeidsgiver.config.ConcurrencyConfig;
+import no.nav.tag.dittNavArbeidsgiver.exceptions.TilgangskontrollException;
 import no.nav.tag.dittNavArbeidsgiver.models.ArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsForhold;
 import no.nav.tag.dittNavArbeidsgiver.models.OversiktOverArbeidsgiver;
@@ -16,9 +17,11 @@ import no.nav.tag.dittNavArbeidsgiver.services.enhetsregisteret.EnhetsregisterSe
 import no.nav.tag.dittNavArbeidsgiver.services.pdl.PdlService;
 import no.nav.tag.dittNavArbeidsgiver.services.yrkeskode.KodeverkService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.client.HttpClientErrorException;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
@@ -56,6 +59,7 @@ public class AAregController {
         Timer timer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.hentArbeidsforhold").start();
         log.info("MSA-AAREG controller hentArbeidsforhold orgnr: " + orgnr + " jurenhet: " + juridiskEnhetOrgnr );
         Timer kunArbeidstimer = MetricsFactory.createTimer("DittNavArbeidsgiverApi.kunArbeidsforhold").start();
+        try{
         OversiktOverArbeidsForhold response = aAregServiceService.hentArbeidsforhold(orgnr,juridiskEnhetOrgnr,idToken);
         if (response.getArbeidsforholdoversikter()==null || response.getArbeidsforholdoversikter().length<=0) {
             log.info("MSA-AAREG controller hentArbeidsforhold fant ingen arbeidsforhold. Prøver å med overordnete enheter");
@@ -67,6 +71,17 @@ public class AAregController {
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
         timer.stop().report();
         return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);
+        } catch(HttpClientErrorException e){
+            if(e.getStatusCode()==HttpStatus.FORBIDDEN) {
+                log.error("feil fra aareg"+e.getMessage());
+                throw new TilgangskontrollException("Ikke tilgang til entitet i aareg");
+            } else{
+                log.error("feil fra aareg"+e.getMessage());
+                throw new RuntimeException(e.getMessage());
+            }
+
+        }
+
     }
 
     @GetMapping(value = "/api/arbeidsgivere")
