@@ -70,10 +70,18 @@ public class AAregController {
         OversiktOverArbeidsForhold arbeidsforholdMedNavn = settNavnPåArbeidsforholdBatch(response);
         OversiktOverArbeidsForhold arbeidsforholdMedYrkesbeskrivelse = settYrkeskodebetydningPaAlleArbeidsforhold(arbeidsforholdMedNavn);
         timer.stop().report();
-        return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);}
-        catch(HttpClientErrorException e){
-            throw new TilgangskontrollException("Ikke tilgang til entitet i aareg");
+        return ResponseEntity.ok(arbeidsforholdMedYrkesbeskrivelse);
+        } catch(HttpClientErrorException e){
+            if(e.getStatusCode()==HttpStatus.FORBIDDEN) {
+                log.error("feil fra aareg"+e.getMessage());
+                throw new TilgangskontrollException("Ikke tilgang til entitet i aareg");
+            } else{
+                log.error("feil fra aareg"+e.getMessage());
+                throw new RuntimeException(e.getMessage());
+            }
+
         }
+
     }
 
     @GetMapping(value = "/api/arbeidsgivere")

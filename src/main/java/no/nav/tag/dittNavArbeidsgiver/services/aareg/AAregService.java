@@ -33,11 +33,6 @@ public class AAregService {
 
             ResponseEntity<OversiktOverArbeidsForhold> respons = restTemplate.exchange(url,
                     HttpMethod.GET, entity, OversiktOverArbeidsForhold.class);
-            if (respons.getStatusCode() != HttpStatus.OK) {
-                String message = "Kall mot aareg feiler med HTTP-" + respons.getStatusCode();
-                log.error(message);
-                throw new RuntimeException(message);
-            }
             return respons.getBody();
 
     }

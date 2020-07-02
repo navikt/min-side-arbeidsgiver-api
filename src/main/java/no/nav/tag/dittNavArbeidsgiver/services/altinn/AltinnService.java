@@ -1,6 +1,5 @@
 package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
-import com.github.kittinunf.fuel.core.HttpException;
 import lombok.extern.slf4j.Slf4j;
 import no.finn.unleash.Unleash;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlient;
@@ -136,12 +135,10 @@ public class AltinnService {
     private List<Organisasjon> hentReporteesFraAltinn(String query, String fnr) {
         String baseUrl;
         HttpEntity<HttpHeaders> headers;
-
         baseUrl = altinnUrl;
         headers = headerEntity;
         query += "&subject=" + fnr;
         String url = baseUrl + "reportees/?ForceEIAuthentication" + query;
-
         return getFromAltinn(new ParameterizedTypeReference<>() {}, url, ALTINN_ORG_PAGE_SIZE, headers);
     }
 
