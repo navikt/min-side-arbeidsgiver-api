@@ -1,7 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.services.altinn;
 
 import lombok.extern.slf4j.Slf4j;
-import no.finn.unleash.Unleash;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlient;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlientConfig;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.ProxyConfig;
@@ -10,18 +9,10 @@ import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.model.Subject;
 import no.nav.security.oidc.context.TokenContext;
 import no.nav.tag.dittNavArbeidsgiver.exceptions.TilgangskontrollException;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
-import no.nav.tag.dittNavArbeidsgiver.models.Role;
 import no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

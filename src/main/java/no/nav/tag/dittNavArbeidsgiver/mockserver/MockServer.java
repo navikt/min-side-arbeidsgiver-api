@@ -34,7 +34,6 @@ public class MockServer {
     @SneakyThrows
     @Autowired
     MockServer(
-            @Value("${altinn.altinnUrl}") String altinnUrl,
             @Value("${altinn.proxyUrl}") String altinnProxyUrl,
             @Value("${mock.port}") int port,
             @Value("${sts.stsUrl}") String stsUrl,
@@ -56,7 +55,6 @@ public class MockServer {
                         .extensions(new ResponseTemplateTransformer(true))
                         .notifier(new ConsoleNotifier(true))
         );
-        String altinnPath = new URL(altinnUrl).getPath();
         String altinnProxyPath = new URL(altinnProxyUrl+"/ekstern/altinn/api/serviceowner/").getPath();
         String stsPath = new URL(stsUrl).getPath();
         String aadPath = new URL(aadUrl).getPath();
@@ -70,13 +68,9 @@ public class MockServer {
         String pdlPath = new URL(pdlUrl).getPath();
         String eregPath = new URL(eregUrl).getPath();
 
-        mocktilgangTilSkjemForBedrift(server,altinnPath);
         mocktilgangTilSkjemForBedriftForAltinnProxy(server,altinnProxyPath);
-        mockOrganisasjoner(server, altinnPath);
         mockOrganisasjonerForAltinnProxy(server, altinnProxyPath);
-        mockInvalidSSN(server, altinnPath);
 
-        mockForPath(server, altinnPath + "authorization/roles", "roles.json");
         mockForPath(server, stsPath, "STStoken.json");
         mockForPath(server, aadPath, "aadtoken.json");
         mockForPath(server, aktorPath, "aktorer.json");
@@ -100,16 +94,6 @@ public class MockServer {
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("organisasjoner.json"))
-                ));
-    }
-    private static void mocktilgangTilSkjemForBedrift(WireMockServer server, String altinnPath) {
-        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
-                .withQueryParam("subject", equalTo(FNR_MED_SKJEMATILGANG))
-                .withQueryParam("serviceCode", equalTo(SERVICE_CODE))
-                .withQueryParam("serviceEdition", equalTo(SERVICE_EDITION))
-                .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil("rettigheterTilSkjema.json"))
                 ));
     }
 
@@ -149,14 +133,6 @@ public class MockServer {
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(hentStringFraFil("arbeidsforholdrespons.json"))
-                ));
-    }
-
-    private static void mockInvalidSSN(WireMockServer server, String altinnPath) {
-        server.stubFor(WireMock.get(WireMock.urlPathEqualTo(altinnPath + "reportees/"))
-                .withQueryParam("subject", notMatching(FNR_MED_ORGANISASJONER + "|" + FNR_MED_SKJEMATILGANG))
-                .willReturn(WireMock.aResponse().withStatusMessage("Invalid socialSecurityNumber").withStatus(400)
-                        .withHeader("Content-Type", "application/octet-stream")
                 ));
     }
 

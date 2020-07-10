@@ -38,7 +38,6 @@ aktorregister:
   aktorUrl: "http://localhost:${mock.port}/aktoerregister/api/v1/identer"
 
 altinn:
-  altinnUrl: "http://localhost:${mock.port}/altinn/"
   altinnHeader: "test"
   APIGwHeader: "test"
   proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
@@ -103,7 +102,6 @@ no.nav.security.oidc:
       accepted_audience: 0090b6e1-ffcc-4c37-bc21-049f7d1f0fe5
 
 altinn:
-  altinnUrl: "https://api-gw-q1.adeo.no/ekstern/altinn/api/serviceowner/"
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
   proxyUrl: https://arbeidsgiver.nais.preprod.local/altinn-rettigheter-proxy
@@ -153,7 +151,6 @@ no.nav.security.oidc:
       accepted_audience: 45104d6a-f5bc-4e8c-b352-4bbfc9381f25
 
 altinn:
-  altinnUrl: "https://api-gw.adeo.no/ekstern/altinn/api/serviceowner/"
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
   proxyUrl: https://arbeidsgiver.nais.adeo.no/altinn-rettigheter-proxy
