@@ -23,12 +23,13 @@ spec:
     failureThreshold: 3
   ingresses:
     - https://arbeidsgiver.nais.preprod.local/ditt-nav-arbeidsgiver-api/
+  webproxy: true
   vault:
     enabled: true
 
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: dev
+      value: preprod
   prometheus:
     enabled: true
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
