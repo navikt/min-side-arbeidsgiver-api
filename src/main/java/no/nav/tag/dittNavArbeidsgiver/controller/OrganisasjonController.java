@@ -32,7 +32,6 @@ public class OrganisasjonController {
     public ResponseEntity<List<Organisasjon>> hentOrganisasjoner() {
         String fnr = FnrExtractor.extract(requestContextHolder);
         List <Organisasjon> result = altinnService.hentOrganisasjoner(fnr);
-        log.info("organisasjoner fra altinn:{}", result);
         return ResponseEntity.ok(result);
     }
 
