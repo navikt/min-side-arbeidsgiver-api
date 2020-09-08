@@ -1,25 +1,21 @@
 package no.nav.tag.dittNavArbeidsgiver.utils;
 
-import no.nav.security.oidc.context.OIDCRequestContextHolder;
-import no.nav.security.oidc.context.TokenContext;
+
+import no.nav.security.token.support.core.context.TokenValidationContextHolder;
 import org.springframework.stereotype.Component;
 
 import static no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor.ISSUER_SELVBETJENING;
 
 @Component
 public class TokenUtils {
-    private final OIDCRequestContextHolder requestContextHolder;
+    private final TokenValidationContextHolder requestContextHolder;
 
-    public TokenUtils(OIDCRequestContextHolder requestContextHolder) {
+    public TokenUtils(TokenValidationContextHolder requestContextHolder) {
         this.requestContextHolder = requestContextHolder;
     }
 
     public String getTokenForInnloggetBruker() {
-        return requestContextHolder.getOIDCValidationContext().getToken(ISSUER_SELVBETJENING).getIdToken();
-    }
-
-    public TokenContext getSelvbetjeningTokenContext() {
-        return requestContextHolder.getOIDCValidationContext().getToken(ISSUER_SELVBETJENING);
+        return requestContextHolder.getTokenValidationContext().getJwtToken(ISSUER_SELVBETJENING).getTokenAsString();
     }
 
 }

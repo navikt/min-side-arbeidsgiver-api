@@ -2,7 +2,6 @@ package no.nav.tag.dittNavArbeidsgiver.services.digisyfo;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import no.nav.security.oidc.OIDCConstants;
 import no.nav.tag.dittNavArbeidsgiver.models.DigisyfoNarmesteLederRespons;
 import no.nav.tag.dittNavArbeidsgiver.services.aad.AadAccessToken;
 import no.nav.tag.dittNavArbeidsgiver.services.aad.AccesstokenClient;
@@ -18,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import static no.nav.security.token.support.core.JwtTokenConstants.AUTHORIZATION_HEADER;
 
 @Slf4j
 @Service
@@ -77,7 +78,7 @@ public class DigisyfoService {
 
     private HttpEntity <String> getRequestEntity() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(OIDCConstants.AUTHORIZATION_HEADER, "Bearer " + accesstokenClient.hentAccessToken().getAccess_token());
+        headers.set(AUTHORIZATION_HEADER, "Bearer " + accesstokenClient.hentAccessToken().getAccess_token());
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return new HttpEntity<>(headers);
     }

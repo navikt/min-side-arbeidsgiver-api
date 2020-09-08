@@ -2,10 +2,10 @@ package no.nav.tag.dittNavArbeidsgiver.controller;
 
 
 import no.finn.unleash.Unleash;
+import no.nav.security.token.support.core.api.Protected;
+import no.nav.security.token.support.core.context.TokenValidationContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.models.NarmesteLedertilgang;
 import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoService;
-import no.nav.security.oidc.api.Protected;
-import no.nav.security.oidc.context.OIDCRequestContextHolder;
 
 import static no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor.extract;
 
@@ -21,14 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DigisyfoController {
 
-    private final OIDCRequestContextHolder requestContextHolder;
+    private final TokenValidationContextHolder requestContextHolder;
     private final DigisyfoService digisyfoService;
     private final Unleash unleash;
     @Value("${digisyfo.digisyfoUrl}")
     private String digisyfoUrl;
 
     @Autowired
-    public DigisyfoController(OIDCRequestContextHolder requestContextHolder, DigisyfoService digisyfoService, Unleash unleash) {
+    public DigisyfoController(TokenValidationContextHolder requestContextHolder, DigisyfoService digisyfoService, Unleash unleash) {
         this.requestContextHolder = requestContextHolder;
         this.digisyfoService = digisyfoService;
         this.unleash = unleash;

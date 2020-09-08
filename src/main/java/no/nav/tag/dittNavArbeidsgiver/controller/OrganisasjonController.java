@@ -1,7 +1,7 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
-import no.nav.security.oidc.api.Protected;
-import no.nav.security.oidc.context.OIDCRequestContextHolder;
+import no.nav.security.token.support.core.api.Protected;
+import no.nav.security.token.support.core.context.TokenValidationContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.models.Organisasjon;
 import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnService;
 import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
@@ -20,10 +20,10 @@ import java.util.List;
 public class OrganisasjonController {
 
     private final AltinnService altinnService;
-    private final OIDCRequestContextHolder requestContextHolder;
+    private final TokenValidationContextHolder requestContextHolder;
 
     @Autowired
-    public OrganisasjonController(AltinnService altinnService, OIDCRequestContextHolder requestContextHolder) {
+    public OrganisasjonController(AltinnService altinnService, TokenValidationContextHolder requestContextHolder) {
         this.altinnService = altinnService;
         this.requestContextHolder = requestContextHolder;
     }

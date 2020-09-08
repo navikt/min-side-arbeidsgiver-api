@@ -1,12 +1,12 @@
 package no.nav.tag.dittNavArbeidsgiver;
 
-import no.nav.security.spring.oidc.api.EnableOIDCTokenValidation;
+import no.nav.security.token.support.spring.api.EnableJwtTokenValidation;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 
 @SpringBootApplication
-@EnableOIDCTokenValidation(ignore = { 
+@EnableJwtTokenValidation(ignore = {
         "springfox.documentation.swagger.web.ApiResourceController",
         "org.springframework"
 })
