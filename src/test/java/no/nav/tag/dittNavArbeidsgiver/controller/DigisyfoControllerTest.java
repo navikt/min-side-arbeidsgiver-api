@@ -1,13 +1,10 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import no.finn.unleash.Unleash;
-import no.nav.security.oidc.context.OIDCRequestContextHolder;
+import no.nav.security.token.support.core.context.TokenValidationContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoService;
-import no.nav.tag.dittNavArbeidsgiver.utils.GraphQlUtils;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -42,7 +39,7 @@ public class DigisyfoControllerTest {
     private Unleash unleash;
 
     @SpyBean
-    private OIDCRequestContextHolder requestContextHolder;
+    private TokenValidationContextHolder requestContextHolder;
 
     @Mock
     private DigisyfoService digisyfoService;
@@ -75,6 +72,6 @@ public class DigisyfoControllerTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        verify(requestContextHolder).setOIDCValidationContext(null);
+        verify(requestContextHolder).setTokenValidationContext(null);
     }
 }
