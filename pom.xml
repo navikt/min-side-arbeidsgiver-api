@@ -21,7 +21,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>11</java.version>
         <token-support.version>1.3.0</token-support.version>
-        <altinn-rettigheter-proxy-klient.version>2.0.0</altinn-rettigheter-proxy-klient.version>
+        <altinn-rettigheter-proxy-klient.version>2.0.1</altinn-rettigheter-proxy-klient.version>
     </properties>
 
     <dependencies>
