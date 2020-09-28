@@ -47,6 +47,13 @@ jobs:
         with:
           java-version: 11
 
+      - name: Cache SonarCloud-pakker
+        uses: actions/cache@v1
+        with:
+            path: ~/.sonar/cache
+            key: ${{ runner.os }}-sonar
+            restore-keys: ${{ runner.os }}-sonar
+
       - name: Gjenopprett Maven-cache
         uses: actions/cache@v1
         with:
@@ -58,9 +65,10 @@ jobs:
       - name: Bygg og test med Maven
         run: |
           mvn versions:set -DnewVersion=${TAG}
-          mvn package -B -Dsurefire.useFile=false
+          mvn package -B -Dsurefire.useFile=false org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
         env:
           GITHUB_USERNAME: x-access-token
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 
       - name: Bygg, tag og push Docker-image
