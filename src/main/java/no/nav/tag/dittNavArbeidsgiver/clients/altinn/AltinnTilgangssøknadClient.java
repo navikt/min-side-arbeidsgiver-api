@@ -56,7 +56,7 @@ public class AltinnTilgangssøknadClient {
     }
 
 
-    public List<AltinnTilgangssøknad> hentSøknader(String fødselsnummer, String orgnr) {
+    public List<AltinnTilgangssøknad> hentSøknader(String fødselsnummer) {
         var resultat = new ArrayList<AltinnTilgangssøknad>();
         URI uri = altinnUri;
 
@@ -84,10 +84,7 @@ public class AltinnTilgangssøknadClient {
             body.embedded
                     .delegationRequests
                     .stream()
-                    .filter(søknad ->
-                            fødselsnummer.equals(søknad.CoveredBy)
-                                    && orgnr.equals(søknad.OfferedBy)
-                    )
+                    .filter(søknad -> fødselsnummer.equals(søknad.CoveredBy))
                     .map(søknadDTO -> {
                         var søknad = new AltinnTilgangssøknad();
                         søknad.setStatus(søknadDTO.RequestStatus);

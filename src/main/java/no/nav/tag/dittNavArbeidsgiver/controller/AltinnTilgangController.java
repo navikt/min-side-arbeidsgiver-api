@@ -8,12 +8,10 @@ import no.nav.tag.dittNavArbeidsgiver.models.AltinnTilgangssøknad;
 import no.nav.tag.dittNavArbeidsgiver.models.AltinnTilgangssøknadsskjema;
 import no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Protected
 @Slf4j
@@ -22,7 +20,6 @@ import java.util.regex.Pattern;
 public class AltinnTilgangController {
     private final AltinnTilgangssøknadClient altinnClient;
     private final TokenValidationContextHolder requestContextHolder;
-    private final Pattern orgnrPattern = Pattern.compile("[0-9]+");
 
     @Autowired
     public AltinnTilgangController(
@@ -34,14 +31,9 @@ public class AltinnTilgangController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<AltinnTilgangssøknad>> mineSøknaderOmTilgang(@RequestParam String orgnr) {
-        if (!orgnrPattern.matcher(orgnr).matches()) {
-            log.warn("GET /api/altinnTilgangssoeknad: ugyldig orgnr");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
+    public ResponseEntity<List<AltinnTilgangssøknad>> mineSøknaderOmTilgang() {
         String fødselsnummer = FnrExtractor.extract(requestContextHolder);
-        return ResponseEntity.ok(altinnClient.hentSøknader(fødselsnummer, orgnr));
+        return ResponseEntity.ok(altinnClient.hentSøknader(fødselsnummer));
     }
 
     @PostMapping()
