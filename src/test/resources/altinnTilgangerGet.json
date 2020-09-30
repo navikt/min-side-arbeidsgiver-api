@@ -1,0 +1,371 @@
+{
+"_links": {
+"next": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests?continuation=2020-09-14T13:30:49.737_8724"
+},
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests"
+}
+},
+"_embedded": {
+"delegationRequests": [
+{
+"Guid": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
+"RequestStatus": "Created",
+"CoveredBy": "16120101181",
+"OfferedBy": "910825526",
+"RedirectUrl": "http://localhost",
+"RequestMessage": "Trenger dette for aa soeke om sykemeldinger",
+"Created": "2020-08-27T08:51:31.54",
+"LastChanged": "2020-08-27T08:51:31.54",
+"RequestResources": [
+{
+"ServiceCode": "4751",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
+}
+}
+},
+{
+"Guid": "da5a3c76-7500-4eb8-9649-22102ef4f706",
+"RequestStatus": "Unopened",
+"CoveredBy": "16120101181",
+"OfferedBy": "910712268",
+"RedirectUrl": "http://localhost",
+"Created": "2020-08-27T18:45:58.707",
+"LastChanged": "2020-08-27T18:46:57.3",
+"RequestResources": [
+{
+"ServiceCode": "5384",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/da5a3c76-7500-4eb8-9649-22102ef4f706"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/da5a3c76-7500-4eb8-9649-22102ef4f706"
+}
+}
+},
+{
+"Guid": "137be1f5-587b-453a-8073-41b4c1438584",
+"RequestStatus": "Unopened",
+"CoveredBy": "16120101181",
+"OfferedBy": "910712268",
+"RedirectUrl": "http://localhost/test?bedrift=12345",
+"Created": "2020-08-28T08:41:22.633",
+"LastChanged": "2020-08-28T08:42:18.93",
+"RequestResources": [
+{
+"ServiceCode": "5216",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/137be1f5-587b-453a-8073-41b4c1438584"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/137be1f5-587b-453a-8073-41b4c1438584"
+}
+}
+},
+{
+"Guid": "f62d0d02-d84e-400a-83ef-63de62397f64",
+"RequestStatus": "Created",
+"CoveredBy": "16120101181",
+"OfferedBy": "910825526",
+"RedirectUrl": "http://localhost",
+"RequestMessage": "Trenger dette for aa soeke om sykemeldinger",
+"Created": "2020-08-28T14:00:07.027",
+"LastChanged": "2020-08-28T14:00:07.027",
+"RequestResources": [
+{
+"ServiceCode": "4751",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/f62d0d02-d84e-400a-83ef-63de62397f64"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/f62d0d02-d84e-400a-83ef-63de62397f64"
+}
+}
+},
+{
+"Guid": "95ac20a2-e825-4528-acc9-1c8b2249db3a",
+"RequestStatus": "Created",
+"CoveredBy": "16120101181",
+"OfferedBy": "910825526",
+"RedirectUrl": "http://localhost",
+"RequestMessage": "Trenger dette for aa soeke om sykemeldinger",
+"Created": "2020-08-28T14:00:12.307",
+"LastChanged": "2020-08-28T14:00:12.307",
+"RequestResources": [
+{
+"ServiceCode": "4751",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/95ac20a2-e825-4528-acc9-1c8b2249db3a"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/95ac20a2-e825-4528-acc9-1c8b2249db3a"
+}
+}
+},
+{
+"Guid": "85bc5b4d-04a7-44cb-b771-1464c0383c2c",
+"RequestStatus": "Created",
+"CoveredBy": "16120101181",
+"OfferedBy": "910825526",
+"RedirectUrl": "http://localhost",
+"RequestMessage": "Trenger dette for aa soeke om sykemeldinger",
+"Created": "2020-08-28T14:00:26.93",
+"LastChanged": "2020-08-28T14:00:26.93",
+"RequestResources": [
+{
+"ServiceCode": "4751",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/85bc5b4d-04a7-44cb-b771-1464c0383c2c"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/85bc5b4d-04a7-44cb-b771-1464c0383c2c"
+}
+}
+},
+{
+"Guid": "07f8aaa4-8724-439d-83ee-e2cf71eca266",
+"RequestStatus": "Created",
+"CoveredBy": "16120101181",
+"OfferedBy": "910825526",
+"RedirectUrl": "http://localhost",
+"Created": "2020-08-28T14:00:49.48",
+"LastChanged": "2020-08-28T14:00:49.48",
+"RequestResources": [
+{
+"ServiceCode": "4751",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/07f8aaa4-8724-439d-83ee-e2cf71eca266"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/07f8aaa4-8724-439d-83ee-e2cf71eca266"
+}
+}
+},
+{
+"Guid": "bbeb3ad4-b53d-471b-b21d-f1565325022f",
+"RequestStatus": "Created",
+"CoveredBy": "16120101181",
+"OfferedBy": "910825526",
+"RedirectUrl": "http://localhost",
+"Created": "2020-08-28T14:00:50.637",
+"LastChanged": "2020-08-28T14:00:50.637",
+"RequestResources": [
+{
+"ServiceCode": "4751",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/bbeb3ad4-b53d-471b-b21d-f1565325022f"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/bbeb3ad4-b53d-471b-b21d-f1565325022f"
+}
+}
+},
+{
+"Guid": "d78fb740-bc70-4ce7-9732-a46268e10f60",
+"RequestStatus": "Created",
+"CoveredBy": "16120101181",
+"OfferedBy": "910825526",
+"RedirectUrl": "http://localhost",
+"Created": "2020-08-28T14:01:44.86",
+"LastChanged": "2020-08-28T14:01:44.86",
+"RequestResources": [
+{
+"ServiceCode": "5384",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/d78fb740-bc70-4ce7-9732-a46268e10f60"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/d78fb740-bc70-4ce7-9732-a46268e10f60"
+}
+}
+},
+{
+"Guid": "821e2364-6d70-4b20-ad8d-8175bf6c2b8d",
+"RequestStatus": "Created",
+"CoveredBy": "16120101181",
+"OfferedBy": "910825526",
+"RedirectUrl": "http://localhost",
+"Created": "2020-08-28T14:01:46.02",
+"LastChanged": "2020-08-28T14:01:46.02",
+"RequestResources": [
+{
+"ServiceCode": "5384",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/821e2364-6d70-4b20-ad8d-8175bf6c2b8d"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/821e2364-6d70-4b20-ad8d-8175bf6c2b8d"
+}
+}
+},
+{
+"Guid": "a676e3d8-6a38-436a-88d1-d4618b97af6d",
+"RequestStatus": "Created",
+"CoveredBy": "16120101181",
+"OfferedBy": "910825526",
+"RedirectUrl": "http://localhost",
+"Created": "2020-08-28T14:15:15.45",
+"LastChanged": "2020-08-28T14:15:15.45",
+"RequestResources": [
+{
+"ServiceCode": "5384",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/a676e3d8-6a38-436a-88d1-d4618b97af6d"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/a676e3d8-6a38-436a-88d1-d4618b97af6d"
+}
+}
+},
+{
+"Guid": "717a468a-8aea-41d6-844a-6a122e1a3843",
+"RequestStatus": "Unopened",
+"CoveredBy": "16120101181",
+"OfferedBy": "910825526",
+"RedirectUrl": "http://localhost",
+"Created": "2020-08-28T14:15:21.71",
+"LastChanged": "2020-08-28T14:16:32.133",
+"RequestResources": [
+{
+"ServiceCode": "5384",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/717a468a-8aea-41d6-844a-6a122e1a3843"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/717a468a-8aea-41d6-844a-6a122e1a3843"
+}
+}
+},
+{
+"Guid": "813a7f52-69b5-41c4-a44b-5aacb1b18a4c",
+"RequestStatus": "Created",
+"CoveredBy": "16120101181",
+"OfferedBy": "910825526",
+"RedirectUrl": "http://localhost",
+"RequestMessage": "Trenger dette for aa soeke om sykemeldinger",
+"Created": "2020-09-14T13:30:49.737",
+"LastChanged": "2020-09-14T13:30:49.737",
+"RequestResources": [
+{
+"ServiceCode": "4751",
+"ServiceEditionCode": 1,
+"Operations": [
+"Read",
+"Write"
+]
+}
+],
+"_links": {
+"self": {
+"href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/813a7f52-69b5-41c4-a44b-5aacb1b18a4c"
+},
+"sendRequest": {
+"href": "https://tt02.altinn.no/ui/DelegationRequest/send/813a7f52-69b5-41c4-a44b-5aacb1b18a4c"
+}
+}
+}
+]
+},
+"continuationtoken": "2020-09-14T13:30:49.737_8724"
+}
