@@ -87,8 +87,9 @@ public class AltinnTilgangssøknadClient {
                     .filter(søknad -> fødselsnummer.equals(søknad.CoveredBy))
                     .map(søknadDTO -> {
                         var søknad = new AltinnTilgangssøknad();
+                        søknad.setOrgnr(søknadDTO.OfferedBy);
                         søknad.setStatus(søknadDTO.RequestStatus);
-                        søknad.setCratedDateTime(søknadDTO.Created);
+                        søknad.setCreatedDateTime(søknadDTO.Created);
                         søknad.setLastChangedDateTime(søknadDTO.LastChanged);
                         søknad.setServiceCode(søknadDTO.RequestResources.get(0).ServiceCode);
                         søknad.setServiceEdition(søknadDTO.RequestResources.get(0).ServiceEditionCode);

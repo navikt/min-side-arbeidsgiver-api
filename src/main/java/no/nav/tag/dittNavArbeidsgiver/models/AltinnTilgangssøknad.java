@@ -12,7 +12,7 @@ public class AltinnTilgangssøknad {
     String serviceCode;
     Integer serviceEdition;
     String status;
-    String cratedDateTime;
+    String createdDateTime;
     String lastChangedDateTime;
     String submitUrl;
 }
