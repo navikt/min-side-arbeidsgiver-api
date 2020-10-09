@@ -15,6 +15,7 @@ public class DelegationRequest {
     public String RedirectUrl;
     public String Created;
     public String LastChanged;
+    public boolean KeepSessionAlive = true;
 
     public List<RequestResource> RequestResources;
 
