@@ -29,7 +29,7 @@ spec:
 
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: preprod
+      value: dev
     - name: JAVA_OPTS
       value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
   prometheus:

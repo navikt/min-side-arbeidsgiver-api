@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
-@ActiveProfiles("dev")
+@ActiveProfiles("local")
 @TestPropertySource(properties = {"mock.port=8083"})
 public class DigisyfoControllerTest {
 

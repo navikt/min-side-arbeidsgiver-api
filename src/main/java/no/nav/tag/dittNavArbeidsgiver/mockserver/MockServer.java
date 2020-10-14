@@ -22,7 +22,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-@Profile({"dev"})
+@Profile({"local"})
 @Slf4j
 @Component
 public class MockServer {

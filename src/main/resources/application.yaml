@@ -9,12 +9,12 @@ management.endpoints.web:
 
 spring:
   profiles:
-    active: dev
+    active: local
 
 ---
 
 spring:
-  profiles: dev
+  profiles: local
 
 nais.cluster.name: local
 
@@ -55,7 +55,7 @@ unleash:
 ---
 
 spring:
-  profiles: preprod
+  profiles: dev
 
 digisyfo:
   digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.preprod.local/api/"

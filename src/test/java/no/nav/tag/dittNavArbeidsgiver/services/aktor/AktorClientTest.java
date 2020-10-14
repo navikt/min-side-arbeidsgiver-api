@@ -12,7 +12,7 @@ import static org.junit.Assert.*;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
-@ActiveProfiles("dev")
+@ActiveProfiles("local")
 @TestPropertySource(properties = {"mock.port=8082"})
 public class AktorClientTest {
 

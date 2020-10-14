@@ -1,5 +1,5 @@
 <configuration scan="true">
-    <springProfile name="preprod,prod">
+    <springProfile name="dev,prod">
         <appender name="consoleAppender"  class="no.nav.log.MaskingAppender">
             <appender name="stdout_json_masked" class="ch.qos.logback.core.ConsoleAppender">
                 <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
@@ -12,7 +12,7 @@
             <appender-ref ref="consoleAppender"/>
         </root>
     </springProfile>
-    <springProfile name="dev">
+    <springProfile name="local">
         <include resource="org/springframework/boot/logging/logback/base.xml"/>
         <logger name="org.springframework.web" level="DEBUG"/>
     </springProfile>
