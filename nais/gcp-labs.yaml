@@ -1,0 +1,37 @@
+apiVersion: nais.io/v1alpha1
+kind: "Application"
+metadata:
+  name: ditt-nav-arbeidsgiver-api
+  namespace: default
+  labels:
+    team: arbeidsgiver
+spec:
+  image: {{image}}
+  team: arbeidsgiver
+  port: 8080
+  liveness:
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
+    initialDelay: 30
+    timeout: 1
+    periodSeconds: 10
+    failureThreshold: 3
+  readiness:
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
+    initialDelay: 30
+    timeout: 1
+    periodSeconds: 10
+    failureThreshold: 3
+  ingresses:
+    - https://arbeidsgiver.nais.preprod.local/ditt-nav-arbeidsgiver-api/
+  webproxy: true
+  vault:
+    enabled: true
+
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: preprod
+    - name: JAVA_OPTS
+      value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+  prometheus:
+    enabled: true
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
