@@ -23,9 +23,9 @@ spec:
     failureThreshold: 3
   ingresses:
     - https://min-side-ag.labs.nais.io/ditt-nav-arbeidsgiver-api/
-  webproxy: true
+  webproxy: false
   vault:
-    enabled: true
+    enabled: false
 
   env:
     - name: SPRING_PROFILES_ACTIVE
