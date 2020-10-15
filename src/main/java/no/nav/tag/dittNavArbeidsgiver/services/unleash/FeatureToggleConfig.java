@@ -15,7 +15,7 @@ public class FeatureToggleConfig {
     private static final String APP_NAME = "ditt-nav-arbeidsgiver-api";
     private final static String UNLEASH_API_URL = "https://unleash.nais.adeo.no/api/";
     @Bean
-    @Profile({"preprod", "prod"})
+    @Profile({"dev", "prod"})
     public Unleash initializeUnleash(
                                      ByClusterStrategy byClusterStrategy)
 
@@ -32,7 +32,7 @@ public class FeatureToggleConfig {
         );
     }
 
-    @Profile("dev")
+    @Profile("local")
     @Bean
     public Unleash unleashMock() {
         FakeUnleash fakeUnleash = new FakeUnleash();

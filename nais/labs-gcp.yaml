@@ -2,7 +2,7 @@ apiVersion: nais.io/v1alpha1
 kind: "Application"
 metadata:
   name: ditt-nav-arbeidsgiver-api
-  namespace: default
+  namespace: arbeidsgiver
   labels:
     team: arbeidsgiver
 spec:
@@ -22,14 +22,14 @@ spec:
     periodSeconds: 10
     failureThreshold: 3
   ingresses:
-    - https://arbeidsgiver.nais.preprod.local/ditt-nav-arbeidsgiver-api/
+    - https://min-side-ag.labs.nais.io/ditt-nav-arbeidsgiver-api/
   webproxy: true
   vault:
     enabled: true
 
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: dev
+      value: local
     - name: JAVA_OPTS
       value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
   prometheus:

@@ -106,3 +106,19 @@ jobs:
           CLUSTER: prod-fss
           RESOURCE: nais/prod.yaml
           PRINT_PAYLOAD: true
+
+  deploy-labs-gcp:
+    name: Deploy til labs
+    runs-on: ubuntu-latest
+    needs: deploy-dev
+    steps:
+      - name: Sjekk ut kode
+        uses: actions/checkout@v2
+      - name: Deploy til labs-gcp
+        uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: labs-gcp
+          RESOURCE: nais/labs-gcp.yaml
+          PRINT_PAYLOAD: true
+
