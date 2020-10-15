@@ -25,7 +25,7 @@ spec:
     - https://min-side-ag.labs.nais.io/ditt-nav-arbeidsgiver-api/
   webproxy: true
   vault:
-    enabled: true
+    enabled: false
 
   env:
     - name: SPRING_PROFILES_ACTIVE
