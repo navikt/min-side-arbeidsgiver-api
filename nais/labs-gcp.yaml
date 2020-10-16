@@ -42,3 +42,7 @@ spec:
   prometheus:
     enabled: true
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
+  accessPolicy:
+    inbound:
+      rules:
+        - application: ditt-nav-arbeidsgiver
