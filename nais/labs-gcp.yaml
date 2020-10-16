@@ -32,7 +32,7 @@ spec:
       cpu: 500m
       memory: 600Mi
   ingresses:
-    - https://min-side-ag.labs.nais.io/ditt-nav-arbeidsgiver-api/
+    - https://arbeidsgiver.labs.nais.io/ditt-nav-arbeidsgiver-api/
   webproxy: false
   vault:
     enabled: false
