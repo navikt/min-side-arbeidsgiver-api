@@ -38,7 +38,7 @@ spec:
     enabled: false
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: local
+      value: local, labs
   prometheus:
     enabled: true
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
@@ -46,3 +46,6 @@ spec:
     inbound:
       rules:
         - application: ditt-nav-arbeidsgiver
+    outbound:
+      rules:
+        - application: min-side-ag-fakelogin
