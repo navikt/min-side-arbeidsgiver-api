@@ -7,6 +7,6 @@ import org.springframework.context.annotation.Profile;
 
 @Configuration
 @Import(TokenGeneratorConfiguration.class)
-@Profile("local")
+@Profile({"local", "!labs"})
 public class LocalJWTConfig {
 }
