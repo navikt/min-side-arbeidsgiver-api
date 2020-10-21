@@ -38,7 +38,7 @@ spec:
     enabled: false
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: local, labs
+      value: labs
   prometheus:
     enabled: true
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus

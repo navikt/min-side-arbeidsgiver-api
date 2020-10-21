@@ -62,8 +62,36 @@ no.nav.security.jwt.issuer.selvbetjening:
   accepted_audience: aud-selvbetjening
   cookiename: selvbetjening-idtoken
 
----
+mock:
+  enabled: true
+  port: 8081
+  aktorPort: 8082
 
+sts:
+  stsPass: "mockpass"
+  stsUrl: "http://localhost:${mock.port}/sts"
+
+aktorregister:
+  aktorUrl: "http://localhost:${mock.port}/aktoerregister/api/v1/identer"
+
+altinn:
+  altinnHeader: "test"
+  APIGwHeader: "test"
+  proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
+  proxyFallbackUrl: http://localhost:${mock.port}/altinn
+
+digisyfo:
+  digisyfoUrl: "http://localhost:${mock.port}/digisyfo/api/"
+  sykemeldteURL: "http://localhost:${mock.port}/syforest/sykmeldinger"
+  syfooppgaveurl: "http://localhost:${mock.port}/syforest/oppgaver"
+
+aad:
+  aadAccessTokenURL: "http://localhost:${mock.port}/aad"
+
+unleash:
+  url: "https://unleash.herokuapp.com/api/"
+
+---
 spring:
   profiles: dev
 
