@@ -9,6 +9,9 @@ spec:
   image: {{image}}
   team: arbeidsgiver
   port: 8080
+  replicas:
+    min: 1
+    max: 1
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
     initialDelay: 30
@@ -21,17 +24,28 @@ spec:
     timeout: 1
     periodSeconds: 10
     failureThreshold: 3
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 3000Mi
+    requests:
+      cpu: 500m
+      memory: 600Mi
   ingresses:
-    - https://min-side-ag.labs.nais.io/ditt-nav-arbeidsgiver-api/
-  webproxy: true
+    - https://arbeidsgiver.labs.nais.io/ditt-nav-arbeidsgiver-api/
+  webproxy: false
   vault:
-    enabled: true
-
+    enabled: false
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: local
-    - name: JAVA_OPTS
-      value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+      value: labs
   prometheus:
     enabled: true
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
+  accessPolicy:
+    inbound:
+      rules:
+        - application: ditt-nav-arbeidsgiver
+    outbound:
+      rules:
+        - application: min-side-ag-fakelogin
