@@ -26,7 +26,8 @@ spec:
     - https://arbeidsgiver.nais.adeo.no/ditt-nav-arbeidsgiver-api/
   vault:
     enabled: true
-
+  envFrom:
+    - configmap: loginservice-idporten
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: prod

@@ -26,7 +26,8 @@ spec:
   webproxy: true
   vault:
     enabled: true
-
+  envFrom:
+    - configmap: loginservice-idporten
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: dev
