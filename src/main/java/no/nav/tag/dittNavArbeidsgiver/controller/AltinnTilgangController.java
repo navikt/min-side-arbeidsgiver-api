@@ -2,7 +2,7 @@ package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import no.nav.common.utils.Pair;
-import no.nav.security.token.support.core.api.Protected;
+import no.nav.security.token.support.core.api.ProtectedWithClaims;
 import no.nav.security.token.support.core.context.TokenValidationContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.clients.altinn.AltinnTilgangssøknadClient;
 import no.nav.tag.dittNavArbeidsgiver.models.AltinnTilgangssøknad;
@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Set;
 
-@Protected
+import static no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils.ISSUER;
+import static no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils.REQUIRED_LOGIN_LEVEL;
+
+@ProtectedWithClaims(issuer=ISSUER, claimMap={REQUIRED_LOGIN_LEVEL})
 @Slf4j
 @RestController
 @RequestMapping("/api/altinn-tilgangssoknad")

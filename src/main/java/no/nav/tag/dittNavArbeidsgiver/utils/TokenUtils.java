@@ -8,6 +8,9 @@ import static no.nav.tag.dittNavArbeidsgiver.utils.FnrExtractor.ISSUER_SELVBETJE
 
 @Component
 public class TokenUtils {
+    public static final String ISSUER = "selvbetjening";
+    public static final String REQUIRED_LOGIN_LEVEL = "acr=Level4";
+
     private final TokenValidationContextHolder requestContextHolder;
 
     public TokenUtils(TokenValidationContextHolder requestContextHolder) {
