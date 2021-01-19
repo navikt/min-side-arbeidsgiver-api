@@ -15,7 +15,7 @@ public class FeatureToggleConfig {
     private static final String APP_NAME = "ditt-nav-arbeidsgiver-api";
     private final static String UNLEASH_API_URL = "https://unleash.nais.io/api/";
     @Bean
-    @Profile({"dev", "prod"})
+    @Profile({"dev-gcp", "dev", "prod"})
     public Unleash initializeUnleash(
                                      ByClusterStrategy byClusterStrategy)
 

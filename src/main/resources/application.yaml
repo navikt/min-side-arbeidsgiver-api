@@ -93,6 +93,47 @@ unleash:
 
 ---
 spring:
+  profiles: dev-gcp
+
+digisyfo:
+  digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.preprod.local/api/"
+  sykemeldteURL: "https://tjenester-q1.nav.no/syforest/sykmeldinger"
+  syfooppgaveurl: "https://tjenester-q1.nav.no/syforest/oppgaver"
+
+sts:
+  stsPass: ${STS_PASS}
+  stsUrl: https://security-token-service.nais.preprod.local/rest/v1/sts/token
+
+aktorregister:
+  aktorUrl: "https://app-q1.oera.no/aktoerregister/api/v1/identer"
+
+aad:
+  aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
+  azureClientSecret:  ${AZURE_CLIENT_SECRET}
+  clientid: 1b1bf278-3c28-4003-a528-b595d800afb0
+  scope: 3f567c84-4912-4acf-88ef-9f0dcfc2ae2b
+
+no.nav.security.jwt.issuer.selvbetjening:
+  discoveryurl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL}
+  accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE}
+  cookiename: selvbetjening-idtoken
+  proxyurl: http://webproxy.nais:8088
+
+altinn:
+  altinnHeader: ${ALTINN_HEADER}
+  APIGwHeader: ${APIGW_HEADER}
+  proxyUrl: https://altinn-rettigheter-proxy/altinn-rettigheter-proxy
+  proxyFallbackUrl: https://api-gw-q1.oera.no
+
+
+unleash:
+  url: https://unleash.nais.oera.no/api
+
+yrkeskodeverk:
+  yrkeskodeUrl: "https://kodeverk.nais.preprod.local/api/v1/kodeverk/Yrker/koder/betydninger?spraak=nb"
+
+---
+spring:
   profiles: dev
 
 digisyfo:
