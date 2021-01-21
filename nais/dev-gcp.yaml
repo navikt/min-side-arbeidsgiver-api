@@ -1,0 +1,38 @@
+apiVersion: nais.io/v1alpha1
+kind: "Application"
+metadata:
+  name: min-side-arbeidsgiver-api
+  namespace: arbeidsgiver
+  labels:
+    team: arbeidsgiver
+spec:
+  image: {{image}}
+  team: arbeidsgiver
+  port: 8080
+  liveness:
+    path: /min-side-arbeidsgiver-api/internal/actuator/health
+    initialDelay: 30
+    timeout: 1
+    periodSeconds: 10
+    failureThreshold: 3
+  readiness:
+    path: /min-side-arbeidsgiver-api/internal/actuator/health
+    initialDelay: 30
+    timeout: 1
+    periodSeconds: 10
+    failureThreshold: 3
+  ingresses:
+    - https://arbeidsgiver.dev.nav.no/min-side-arbeidsgiver-api/
+  webproxy: true
+  vault:
+    enabled: true
+  envFrom:
+    - configmap: loginservice-idporten
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: dev-gcp
+    - name: JAVA_OPTS
+      value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+  prometheus:
+    enabled: true
+    path: /min-side-arbeidsgiver-api/internal/actuator/prometheus
