@@ -1,4 +1,4 @@
-name: Github action
+name: Test, bygg, deploy
 on:
   push:
   workflow_dispatch:
@@ -28,7 +28,8 @@ jobs:
   bygg:
     name: Bygg
     needs: test
-    if: needs.test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/deploy-gcp')
+    ### VALG AV DEV-BRANCH SETTES HER:
+    if: needs.test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/altinn-proxy-gcp')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
