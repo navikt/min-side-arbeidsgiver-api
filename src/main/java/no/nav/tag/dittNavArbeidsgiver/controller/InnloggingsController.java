@@ -19,7 +19,7 @@ public class InnloggingsController {
     @RequestMapping(value="/api/innlogget", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> erInnlogget(){
-        CacheControl cacheControl = CacheControl.maxAge(60, TimeUnit.SECONDS).noStore();
+        CacheControl cacheControl = CacheControl.maxAge(0, TimeUnit.SECONDS).noStore();
         return ResponseEntity.ok()
             .cacheControl(cacheControl)
             .body("ok");
