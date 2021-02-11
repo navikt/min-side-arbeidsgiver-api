@@ -36,3 +36,9 @@ spec:
   prometheus:
     enabled: true
     path: /min-side-arbeidsgiver-api/internal/actuator/prometheus
+  tokenx:
+    enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io
