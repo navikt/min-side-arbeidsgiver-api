@@ -41,3 +41,4 @@ spec:
     outbound:
       external:
         - host: min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io
+        - host: unleash.nais.io
