@@ -117,7 +117,6 @@ no.nav.security.jwt.issuer.selvbetjening:
   discoveryurl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL}
   accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE}
   cookiename: selvbetjening-idtoken
-  proxyurl: http://webproxy.nais:8088
 
 altinn:
   altinnHeader: ${ALTINN_HEADER}

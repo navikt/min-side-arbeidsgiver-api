@@ -6,28 +6,27 @@ metadata:
   labels:
     team: arbeidsgiver
 spec:
-  image: {{image}}
+  image: {{ image }}
   team: arbeidsgiver
   port: 8080
   liveness:
-    path: /min-side-arbeidsgiver-api/internal/actuator/health
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
     initialDelay: 90
     timeout: 15
     periodSeconds: 10
     failureThreshold: 3
   readiness:
-    path: /min-side-arbeidsgiver-api/internal/actuator/health
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
     initialDelay: 90
     timeout: 15
     periodSeconds: 10
     failureThreshold: 3
   ingresses:
-    - https://arbeidsgiver.dev.nav.no/min-side-arbeidsgiver-api/
-  webproxy: true
-  vault:
-    enabled: true
+    - https://min-side-arbeidsgiver-api.dev.nav.no/ditt-nav-arbeidsgiver-api/
+  webproxy: false
   envFrom:
     - configmap: loginservice-idporten
+    - secret: min-side-ag-secrets
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: dev-gcp
@@ -35,7 +34,7 @@ spec:
       value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
   prometheus:
     enabled: true
-    path: /min-side-arbeidsgiver-api/internal/actuator/prometheus
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
   tokenx:
     enabled: true
   accessPolicy:
