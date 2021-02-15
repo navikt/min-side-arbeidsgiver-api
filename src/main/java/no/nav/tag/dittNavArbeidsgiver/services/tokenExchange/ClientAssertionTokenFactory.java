@@ -9,10 +9,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 import java.util.Date;
@@ -20,37 +18,32 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-public class TokenExchangeClient {
+public class ClientAssertionTokenFactory {
 
-    private RSAKey tokenXPrivetJWK;
-    private String clientID;
+    private RSAKey tokenXPrivateJWK;
+    private String clientId;
     private String tokendingsUrl;
     private JWSSigner signer;
 
-    @Autowired
-    public TokenExchangeClient(@Value("${tokenX.privateJwk}") String tokenXPrivateJWK,
-                     @Value("${tokenX.clientID}") String clientID,
-    @Value("${tokenX.tokendingsUrl}") String tokendingsUrl) throws ParseException {
+    public ClientAssertionTokenFactory(@Value("${tokenX.privateJwk}") String tokenXPrivateJWK,
+                                       @Value("${tokenX.clientId}") String clientId,
+                                       @Value("${tokenX.tokendingsUrl}") String tokendingsUrl) throws ParseException {
 
-
-        this.tokenXPrivetJWK = RSAKey.parse(tokenXPrivateJWK);
-        this.clientID = clientID;
+        this.tokenXPrivateJWK = RSAKey.parse(tokenXPrivateJWK);
+        this.clientId = clientId;
         this.tokendingsUrl = tokendingsUrl;
         try {
-            this.signer = new RSASSASigner(tokenXPrivetJWK);
+            this.signer = new RSASSASigner(this.tokenXPrivateJWK);
         }catch(JOSEException e){
             log.error("joseException", e);
         }
 
-
     }
-
-
 
     public String getClientAssertion (){
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(clientID)
-                .issuer(clientID)
+                .subject(clientId)
+                .issuer(clientId)
                 .audience(tokendingsUrl)
                 .issueTime(new Date() )
                 .notBeforeTime(new Date() )
@@ -59,7 +52,7 @@ public class TokenExchangeClient {
                 .build();
 
         SignedJWT signedJWT = new SignedJWT(
-                new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(tokenXPrivetJWK.getKeyID()).build(),
+                new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(tokenXPrivateJWK.getKeyID()).build(),
                 claimsSet);
         try {
             signedJWT.sign(signer);
