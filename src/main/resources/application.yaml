@@ -155,7 +155,7 @@ tokenX:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}
   clientId: ${TOKEN_X_CLIENT_ID}
   tokendingsUrl: "https://tokendings.dev-gcp.nais.io/token"
-  audience: "dev-fss:arbeidsgiver:min-side-arbeidsgiver-proxy"
+  audience: "dev-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
 
 ---
 spring:
