@@ -5,20 +5,16 @@ import no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils
 import org.spockframework.spring.SpringBean
 import org.spockframework.spring.StubBeans
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
 import org.springframework.boot.web.client.RestTemplateBuilder
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
 import org.springframework.test.web.client.MockRestServiceServer
-import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 
-import static org.springframework.http.MediaType.APPLICATION_JSON
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.*
+import static org.springframework.http.HttpHeaders.AUTHORIZATION
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
 @StubBeans([MultiIssuerConfiguration])
 @RestClientTest([TokenExchangeInterceptor])
@@ -42,18 +38,20 @@ class TokenExchangeInterceptorTest extends Specification {
 
     def "skal berike request med auth header"() {
         given:
+        def subjectToken = "314"
+        def tokenXtoken = "42"
         def restTemplate = restTemplateBuilder.additionalInterceptors(interceptor).build()
         server.bindTo(restTemplate).build()
-                .expect(requestTo("/"))
-                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer 42"))
+                .expect(requestTo(""))
+                .andExpect(header(AUTHORIZATION, "Bearer $tokenXtoken"))
                 .andRespond(withNoContent())
 
         when:
-        restTemplate.delete("/")
+        restTemplate.delete("")
 
         then:
-        1 * tokenUtils.getTokenForInnloggetBruker() >> "314"
-        1 * tokenExchangeClient.exchangeToken("314") >> "42"
+        1 * tokenUtils.getTokenForInnloggetBruker() >> subjectToken
+        1 * tokenExchangeClient.exchangeToken(subjectToken) >> tokenXtoken
 
     }
 }
