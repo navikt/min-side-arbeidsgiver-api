@@ -149,6 +149,20 @@
             <artifactId>metrics</artifactId>
             <version>1.2019.07.25-08.54-f2bfe18c24bc</version>
         </dependency>
+        <!-- Lås nimbus-jose-jwt til versjon som er kompatibel med com.nimbusds:oauth2-oidc-sdk:6.5.
+     Ellers får man runtime-feil på token-validering, med nyeste publiserte versjon 9.0 av nimbus-jose-jwt. -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>8.20</version>
+        </dependency>
+        <!-- Det finnes 2.3-SNAPSHOT av json-smart publisert der ute i det ville,
+         sørg for å aldri bruke den ved å låse til 2.3. -->
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>2.3</version>
+        </dependency>
     </dependencies>
 
     <build>
