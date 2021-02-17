@@ -1,5 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.services.tokenExchange;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -12,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 import java.util.Map;
 
-
+@Profile({"local","dev-gcp"})
 @Component
 public class TokenExchangeClient {
     static final String GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange";
