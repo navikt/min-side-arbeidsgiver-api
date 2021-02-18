@@ -52,7 +52,7 @@ aad:
 unleash:
   url: "https://unleash.herokuapp.com/api/"
 
-tokenX:
+token.x:
   privateJwk: |
         {
         "p": "2woV2ppiatuKVIkN5XIspw7SHN44Ux-HXLzAbnk2SpQZ2TpyKz9Ucc4yx4WeIDU4-V8xMloMzSTE_JOS2me_p9Rim_MdYyZRHJF4O0moZO7TAL0wxBnKtpqAlWIHC4-URYGDcsA2YkHXOP0ah0zZsBqGWGcXtoll5pXoKM5klR0",
@@ -151,7 +151,7 @@ unleash:
 yrkeskodeverk:
   yrkeskodeUrl: "https://kodeverk.nais.preprod.local/api/v1/kodeverk/Yrker/koder/betydninger?spraak=nb"
 
-tokenX:
+token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}
   clientId: ${TOKEN_X_CLIENT_ID}
   tokendingsUrl: "https://tokendings.dev-gcp.nais.io/token"
