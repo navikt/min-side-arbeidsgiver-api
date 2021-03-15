@@ -33,11 +33,11 @@ public class TokenExchangeInterceptor implements ClientHttpRequestInterceptor {
             @NotNull byte[] body,
             ClientHttpRequestExecution execution
     ) throws IOException {
-        request.getHeaders().setBearerAuth(getToken());
+        request.getHeaders().setBearerAuth(getToken().getAccess_token());
         return execution.execute(request, body);
     }
 
-    private String getToken() {
+    private TokenXToken getToken() {
         return tokenExchangeClient.exchangeToken(tokenUtils.getTokenForInnloggetBruker());
     }
 }

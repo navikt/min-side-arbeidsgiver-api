@@ -59,7 +59,7 @@ public class DigisyfoServiceGcpImpl implements DigisyfoService{
 
     private HttpEntity <String> getRequestEntity() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(AUTHORIZATION_HEADER, "Bearer " +  tokenExchangeClient.exchangeToken(tokenUtils.getTokenForInnloggetBruker()));
+        headers.set(AUTHORIZATION_HEADER, "Bearer " +  tokenExchangeClient.exchangeToken(tokenUtils.getTokenForInnloggetBruker()).getAccess_token());
         return new HttpEntity<>(headers);
     }
 

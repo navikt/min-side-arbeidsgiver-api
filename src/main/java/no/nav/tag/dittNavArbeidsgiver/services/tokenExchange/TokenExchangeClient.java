@@ -32,7 +32,7 @@ public class TokenExchangeClient {
         this.restTemplate = restTemplate;
     }
 
-    public String exchangeToken(String subjectToken) {
+    public TokenXToken exchangeToken(String subjectToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -46,7 +46,7 @@ public class TokenExchangeClient {
                 "client_id", List.of(properties.clientId)
         )), headers);
 
-        return restTemplate.postForEntity(properties.tokendingsUrl, request, String.class).getBody();
+        return restTemplate.postForEntity(properties.tokendingsUrl, request, TokenXToken.class).getBody();
     }
 
 }

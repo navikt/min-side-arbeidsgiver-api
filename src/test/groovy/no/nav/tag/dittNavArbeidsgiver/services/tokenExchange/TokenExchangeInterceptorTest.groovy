@@ -39,11 +39,12 @@ class TokenExchangeInterceptorTest extends Specification {
     def "skal berike request med auth header"() {
         given:
         def subjectToken = "314"
-        def tokenXtoken = "42"
+        def tokenXtoken = new TokenXToken()
+        tokenXtoken.setAccess_token("tolrolro")
         def restTemplate = restTemplateBuilder.additionalInterceptors(interceptor).build()
         server.bindTo(restTemplate).build()
                 .expect(requestTo(""))
-                .andExpect(header(AUTHORIZATION, "Bearer $tokenXtoken"))
+                .andExpect(header(AUTHORIZATION, "Bearer ${tokenXtoken.getAccess_token()}"))
                 .andRespond(withNoContent())
 
         when:

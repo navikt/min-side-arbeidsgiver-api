@@ -1,5 +1,6 @@
 package no.nav.tag.dittNavArbeidsgiver.services.tokenExchange
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import org.spockframework.spring.SpringBean
 import org.spockframework.spring.StubBeans
@@ -40,12 +41,13 @@ class TokenExchangeClientTest extends Specification {
 
     @Autowired
     TokenXProperties properties
-
+    ObjectMapper mapper = new ObjectMapper();
     def "skal kalle tokenx"() {
         given:
         def subjectToken = "314"
         def clientAssertion = "42"
-        def token = "trololol"
+        def token = new TokenXToken()
+        token.setAccess_token("tolrolro")
         1 * clientAssertionTokenFactory.getClientAssertion() >> clientAssertion
         server
                 .expect(requestTo(properties.tokendingsUrl))
@@ -58,12 +60,12 @@ class TokenExchangeClientTest extends Specification {
                                 ]
                         )
                 )
-                .andRespond(withSuccess(token, APPLICATION_JSON))
+                .andRespond(withSuccess(mapper.writeValueAsString(token), APPLICATION_JSON))
 
         when:
         def result = client.exchangeToken(subjectToken)
 
         then:
-        result == token
+        result.getAccess_token() == token.getAccess_token()
     }
 }

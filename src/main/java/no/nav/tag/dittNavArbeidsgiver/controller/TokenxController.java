@@ -2,6 +2,7 @@ package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import no.nav.security.token.support.core.api.ProtectedWithClaims;
 import no.nav.tag.dittNavArbeidsgiver.services.tokenExchange.TokenExchangeClient;
+import no.nav.tag.dittNavArbeidsgiver.services.tokenExchange.TokenXToken;
 import no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class TokenxController {
     }
 
     @GetMapping("api/exchange-token")
-    public String getTokenExchangeToken(){
+    public TokenXToken getTokenExchangeToken(){
         return tokenExchangeClient.exchangeToken(tokenUtils.getTokenForInnloggetBruker());
     }
 
