@@ -21,7 +21,7 @@ import no.nav.tag.dittNavArbeidsgiver.services.aad.AccesstokenClient;
 import no.nav.tag.dittNavArbeidsgiver.services.aktor.AktorClient;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DigisyfoServiceTest {
+public class DigisyfoServiceImplTest {
 
     private static final String AKTOERID = "aktoerid";
     private static final String FNR = "123";
@@ -37,11 +37,11 @@ public class DigisyfoServiceTest {
     private AccesstokenClient accesstokenClient;
 
     @InjectMocks
-    private DigisyfoService digisyfoService;
+    private DigisyfoServiceImpl digisyfoServiceImpl;
 
     @Before
     public void setUp() {
-        digisyfoService.digisyfoUrl = SYFO_URL;
+        digisyfoServiceImpl.digisyfoUrl = SYFO_URL;
         when(aktorClient.getAktorId(FNR)).thenReturn(AKTOERID);
         when(accesstokenClient.hentAccessToken()).thenReturn(new AadAccessToken());
     }
@@ -51,7 +51,7 @@ public class DigisyfoServiceTest {
         DigisyfoNarmesteLederRespons respons = new DigisyfoNarmesteLederRespons();
         when(restTemplate.exchange(eq(SYFO_URL + AKTOERID), eq(HttpMethod.GET), any(HttpEntity.class), eq(DigisyfoNarmesteLederRespons.class)))
             .thenReturn(ResponseEntity.ok(respons));
-        assertThat(digisyfoService.getNarmesteledere(FNR)).isSameAs(respons);
+        assertThat(digisyfoServiceImpl.getNarmesteledere(FNR)).isSameAs(respons);
 
         verify(aktorClient).getAktorId(FNR);
         verify(accesstokenClient).hentAccessToken();
@@ -64,7 +64,7 @@ public class DigisyfoServiceTest {
         DigisyfoNarmesteLederRespons respons = new DigisyfoNarmesteLederRespons();
         when(restTemplate.exchange(eq(SYFO_URL + AKTOERID), eq(HttpMethod.GET), any(HttpEntity.class), eq(DigisyfoNarmesteLederRespons.class)))
             .thenThrow(RestClientException.class).thenReturn(ResponseEntity.ok(respons));
-        assertThat(digisyfoService.getNarmesteledere(FNR)).isSameAs(respons);
+        assertThat(digisyfoServiceImpl.getNarmesteledere(FNR)).isSameAs(respons);
 
         verify(accesstokenClient, times(3)).hentAccessToken();
         verify(accesstokenClient).evict();
@@ -78,7 +78,7 @@ public class DigisyfoServiceTest {
             .thenThrow(RestClientException.class);
 
         try {
-            digisyfoService.getNarmesteledere(FNR);
+            digisyfoServiceImpl.getNarmesteledere(FNR);
         } catch (Exception e) {
             //Må catche exception her for å kunne gjøre verifiseringer
             verify(accesstokenClient, times(3)).hentAccessToken();
@@ -95,7 +95,7 @@ public class DigisyfoServiceTest {
             .thenReturn(ResponseEntity.badRequest().build());
 
         try {
-            digisyfoService.getNarmesteledere(FNR);
+            digisyfoServiceImpl.getNarmesteledere(FNR);
         } catch (Exception e) {
             //Må catche exception her for å kunne gjøre verifiseringer
             verify(aktorClient).getAktorId(FNR);

@@ -6,8 +6,8 @@ import no.nav.security.token.support.core.api.ProtectedWithClaims;
 import no.nav.security.token.support.core.context.TokenValidationContextHolder;
 import no.nav.tag.dittNavArbeidsgiver.models.NarmesteLedertilgang;
 import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoService;
+import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,15 +25,12 @@ public class DigisyfoController {
     private final TokenValidationContextHolder requestContextHolder;
     private final DigisyfoService digisyfoService;
     private final Unleash unleash;
-    @Value("${digisyfo.digisyfoUrl}")
-    private String digisyfoUrl;
 
     @Autowired
     public DigisyfoController(TokenValidationContextHolder requestContextHolder, DigisyfoService digisyfoService, Unleash unleash) {
         this.requestContextHolder = requestContextHolder;
         this.digisyfoService = digisyfoService;
         this.unleash = unleash;
-
     }
 
     @GetMapping(value = "/api/narmesteleder")
@@ -44,15 +41,15 @@ public class DigisyfoController {
 
     }
 
-    @GetMapping(value = "/api/sykemeldinger")
+   /* @GetMapping(value = "/api/sykemeldinger")
     public String hentAntallSykemeldinger(@CookieValue("nav-esso") String navesso) {
-        return unleash.isEnabled("dna.digisyfo.hentSykemeldinger") ? digisyfoService.hentSykemeldingerFraSyfo(navesso) : "[]";
+        return unleash.isEnabled("dna.digisyfo.hentSykemeldinger") ? digisyfoServiceImpl.hentSykemeldingerFraSyfo(navesso) : "[]";
     }
     
     @GetMapping(value = "/api/syfooppgaver")
     public String hentSyfoOppgaver(@CookieValue("nav-esso") String navesso) {
-        return digisyfoService.hentSyfoOppgaver(navesso);
+        return digisyfoServiceImpl.hentSyfoOppgaver(navesso);
     }
-
+*/
 }
 
