@@ -40,5 +40,5 @@ spec:
   accessPolicy:
     outbound:
       external:
-        - host: https://min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io/
+        - host: min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io/
         - host: unleash.nais.io
