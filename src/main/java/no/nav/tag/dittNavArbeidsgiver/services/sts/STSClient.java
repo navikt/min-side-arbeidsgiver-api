@@ -18,7 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @Component
-@Profile({"dev", "prod"})
+@Profile({"dev", "prod", "local"})
 public class STSClient {
 
     private RestTemplate restTemplate;
