@@ -1,0 +1,44 @@
+apiVersion: nais.io/v1alpha1
+kind: "Application"
+metadata:
+  name: min-side-arbeidsgiver-api
+  namespace: arbeidsgiver
+  labels:
+    team: arbeidsgiver
+spec:
+  image: {{ image }}
+  team: arbeidsgiver
+  port: 8080
+  liveness:
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
+    initialDelay: 90
+    timeout: 15
+    periodSeconds: 10
+    failureThreshold: 3
+  readiness:
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
+    initialDelay: 90
+    timeout: 15
+    periodSeconds: 10
+    failureThreshold: 3
+  ingresses:
+    - https://min-side-arbeidsgiver-api.nav.no/ditt-nav-arbeidsgiver-api/
+  webproxy: false
+  envFrom:
+    - configmap: loginservice-idporten
+    - secret: min-side-ag-secrets
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: dev-gcp
+    - name: JAVA_OPTS
+      value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+  prometheus:
+    enabled: true
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
+  tokenx:
+    enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: https://min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io/
+        - host: unleash.nais.io
