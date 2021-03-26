@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
 
 import static no.nav.security.token.support.core.JwtTokenConstants.AUTHORIZATION_HEADER;
 
-@Profile({"dev-gcp", "prod-gcp", "local"})
+@Profile({"local","dev-gcp","prod-gcp"})
 @Slf4j
 @Service
 @Setter

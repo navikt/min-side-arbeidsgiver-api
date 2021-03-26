@@ -14,7 +14,7 @@ import java.util.Map;
 
 import static no.nav.tag.dittNavArbeidsgiver.services.tokenExchange.TokenXProperties.*;
 
-@Profile({"local","dev-gcp"})
+@Profile({"local","dev-gcp","prod-gcp"})
 @Component
 public class TokenExchangeClient {
 

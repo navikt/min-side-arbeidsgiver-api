@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -17,6 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @Component
+@Profile({"dev", "prod"})
 public class STSClient {
 
     private RestTemplate restTemplate;

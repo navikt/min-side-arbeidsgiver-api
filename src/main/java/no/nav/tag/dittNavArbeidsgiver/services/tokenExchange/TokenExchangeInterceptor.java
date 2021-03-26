@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-@Profile({"local","dev-gcp"})
+@Profile({"local","dev-gcp","prod-gcp"})
 @Component
 public class TokenExchangeInterceptor implements ClientHttpRequestInterceptor {
 

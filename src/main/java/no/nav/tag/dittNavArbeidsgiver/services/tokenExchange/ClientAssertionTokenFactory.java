@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.UUID;
 
 @Slf4j
-@Profile({"local", "dev-gcp"})
+@Profile({"local", "dev-gcp","prod-gcp"})
 @Component
 public class ClientAssertionTokenFactory {
 

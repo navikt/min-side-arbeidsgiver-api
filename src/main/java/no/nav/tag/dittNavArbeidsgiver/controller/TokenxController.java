@@ -13,7 +13,7 @@ import static no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils.ISSUER;
 import static no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils.REQUIRED_LOGIN_LEVEL;
 
 @ProtectedWithClaims(issuer=ISSUER, claimMap={REQUIRED_LOGIN_LEVEL})
-@Profile({"local","dev-gcp"})
+@Profile({"local","dev-gcp","prod-gcp"})
 @RestController
 public class TokenxController {
 
