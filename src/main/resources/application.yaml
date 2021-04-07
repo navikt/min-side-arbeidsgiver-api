@@ -239,7 +239,7 @@ no.nav.security.jwt.issuer.selvbetjening:
 altinn:
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
-  proxyUrl: https://arbeidsgiver.dev.nav.no/altinn-rettigheter-proxy/
+  proxyUrl: https://arbeidsgiver.nav.no/altinn-rettigheter-proxy/
   proxyFallbackUrl: https://api-gw-q1.oera.no
 
 
