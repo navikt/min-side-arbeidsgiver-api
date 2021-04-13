@@ -41,15 +41,5 @@ public class DigisyfoController {
 
     }
 
-   /* @GetMapping(value = "/api/sykemeldinger")
-    public String hentAntallSykemeldinger(@CookieValue("nav-esso") String navesso) {
-        return unleash.isEnabled("dna.digisyfo.hentSykemeldinger") ? digisyfoServiceImpl.hentSykemeldingerFraSyfo(navesso) : "[]";
-    }
-    
-    @GetMapping(value = "/api/syfooppgaver")
-    public String hentSyfoOppgaver(@CookieValue("nav-esso") String navesso) {
-        return digisyfoServiceImpl.hentSyfoOppgaver(navesso);
-    }
-*/
 }
 
