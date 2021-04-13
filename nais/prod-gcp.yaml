@@ -29,9 +29,7 @@ spec:
     - secret: min-side-ag-secrets
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: dev-gcp
-    - name: JAVA_OPTS
-      value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+      value: prod-gcp
   prometheus:
     enabled: true
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
