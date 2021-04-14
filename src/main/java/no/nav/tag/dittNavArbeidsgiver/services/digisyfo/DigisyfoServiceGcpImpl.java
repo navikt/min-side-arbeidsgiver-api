@@ -14,11 +14,11 @@ import org.springframework.web.client.RestTemplate;
 
 import static no.nav.security.token.support.core.JwtTokenConstants.AUTHORIZATION_HEADER;
 
-@Profile({"local","dev-gcp","prod-gcp"})
+@Profile({"local", "dev-gcp", "prod-gcp"})
 @Slf4j
 @Service
 @Setter
-public class DigisyfoServiceGcpImpl implements DigisyfoService{
+public class DigisyfoServiceGcpImpl implements DigisyfoService {
 
     private final RestTemplate restTemplate;
     private TokenExchangeClient tokenExchangeClient;
@@ -38,9 +38,9 @@ public class DigisyfoServiceGcpImpl implements DigisyfoService{
         try {
             return hentNarmesteLederFraDigiSyfo(getRequestEntity(), url);
         } catch (RestClientException e1) {
-                log.error(" Digisyfo Exception: ", e1);
-                throw new RuntimeException(" Digisyfo Exception: " + e1);
-            }
+            log.error(" Digisyfo Exception: ", e1);
+            throw new RuntimeException(" Digisyfo Exception: " + e1);
+        }
     }
 
     private DigisyfoNarmesteLederRespons hentNarmesteLederFraDigiSyfo(HttpEntity<String> entity, String url) {
@@ -57,9 +57,9 @@ public class DigisyfoServiceGcpImpl implements DigisyfoService{
         return respons.getBody();
     }
 
-    private HttpEntity <String> getRequestEntity() {
+    private HttpEntity<String> getRequestEntity() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(AUTHORIZATION_HEADER, "Bearer " +  tokenExchangeClient.exchangeToken(tokenUtils.getTokenForInnloggetBruker()).getAccess_token());
+        headers.set(AUTHORIZATION_HEADER, "Bearer " + tokenExchangeClient.exchangeToken(tokenUtils.getTokenForInnloggetBruker()).getAccess_token());
         return new HttpEntity<>(headers);
     }
 
