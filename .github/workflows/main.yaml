@@ -119,7 +119,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: nais/deploy/actions/deploy@v1
-        if: "false"
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
