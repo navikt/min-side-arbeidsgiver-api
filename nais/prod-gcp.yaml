@@ -22,16 +22,14 @@ spec:
     periodSeconds: 10
     failureThreshold: 3
   ingresses:
-    - https://min-side-arbeidsgiver-api.dev.nav.no/ditt-nav-arbeidsgiver-api/
+    - https://min-side-arbeidsgiver-api.nav.no/ditt-nav-arbeidsgiver-api/
   webproxy: false
   envFrom:
     - configmap: loginservice-idporten
     - secret: min-side-ag-secrets
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: dev-gcp
-    - name: JAVA_OPTS
-      value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+      value: prod-gcp
   prometheus:
     enabled: true
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
@@ -40,5 +38,5 @@ spec:
   accessPolicy:
     outbound:
       external:
-        - host: min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io
+        - host: min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io/
         - host: unleash.nais.io

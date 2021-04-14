@@ -12,7 +12,8 @@ import org.springframework.cache.annotation.EnableCaching;
 })
 @EnableCaching
 public class DittNavArbeidsgiverApplication {
-    public static void main(String [] args) {
+
+    public static void main(String[] args) {
         SpringApplication.run(DittNavArbeidsgiverApplication.class, args);
     }
 

@@ -3,6 +3,7 @@ package no.nav.tag.dittNavArbeidsgiver.services.aktor;
 import no.nav.tag.dittNavArbeidsgiver.DittNavArbeidsgiverApplication;
 import no.nav.tag.dittNavArbeidsgiver.services.sts.STSClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -12,6 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.UUID;
 
 @Component
+@Profile({"dev", "prod","local"})
 public class AktorClient {
 
     @Value("${aktorregister.aktorUrl}") private String aktorUrl;

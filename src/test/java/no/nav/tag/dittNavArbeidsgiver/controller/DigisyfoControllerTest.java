@@ -3,7 +3,7 @@ package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import no.finn.unleash.Unleash;
 import no.nav.security.token.support.core.context.TokenValidationContextHolder;
-import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoService;
+import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,33 +42,21 @@ public class DigisyfoControllerTest {
     private TokenValidationContextHolder requestContextHolder;
 
     @Mock
-    private DigisyfoService digisyfoService;
+    private DigisyfoServiceImpl digisyfoServiceImpl;
 
     @MockBean
     private DigisyfoController digisyfoController;
 
     @Before
     public void setUp() {
-        digisyfoController = new DigisyfoController(requestContextHolder, digisyfoService, unleash);
+        digisyfoController = new DigisyfoController(requestContextHolder, digisyfoServiceImpl, unleash);
 
-    }
-
-    @Test
-    public void sjekkNarmestelederTilgang() {
-
-    }
-
-    @Test
-    public void hentAntallSykemeldinger() {
-        when(unleash.isEnabled("dna.digisyfo.hentSykemeldinger")).thenReturn(false);
-        String result = digisyfoController.hentAntallSykemeldinger("hei");
-        assertThat(result).isEqualTo("[]");
     }
 
     @Test
     public void testAtProtectedAnnotasjonForerTilsetOIDCValidationContext() {
         try {
-            this.mockMvc.perform(get("/api/syfooppgaver")).andExpect(status().isUnauthorized());
+            this.mockMvc.perform(get("/api/narmesteleder")).andExpect(status().isUnauthorized());
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile({ "dev-gcp", "dev", "prod" })
+@Profile({"dev-gcp", "prod-gcp", "dev", "prod"})
 public class MetrikkConfig {
     public MetrikkConfig() {
         String miljø = System.getenv("NAIS_CLUSTER_NAME");
