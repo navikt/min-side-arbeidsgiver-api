@@ -41,7 +41,6 @@ spec:
     inbound:
       rules:
         - application: ditt-nav-arbeidsgiver
-          namespace: arbeidsgiver
     outbound:
       external:
         - host: min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io
