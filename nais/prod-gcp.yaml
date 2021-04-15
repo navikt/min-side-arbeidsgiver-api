@@ -36,6 +36,10 @@ spec:
   tokenx:
     enabled: true
   accessPolicy:
+    inbound:
+      rules:
+        - application: ditt-nav-arbeidsgiver
+          namespace: arbeidsgiver
     outbound:
       external:
         - host: min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io/
