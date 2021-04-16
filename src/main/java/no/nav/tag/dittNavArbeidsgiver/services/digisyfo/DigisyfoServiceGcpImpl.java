@@ -35,7 +35,7 @@ public class DigisyfoServiceGcpImpl implements DigisyfoService {
         this.restTemplate = restTemplate;
         this.tokenExchangeClient = tokenExchangeClient;
         this.tokenUtils = tokenUtils;
-        proxyUrl = proxydomene + "narmesteleder";
+        proxyUrl = proxydomene + "/narmesteleder";
     }
 
     @Override
