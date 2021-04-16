@@ -41,5 +41,5 @@ spec:
         - application: ditt-nav-arbeidsgiver
     outbound:
       external:
-        - host: min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io/
+        - host: min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io
         - host: unleash.nais.io
