@@ -2,10 +2,12 @@ package no.nav.tag.dittNavArbeidsgiver.services.digisyfo;
 
 
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.tag.dittNavArbeidsgiver.models.DigisyfoNarmesteLederRespons;
 import no.nav.tag.dittNavArbeidsgiver.services.tokenExchange.TokenExchangeClient;
 import no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -23,13 +25,17 @@ public class DigisyfoServiceGcpImpl implements DigisyfoService {
     private final RestTemplate restTemplate;
     private TokenExchangeClient tokenExchangeClient;
     private final TokenUtils tokenUtils;
+    String proxyUrl;
 
-    String proxyUrl = "https://min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io/narmesteleder";
-
-    public DigisyfoServiceGcpImpl(RestTemplate restTemplate, TokenExchangeClient tokenExchangeClient, TokenUtils tokenUtils) {
+    @Autowired
+    public DigisyfoServiceGcpImpl(RestTemplate restTemplate,
+                                  TokenExchangeClient tokenExchangeClient,
+                                  TokenUtils tokenUtils,
+                                  @Value("${min-side-ag-proxy-url}") String proxydomene) {
         this.restTemplate = restTemplate;
         this.tokenExchangeClient = tokenExchangeClient;
         this.tokenUtils = tokenUtils;
+        proxyUrl = proxydomene + "/narmesteleder";
     }
 
     @Override

@@ -57,6 +57,8 @@ token.x:
   tokendingsUrl: "tokendingsUrl"
   audience: "local-client"
 
+min-side-ag-proxy-url: "https://min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io"
+
 ---
 
 spring:
@@ -100,7 +102,7 @@ unleash:
 spring:
   profiles: dev-gcp
 
-min-side-ag-proxy-url: "https://min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io/"
+min-side-ag-proxy-url: "https://min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io"
 
 sts:
   stsPass: ${STS_PASS}
@@ -214,7 +216,7 @@ unleash:
 spring:
   profiles: prod-gcp
 
-min-side-ag-proxy-url: "https://min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io/"
+min-side-ag-proxy-url: "https://min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io"
 
 no.nav.security.jwt.issuer.selvbetjening:
   discoveryurl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL}
