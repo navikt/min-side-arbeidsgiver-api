@@ -18,6 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 public class AltinnTilgangssøknadClient {
     private final RestTemplate restTemplate;
     private final HttpHeaders altinnHeaders;
-    private final UriComponentsBuilder altinnUriBuilder;
+    private final Supplier<UriComponentsBuilder> altinnUriBuilder;
     private final URI altinnUri;
     private final ParameterizedTypeReference<Søknadsstatus> søknadsstatusType;
     private final ParameterizedTypeReference<DelegationRequest> delegationRequestType;
@@ -34,14 +35,16 @@ public class AltinnTilgangssøknadClient {
     public AltinnTilgangssøknadClient(RestTemplate restTemplate, AltinnConfig altinnConfig) {
         this.restTemplate = restTemplate;
 
-        this.altinnUriBuilder = UriComponentsBuilder.fromUriString(
+        var altinnUriBuilder = UriComponentsBuilder.fromUriString(
                 altinnConfig.getProxyFallbackUrl()
                         + "/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication"
         );
 
+        this.altinnUriBuilder = altinnUriBuilder::cloneBuilder;
+
 
         this.altinnUri = altinnUriBuilder.build().toUri();
-        log.info("altinnUri: {}", altinnUri.toString());
+        log.info("altinnUri: {}", altinnUri);
 
         this.altinnHeaders = new HttpHeaders();
         this.altinnHeaders.add("accept", "application/hal+json");
@@ -58,9 +61,13 @@ public class AltinnTilgangssøknadClient {
 
     public List<AltinnTilgangssøknad> hentSøknader(String fødselsnummer) {
         var resultat = new ArrayList<AltinnTilgangssøknad>();
-        URI uri = altinnUri;
+        String filter = String.format("CoveredBy eq '%s'", fødselsnummer);
 
-        do {
+        URI uri = altinnUriBuilder.get()
+                .queryParam("$filter", filter)
+                .build()
+                .toUri();
+        while (uri != null) {
             var request = RequestEntity.get(uri).headers(altinnHeaders).build();
             var response = restTemplate.exchange(request, søknadsstatusType);
 
@@ -71,11 +78,16 @@ public class AltinnTilgangssøknadClient {
             }
 
             var body = response.getBody();
+            if (body == null) {
+                log.warn("Altinn delegation requests: body missing");
+                break;
+            }
             if (body.embedded.delegationRequests.isEmpty()) {
                 uri = null;
             } else {
                 uri = altinnUriBuilder
-                        .cloneBuilder()
+                        .get()
+                        .queryParam("$filter", filter)
                         .queryParam("continuation", body.continuationtoken)
                         .build()
                         .toUri();
@@ -84,7 +96,6 @@ public class AltinnTilgangssøknadClient {
             body.embedded
                     .delegationRequests
                     .stream()
-                    .filter(søknad -> fødselsnummer.equals(søknad.CoveredBy))
                     .map(søknadDTO -> {
                         var søknad = new AltinnTilgangssøknad();
                         søknad.setOrgnr(søknadDTO.OfferedBy);
@@ -97,7 +108,7 @@ public class AltinnTilgangssøknadClient {
                         return søknad;
                     })
                     .collect(Collectors.toCollection(() -> resultat));
-        } while (uri != null);
+        }
 
         return resultat;
     }
