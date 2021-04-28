@@ -52,21 +52,6 @@ jobs:
         echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u $GITHUB_REPOSITORY --password-stdin
         docker push $IMAGE
 
-  deploy-dev-fss:
-    name: Deploy to dev-fss
-    needs: bygg
-    if: needs.bygg.result == 'success'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: dev-fss
-          VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/dev.yaml
-
-
   deploy-dev-gcp:
     name: Deploy to dev-gcp
     needs: bygg
@@ -82,7 +67,6 @@ jobs:
           VAR: image=${{ env.IMAGE }}
           RESOURCE: nais/dev-gcp.yaml
 
-
   deploy-labs-gcp:
     name: Deploy to labs-gcp
     needs: bygg
@@ -96,20 +80,6 @@ jobs:
           CLUSTER: labs-gcp
           VAR: image=${{ env.IMAGE }}
           RESOURCE: nais/labs-gcp.yaml
-
-  deploy-prod-fss:
-    name: Deploy to prod-fss
-    needs: deploy-dev-fss
-    if: needs.deploy-dev-fss.result == 'success' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: prod-fss
-          VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/prod.yaml
 
   deploy-prod-gcp:
     name: Deploy to prod-gcp
