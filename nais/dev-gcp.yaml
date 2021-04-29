@@ -37,6 +37,9 @@ spec:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
   tokenx:
     enabled: true
+  azure:
+    application:
+      enabled: true
   accessPolicy:
     inbound:
       rules:
