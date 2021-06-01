@@ -17,7 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static no.nav.security.token.support.core.JwtTokenConstants.AUTHORIZATION_HEADER;
 
-@Profile({"dev", "prod"})
+@Profile({"dev", "prod", "labs"})
 @Slf4j
 @Service
 @Setter
