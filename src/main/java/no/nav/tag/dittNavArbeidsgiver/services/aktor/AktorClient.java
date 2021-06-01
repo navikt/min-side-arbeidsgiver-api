@@ -13,7 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.UUID;
 
 @Component
-@Profile({"dev", "prod","local"})
+@Profile({"dev", "prod", "local", "labs"})
 public class AktorClient {
 
     @Value("${aktorregister.aktorUrl}") private String aktorUrl;
