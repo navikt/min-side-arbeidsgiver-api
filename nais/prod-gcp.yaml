@@ -43,6 +43,8 @@ spec:
       rules:
         - application: ditt-nav-arbeidsgiver
     outbound:
+      rules:
+        - application: altinn-rettigheter-proxy
       external:
         - host: min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io
         - host: unleash.nais.io
