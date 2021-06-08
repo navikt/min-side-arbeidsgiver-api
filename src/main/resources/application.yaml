@@ -14,7 +14,9 @@ spring:
 ---
 
 spring:
-  profiles: local
+  config:
+    activate:
+      on-profile: local
 
 nais.cluster.name: local
 
@@ -62,7 +64,9 @@ min-side-ag-proxy-url: "https://min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io"
 ---
 
 spring:
-  profiles: labs
+  config:
+    activate:
+      on-profile: labs
 
 no.nav.security.jwt.issuer.selvbetjening:
   discoveryurl: http://min-side-ag-fakelogin/metadata?issuer=selvbetjening
@@ -100,7 +104,9 @@ unleash:
 
 ---
 spring:
-  profiles: dev-gcp
+  config:
+    activate:
+      on-profile: dev-gcp
 
 min-side-ag-proxy-url: "https://min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io"
 
@@ -116,7 +122,7 @@ no.nav.security.jwt.issuer.selvbetjening:
 altinn:
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
-  proxyUrl: https://arbeidsgiver.dev.nav.no/altinn-rettigheter-proxy/
+  proxyUrl: http://altinn-rettigheter-proxy/
   proxyFallbackUrl: https://api-gw-q1.oera.no
 
 unleash:
@@ -133,7 +139,9 @@ token.x:
 
 ---
 spring:
-  profiles: dev
+  config:
+    activate:
+      on-profile: dev
 
 digisyfo:
   digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.preprod.local/api/"
@@ -175,7 +183,9 @@ yrkeskodeverk:
 ---
 
 spring:
-  profiles: prod
+  config:
+    activate:
+      on-profile: prod
 
 digisyfo:
   digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.adeo.no/api/"
@@ -214,7 +224,9 @@ unleash:
 ---
 
 spring:
-  profiles: prod-gcp
+  config:
+    activate:
+      on-profile: prod-gcp
 
 min-side-ag-proxy-url: "https://min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io"
 

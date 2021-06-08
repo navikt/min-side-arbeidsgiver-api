@@ -32,7 +32,7 @@ public class AltinnService {
         this.tokenUtils = tokenUtils;
 
         AltinnrettigheterProxyKlientConfig proxyKlientConfig = new AltinnrettigheterProxyKlientConfig(
-                new ProxyConfig("ditt-nav-arbeidsgiver-api", altinnProxyUrl),
+                new ProxyConfig("min-side-arbeidsgiver-api", altinnProxyUrl),
                 new no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnConfig(
                         altinnProxyFallbackUrl,
                         altinnConfig.getAltinnHeader(),
