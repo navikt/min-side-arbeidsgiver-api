@@ -36,6 +36,7 @@ public class AltinnTilgangController {
             Pair.of("5441",  "1"),
             Pair.of("5516", "1"),
             Pair.of("5516", "2"),
+            Pair.of("5516", "3"),
             Pair.of("3403", "2"),
             Pair.of("5078",  "1"),
             Pair.of("5278", "1")
