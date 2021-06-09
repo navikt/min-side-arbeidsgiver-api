@@ -7,11 +7,15 @@ import no.nav.tag.dittNavArbeidsgiver.models.AltinnTilgangssøknad;
 import no.nav.tag.dittNavArbeidsgiver.models.AltinnTilgangssøknadsskjema;
 import no.nav.tag.dittNavArbeidsgiver.services.altinn.AltinnConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -58,7 +62,6 @@ public class AltinnTilgangssøknadClient {
         };
     }
 
-
     public List<AltinnTilgangssøknad> hentSøknader(String fødselsnummer) {
         var resultat = new ArrayList<AltinnTilgangssøknad>();
         String filter = String.format("CoveredBy eq '%s'", fødselsnummer);
@@ -69,7 +72,13 @@ public class AltinnTilgangssøknadClient {
                 .toUri();
         while (uri != null) {
             var request = RequestEntity.get(uri).headers(altinnHeaders).build();
-            var response = restTemplate.exchange(request, søknadsstatusType);
+            ResponseEntity<Søknadsstatus> response;
+            try {
+                response = restTemplate.exchange(request, søknadsstatusType);
+            } catch (HttpServerErrorException.BadGateway e) {
+                log.warn("retry pga bad gateway mot alltinn {}", e.getMessage());
+                response = restTemplate.exchange(request, søknadsstatusType);
+            }
 
             if (response.getStatusCode() != HttpStatus.OK) {
                 var msg = String.format("Henting av status på tilgangssøknader feilet med http-status %s", response.getStatusCode());
