@@ -34,9 +34,6 @@ public class MockServer {
     @Autowired
     MockServer(
             @Value("${mock.port}") int port,
-            @Value("${sts.stsUrl}") String stsUrl,
-            @Value("${aad.aadAccessTokenURL}") String aadUrl,
-            @Value("${aktorregister.aktorUrl}") String aktorUrl,
             @Value("${digisyfo.narmestelederUrl}") String digisyfoUrl
     ) {
         log.info("starter mockserveren");
@@ -46,15 +43,9 @@ public class MockServer {
                         .extensions(new ResponseTemplateTransformer(true))
                         .notifier(new ConsoleNotifier(true))
         );
-        String stsPath = new URL(stsUrl).getPath();
-        String aadPath = new URL(aadUrl).getPath();
-        String aktorPath = new URL(aktorUrl).getPath();
         String syfoNarmesteLederPath = new URL(digisyfoUrl).getPath();
 
         mockForPath(server, ALTINN_PROXY_PATH, "organisasjoner.json");
-        mockForPath(server, stsPath, "STStoken.json");
-        mockForPath(server, aadPath, "aadtoken.json");
-        mockForPath(server, aktorPath, "aktorer.json");
         mockForPath(server, syfoNarmesteLederPath, "narmesteLeder.json");
         mocktilgangTilSkjemForBedriftForAltinnProxy(server);
         server.start();

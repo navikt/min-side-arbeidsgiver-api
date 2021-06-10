@@ -30,13 +30,6 @@ mock:
   port: 8081
   aktorPort: 8082
 
-sts:
-  stsPass: "mockpass"
-  stsUrl: "http://localhost:${mock.port}/sts"
-
-aktorregister:
-  aktorUrl: "http://localhost:${mock.port}/aktoerregister/api/v1/identer"
-
 altinn:
   altinnHeader: "test"
   APIGwHeader: "test"
@@ -45,9 +38,6 @@ altinn:
 
 digisyfo:
   narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte"
-
-aad:
-  aadAccessTokenURL: "http://localhost:${mock.port}/aad"
 
 unleash:
   url: "https://unleash.herokuapp.com/api/"
@@ -74,13 +64,6 @@ mock:
   port: 8081
   aktorPort: 8082
 
-sts:
-  stsPass: "mockpass"
-  stsUrl: "http://localhost:${mock.port}/sts"
-
-aktorregister:
-  aktorUrl: "http://localhost:${mock.port}/aktoerregister/api/v1/identer"
-
 altinn:
   altinnHeader: "test"
   APIGwHeader: "test"
@@ -90,9 +73,6 @@ altinn:
 digisyfo:
   narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte"
 
-aad:
-  aadAccessTokenURL: "http://localhost:${mock.port}/aad"
-
 unleash:
   url: "https://unleash.herokuapp.com/api/"
 
@@ -101,10 +81,6 @@ spring:
   config:
     activate:
       on-profile: dev-gcp
-
-sts:
-  stsPass: ${STS_PASS}
-  stsUrl: https://security-token-service.nais.preprod.local/rest/v1/sts/token
 
 no.nav.security.jwt.issuer.selvbetjening:
   discoveryurl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL}
@@ -119,9 +95,6 @@ altinn:
 
 unleash:
   url: https://unleash.nais.oera.no/api
-
-yrkeskodeverk:
-  yrkeskodeUrl: "https://kodeverk.nais.preprod.local/api/v1/kodeverk/Yrker/koder/betydninger?spraak=nb"
 
 token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}
@@ -152,9 +125,6 @@ altinn:
 
 unleash:
   url: https://unleash.nais.adeo.no/api
-
-yrkeskodeverk:
-  yrkeskodeUrl: "https://kodeverk.nais.prod.local/api/v1/kodeverk/Yrker/koder/betydninger?spraak=nb"
 
 token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}

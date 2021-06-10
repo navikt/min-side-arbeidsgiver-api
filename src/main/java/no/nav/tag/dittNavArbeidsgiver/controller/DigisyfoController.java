@@ -26,7 +26,7 @@ public class DigisyfoController {
     @GetMapping(value = "/api/narmesteleder")
     public NarmesteLedertilgang sjekkNarmestelederTilgang() {
         NarmesteLedertilgang response = new NarmesteLedertilgang();
-        response.tilgang = digisyfoService.getNarmesteledere().getAnsatte().length > 0;
+        response.tilgang = !digisyfoService.getNarmesteledere().getAnsatte().isEmpty();
         return response;
     }
 
