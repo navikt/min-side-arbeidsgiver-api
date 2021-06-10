@@ -46,9 +46,8 @@ public class DigisyfoServiceGcpImpl implements DigisyfoService {
     }
 
     private DigisyfoNarmesteLederRespons hentNarmesteLederFraDigiSyfo(HttpEntity<String> entity, String url) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url).queryParam("status", "ACTIVE");
         ResponseEntity<DigisyfoNarmesteLederRespons> respons = restTemplate.exchange(
-                builder.toUriString(),
+                syfoNarmesteLederUrl,
                 HttpMethod.GET,
                 entity,
                 DigisyfoNarmesteLederRespons.class);
