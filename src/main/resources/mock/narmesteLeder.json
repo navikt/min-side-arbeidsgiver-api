@@ -1,26 +1,16 @@
 {
-  "narmesteLedere": [
+  "ansatte": [
     {
-      "aktor": "1000029353768",
-      "orgnummer": "974553376",
-      "tilgangFom": "2016-12-21",
-      "skrivetilgang": true,
-      "tilganger": ["SYKMELDING", "SYKEPENGESOKNAD", "MOTE", "OPPFOLGINGSPLAN"]
+      "fnr": "03018722843",
+      "navn": "Molefonken Bamse",
+      "orgnummer": "972674818",
+      "narmestelederId": "e7e50310-7a70-4110-9ffd-9f2eee203f44"
     },
     {
-      "aktor": "1000041748629",
-      "orgnummer": "975266761",
-      "tilgangFom": "2016-12-21",
-      "skrivetilgang": true,
-      "tilganger": ["SYKMELDING", "SYKEPENGESOKNAD", "MOTE", "OPPFOLGINGSPLAN"]
-    },
-    {
-      "aktor": "1000009723233",
-      "orgnummer": "973445995",
-      "tilgangFom": "2016-12-15",
-      "skrivetilgang": true,
-      "tilganger": ["SYKMELDING", "SYKEPENGESOKNAD", "MOTE", "OPPFOLGINGSPLAN"]
+      "fnr": "03018722843",
+      "navn": "Molefonken Bamse",
+      "orgnummer": "972674818",
+      "narmestelederId": "b5b3795f-17f5-455e-92ed-85533781f028"
     }
-  ],
-  "humanResources": []
+  ]
 }
