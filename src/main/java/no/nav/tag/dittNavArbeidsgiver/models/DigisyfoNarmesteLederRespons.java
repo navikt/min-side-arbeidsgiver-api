@@ -6,6 +6,5 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 public class DigisyfoNarmesteLederRespons {
-    NarmesteLeder [] narmesteLedere;
-    String[] humanResources;
+    Ansatt[] ansatte;
 }

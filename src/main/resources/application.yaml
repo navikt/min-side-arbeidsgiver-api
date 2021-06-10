@@ -44,9 +44,7 @@ altinn:
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
 
 digisyfo:
-  digisyfoUrl: "http://localhost:${mock.port}/digisyfo/api/"
-  sykemeldteURL: "http://localhost:${mock.port}/syforest/sykmeldinger"
-  syfooppgaveurl: "http://localhost:${mock.port}/syforest/oppgaver"
+  narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte"
 
 aad:
   aadAccessTokenURL: "http://localhost:${mock.port}/aad"
@@ -58,8 +56,6 @@ token.x:
   clientId: "local"
   tokendingsUrl: "tokendingsUrl"
   audience: "local-client"
-
-min-side-ag-proxy-url: "https://min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io"
 
 ---
 
@@ -92,9 +88,7 @@ altinn:
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
 
 digisyfo:
-  digisyfoUrl: "http://localhost:${mock.port}/digisyfo/api/"
-  sykemeldteURL: "http://localhost:${mock.port}/syforest/sykmeldinger"
-  syfooppgaveurl: "http://localhost:${mock.port}/syforest/oppgaver"
+  narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte"
 
 aad:
   aadAccessTokenURL: "http://localhost:${mock.port}/aad"
@@ -107,8 +101,6 @@ spring:
   config:
     activate:
       on-profile: dev-gcp
-
-min-side-ag-proxy-url: "https://min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io"
 
 sts:
   stsPass: ${STS_PASS}
@@ -137,89 +129,8 @@ token.x:
   tokendingsUrl: "https://tokendings.dev-gcp.nais.io/token"
   audience: "dev-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
 
----
-spring:
-  config:
-    activate:
-      on-profile: dev
-
 digisyfo:
-  digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.preprod.local/api/"
-  sykemeldteURL: "https://tjenester-q1.nav.no/syforest/sykmeldinger"
-  syfooppgaveurl: "https://tjenester-q1.nav.no/syforest/oppgaver"
-
-sts:
-  stsPass: ${STS_PASS}
-  stsUrl: https://security-token-service.nais.preprod.local/rest/v1/sts/token
-
-aktorregister:
-  aktorUrl: "https://app-q1.adeo.no/aktoerregister/api/v1/identer"
-
-aad:
-  aadAccessTokenURL: "https://login.microsoftonline.com/navq.onmicrosoft.com/oauth2/token"
-  azureClientSecret:  ${AZURE_CLIENT_SECRET}
-  clientid: 1b1bf278-3c28-4003-a528-b595d800afb0
-  scope: 3f567c84-4912-4acf-88ef-9f0dcfc2ae2b
-
-no.nav.security.jwt.issuer.selvbetjening:
-  discoveryurl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL}
-  accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE}
-  cookiename: selvbetjening-idtoken
-  proxyurl: http://webproxy.nais:8088
-
-altinn:
-  altinnHeader: ${ALTINN_HEADER}
-  APIGwHeader: ${APIGW_HEADER}
-  proxyUrl: https://arbeidsgiver.dev.intern.nav.no/altinn-rettigheter-proxy/
-  proxyFallbackUrl: https://api-gw-q1.adeo.no
-
-
-unleash:
-  url: https://unleash.nais.adeo.no/api
-
-yrkeskodeverk:
-  yrkeskodeUrl: "https://kodeverk.nais.preprod.local/api/v1/kodeverk/Yrker/koder/betydninger?spraak=nb"
-
----
-
-spring:
-  config:
-    activate:
-      on-profile: prod
-
-digisyfo:
-  digisyfoUrl: "https://syfoarbeidsgivertilgang.nais.adeo.no/api/"
-  sykemeldteURL: "https://tjenester.nav.no/syforest/sykmeldinger"
-  syfooppgaveurl: "https://tjenester.nav.no/syforest/oppgaver"
-
-aktorregister:
-  aktorUrl: "https://app.adeo.no/aktoerregister/api/v1/identer"
-
-sts:
-  stsPass: ${STS_PASS}
-  stsUrl: https://security-token-service.nais.adeo.no/rest/v1/sts/token
-
-aad:
-  aadAccessTokenURL: "https://login.microsoftonline.com/navno.onmicrosoft.com/oauth2/token"
-  azureClientSecret:  ${AZURE_CLIENT_SECRET}
-  clientid: ${AZURE_CLIENT_ID}
-  scope: 24059ae3-654d-4aaf-9c04-a1cb7b510bb4
-
-no.nav.security.jwt.issuer.selvbetjening:
-  discoveryurl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL}
-  accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE}
-  cookiename: selvbetjening-idtoken
-  proxyurl: http://webproxy.nais:8088
-
-altinn:
-  altinnHeader: ${ALTINN_HEADER}
-  APIGwHeader: ${APIGW_HEADER}
-  proxyUrl: https://arbeidsgiver.intern.nav.no/altinn-rettigheter-proxy/
-  proxyFallbackUrl: https://api-gw.adeo.no
-
-unleash:
-  url: https://unleash.nais.adeo.no/api
-
+  narmestelederUrl: "https://narmesteleder.dev.nav.no/arbeidsgiver/ansatte"
 
 ---
 
@@ -227,8 +138,6 @@ spring:
   config:
     activate:
       on-profile: prod-gcp
-
-min-side-ag-proxy-url: "https://min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io"
 
 no.nav.security.jwt.issuer.selvbetjening:
   discoveryurl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL}
@@ -241,7 +150,6 @@ altinn:
   proxyUrl: http://altinn-rettigheter-proxy/altinn-rettigheter-proxy
   proxyFallbackUrl: https://api-gw.oera.no
 
-
 unleash:
   url: https://unleash.nais.adeo.no/api
 
@@ -253,3 +161,6 @@ token.x:
   clientId: ${TOKEN_X_CLIENT_ID}
   tokendingsUrl: "https://tokendings.prod-gcp.nais.io/token"
   audience: "prod-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
+
+digisyfo:
+  narmestelederUrl: "https://narmesteleder.nav.no/arbeidsgiver/ansatte"
