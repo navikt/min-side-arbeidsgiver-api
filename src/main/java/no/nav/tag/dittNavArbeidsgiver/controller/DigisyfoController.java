@@ -24,11 +24,10 @@ public class DigisyfoController {
     }
 
     @GetMapping(value = "/api/narmesteleder")
-    public ResponseEntity<NarmesteLedertilgang> sjekkNarmestelederTilgang() {
+    public NarmesteLedertilgang sjekkNarmestelederTilgang() {
         NarmesteLedertilgang response = new NarmesteLedertilgang();
         response.tilgang = digisyfoService.getNarmesteledere().getAnsatte().length > 0;
-        return ResponseEntity.ok(response);
-
+        return response;
     }
 
 }
