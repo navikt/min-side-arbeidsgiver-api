@@ -1,0 +1,12 @@
+{
+  "{{request.headers.Nav-Personidenter}}": {
+    "identer": [
+      {
+        "ident": "1000087745633",
+        "identgruppe": "AktoerId",
+        "gjeldende": true
+      }
+    ],
+    "feilmelding": null
+  }
+}

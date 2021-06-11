@@ -1,7 +1,9 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
+
+import no.finn.unleash.Unleash;
 import no.nav.security.token.support.core.context.TokenValidationContextHolder;
-import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoServiceGcpImpl;
+import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,7 +18,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,18 +35,21 @@ public class DigisyfoControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Mock
+    private Unleash unleash;
+
     @SpyBean
     private TokenValidationContextHolder requestContextHolder;
 
     @Mock
-    private DigisyfoServiceGcpImpl digisyfoServiceImpl;
+    private DigisyfoServiceImpl digisyfoServiceImpl;
 
     @MockBean
     private DigisyfoController digisyfoController;
 
     @Before
     public void setUp() {
-        digisyfoController = new DigisyfoController(digisyfoServiceImpl);
+        digisyfoController = new DigisyfoController(requestContextHolder, digisyfoServiceImpl, unleash);
 
     }
 

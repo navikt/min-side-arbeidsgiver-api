@@ -6,9 +6,10 @@ import lombok.Data;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
-public class Ansatt {
-    String fnr;
-    String navn;
+public class NarmesteLeder {
+    String aktor;
     String orgnummer;
-    String narmestelederId;
+    String tilgangFom;
+    Boolean skrivetilgang;
+    String [] tilganger;
 }
