@@ -10,9 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import static no.nav.security.token.support.core.JwtTokenConstants.AUTHORIZATION_HEADER;
 
@@ -37,26 +35,12 @@ public class DigisyfoServiceGcpImpl implements DigisyfoService {
 
     @Override
     public DigisyfoNarmesteLederRespons getNarmesteledere() {
-        try {
-            return hentNarmesteLederFraDigiSyfo(getRequestEntity(), syfoNarmesteLederUrl);
-        } catch (RestClientException e1) {
-            log.error(" Digisyfo Exception: ", e1);
-            throw new RuntimeException(" Digisyfo Exception: " + e1);
-        }
-    }
-
-    private DigisyfoNarmesteLederRespons hentNarmesteLederFraDigiSyfo(HttpEntity<String> entity, String url) {
-        ResponseEntity<DigisyfoNarmesteLederRespons> respons = restTemplate.exchange(
+        return restTemplate.exchange(
                 syfoNarmesteLederUrl,
                 HttpMethod.GET,
-                entity,
-                DigisyfoNarmesteLederRespons.class);
-        if (respons.getStatusCode() != HttpStatus.OK) {
-            String message = "Kall mot digisyfo feiler med HTTP-" + respons.getStatusCode();
-            log.error(message);
-            throw new RuntimeException(message);
-        }
-        return respons.getBody();
+                getRequestEntity(),
+                DigisyfoNarmesteLederRespons.class
+        ).getBody();
     }
 
     private HttpEntity<String> getRequestEntity() {

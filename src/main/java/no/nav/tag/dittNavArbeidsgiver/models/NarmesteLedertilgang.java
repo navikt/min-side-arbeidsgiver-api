@@ -1,5 +1,9 @@
 package no.nav.tag.dittNavArbeidsgiver.models;
 
 public class NarmesteLedertilgang {
-    public Boolean tilgang;
+    public final Boolean tilgang;
+
+    public NarmesteLedertilgang(Boolean tilgang) {
+        this.tilgang = tilgang;
+    }
 }
