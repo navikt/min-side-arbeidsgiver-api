@@ -130,14 +130,6 @@
             <version>6.2</version>
         </dependency>
 
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
         <!--Unleash-->
         <dependency>
             <groupId>no.finn.unleash</groupId>
@@ -146,9 +138,12 @@
         </dependency>
         <!--Metrikker-->
         <dependency>
-            <groupId>no.nav.common</groupId>
-            <artifactId>metrics</artifactId>
-            <version>1.2019.07.25-08.54-f2bfe18c24bc</version>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <!-- Lås nimbus-jose-jwt til versjon som er kompatibel med com.nimbusds:oauth2-oidc-sdk:6.5.
      Ellers får man runtime-feil på token-validering, med nyeste publiserte versjon 9.0 av nimbus-jose-jwt. -->
