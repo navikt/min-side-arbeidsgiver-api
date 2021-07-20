@@ -3,7 +3,7 @@ kind: "Alert"
 metadata:
   name: ditt-nav-arbeidsgiver-api-alert
   labels:
-    team: arbeidsgiver
+    team: fager
 spec:
   receivers:
     slack:
