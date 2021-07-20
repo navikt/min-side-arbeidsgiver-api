@@ -29,7 +29,7 @@ jobs:
     name: Bygg
     needs: test
     ### VALG AV DEV-BRANCH SETTES HER:
-    if: needs.test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/fjern_nav_common_dep')
+    if: needs.test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/flytt-til-fager')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -81,17 +81,17 @@ jobs:
           VAR: image=${{ env.IMAGE }}
           RESOURCE: nais/labs-gcp.yaml
 
-  deploy-prod-gcp:
-    name: Deploy to prod-gcp
-    needs: deploy-dev-gcp
-    if: needs.deploy-dev-gcp.result == 'success' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: prod-gcp
-          VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/prod-gcp.yaml
+#  deploy-prod-gcp:
+#    name: Deploy to prod-gcp
+#    needs: deploy-dev-gcp
+#    if: needs.deploy-dev-gcp.result == 'success' && github.ref == 'refs/heads/master'
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v1
+#      - uses: nais/deploy/actions/deploy@v1
+#        env:
+#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+#          CLUSTER: prod-gcp
+#          VAR: image=${{ env.IMAGE }}
+#          RESOURCE: nais/prod-gcp.yaml
 

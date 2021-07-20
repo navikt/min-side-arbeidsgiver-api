@@ -2,12 +2,12 @@ apiVersion: nais.io/v1alpha1
 kind: "Application"
 metadata:
   name: min-side-arbeidsgiver-api
-  namespace: arbeidsgiver
+  namespace: fager
   labels:
-    team: arbeidsgiver
+    team: fager
 spec:
   image: {{ image }}
-  team: arbeidsgiver
+  team: fager
   port: 8080
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
@@ -46,6 +46,7 @@ spec:
     outbound:
       rules:
         - application: altinn-rettigheter-proxy
+          namespace: arbeidsgiver
       external:
         - host: min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io
         - host: unleash.nais.io
