@@ -1,6 +1,8 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import no.nav.security.token.support.core.api.ProtectedWithClaims;
+import no.nav.tag.dittNavArbeidsgiver.models.DigisyfoNarmesteLederRespons;
 import no.nav.tag.dittNavArbeidsgiver.models.NarmesteLedertilgang;
 import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import static no.nav.tag.dittNavArbeidsgiver.utils.TokenUtils.REQUIRED_LOGIN_LEV
 
 @ProtectedWithClaims(issuer = ISSUER, claimMap = {REQUIRED_LOGIN_LEVEL})
 @RestController
+@Slf4j
 public class DigisyfoController {
 
     private final DigisyfoService digisyfoService;
@@ -25,8 +28,17 @@ public class DigisyfoController {
 
     @GetMapping(value = "/api/narmesteleder")
     public NarmesteLedertilgang sjekkNarmestelederTilgang() {
+        DigisyfoNarmesteLederRespons narmesteledere = digisyfoService.getNarmesteledere();
+        if (narmesteledere == null) {
+            log.error("fikk null response fra digisyfo.narmesteledere");
+            return new NarmesteLedertilgang(false);
+        }
+        if (narmesteledere.getAnsatte() == null) {
+            log.error("fikk null response fra digisyfo.narmesteledere.ansatte");
+            return new NarmesteLedertilgang(false);
+        }
         return new NarmesteLedertilgang(
-                !digisyfoService.getNarmesteledere().getAnsatte().isEmpty()
+                !narmesteledere.getAnsatte().isEmpty()
         );
     }
 
