@@ -37,7 +37,7 @@ altinn:
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
 
 digisyfo:
-  narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte?status=ACTIVE"
+  narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte"
 
 unleash:
   url: "https://unleash.herokuapp.com/api/"
@@ -71,7 +71,7 @@ altinn:
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
 
 digisyfo:
-  narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte?status=ACTIVE"
+  narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte"
 
 unleash:
   url: "https://unleash.herokuapp.com/api/"
@@ -103,7 +103,7 @@ token.x:
   audience: "dev-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
 
 digisyfo:
-  narmestelederUrl: "https://narmesteleder.dev.nav.no/arbeidsgiver/ansatte?status=ACTIVE"
+  narmestelederUrl: "https://narmesteleder.dev.nav.no/arbeidsgiver/ansatte"
 
 ---
 
@@ -133,4 +133,4 @@ token.x:
   audience: "prod-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
 
 digisyfo:
-  narmestelederUrl: "https://narmesteleder.nav.no/arbeidsgiver/ansatte?status=ACTIVE"
+  narmestelederUrl: "https://narmesteleder.nav.no/arbeidsgiver/ansatte"
