@@ -29,14 +29,6 @@ public class DigisyfoController {
     @GetMapping(value = "/api/narmesteleder")
     public NarmesteLedertilgang sjekkNarmestelederTilgang() {
         DigisyfoNarmesteLederRespons narmesteledere = digisyfoService.getNarmesteledere();
-        if (narmesteledere == null) {
-            log.error("fikk null response fra digisyfo.narmesteledere");
-            return new NarmesteLedertilgang(false);
-        }
-        if (narmesteledere.getAnsatte() == null) {
-            log.error("fikk null response fra digisyfo.narmesteledere.ansatte");
-            return new NarmesteLedertilgang(false);
-        }
         return new NarmesteLedertilgang(
                 !narmesteledere.getAnsatte().isEmpty()
         );

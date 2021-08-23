@@ -1,25 +1,21 @@
 package no.nav.tag.dittNavArbeidsgiver.mockserver;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
-import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 @Profile({"local", "labs"})
 @Slf4j
@@ -34,7 +30,10 @@ public class MockServer {
     @Autowired
     MockServer(
             @Value("${mock.port}") int port,
-            @Value("${digisyfo.narmestelederUrl}") String digisyfoUrl
+            @Value("${digisyfo.narmestelederUrl}") String digisyfoUrl,
+            @Value("classpath:mock/narmesteLeder.json") Resource narmesteLederJson,
+            @Value("classpath:mock/organisasjoner.json") Resource organisasjonerJson,
+            @Value("classpath:mock/rettigheterTilSkjema.json") Resource rettigheterTilSkjemaJson
     ) {
         log.info("starter mockserveren");
         WireMockServer server = new WireMockServer(
@@ -43,39 +42,29 @@ public class MockServer {
                         .extensions(new ResponseTemplateTransformer(true))
                         .notifier(new ConsoleNotifier(true))
         );
-        String syfoNarmesteLederPath = new URL(digisyfoUrl).getPath();
+        server.stubFor(any(urlPathMatching(ALTINN_PROXY_PATH + ".*"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(organisasjonerJson.getInputStream().readAllBytes())
+                )
+        );
+        server.stubFor(get(urlPathMatching(ALTINN_PROXY_PATH + ".*"))
+                .withQueryParams(Map.of(
+                        "serviceCode", equalTo(SERVICE_CODE),
+                        "serviceEdition", equalTo(SERVICE_EDITION)
+                ))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(rettigheterTilSkjemaJson.getInputStream().readAllBytes())
+                )
+        );
+        server.stubFor(any(urlPathMatching(new URL(digisyfoUrl).getPath() + ".*"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(narmesteLederJson.getInputStream().readAllBytes())
+                )
+        );
 
-        mockForPath(server, ALTINN_PROXY_PATH, "organisasjoner.json");
-        mockForPath(server, syfoNarmesteLederPath, "narmesteLeder.json");
-        mocktilgangTilSkjemForBedriftForAltinnProxy(server);
         server.start();
-    }
-
-    private static void mockForPath(WireMockServer server, String path, String responseFile) {
-        server.stubFor(WireMock.any(WireMock.urlPathMatching(path + ".*"))
-                .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil(responseFile))
-                ));
-    }
-
-    private static void mocktilgangTilSkjemForBedriftForAltinnProxy(
-            WireMockServer server
-    ) {
-        Map<String, StringValuePattern> parametre = new HashMap<>();
-        parametre.put("serviceCode", equalTo(SERVICE_CODE));
-        parametre.put("serviceEdition", equalTo(SERVICE_EDITION));
-
-        server.stubFor(WireMock.get(WireMock.urlPathMatching(ALTINN_PROXY_PATH + ".*"))
-                .withQueryParams(parametre)
-                .willReturn(WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(hentStringFraFil("rettigheterTilSkjema.json"))
-                ));
-    }
-
-    @SneakyThrows
-    private static String hentStringFraFil(String filnavn) {
-        return IOUtils.toString(MockServer.class.getClassLoader().getResourceAsStream("mock/" + filnavn), UTF_8);
     }
 }

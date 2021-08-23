@@ -12,6 +12,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import static java.util.Collections.emptyList;
 import static no.nav.security.token.support.core.JwtTokenConstants.AUTHORIZATION_HEADER;
 
 @Profile({"local", "labs", "dev-gcp", "prod-gcp"})
@@ -35,12 +36,18 @@ public class DigisyfoServiceGcpImpl implements DigisyfoService {
 
     @Override
     public DigisyfoNarmesteLederRespons getNarmesteledere() {
-        return restTemplate.exchange(
+        ResponseEntity<DigisyfoNarmesteLederRespons> responseEntity = restTemplate.exchange(
                 syfoNarmesteLederUrl,
                 HttpMethod.GET,
                 getRequestEntity(),
                 DigisyfoNarmesteLederRespons.class
-        ).getBody();
+        );
+        DigisyfoNarmesteLederRespons body = responseEntity.getBody();
+        if (body == null) { // dette skal egentlig ikke kunne skje, men det gjør det ¯\_(ツ)_/¯
+            log.warn("null response fra {}. {}", syfoNarmesteLederUrl, responseEntity);
+            return new DigisyfoNarmesteLederRespons(emptyList());
+        }
+        return body;
     }
 
     private HttpEntity<String> getRequestEntity() {
