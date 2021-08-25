@@ -30,7 +30,7 @@ public class AppConfig {
     }
 
     /**
-     * propagerer callid fra MDC til response header
+     * propagerer callid fra MDC til request header
      */
     @Bean
     public RestTemplateCustomizer callIdRestTemplateCustomizer() {
@@ -42,6 +42,7 @@ public class AppConfig {
 
     /**
      * propagerer callId, inkl varianter, fra request header til MDC, setter ny uuid hvis mangler.
+     * propagerer også callid til response header
      */
     @Bean
     public OncePerRequestFilter callIdTilMdcFilter() {
