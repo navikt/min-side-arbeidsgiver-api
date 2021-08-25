@@ -8,9 +8,9 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.filter.AbstractRequestLoggingFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -101,22 +101,22 @@ public class AppConfig {
      * log basic info om request response på våre endepunkter
      */
     @Bean
-    public AbstractRequestLoggingFilter requestResponseLoggingFilter() {
-        return new AbstractRequestLoggingFilter() {
+    public OncePerRequestFilter requestResponseLoggingFilter() {
+        return new OncePerRequestFilter() {
             @Override
-            protected void beforeRequest(
-                    @NotNull HttpServletRequest _request,
-                    @NotNull String message
-            ) {
-                log.info(message);
-            }
-
-            @Override
-            protected void afterRequest(
-                    @NotNull HttpServletRequest _request,
-                    @NotNull String message
-            ) {
-                log.info(message);
+            protected void doFilterInternal(
+                    @NotNull HttpServletRequest request,
+                    @NotNull HttpServletResponse response,
+                    @NotNull FilterChain chain) throws ServletException, IOException {
+                try {
+                    log.info("servlet.request {} {}", request.getMethod(), request.getRequestURI());
+                    chain.doFilter(request, response);
+                } finally {
+                    log.info(
+                            "servlet.response {} {} => {}",
+                            request.getMethod(), request.getRequestURI(), HttpStatus.resolve(response.getStatus())
+                    );
+                }
             }
         };
     }
