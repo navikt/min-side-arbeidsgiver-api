@@ -118,6 +118,11 @@ public class AppConfig {
                     );
                 }
             }
+
+            @Override
+            protected boolean shouldNotFilter(@NotNull HttpServletRequest request) {
+                return request.getRequestURI().contains("internal/actuator");
+            }
         };
     }
 }
