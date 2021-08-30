@@ -50,3 +50,4 @@ spec:
       external:
         - host: min-side-arbeidsgiver-proxy.prod-fss-pub.nais.io
         - host: unleash.nais.io
+        - host: narmesteleder.nav.no
