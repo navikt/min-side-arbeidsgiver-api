@@ -15,22 +15,23 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import static java.lang.String.format;
+import static java.lang.invoke.MethodHandles.lookup;
 
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(ResponseEntityExceptionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(lookup().lookupClass());
 
     @ExceptionHandler(value = RuntimeException.class)
     @ResponseBody
-    protected ResponseEntity<Object> handleRuntimeException(RuntimeException e, WebRequest ignored) {
+    protected ResponseEntity<Object> handleInternalError(RuntimeException e, WebRequest ignored) {
         logger.error("Uhåndtert feil", e);
         return getResponseEntity(e, "Internal error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(value = TilgangskontrollException.class)
     @ResponseBody
-    protected ResponseEntity<Object> handleRuntimeException(TilgangskontrollException e, WebRequest ignored) {
+    protected ResponseEntity<Object> handleForbidden(TilgangskontrollException e, WebRequest ignored) {
         return getResponseEntity(e, "ingen tilgang", HttpStatus.FORBIDDEN);
     }
 
