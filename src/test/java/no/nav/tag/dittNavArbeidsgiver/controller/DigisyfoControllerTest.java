@@ -33,18 +33,6 @@ public class DigisyfoControllerTest {
     @SpyBean
     private TokenValidationContextHolder requestContextHolder;
 
-    @Mock
-    private DigisyfoServiceGcpImpl digisyfoServiceImpl;
-
-    @MockBean
-    private DigisyfoController digisyfoController;
-
-    @Before
-    public void setUp() {
-        digisyfoController = new DigisyfoController(digisyfoServiceImpl);
-
-    }
-
     @Test
     public void testAtProtectedAnnotasjonForerTilsetOIDCValidationContext() {
         try {

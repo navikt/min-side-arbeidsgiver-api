@@ -1,6 +1,8 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import lombok.Data;
+import no.nav.security.token.support.spring.validation.interceptor.JwtTokenUnauthorizedException;
+import no.nav.tag.dittNavArbeidsgiver.exceptions.TilgangskontrollException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,18 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     protected ResponseEntity<Object> handleRuntimeException(RuntimeException e, WebRequest ignored) {
         logger.error("Uhåndtert feil", e);
         return getResponseEntity(e, "Internal error", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(value = TilgangskontrollException.class)
+    @ResponseBody
+    protected ResponseEntity<Object> handleRuntimeException(TilgangskontrollException e, WebRequest ignored) {
+        return getResponseEntity(e, "ingen tilgang", HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(value = JwtTokenUnauthorizedException.class)
+    @ResponseBody
+    protected ResponseEntity<Object> handleUnauthorized(JwtTokenUnauthorizedException e, WebRequest ignored) {
+        return getResponseEntity(e, "ingen tilgang", HttpStatus.UNAUTHORIZED);
     }
 
     private ResponseEntity<Object> getResponseEntity(
