@@ -1,0 +1,52 @@
+package no.nav.tag.dittNavArbeidsgiver.controller;
+
+import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import static java.lang.String.format;
+
+@ControllerAdvice
+public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+
+    private static Logger logger = LoggerFactory.getLogger(ResponseEntityExceptionHandler.class);
+
+    @ExceptionHandler(value = RuntimeException.class)
+    @ResponseBody
+    protected ResponseEntity<Object> handleRuntimeException(RuntimeException e, WebRequest ignored) {
+        logger.error("Uhåndtert feil", e);
+        return getResponseEntity(e, "Internal error", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private ResponseEntity<Object> getResponseEntity(
+            Throwable t,
+            String melding,
+            HttpStatus status
+    ) {
+        FeilRespons body = new FeilRespons(melding, t.getMessage());
+        logger.info(
+                format(
+                        "Returnerer følgende HttpStatus '%s' med melding '%s' pga exception '%s'",
+                        status.toString(),
+                        melding,
+                        t.getMessage()
+                ), t
+        );
+        return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(body);
+    }
+
+    @Data
+    public static class FeilRespons {
+        final String message;
+        final String cause;
+    }
+
+}

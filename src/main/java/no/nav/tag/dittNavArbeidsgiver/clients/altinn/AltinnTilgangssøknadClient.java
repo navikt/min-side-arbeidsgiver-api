@@ -80,12 +80,6 @@ public class AltinnTilgangssøknadClient {
                 response = restTemplate.exchange(request, søknadsstatusType);
             }
 
-            if (response.getStatusCode() != HttpStatus.OK) {
-                var msg = String.format("Henting av status på tilgangssøknader feilet med http-status %s", response.getStatusCode());
-                log.error(msg);
-                throw new RuntimeException(msg);
-            }
-
             var body = response.getBody();
             if (body == null) {
                 log.warn("Altinn delegation requests: body missing");
@@ -139,13 +133,6 @@ public class AltinnTilgangssøknadClient {
                 .body(delegationRequest);
 
         var response = restTemplate.exchange(request, delegationRequestType);
-
-        if (response.getStatusCode() != HttpStatus.OK) {
-            var msg = String.format("Ny tilgangssøknad i altinn feilet med http-status %s", response.getStatusCode());
-            log.error(msg);
-            throw new RuntimeException(msg);
-        }
-
         var body = response.getBody();
 
         var svar = new AltinnTilgangssøknad();
