@@ -26,7 +26,7 @@ public class AltinnService {
     private final TokenUtils tokenUtils;
 
     @Autowired
-    public AltinnService(AltinnConfig altinnConfig, TokenUtils tokenUtils ) {
+    public AltinnService(AltinnConfig altinnConfig, TokenUtils tokenUtils) {
         String altinnProxyUrl = altinnConfig.getProxyUrl();
         String altinnProxyFallbackUrl = altinnConfig.getProxyFallbackUrl();
         this.tokenUtils = tokenUtils;
@@ -46,19 +46,18 @@ public class AltinnService {
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         try {
             return mapTo(klient.hentOrganisasjoner(
-                   new SelvbetjeningToken(tokenUtils.getTokenForInnloggetBruker()),
-                new Subject(fnr),
-               true
-                ));
-        }  catch (Exception exception) {
-            log.error("Feil fra Altinn: Exception: " + exception.getMessage());
-            if(exception.getMessage().contains("403")){
-                throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil");
-            }
-            else{
+                    new SelvbetjeningToken(tokenUtils.getTokenForInnloggetBruker()),
+                    new Subject(fnr),
+                    true
+            ));
+        } catch (Exception exception) {
+            if (exception.getMessage().contains("403")) {
+                throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
+            } else {
                 throw new AltinnException("Feil fra Altinn", exception);
             }
-        }};
+        }
+    }
 
 
     @Cacheable(ALTINN_TJENESTE_CACHE)
@@ -69,15 +68,14 @@ public class AltinnService {
                     new Subject(fnr), new ServiceCode(serviceKode), new ServiceEdition(serviceEdition),
                     true
             ));
-        }  catch (Exception exception) {
-            log.error("Feil fra Altinn: Exception: " + exception.getMessage());
-            if(exception.getMessage().contains("403")){
-                throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil");
-            }
-            else{
+        } catch (Exception exception) {
+            if (exception.getMessage().contains("403")) {
+                throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
+            } else {
                 throw new AltinnException("Feil fra Altinn", exception);
             }
-        }};
+        }
+    }
 
 
     private List<Organisasjon> mapTo(List<AltinnReportee> altinnReportees) {
