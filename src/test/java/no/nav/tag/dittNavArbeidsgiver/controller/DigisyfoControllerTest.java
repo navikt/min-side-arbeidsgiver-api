@@ -1,15 +1,11 @@
 package no.nav.tag.dittNavArbeidsgiver.controller;
 
 import no.nav.security.token.support.core.context.TokenValidationContextHolder;
-import no.nav.tag.dittNavArbeidsgiver.services.digisyfo.DigisyfoServiceGcpImpl;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
