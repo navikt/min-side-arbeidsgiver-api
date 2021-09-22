@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>no.nav</groupId>
-    <artifactId>ditt-nav-arbeidsgiver-api</artifactId>
+    <artifactId>min-side-arbeidsgiver-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <description>Digitale tjenester til arbeidsgivere</description>
 
