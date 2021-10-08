@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlient;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlientConfig;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.ProxyConfig;
+import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.error.exceptions.AltinnException;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.model.*;
 import no.nav.arbeidsgiver.min_side.exceptions.TilgangskontrollException;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
@@ -13,6 +14,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static no.nav.arbeidsgiver.min_side.services.altinn.AltinnCacheConfig.ALTINN_CACHE;
@@ -27,47 +29,52 @@ public class AltinnService {
 
     @Autowired
     public AltinnService(AltinnConfig altinnConfig, TokenUtils tokenUtils) {
-        String altinnProxyUrl = altinnConfig.getProxyUrl();
-        String altinnProxyFallbackUrl = altinnConfig.getProxyFallbackUrl();
         this.tokenUtils = tokenUtils;
-
-        AltinnrettigheterProxyKlientConfig proxyKlientConfig = new AltinnrettigheterProxyKlientConfig(
-                new ProxyConfig("min-side-arbeidsgiver-api", altinnProxyUrl),
-                new no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnConfig(
-                        altinnProxyFallbackUrl,
-                        altinnConfig.getAltinnHeader(),
-                        altinnConfig.getAPIGwHeader()
+        this.klient = new AltinnrettigheterProxyKlient(
+                new AltinnrettigheterProxyKlientConfig(
+                        new ProxyConfig("min-side-arbeidsgiver-api", altinnConfig.getProxyUrl()),
+                        new no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnConfig(
+                                altinnConfig.getProxyFallbackUrl(),
+                                altinnConfig.getAltinnHeader(),
+                                altinnConfig.getAPIGwHeader()
+                        )
                 )
         );
-        this.klient = new AltinnrettigheterProxyKlient(proxyKlientConfig);
     }
 
     @Cacheable(ALTINN_CACHE)
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
-        try {
-            return mapTo(klient.hentOrganisasjoner(
-                    new SelvbetjeningToken(tokenUtils.getTokenForInnloggetBruker()),
-                    new Subject(fnr),
-                    true
-            ));
-        } catch (Exception exception) {
-            if (exception.getMessage().contains("403")) {
-                throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
-            } else {
-                throw exception;
-            }
-        }
+        return medFeilFraAltinnHåndtert(() -> mapTo(
+                klient.hentOrganisasjoner(
+                        new SelvbetjeningToken(tokenUtils.getTokenForInnloggetBruker()),
+                        new Subject(fnr),
+                        true
+                )
+        ));
     }
-
 
     @Cacheable(ALTINN_TJENESTE_CACHE)
     public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
+        return medFeilFraAltinnHåndtert(() -> mapTo(
+                klient.hentOrganisasjoner(
+                        new SelvbetjeningToken(tokenUtils.getTokenForInnloggetBruker()),
+                        new Subject(fnr),
+                        new ServiceCode(serviceKode),
+                        new ServiceEdition(serviceEdition),
+                        true
+                )
+        ));
+    }
+
+    private List<Organisasjon> medFeilFraAltinnHåndtert(Supplier<List<Organisasjon>> fn) {
         try {
-            return mapTo(klient.hentOrganisasjoner(
-                    new SelvbetjeningToken(tokenUtils.getTokenForInnloggetBruker()),
-                    new Subject(fnr), new ServiceCode(serviceKode), new ServiceEdition(serviceEdition),
-                    true
-            ));
+            return fn.get();
+        } catch (AltinnException exception) {
+            if (exception.getProxyError().getHttpStatus() == 403) {
+                throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
+            } else {
+                throw exception;
+            }
         } catch (Exception exception) {
             if (exception.getMessage().contains("403")) {
                 throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
@@ -76,7 +83,6 @@ public class AltinnService {
             }
         }
     }
-
 
     private List<Organisasjon> mapTo(List<AltinnReportee> altinnReportees) {
         return altinnReportees.stream().map(org -> {
