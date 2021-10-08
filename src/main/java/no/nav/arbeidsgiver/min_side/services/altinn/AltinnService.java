@@ -54,7 +54,7 @@ public class AltinnService {
             if (exception.getMessage().contains("403")) {
                 throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
             } else {
-                throw new AltinnException("Feil fra Altinn", exception);
+                throw exception;
             }
         }
     }
@@ -72,7 +72,7 @@ public class AltinnService {
             if (exception.getMessage().contains("403")) {
                 throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
             } else {
-                throw new AltinnException("Feil fra Altinn", exception);
+                throw exception;
             }
         }
     }
