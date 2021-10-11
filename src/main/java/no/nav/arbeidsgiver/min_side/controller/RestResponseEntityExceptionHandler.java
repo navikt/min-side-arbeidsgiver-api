@@ -26,7 +26,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     @ExceptionHandler({RuntimeException.class})
     @ResponseBody
     protected ResponseEntity<Object> handleInternalError(RuntimeException e, WebRequest ignored) {
-        logger.error("Uhåndtert feil", e);
+        logger.error("Uhåndtert feil: {}", e.getMessage(), e);
         return getResponseEntity(e, "Internal error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
