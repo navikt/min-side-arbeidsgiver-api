@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE: docker.pkg.github.com/${{ github.repository }}/ditt-nav-arbeidsgiver-api:${{ github.sha }}
+  IMAGE: docker.pkg.github.com/${{ github.repository }}/min-side-arbeidsgiver-api:${{ github.sha }}
 
 jobs:
   test:
