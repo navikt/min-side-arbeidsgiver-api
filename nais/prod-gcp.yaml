@@ -42,7 +42,7 @@ spec:
     inbound:
       rules:
         - application: ditt-nav-arbeidsgiver
-          namespace: fager
+        - application: min-side-arbeidsgiver
     outbound:
       rules:
         - application: altinn-rettigheter-proxy
