@@ -35,7 +35,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             HttpClientErrorException.Forbidden.class,
     })
     @ResponseBody
-    protected ResponseEntity<Object> handleForbidden(TilgangskontrollException e, WebRequest ignored) {
+    protected ResponseEntity<Object> handleForbidden(RuntimeException e, WebRequest ignored) {
         return getResponseEntity(e, "ingen tilgang", HttpStatus.FORBIDDEN);
     }
 
@@ -44,7 +44,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             HttpClientErrorException.Unauthorized.class,
     })
     @ResponseBody
-    protected ResponseEntity<Object> handleUnauthorized(JwtTokenUnauthorizedException e, WebRequest ignored) {
+    protected ResponseEntity<Object> handleUnauthorized(RuntimeException e, WebRequest ignored) {
         return getResponseEntity(e, "ingen tilgang", HttpStatus.UNAUTHORIZED);
     }
 
