@@ -29,6 +29,7 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- https://www.lunasec.io/docs/blog/log4j-zero-day/ -->
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-api</artifactId>
