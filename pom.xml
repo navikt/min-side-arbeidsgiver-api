@@ -111,10 +111,15 @@
             <version>${token-support.version}</version>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>no.nav.arbeidsgiver</groupId>-->
+<!--            <artifactId>altinn-rettigheter-proxy-klient</artifactId>-->
+<!--            <version>${altinn-rettigheter-proxy-klient.version}</version>-->
+<!--        </dependency>-->
         <dependency>
-            <groupId>no.nav.arbeidsgiver</groupId>
+            <groupId>com.github.navikt</groupId>
             <artifactId>altinn-rettigheter-proxy-klient</artifactId>
-            <version>${altinn-rettigheter-proxy-klient.version}</version>
+            <version>altinn-rettigheter-proxy-klient-2.0.7-rc</version>
         </dependency>
 
         <!-- Swagger -->
@@ -158,6 +163,12 @@
         </dependency>
     </dependencies>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
     <build>
         <plugins>
             <plugin>
