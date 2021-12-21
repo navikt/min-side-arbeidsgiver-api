@@ -7,7 +7,7 @@ import org.springframework.cache.annotation.EnableCaching;
 
 @SpringBootApplication
 @EnableJwtTokenValidation(ignore = {
-        "springfox.documentation.swagger.web.ApiResourceController",
+        "org.springdoc",
         "org.springframework"
 })
 @EnableCaching
