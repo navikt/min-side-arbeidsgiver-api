@@ -1,6 +1,9 @@
 package no.nav.arbeidsgiver.min_side.controller;
 
+import io.ktor.client.features.ServerResponseException;
+import io.ktor.http.HttpStatusCode;
 import lombok.Data;
+import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.error.exceptions.AltinnrettigheterProxyKlientFallbackException;
 import no.nav.security.token.support.spring.validation.interceptor.JwtTokenUnauthorizedException;
 import no.nav.arbeidsgiver.min_side.exceptions.TilgangskontrollException;
 import org.slf4j.Logger;
@@ -15,6 +18,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.net.SocketTimeoutException;
+import java.util.List;
+
 import static java.lang.String.format;
 import static java.lang.invoke.MethodHandles.lookup;
 
@@ -28,6 +34,36 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     protected ResponseEntity<Object> handleInternalError(RuntimeException e, WebRequest ignored) {
         logger.error("Uhåndtert feil: {}", e.getMessage(), e);
         return getResponseEntity(e, "Internal error", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler({AltinnrettigheterProxyKlientFallbackException.class})
+    @ResponseBody
+    protected ResponseEntity<Object> handleAltinnFallbackFeil(AltinnrettigheterProxyKlientFallbackException e, WebRequest ignored) {
+        if (e.getCause() instanceof SocketTimeoutException) {
+            return getResponseEntity(e, "Fallback til Altinn feilet pga timeout", HttpStatus.GATEWAY_TIMEOUT);
+        }
+
+        HttpStatus httpStatus = hentDriftsforstyrrelse(e);
+        if (httpStatus != null) {
+            return getResponseEntity(e, "Fallback til Altinn feilet pga driftsforstyrrelse", httpStatus);
+        } else {
+            return handleInternalError(e, ignored);
+        }
+    }
+
+    private HttpStatus hentDriftsforstyrrelse(AltinnrettigheterProxyKlientFallbackException e) {
+        if (e.getCause() instanceof ServerResponseException) {
+            ServerResponseException serverResponseException = (ServerResponseException) e.getCause();
+            HttpStatusCode status = serverResponseException.getResponse().getStatus();
+            boolean erDriftsforstyrrelse = List.of(
+                    HttpStatusCode.Companion.getBadGateway(),
+                    HttpStatusCode.Companion.getServiceUnavailable(),
+                    HttpStatusCode.Companion.getGatewayTimeout()
+            ).contains(status);
+            return erDriftsforstyrrelse ? HttpStatus.valueOf(status.getValue()) : null;
+        } else {
+            return null;
+        }
     }
 
     @ExceptionHandler({
