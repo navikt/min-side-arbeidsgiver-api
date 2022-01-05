@@ -9,6 +9,8 @@ import org.slf4j.Marker;
 
 import java.util.Arrays;
 
+import static no.nav.log.SOEPreventionFilter.ExceptionLoopDetector.hasLoop;
+
 /**
  * Dette filteret er en hack for å unngå java.lang.StackOverflowError siden spring boot ikke støtter logback 1.3 P.T.
  *
@@ -30,14 +32,14 @@ public class SOEPreventionFilter extends TurboFilter {
             Throwable t
     ) {
         if (t != null) { // log.level("", ex)
-            if (ExceptionLoopDetector.hasLoop(t)) {
+            if (hasLoop(t)) {
                 logger.log(marker, logger.getName(), Level.toLocationAwareLoggerInteger(level), msg, objects, new RuntimeException(t.getMessage()));
                 return FilterReply.DENY;
             }
         } else { // log.level("lorum {} ipsum {}", str1, obj2, ex)
             Object lastArg = objects == null ? null : objects[objects.length - 1];
             if (lastArg instanceof Throwable) {
-                if (ExceptionLoopDetector.hasLoop((Throwable) lastArg)) {
+                if (hasLoop((Throwable) lastArg)) {
                     Object[] copy = Arrays.copyOf(objects, objects.length);
                     copy[objects.length - 1] = new RuntimeException(((Throwable) lastArg).getMessage());
                     logger.log(marker, logger.getName(), Level.toLocationAwareLoggerInteger(level), msg, copy, t);
