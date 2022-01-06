@@ -62,7 +62,7 @@ public class SOEPreventionFilter extends TurboFilter {
             try {
                 new ThrowableProxy(t);
                 return false;
-            } catch (Exception e) {
+            } catch (StackOverflowError e) {
                 return true;
             }
         }
