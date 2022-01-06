@@ -61,19 +61,20 @@ public class AltinnTilgangssøknadClient {
 
     public List<AltinnTilgangssøknad> hentSøknader(String fødselsnummer) {
         var resultat = new ArrayList<AltinnTilgangssøknad>();
-        String filter = String.format("CoveredBy eq '%s'", fødselsnummer);
-
-        URI uri = altinnUriBuilder.get()
-                .queryParam("$filter", filter)
-                .build()
-                .toUri();
-        while (uri != null) {
-            var request = RequestEntity.get(uri).headers(altinnHeaders).build();
+        var filter = String.format("CoveredBy eq '%s'", fødselsnummer);
+        String continuationtoken = null;
+        boolean shouldContinue = true;
+        while (shouldContinue) {
+            var uri = altinnUriBuilder.get()
+                    .query(continuationtoken == null ? "$filter={}" : "$filter={}&continuation={}")
+                    .build()
+                    .toUriString();
+            var request = RequestEntity.get(uri, filter, continuationtoken).headers(altinnHeaders).build();
             ResponseEntity<Søknadsstatus> response;
             try {
                 response = restTemplate.exchange(request, søknadsstatusType);
             } catch (HttpServerErrorException.BadGateway e) {
-                log.warn("retry pga bad gateway mot alltinn {}", e.getMessage());
+                log.warn("retry pga bad gateway mot altinn {}", e.getMessage());
                 response = restTemplate.exchange(request, søknadsstatusType);
             }
 
@@ -82,15 +83,11 @@ public class AltinnTilgangssøknadClient {
                 log.warn("Altinn delegation requests: body missing");
                 break;
             }
+
             if (body.embedded.delegationRequests.isEmpty()) {
-                uri = null;
+                shouldContinue = false;
             } else {
-                uri = altinnUriBuilder
-                        .get()
-                        .queryParam("$filter", filter)
-                        .queryParam("continuation", body.continuationtoken)
-                        .build()
-                        .toUri();
+                continuationtoken = body.continuationtoken;
             }
 
             body.embedded
