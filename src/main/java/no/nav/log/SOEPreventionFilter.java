@@ -69,7 +69,7 @@ public class SOEPreventionFilter extends TurboFilter {
             }
         }
 
-        static boolean searchSupressed(Throwable t, HashSet<Throwable> seen) {
+        private static boolean searchSupressed(Throwable t, HashSet<Throwable> seen) {
             boolean alreadyInSet = !seen.add(t);
             if (alreadyInSet) {
                 return true;
