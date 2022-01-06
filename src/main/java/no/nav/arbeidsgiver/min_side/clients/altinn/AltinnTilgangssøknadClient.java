@@ -7,6 +7,7 @@ import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknad;
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknadsskjema;
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.RequestEntity;
@@ -16,66 +17,55 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class AltinnTilgangssøknadClient {
     private final RestTemplate restTemplate;
-    private final HttpHeaders altinnHeaders;
-    private final Supplier<UriComponentsBuilder> altinnUriBuilder;
-    private final URI altinnUri;
-    private final ParameterizedTypeReference<Søknadsstatus> søknadsstatusType;
-    private final ParameterizedTypeReference<DelegationRequest> delegationRequestType;
+    private final String delegationRequestApiPath;
+    private final Consumer<HttpHeaders> altinnHeaders;
 
     @Autowired
-    public AltinnTilgangssøknadClient(RestTemplate restTemplate, AltinnConfig altinnConfig) {
-        this.restTemplate = restTemplate;
+    public AltinnTilgangssøknadClient(
+            RestTemplateBuilder restTemplateBuilder,
+            AltinnConfig altinnConfig
+    ) {
+        this.restTemplate = restTemplateBuilder.build();
 
-        var altinnUriBuilder = UriComponentsBuilder.fromUriString(
-                altinnConfig.getProxyFallbackUrl()
-                        + "/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication"
-        );
+        delegationRequestApiPath = UriComponentsBuilder
+                .fromUriString(altinnConfig.getProxyFallbackUrl())
+                .path("/ekstern/altinn/api/serviceowner/delegationRequests")
+                .build()
+                .toUriString();
 
-        this.altinnUriBuilder = altinnUriBuilder::cloneBuilder;
-
-
-        this.altinnUri = altinnUriBuilder.build().toUri();
-        log.info("altinnUri: {}", altinnUri);
-
-        this.altinnHeaders = new HttpHeaders();
-        this.altinnHeaders.add("accept", "application/hal+json");
-        this.altinnHeaders.add("apikey", altinnConfig.getAltinnHeader());
-        this.altinnHeaders.add("x-nav-apikey", altinnConfig.getAPIGwHeader());
-
-        this.søknadsstatusType = new ParameterizedTypeReference<>() {
-        };
-
-        this.delegationRequestType = new ParameterizedTypeReference<>() {
-        };
+        altinnHeaders = httpHeaders -> httpHeaders.putAll(Map.of(
+                "accept", List.of("application/hal+json"),
+                "apikey", List.of(altinnConfig.getAltinnHeader()),
+                "x-nav-apikey", List.of(altinnConfig.getAPIGwHeader())
+        ));
     }
 
     public List<AltinnTilgangssøknad> hentSøknader(String fødselsnummer) {
         var resultat = new ArrayList<AltinnTilgangssøknad>();
         var filter = String.format("CoveredBy eq '%s'", fødselsnummer);
+
         String continuationtoken = null;
         boolean shouldContinue = true;
         while (shouldContinue) {
-            var uri = altinnUriBuilder.get()
-                    .query(continuationtoken == null ? "$filter={}" : "$filter={}&continuation={}")
-                    .build()
-                    .toUriString();
+            var uri = delegationRequestApiPath + "?ForceEIAuthentication" + (continuationtoken == null ? "$filter={}" : "$filter={}&continuation={}");
             var request = RequestEntity.get(uri, filter, continuationtoken).headers(altinnHeaders).build();
+
             ResponseEntity<Søknadsstatus> response;
             try {
-                response = restTemplate.exchange(request, søknadsstatusType);
+                response = restTemplate.exchange(request, new ParameterizedTypeReference<>() {});
             } catch (HttpServerErrorException.BadGateway e) {
                 log.warn("retry pga bad gateway mot altinn {}", e.getMessage());
-                response = restTemplate.exchange(request, søknadsstatusType);
+                response = restTemplate.exchange(request, new ParameterizedTypeReference<>() {});
             }
 
             var body = response.getBody();
@@ -122,13 +112,12 @@ public class AltinnTilgangssøknadClient {
         delegationRequest.RequestResources = List.of(requestResource);
 
         var request = RequestEntity
-                .post(altinnUri)
+                .post(delegationRequestApiPath + "?ForceEIAuthentication")
                 .headers(altinnHeaders)
                 .body(delegationRequest);
 
-        var response = restTemplate.exchange(request, delegationRequestType);
+        ResponseEntity<DelegationRequest> response = restTemplate.exchange(request, new ParameterizedTypeReference<>() {});
         var body = response.getBody();
-
         var svar = new AltinnTilgangssøknad();
         svar.setStatus(body.RequestStatus);
         svar.setSubmitUrl(body.links.sendRequest.href);
