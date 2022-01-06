@@ -1,4 +1,6 @@
 <configuration scan="true">
+    <turboFilter class="no.nav.log.SOEPreventionFilter" />
+
     <springProfile name="dev-gcp,dev,prod,prod-gcp">
         <appender name="consoleAppender"  class="no.nav.log.MaskingAppender">
             <appender name="stdout_json_masked" class="ch.qos.logback.core.ConsoleAppender">
