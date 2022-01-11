@@ -57,7 +57,7 @@ public class AltinnTilgangssøknadClient {
         String continuationtoken = null;
         boolean shouldContinue = true;
         while (shouldContinue) {
-            var uri = delegationRequestApiPath + "?ForceEIAuthentication" + (continuationtoken == null ? "$filter={}" : "$filter={}&continuation={}");
+            var uri = delegationRequestApiPath + "?ForceEIAuthentication&" + (continuationtoken == null ? "$filter={}" : "$filter={}&continuation={}");
             var request = RequestEntity.get(uri, filter, continuationtoken).headers(altinnHeaders).build();
 
             ResponseEntity<Søknadsstatus> response;
