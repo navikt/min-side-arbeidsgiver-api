@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Repository;
 
-@Profile({"local", "dev-gcp", "prod-gcp"})
+@Profile({"dev-gcp", "prod-gcp"})
 @Slf4j
 @Repository
 public class NærmestelederRepositoryImpl implements NærmestelederRepository {
