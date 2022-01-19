@@ -26,6 +26,7 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BROKERS}
     properties:
+      auto.offset.reset: earliest
       security.protocol: SSL
       ssl:
         keystore:

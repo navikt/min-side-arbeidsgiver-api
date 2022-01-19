@@ -32,7 +32,7 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
 
     @Profile({"dev-gcp","prod-gcp"})
     @KafkaListener(
-            id = "min-side-arbeidsgiver-narmesteleder-model-builder",
+            id = "min-side-arbeidsgiver-narmesteleder-model-builder-1",
             topics = "teamsykmelding.syfo-narmesteleder-leesah",
             containerFactory = "digisyfoKafkaListenerContainerFactory"
     )
