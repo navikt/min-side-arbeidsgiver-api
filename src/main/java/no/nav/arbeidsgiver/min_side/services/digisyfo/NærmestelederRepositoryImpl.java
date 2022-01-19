@@ -30,6 +30,7 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
         return count != null && count > 0;
     }
 
+    @Profile({"dev-gcp","prod-gcp"})
     @KafkaListener(
             id = "min-side-arbeidsgiver-narmesteleder-model-builder",
             topics = "teamsykmelding.syfo-narmesteleder-leesah",
