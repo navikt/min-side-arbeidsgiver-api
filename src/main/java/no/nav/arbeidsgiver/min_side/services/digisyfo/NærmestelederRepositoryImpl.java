@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Profile;
@@ -12,11 +13,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class NærmestelederRepositoryImpl implements NærmestelederRepository {
 
+    private final ObjectMapper objectMapper;
     private final JdbcTemplate jdbcTemplate;
 
     public NærmestelederRepositoryImpl(
+            ObjectMapper objectMapper,
             JdbcTemplate jdbcTemplate
     ) {
+        this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -32,18 +36,18 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
 
     @Profile({"dev-gcp","prod-gcp"})
     @KafkaListener(
-            id = "min-side-arbeidsgiver-narmesteleder-model-builder-2",
+            id = "min-side-arbeidsgiver-narmesteleder-model-builder-3",
             topics = "teamsykmelding.syfo-narmesteleder-leesah",
             containerFactory = "digisyfoKafkaListenerContainerFactory"
     )
-    public void processConsumerRecord(ConsumerRecord<String, NarmesteLederHendelse> record) {
+    public void processConsumerRecord(ConsumerRecord<String, String> record) {
         log.info(
                 "prosesserer kafka hendelse offset={} partition={} topic={}",
                 record.offset(), record.partition(), record.topic()
         );
 
         // TODO: metric på retries
-        NarmesteLederHendelse hendelse = record.value();
+        NarmesteLederHendelse hendelse = objectMapper.convertValue(record.value(), NarmesteLederHendelse.class);
         if (hendelse.aktivTom != null) {
             jdbcTemplate.update("delete from naermeste_leder where id = ?", hendelse.narmesteLederId);
         } else {

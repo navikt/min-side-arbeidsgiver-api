@@ -8,11 +8,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.DefaultErrorHandler;
-import org.springframework.kafka.support.converter.JsonMessageConverter;
 import org.springframework.util.backoff.ExponentialBackOff;
-
-import static org.springframework.util.backoff.ExponentialBackOff.DEFAULT_INITIAL_INTERVAL;
-import static org.springframework.util.backoff.ExponentialBackOff.DEFAULT_MULTIPLIER;
 
 @Profile({"dev-gcp", "prod-gcp"})
 @Configuration
@@ -24,13 +20,8 @@ public class DigisyfoConfig {
             KafkaProperties properties
     ) {
         ConcurrentKafkaListenerContainerFactory<String, NarmesteLederHendelse> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(
-                properties.buildConsumerProperties()//,
-//                new StringDeserializer(),
-//                new JsonDeserializer<>(NarmesteLederHendelse.class, false)
-        ));
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new ExponentialBackOff(DEFAULT_INITIAL_INTERVAL, DEFAULT_MULTIPLIER)));
-        factory.setMessageConverter(new JsonMessageConverter());
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(properties.buildConsumerProperties()));
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new ExponentialBackOff()));
         return factory;
     }
 
