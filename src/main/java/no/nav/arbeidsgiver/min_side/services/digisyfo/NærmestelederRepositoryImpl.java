@@ -63,7 +63,7 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
                             "  on conflict (id) do nothing;",
                     ps -> {
                         ps.setObject(1, hendelse.narmesteLederId);
-                        ps.setString(1, hendelse.narmesteLederFnr);
+                        ps.setString(2, hendelse.narmesteLederFnr);
                     }
             );
         }
