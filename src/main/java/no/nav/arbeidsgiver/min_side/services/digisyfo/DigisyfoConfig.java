@@ -27,9 +27,9 @@ public class DigisyfoConfig {
     ) {
         ConcurrentKafkaListenerContainerFactory<String, NarmesteLederHendelse> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(
-                properties.buildConsumerProperties(),
-                new StringDeserializer(),
-                new JsonDeserializer<>(NarmesteLederHendelse.class, false)
+                properties.buildConsumerProperties()//,
+//                new StringDeserializer(),
+//                new JsonDeserializer<>(NarmesteLederHendelse.class, false)
         ));
         factory.setCommonErrorHandler(
                 new DefaultErrorHandler(
