@@ -15,9 +15,7 @@ spring:
   flyway:
     enabled: true
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/min-side-arbeidsgiver-api
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE}?user=${DB_USERNAME}&password=${DB_PASSWORD}
     hikari:
       minimum-idle: 1
       maximum-pool-size: 10
