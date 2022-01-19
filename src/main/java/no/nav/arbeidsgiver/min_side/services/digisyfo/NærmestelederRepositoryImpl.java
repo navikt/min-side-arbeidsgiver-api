@@ -50,14 +50,21 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
         // TODO: metric på retries
         NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
         if (hendelse.aktivTom != null) {
-            jdbcTemplate.update("delete from naermeste_leder where id = ?", hendelse.narmesteLederId);
+            jdbcTemplate.update(
+                    "delete from naermeste_leder where id = ?",
+                    ps -> {
+                        ps.setObject(1, hendelse.narmesteLederId);
+                    }
+            );
         } else {
             jdbcTemplate.update(
                     "insert into naermeste_leder(id, naermeste_leder_fnr)" +
                             "  values(?, ?)" +
                             "  on conflict (id) do nothing;",
-                    hendelse.narmesteLederId,
-                    hendelse.narmesteLederFnr
+                    ps -> {
+                        ps.setObject(1, hendelse.narmesteLederId);
+                        ps.setString(1, hendelse.narmesteLederFnr);
+                    }
             );
         }
     }
