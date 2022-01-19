@@ -27,12 +27,12 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
 
     @Override
     public boolean erNærmesteLederForNoen(String lederFnr) {
-        Long count = jdbcTemplate.queryForObject(
-                "select count(*) from naermeste_leder where naermeste_leder_fnr = ?",
-                Long.class,
+        Boolean exists = jdbcTemplate.queryForObject(
+                "select exists(select * from naermeste_leder where naermeste_leder_fnr = ?)",
+                Boolean.class,
                 lederFnr
         );
-        return count != null && count > 0;
+        return Boolean.TRUE.equals(exists);
     }
 
     @Profile({"dev-gcp","prod-gcp"})
