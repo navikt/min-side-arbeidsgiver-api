@@ -12,6 +12,19 @@ management:
 spring:
   profiles:
     active: local
+  flyway:
+    enabled: true
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/min-side-arbeidsgiver-api
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 10
+      connection-timeout: 10000
+      idle-timeout: 10001
+      max-lifetime: 30001
+      leak-detection-threshold: 30000
 springdoc:
   swagger-ui:
     enabled: true
@@ -23,6 +36,11 @@ spring:
   config:
     activate:
       on-profile: local
+  datasource:
+    url: "jdbc:h2:mem:testdb"
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
 
 nais.cluster.name: local
 
@@ -42,9 +60,6 @@ altinn:
   proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
 
-digisyfo:
-  narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte"
-
 unleash:
   url: "https://unleash.herokuapp.com/api/"
 
@@ -59,6 +74,11 @@ spring:
   config:
     activate:
       on-profile: labs
+  datasource:
+    url: "jdbc:h2:mem:testdb"
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
 
 no.nav.security.jwt.issuer.selvbetjening:
   discoveryurl: http://min-side-ag-fakelogin/metadata?issuer=selvbetjening
@@ -75,9 +95,6 @@ altinn:
   APIGwHeader: "test"
   proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
-
-digisyfo:
-  narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte"
 
 unleash:
   url: "https://unleash.herokuapp.com/api/"
@@ -108,9 +125,6 @@ token.x:
   tokendingsUrl: "https://tokendings.dev-gcp.nais.io/token"
   audience: "dev-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
 
-digisyfo:
-  narmestelederUrl: "https://narmesteleder.dev.nav.no/arbeidsgiver/ansatte"
-
 ---
 
 spring:
@@ -137,6 +151,3 @@ token.x:
   clientId: ${TOKEN_X_CLIENT_ID}
   tokendingsUrl: "https://tokendings.prod-gcp.nais.io/token"
   audience: "prod-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
-
-digisyfo:
-  narmestelederUrl: "https://narmesteleder.nav.no/arbeidsgiver/ansatte"
