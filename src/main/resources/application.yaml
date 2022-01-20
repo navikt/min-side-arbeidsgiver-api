@@ -48,11 +48,8 @@ spring:
   config:
     activate:
       on-profile: local
-  datasource:
-    url: "jdbc:h2:mem:db;MODE=PostgreSQL"
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: password
+  flyway:
+    enabled: false
 
 nais.cluster.name: local
 
@@ -86,11 +83,8 @@ spring:
   config:
     activate:
       on-profile: labs
-  datasource:
-    url: "jdbc:h2:mem:db;MODE=PostgreSQL"
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: password
+  flyway:
+    enabled: false
 
 no.nav.security.jwt.issuer.selvbetjening:
   discoveryurl: http://min-side-ag-fakelogin/metadata?issuer=selvbetjening
