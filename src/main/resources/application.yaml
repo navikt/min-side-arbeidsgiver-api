@@ -85,6 +85,7 @@ spring:
       on-profile: labs
   flyway:
     enabled: false
+  autoconfigure.exclude: "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration"
 
 no.nav.security.jwt.issuer.selvbetjening:
   discoveryurl: http://min-side-ag-fakelogin/metadata?issuer=selvbetjening
