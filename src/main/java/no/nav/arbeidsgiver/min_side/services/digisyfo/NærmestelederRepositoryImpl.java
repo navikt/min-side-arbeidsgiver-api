@@ -46,8 +46,6 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
                 "prosesserer kafka hendelse offset={} partition={} topic={}",
                 record.offset(), record.partition(), record.topic()
         );
-
-        // TODO: metric på retries
         NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
         if (hendelse.aktivTom != null) {
             jdbcTemplate.update(
