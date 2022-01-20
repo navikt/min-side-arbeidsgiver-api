@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
-import java.util.Map;
 
 import static no.nav.arbeidsgiver.min_side.utils.TokenUtils.ISSUER;
 import static no.nav.arbeidsgiver.min_side.utils.TokenUtils.REQUIRED_LOGIN_LEVEL;
@@ -30,7 +29,8 @@ public class DigisyfoController {
     private final NærmestelederRepository nærmestelederRepository;
     private final TokenValidationContextHolder requestContextHolder;
     private final boolean erProd;
-    private final Map<Boolean, Counter> counter;
+    private final Counter harTilgang;
+    private final Counter harIkkeTilgang;
 
     @Autowired
     public DigisyfoController(
@@ -44,10 +44,8 @@ public class DigisyfoController {
         this.nærmestelederRepository = nærmestelederRepository;
         this.requestContextHolder = requestContextHolder;
         erProd = Arrays.asList(environment.getActiveProfiles()).contains("prod-gcp");
-        counter = Map.of(
-                true, meterRegistry.counter("narmesteleder_tilgang", "hartilgang", "true"),
-                false, meterRegistry.counter("narmesteleder_tilgang", "hartilgang", "false")
-        );
+        harTilgang = meterRegistry.counter("narmesteleder_tilgang", "hartilgang", "ja");
+        harIkkeTilgang = meterRegistry.counter("narmesteleder_tilgang", "hartilgang", "nei");
     }
 
     @GetMapping(value = "/api/narmesteleder")
@@ -60,7 +58,7 @@ public class DigisyfoController {
             String fnr = FnrExtractor.extract(requestContextHolder);
             erNærmesteLeder = nærmestelederRepository.erNærmesteLederForNoen(fnr);
         }
-        counter.get(erNærmesteLeder).increment();
+        (erNærmesteLeder ? harTilgang : harIkkeTilgang).increment();
         return new NarmesteLedertilgang(erNærmesteLeder);
     }
 
