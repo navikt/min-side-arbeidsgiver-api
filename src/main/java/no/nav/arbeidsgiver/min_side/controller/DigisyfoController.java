@@ -1,5 +1,7 @@
 package no.nav.arbeidsgiver.min_side.controller;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.arbeidsgiver.min_side.models.NarmesteLedertilgang;
 import no.nav.arbeidsgiver.min_side.services.digisyfo.NærmestelederRepository;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import static no.nav.arbeidsgiver.min_side.utils.TokenUtils.ISSUER;
 import static no.nav.arbeidsgiver.min_side.utils.TokenUtils.REQUIRED_LOGIN_LEVEL;
@@ -27,10 +30,12 @@ public class DigisyfoController {
     private final NærmestelederRepository nærmestelederRepository;
     private final TokenValidationContextHolder requestContextHolder;
     private final boolean erProd;
+    private final Map<Boolean, Counter> counter;
 
     @Autowired
     public DigisyfoController(
             Environment environment,
+            MeterRegistry meterRegistry,
             DigisyfoService digisyfoService,
             NærmestelederRepository nærmestelederRepository,
             TokenValidationContextHolder requestContextHolder
@@ -39,6 +44,10 @@ public class DigisyfoController {
         this.nærmestelederRepository = nærmestelederRepository;
         this.requestContextHolder = requestContextHolder;
         erProd = Arrays.asList(environment.getActiveProfiles()).contains("prod-gcp");
+        counter = Map.of(
+                true, meterRegistry.counter("narmesteleder_tilgang", "hartilgang", "true"),
+                false, meterRegistry.counter("narmesteleder_tilgang", "hartilgang", "false")
+        );
     }
 
     @GetMapping(value = "/api/narmesteleder")
@@ -51,7 +60,7 @@ public class DigisyfoController {
             String fnr = FnrExtractor.extract(requestContextHolder);
             erNærmesteLeder = nærmestelederRepository.erNærmesteLederForNoen(fnr);
         }
-
+        counter.get(erNærmesteLeder).increment();
         return new NarmesteLedertilgang(erNærmesteLeder);
     }
 
