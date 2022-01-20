@@ -12,6 +12,31 @@ management:
 spring:
   profiles:
     active: local
+  flyway:
+    enabled: true
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE}?user=${DB_USERNAME}&password=${DB_PASSWORD}
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 10
+      connection-timeout: 10000
+      idle-timeout: 10001
+      max-lifetime: 30001
+      leak-detection-threshold: 30000
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKERS}
+    properties:
+      auto.offset.reset: earliest
+      security.protocol: SSL
+      ssl:
+        keystore:
+          type: PKCS12
+          location: ${KAFKA_KEYSTORE_PATH}
+          password: ${KAFKA_CREDSTORE_PASSWORD}
+        truststore:
+          type: PKCS12
+          location: ${KAFKA_TRUSTSTORE_PATH}
+          password: ${KAFKA_CREDSTORE_PASSWORD}
 springdoc:
   swagger-ui:
     enabled: true
@@ -23,6 +48,8 @@ spring:
   config:
     activate:
       on-profile: local
+  flyway:
+    enabled: false
 
 nais.cluster.name: local
 
@@ -42,9 +69,6 @@ altinn:
   proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
 
-digisyfo:
-  narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte"
-
 unleash:
   url: "https://unleash.herokuapp.com/api/"
 
@@ -59,6 +83,8 @@ spring:
   config:
     activate:
       on-profile: labs
+  flyway:
+    enabled: false
 
 no.nav.security.jwt.issuer.selvbetjening:
   discoveryurl: http://min-side-ag-fakelogin/metadata?issuer=selvbetjening
@@ -75,9 +101,6 @@ altinn:
   APIGwHeader: "test"
   proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
-
-digisyfo:
-  narmestelederUrl: "http://localhost:${mock.port}/arbeidsgiver/ansatte"
 
 unleash:
   url: "https://unleash.herokuapp.com/api/"
@@ -108,9 +131,6 @@ token.x:
   tokendingsUrl: "https://tokendings.dev-gcp.nais.io/token"
   audience: "dev-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
 
-digisyfo:
-  narmestelederUrl: "https://narmesteleder.dev.nav.no/arbeidsgiver/ansatte"
-
 ---
 
 spring:
@@ -137,6 +157,3 @@ token.x:
   clientId: ${TOKEN_X_CLIENT_ID}
   tokendingsUrl: "https://tokendings.prod-gcp.nais.io/token"
   audience: "prod-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
-
-digisyfo:
-  narmestelederUrl: "https://narmesteleder.nav.no/arbeidsgiver/ansatte"

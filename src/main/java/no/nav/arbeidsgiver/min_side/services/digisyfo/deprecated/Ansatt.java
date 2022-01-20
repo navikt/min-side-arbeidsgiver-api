@@ -1,8 +1,7 @@
-package no.nav.arbeidsgiver.min_side.models;
+package no.nav.arbeidsgiver.min_side.services.digisyfo.deprecated;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
