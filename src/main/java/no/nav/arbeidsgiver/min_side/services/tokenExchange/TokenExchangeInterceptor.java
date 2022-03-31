@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.tokenExchange;
 
-import no.nav.arbeidsgiver.min_side.utils.TokenUtils;
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpRequest;
@@ -16,11 +16,11 @@ import java.io.IOException;
 public class TokenExchangeInterceptor implements ClientHttpRequestInterceptor {
 
     final TokenExchangeClient tokenExchangeClient;
-    final TokenUtils tokenUtils;
+    final AuthenticatedUserHolder tokenUtils;
 
     public TokenExchangeInterceptor(
             TokenExchangeClient tokenExchangeClient,
-            TokenUtils tokenUtils
+            AuthenticatedUserHolder tokenUtils
     ) {
         this.tokenExchangeClient = tokenExchangeClient;
         this.tokenUtils = tokenUtils;
@@ -38,6 +38,6 @@ public class TokenExchangeInterceptor implements ClientHttpRequestInterceptor {
     }
 
     private TokenXToken getToken() {
-        return tokenExchangeClient.exchangeToken(tokenUtils.getTokenForInnloggetBruker());
+        return tokenExchangeClient.exchangeToken(tokenUtils.getToken());
     }
 }
