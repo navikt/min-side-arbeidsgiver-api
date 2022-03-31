@@ -2,9 +2,8 @@ package no.nav.arbeidsgiver.min_side.utils;
 
 
 import no.nav.security.token.support.core.context.TokenValidationContextHolder;
+import no.nav.security.token.support.core.jwt.JwtToken;
 import org.springframework.stereotype.Component;
-
-import static no.nav.arbeidsgiver.min_side.utils.FnrExtractor.ISSUER_SELVBETJENING;
 
 @Component
 public class TokenUtils {
@@ -17,8 +16,16 @@ public class TokenUtils {
         this.requestContextHolder = requestContextHolder;
     }
 
+    public String getFnrForInnloggetBruker() {
+        return getJwtToken().getJwtTokenClaims().getStringClaim("pid");
+    }
+
     public String getTokenForInnloggetBruker() {
-        return requestContextHolder.getTokenValidationContext().getJwtToken(ISSUER_SELVBETJENING).getTokenAsString();
+        return getJwtToken().getTokenAsString();
+    }
+
+    private JwtToken getJwtToken() {
+        return requestContextHolder.getTokenValidationContext().getJwtToken(ISSUER);
     }
 
 }

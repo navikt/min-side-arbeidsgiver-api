@@ -1,7 +1,7 @@
 package no.nav.arbeidsgiver.min_side.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.arbeidsgiver.min_side.utils.FnrExtractor;
+import no.nav.arbeidsgiver.min_side.utils.TokenUtils;
 import no.nav.security.token.support.core.api.ProtectedWithClaims;
 import no.nav.security.token.support.core.context.TokenValidationContextHolder;
 import no.nav.arbeidsgiver.min_side.clients.altinn.AltinnTilgangssøknadClient;
@@ -44,28 +44,28 @@ public class AltinnTilgangController {
 
     private final AltinnTilgangssøknadClient altinnTilgangssøknadClient;
     private final AltinnService altinnService;
-    private final TokenValidationContextHolder requestContextHolder;
+    private final TokenUtils tokenUtils;
 
     @Autowired
     public AltinnTilgangController(
             AltinnTilgangssøknadClient altinnTilgangssøknadClient,
             AltinnService altinnService,
-            TokenValidationContextHolder requestContextHolder
+            TokenUtils tokenUtils
     ) {
         this.altinnTilgangssøknadClient = altinnTilgangssøknadClient;
         this.altinnService = altinnService;
-        this.requestContextHolder = requestContextHolder;
+        this.tokenUtils = tokenUtils;
     }
 
     @GetMapping()
     public ResponseEntity<List<AltinnTilgangssøknad>> mineSøknaderOmTilgang() {
-        String fødselsnummer = FnrExtractor.extract(requestContextHolder);
+        String fødselsnummer = tokenUtils.getFnrForInnloggetBruker();
         return ResponseEntity.ok(altinnTilgangssøknadClient.hentSøknader(fødselsnummer));
     }
 
     @PostMapping()
     public ResponseEntity<AltinnTilgangssøknad> sendSøknadOmTilgang(@RequestBody AltinnTilgangssøknadsskjema søknadsskjema) {
-        var fødselsnummer= FnrExtractor.extract(requestContextHolder);
+        var fødselsnummer= tokenUtils.getFnrForInnloggetBruker();
 
         var brukerErIOrg = altinnService.hentOrganisasjoner(fødselsnummer)
                 .stream()
