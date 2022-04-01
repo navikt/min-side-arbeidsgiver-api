@@ -2,7 +2,7 @@ package no.nav.arbeidsgiver.min_side.services.unleash;
 
 import no.finn.unleash.Unleash;
 import no.finn.unleash.UnleashContext;
-import no.nav.arbeidsgiver.min_side.utils.TokenUtils;
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 public class FeatureToggleService {
 
     private final Unleash unleash;
-    private final TokenUtils tokenUtil;
+    private final AuthenticatedUserHolder tokenUtil;
 
     @Autowired
-    public FeatureToggleService(Unleash unleash, TokenUtils tokenUtil) {
+    public FeatureToggleService(Unleash unleash, AuthenticatedUserHolder tokenUtil) {
         this.unleash = unleash;
         this.tokenUtil = tokenUtil;
     }
@@ -26,7 +26,7 @@ public class FeatureToggleService {
 
         return features.stream().collect(Collectors.toMap(
                 feature -> feature,
-                feature -> isEnabled(feature)
+                this::isEnabled
         ));
     }
 
@@ -36,7 +36,7 @@ public class FeatureToggleService {
 
     private UnleashContext contextMedInnloggetBruker() {
         UnleashContext.Builder builder = UnleashContext.builder();
-        builder.userId(tokenUtil.getTokenForInnloggetBruker());
+        builder.userId(tokenUtil.getToken());
         return builder.build();
     }
 }

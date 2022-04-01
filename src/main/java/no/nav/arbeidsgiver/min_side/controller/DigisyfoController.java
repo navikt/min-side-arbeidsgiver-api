@@ -3,15 +3,13 @@ package no.nav.arbeidsgiver.min_side.controller;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.arbeidsgiver.min_side.models.NarmesteLedertilgang;
 import no.nav.arbeidsgiver.min_side.services.digisyfo.NærmestelederRepository;
-import no.nav.arbeidsgiver.min_side.utils.FnrExtractor;
 import no.nav.security.token.support.core.api.ProtectedWithClaims;
-import no.nav.security.token.support.core.context.TokenValidationContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static no.nav.arbeidsgiver.min_side.utils.TokenUtils.ISSUER;
-import static no.nav.arbeidsgiver.min_side.utils.TokenUtils.REQUIRED_LOGIN_LEVEL;
+import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.ISSUER;
+import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.REQUIRED_LOGIN_LEVEL;
 
 
 @ProtectedWithClaims(issuer = ISSUER, claimMap = {REQUIRED_LOGIN_LEVEL})
@@ -20,20 +18,20 @@ import static no.nav.arbeidsgiver.min_side.utils.TokenUtils.REQUIRED_LOGIN_LEVEL
 public class DigisyfoController {
 
     private final NærmestelederRepository nærmestelederRepository;
-    private final TokenValidationContextHolder requestContextHolder;
+    private final AuthenticatedUserHolder tokenUtils;
 
     @Autowired
     public DigisyfoController(
             NærmestelederRepository nærmestelederRepository,
-            TokenValidationContextHolder requestContextHolder
+            AuthenticatedUserHolder authenticatedUserHolder
     ) {
         this.nærmestelederRepository = nærmestelederRepository;
-        this.requestContextHolder = requestContextHolder;
+        this.tokenUtils = authenticatedUserHolder;
     }
 
     @GetMapping(value = "/api/narmesteleder")
     public NarmesteLedertilgang sjekkNarmestelederTilgang() {
-        String fnr = FnrExtractor.extract(requestContextHolder);
+        String fnr = tokenUtils.getFnr();
         boolean erNærmesteLeder = nærmestelederRepository.erNærmesteLederForNoen(fnr);
         return new NarmesteLedertilgang(erNærmesteLeder);
     }
