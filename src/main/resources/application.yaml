@@ -54,8 +54,8 @@ spring:
 nais.cluster.name: local
 
 no.nav.security.jwt.issuer.selvbetjening:
-  discoveryurl: http://metadata-selvbetjening
-  accepted_audience: aud-localhost
+  discoveryurl: http://localhost:${mock-oauth2-server.port}/issuer1/.well-known/openid-configuration
+  accepted_audience: someaudience
   cookiename: localhost-idtoken
 
 mock:
