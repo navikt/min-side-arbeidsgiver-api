@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.controller;
 
+import no.nav.security.token.support.spring.test.EnableMockOAuth2Server;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +11,9 @@ import org.springframework.web.context.request.WebRequest;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.mock;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(SpringRunner.class)
+@EnableMockOAuth2Server
 class RestResponseEntityExceptionHandlerTest {
     @Autowired
     RestResponseEntityExceptionHandler restResponseEntityExceptionHandler;

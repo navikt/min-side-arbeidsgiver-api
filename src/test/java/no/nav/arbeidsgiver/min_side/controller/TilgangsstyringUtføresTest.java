@@ -1,18 +1,16 @@
 package no.nav.arbeidsgiver.min_side.controller;
 
-import no.nav.security.token.support.core.context.TokenValidationContextHolder;
+import no.nav.security.token.support.spring.test.EnableMockOAuth2Server;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -21,21 +19,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @ActiveProfiles("local")
 @TestPropertySource(properties = {"mock.port=8083"})
-public class DigisyfoControllerTest {
+@EnableMockOAuth2Server
+public class TilgangsstyringUtføresTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @SpyBean
-    private TokenValidationContextHolder requestContextHolder;
-
     @Test
-    public void testAtProtectedAnnotasjonForerTilsetOIDCValidationContext() {
+    public void tilgangsstyringUtføres() {
         try {
-            this.mockMvc.perform(get("/api/narmesteleder")).andExpect(status().isUnauthorized());
+            this.mockMvc
+                    .perform(get("/api/narmesteleder"))
+                    .andExpect(status().isUnauthorized());
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        verify(requestContextHolder).setTokenValidationContext(null);
     }
 }
