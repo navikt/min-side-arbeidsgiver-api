@@ -42,10 +42,6 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
             containerFactory = "digisyfoKafkaListenerContainerFactory"
     )
     public void processConsumerRecord(ConsumerRecord<String, String> record) throws JsonProcessingException {
-        log.info(
-                "prosesserer kafka hendelse offset={} partition={} topic={}",
-                record.offset(), record.partition(), record.topic()
-        );
         NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
         if (hendelse.aktivTom != null) {
             jdbcTemplate.update(
@@ -56,14 +52,33 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
             );
         } else {
             jdbcTemplate.update(
-                    "insert into naermeste_leder(id, naermeste_leder_fnr)" +
-                            "  values(?, ?)" +
+                    "insert into naermeste_leder(id, naermeste_leder_fnr, virksomhetsnummer)" +
+                            "  values(?, ?, ?)" +
                             "  on conflict (id) do nothing;",
                     ps -> {
                         ps.setObject(1, hendelse.narmesteLederId);
                         ps.setString(2, hendelse.narmesteLederFnr);
+                        ps.setString(3, hendelse.virksomhetsnummer);
                     }
             );
         }
+    }
+
+    @Profile({"dev-gcp","prod-gcp"})
+    @KafkaListener(
+            id = "min-side-arbeidsgiver-narmesteleder-model-builder-2",
+            topics = "teamsykmelding.syfo-narmesteleder-leesah",
+            containerFactory = "digisyfoKafkaListenerContainerFactory"
+    )
+    public void fyllVirksomhetsnummer(ConsumerRecord<String, String> record) throws JsonProcessingException {
+        NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
+        jdbcTemplate.update(
+                "update naermeste_leder set virksomhetsnummer = ?" +
+                        "  where id = ?;",
+                ps -> {
+                    ps.setString(1, hendelse.virksomhetsnummer);
+                    ps.setObject(2, hendelse.narmesteLederId);
+                }
+        );
     }
 }
