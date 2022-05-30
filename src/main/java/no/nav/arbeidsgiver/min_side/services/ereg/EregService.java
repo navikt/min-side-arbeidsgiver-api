@@ -41,7 +41,7 @@ public class EregService {
                     .getBody();
 
         if (underenhet == null || underenhet.erSlettet()) {
-            throw new Underenhet.IkkeFunnet();
+            return null;
         }
 
         return underenhet;
@@ -57,10 +57,6 @@ public class EregService {
 
         boolean erSlettet() {
             return StringUtils.isNotBlank(slettedato);
-        }
-
-        public static class IkkeFunnet extends RuntimeException {
-
         }
     }
 }

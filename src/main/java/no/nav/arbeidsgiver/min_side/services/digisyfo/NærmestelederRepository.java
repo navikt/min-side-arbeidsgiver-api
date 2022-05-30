@@ -1,5 +1,7 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo;
 
+import java.util.List;
+
 public interface NærmestelederRepository {
-    boolean erNærmesteLederForNoen(String lederFnr);
+    List<String> virksomheterSomNærmesteLeder(String lederFnr);
 }

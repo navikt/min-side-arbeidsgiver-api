@@ -64,10 +64,10 @@ class EregServiceTest extends Specification {
                 .andRespond(withSuccess(slettetUnderenhetRespons, APPLICATION_JSON))
 
         when:
-        eregService.hentUnderenhet(virksomhetsnummer)
+        def result = eregService.hentUnderenhet(virksomhetsnummer)
 
         then:
-        thrown(EregService.Underenhet.IkkeFunnet)
+        result == null
     }
 
     def "hent fjernet underenhet fra ereg fører til IkkeFunnet"() {
@@ -79,10 +79,10 @@ class EregServiceTest extends Specification {
                 .andRespond(withSuccess(fjernetUnderenhetRespons, APPLICATION_JSON))
 
         when:
-        eregService.hentUnderenhet(virksomhetsnummer)
+        def result = eregService.hentUnderenhet(virksomhetsnummer)
 
         then:
-        thrown(EregService.Underenhet.IkkeFunnet)
+        result == null
     }
 
     def "404 NOT_FOUND propageres som IkkeFunnet"() {
@@ -94,10 +94,10 @@ class EregServiceTest extends Specification {
                 .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
         when:
-        eregService.hentUnderenhet(virksomhetsnummer)
+        def result = eregService.hentUnderenhet(virksomhetsnummer)
 
         then:
-        thrown(EregService.Underenhet.IkkeFunnet)
+        result == null
     }
 
     def underenhetRespons = """

@@ -9,6 +9,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Profile({"dev-gcp", "prod-gcp"})
 @Slf4j
 @Repository
@@ -26,13 +28,12 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
     }
 
     @Override
-    public boolean erNærmesteLederForNoen(String lederFnr) {
-        Boolean exists = jdbcTemplate.queryForObject(
-                "select exists(select * from naermeste_leder where naermeste_leder_fnr = ?)",
-                Boolean.class,
+    public List<String> virksomheterSomNærmesteLeder(String lederFnr) {
+        return jdbcTemplate.queryForList(
+                "select virksomhetsnummer from naermeste_leder where naermeste_leder_fnr = ?",
+                String.class,
                 lederFnr
         );
-        return Boolean.TRUE.equals(exists);
     }
 
     @Profile({"dev-gcp","prod-gcp"})

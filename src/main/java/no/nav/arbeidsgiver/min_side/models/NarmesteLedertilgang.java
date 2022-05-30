@@ -1,9 +1,10 @@
 package no.nav.arbeidsgiver.min_side.models;
 
-public class NarmesteLedertilgang {
-    public final Boolean tilgang;
+import lombok.Data;
 
-    public NarmesteLedertilgang(Boolean tilgang) {
-        this.tilgang = tilgang;
-    }
+@Data
+public class NarmesteLedertilgang {
+    public final String virksomhetsnummer;
+    public final String virksomhetsnavn;
+    public final String orgNummerTilOverenhet;
 }
