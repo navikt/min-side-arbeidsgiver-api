@@ -70,13 +70,13 @@ public class AltinnService {
         try {
             return fn.get();
         } catch (AltinnException exception) {
-            if (exception.getProxyError().getHttpStatus() == 403) {
+            if (exception.getProxyError().getMelding().contains("User profile could not be found")) {
                 throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
             } else {
                 throw exception;
             }
         } catch (Exception exception) {
-            if (exception.getMessage().contains("403")) {
+            if (exception.getMessage().contains("User profile could not be found")) {
                 throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
             } else {
                 throw exception;
