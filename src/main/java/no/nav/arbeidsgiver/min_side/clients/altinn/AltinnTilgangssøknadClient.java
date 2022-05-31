@@ -64,7 +64,7 @@ public class AltinnTilgangssøknadClient {
             try {
                 response = restTemplate.exchange(request, new ParameterizedTypeReference<>() {});
             } catch (HttpServerErrorException.BadGateway e) {
-                log.warn("retry pga bad gateway mot altinn {}", e.getMessage());
+                log.info("retry pga bad gateway mot altinn {}", e.getMessage());
                 response = restTemplate.exchange(request, new ParameterizedTypeReference<>() {});
             }
 
