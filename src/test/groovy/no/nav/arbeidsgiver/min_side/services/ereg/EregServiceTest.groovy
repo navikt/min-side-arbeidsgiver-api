@@ -55,7 +55,7 @@ class EregServiceTest extends Specification {
         result.overordnetEnhet == "112233445"
     }
 
-    def "hent slettet underenhet fra ereg fører til IkkeFunnet"() {
+    def "hent slettet underenhet fra ereg returnerer null"() {
         given:
         def virksomhetsnummer = "42"
         server
@@ -70,7 +70,7 @@ class EregServiceTest extends Specification {
         result == null
     }
 
-    def "hent fjernet underenhet fra ereg fører til IkkeFunnet"() {
+    def "hent fjernet underenhet fra ereg returnerer null"() {
         given:
         def virksomhetsnummer = "42"
         server
@@ -85,7 +85,7 @@ class EregServiceTest extends Specification {
         result == null
     }
 
-    def "404 NOT_FOUND propageres som IkkeFunnet"() {
+    def "404 NOT_FOUND propageres som returnerer null"() {
         given:
         def virksomhetsnummer = "42"
         server
