@@ -5,10 +5,10 @@ import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import org.spockframework.spring.SpringBean
 import org.spockframework.spring.StubBeans
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
 import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.web.util.DefaultUriBuilderFactory
 import spock.lang.Specification
@@ -16,7 +16,6 @@ import spock.lang.Specification
 import static org.springframework.http.MediaType.APPLICATION_JSON
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
 @StubBeans([MultiIssuerConfiguration])
@@ -32,6 +31,7 @@ class EregServiceTest extends Specification {
     @Autowired
     EregService eregService
 
+
     @Autowired
     MockRestServiceServer server
 
@@ -42,7 +42,7 @@ class EregServiceTest extends Specification {
         given:
         def virksomhetsnummer = "42"
         server
-                .expect(requestTo(uriBuilderFactory.expand(EregService.API_URL, virksomhetsnummer)))
+                .expect(requestTo(uriBuilderFactory.expand("/v1/organisasjon/{virksomhetsnummer}?inkluderHierarki=true", virksomhetsnummer)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(underenhetRespons, APPLICATION_JSON))
 
@@ -50,141 +50,121 @@ class EregServiceTest extends Specification {
         def result = eregService.hentUnderenhet(virksomhetsnummer)
 
         then:
-        result.organisasjonsnummer == "776655441"
-        result.navn == "SESAM STASJON"
-        result.overordnetEnhet == "112233445"
-    }
-
-    def "hent slettet underenhet fra ereg returnerer null"() {
-        given:
-        def virksomhetsnummer = "42"
-        server
-                .expect(requestTo(uriBuilderFactory.expand(EregService.API_URL, virksomhetsnummer)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(slettetUnderenhetRespons, APPLICATION_JSON))
-
-        when:
-        def result = eregService.hentUnderenhet(virksomhetsnummer)
-
-        then:
-        result == null
-    }
-
-    def "hent fjernet underenhet fra ereg returnerer null"() {
-        given:
-        def virksomhetsnummer = "42"
-        server
-                .expect(requestTo(uriBuilderFactory.expand(EregService.API_URL, virksomhetsnummer)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(fjernetUnderenhetRespons, APPLICATION_JSON))
-
-        when:
-        def result = eregService.hentUnderenhet(virksomhetsnummer)
-
-        then:
-        result == null
-    }
-
-    def "404 NOT_FOUND propageres som returnerer null"() {
-        given:
-        def virksomhetsnummer = "42"
-        server
-                .expect(requestTo(uriBuilderFactory.expand(EregService.API_URL, virksomhetsnummer)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withStatus(HttpStatus.NOT_FOUND))
-
-        when:
-        def result = eregService.hentUnderenhet(virksomhetsnummer)
-
-        then:
-        result == null
+        result.organisasjonsnummer == "910825526"
+        result.navn == "GAMLE FREDRIKSTAD OG RAMNES REGNSKA"
+        result.overordnetEnhet == "810825472"
     }
 
     def underenhetRespons = """
 {
-  "organisasjonsnummer" : "776655441",
-  "navn" : "SESAM STASJON",
-  "organisasjonsform" : {
-    "kode" : "BEDR",
-    "beskrivelse" : "Bedrift",
-    "_links" : {
-      "self" : {
-        "href" : "http://localhost/enhetsregisteret/api/organisasjonsformer/BEDR"
-      }
-    }
-  },
-  "postadresse" : {
-    "land" : "Norge",
-    "landkode" : "NO",
-    "postnummer" : "0122",
-    "poststed" : "OSLO",
-    "adresse" : [ "c/o reder K. Rusing", "Postboks 1752 Vika", "" ],
-    "kommune" : "OSLO",
-    "kommunenummer" : "0301"
-  },
-  "registreringsdatoEnhetsregisteret" : "2017-10-20",
-  "registrertIMvaregisteret" : true,
-  "naeringskode1" : {
-    "beskrivelse" : "Skipsmegling",
-    "kode" : "52.292"
-  },
-  "antallAnsatte" : 50,
-  "overordnetEnhet" : "112233445",
-  "beliggenhetsadresse" : {
-    "land" : "Norge",
-    "landkode" : "NO",
-    "postnummer" : "0122",
-    "poststed" : "OSLO",
-    "adresse" : [ "Tyvholmen 1", null, null ],
-    "kommune" : "OSLO",
-    "kommunenummer" : "0301"
-  },
-  "nedleggelsesdato" : "2018-10-20",
-  "_links" : {
-    "self" : {
-      "href" : "http://localhost/enhetsregisteret/api/underenheter/776655441"
+  "organisasjonsnummer": "910825526",
+  "type": "Virksomhet",
+  "navn": {
+    "redigertnavn": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA",
+    "navnelinje1": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA",
+    "navnelinje2": "P",
+    "bruksperiode": {
+      "fom": "2020-09-03T09:00:32.733"
     },
-    "overordnetEnhet" : {
-      "href" : "http://localhost/enhetsregisteret/api/enheter/112233445"
-    }
-  }
-}
-"""
-
-    def slettetUnderenhetRespons = """
-{
-  "organisasjonsnummer" : "987123456",
-  "navn" : "SLETTET UNDERENHET AS",
-  "organisasjonsform" : {
-    "kode" : "AAFY",
-    "beskrivelse" : "Virksomhet til ikke-næringsdrivende person",
-    "_links" : {
-      "self" : {
-        "href" : "http://localhost/enhetsregisteret/api/organisasjonsformer/AAFY"
-      }
+    "gyldighetsperiode": {
+      "fom": "2020-09-03"
     }
   },
-  "slettedato" : "2017-10-20",
-  "nedleggelsesdato" : "2017-10-5",
-  "_links" : {
-    "self" : {
-      "href" : "http://localhost/enhetsregisteret/api/underenheter/987123456"
+  "organisasjonDetaljer": {
+    "registreringsdato": "2019-07-11T00:00:00",
+    "enhetstyper": [
+      {
+        "enhetstype": "BEDR",
+        "bruksperiode": {
+          "fom": "2019-07-11T11:59:24.72"
+        },
+        "gyldighetsperiode": {
+          "fom": "2019-07-11"
+        }
+      }
+    ],
+    "navn": [
+      {
+        "redigertnavn": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA",
+        "navnelinje1": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA",
+        "navnelinje2": "P",
+        "bruksperiode": {
+          "fom": "2020-09-03T09:00:32.733"
+        },
+        "gyldighetsperiode": {
+          "fom": "2020-09-03"
+        }
+      }
+    ],
+    "forretningsadresser": [
+      {
+        "type": "Forretningsadresse",
+        "adresselinje1": "AVDELING HORTEN, VED PHILIP LUNDQUI",
+        "adresselinje2": "ST, APOTEKERGATA 16",
+        "postnummer": "3187",
+        "poststed": "HORTEN",
+        "landkode": "NO",
+        "kommunenummer": "3801",
+        "bruksperiode": {
+          "fom": "2020-09-03T09:00:32.693"
+        },
+        "gyldighetsperiode": {
+          "fom": "2020-09-03"
+        }
+      }
+    ],
+    "postadresser": [
+      {
+        "type": "Postadresse",
+        "adresselinje1": "PERSONALKONTORET, PHILIP LUNDQUIST,",
+        "adresselinje2": "POSTBOKS 144",
+        "postnummer": "4358",
+        "poststed": "KLEPPE",
+        "landkode": "NO",
+        "kommunenummer": "1120",
+        "bruksperiode": {
+          "fom": "2020-09-03T09:00:32.685"
+        },
+        "gyldighetsperiode": {
+          "fom": "2020-09-03"
+        }
+      }
+    ],
+    "navSpesifikkInformasjon": {
+      "erIA": false,
+      "bruksperiode": {
+        "fom": "1900-01-01T00:00:00"
+      },
+      "gyldighetsperiode": {
+        "fom": "1900-01-01"
+      }
+    },
+    "sistEndret": "2020-09-03"
+  },
+  "virksomhetDetaljer": {
+    "enhetstype": "BEDR"
+  },
+  "inngaarIJuridiskEnheter": [
+    {
+      "organisasjonsnummer": "810825472",
+      "navn": {
+        "redigertnavn": "MALMEFJORD OG RIDABU REGNSKAP",
+        "navnelinje1": "MALMEFJORD OG RIDABU REGNSKAP",
+        "bruksperiode": {
+          "fom": "2020-05-14T16:03:21.12"
+        },
+        "gyldighetsperiode": {
+          "fom": "2020-05-14"
+        }
+      },
+      "bruksperiode": {
+        "fom": "2020-09-03T09:00:32.718"
+      },
+      "gyldighetsperiode": {
+        "fom": "2020-09-03"
+      }
     }
-  }
+  ]
 }
 """
-
-    def fjernetUnderenhetRespons = """
-{
-  "organisasjonsnummer" : "123456780",
-  "slettedato" : "2013-05-31",
-  "_links" : {
-    "self" : {
-      "href" : "http://localhost/enhetsregisteret/api/underenheter/123456780"
-    }
-  }
 }
-"""
-
-}
-
