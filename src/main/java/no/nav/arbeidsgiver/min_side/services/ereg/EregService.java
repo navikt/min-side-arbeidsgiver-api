@@ -3,6 +3,7 @@ package no.nav.arbeidsgiver.min_side.services.ereg;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import no.nav.arbeidsgiver.min_side.models.Organisasjon;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,7 @@ import org.springframework.web.client.*;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static no.nav.arbeidsgiver.min_side.services.ereg.EregCacheConfig.EREG_CACHE;
 
@@ -40,7 +42,7 @@ public class EregService {
     }
 
     @Cacheable(EREG_CACHE)
-    public Underenhet hentUnderenhet(String virksomhetsnummer) {
+    public Organisasjon hentUnderenhet(String virksomhetsnummer) {
         JsonNode json = restTemplate
                     .getForEntity("/v1/organisasjon/{virksomhetsnummer}?inkluderHierarki=true", JsonNode.class, Map.of("virksomhetsnummer", virksomhetsnummer))
                     .getBody();
@@ -49,28 +51,42 @@ public class EregService {
             return null;
         }
 
-        return Underenhet.from(json);
+        return underenhet(json);
     }
 
+    @Cacheable(EREG_CACHE)
+    public Organisasjon hentOverenhet(String orgnummer) {
+        JsonNode json = restTemplate
+                    .getForEntity("/v1/organisasjon/{orgnummer}", JsonNode.class, Map.of("orgnummer", orgnummer))
+                    .getBody();
 
-    @Data
-    public static class Underenhet {
-        final String organisasjonsnummer;
-        final String navn;
-        final String overordnetEnhet;
-        final String slettedato;
-
-        public static Underenhet from(JsonNode json) {
-            return new Underenhet(
-                    json.at("/organisasjonsnummer").asText(),
-                    json.at("/navn/redigertnavn").asText(),
-                    json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText(),
-                    null
-            );
+        if (json == null) {
+            return null;
         }
 
-        boolean erSlettet() {
-            return StringUtils.isNotBlank(slettedato);
-        }
+        return overenhet(json);
     }
+
+    Organisasjon underenhet(JsonNode json) {
+        return new Organisasjon(
+                json.at("/navn/redigertnavn").asText(),
+                "Business",
+                json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText(),
+                json.at("/organisasjonsnummer").asText(),
+                "BEDR",
+                "Active"
+        );
+    }
+
+    Organisasjon overenhet(JsonNode json) {
+        return new Organisasjon(
+                json.at("/navn/redigertnavn").asText(),
+                "Enterprise",
+                null,
+                json.at("/organisasjonsnummer").asText(),
+                json.at("/juridiskEnhetDetaljer/enhetstype").asText(),
+                "Active"
+        );
+    }
+
 }

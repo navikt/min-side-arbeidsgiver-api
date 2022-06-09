@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.ISSUER;
 import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.REQUIRED_LOGIN_LEVEL;
@@ -47,25 +48,15 @@ public class DigisyfoController {
     @GetMapping(value = "/api/narmesteleder/virksomheter")
     public List<Organisasjon> hentVirksomheter() {
         return nærmestelederRepository.virksomheterSomNærmesteLeder(tokenUtils.getFnr()).stream()
-                .map(eregService::hentUnderenhet)
+                .flatMap(this::hentUnderenhetOgOverenhet)
                 .filter(Objects::nonNull)
-                .map(this::tilOrganisasjon)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Mapper til samme struktur som bedriftsmenyen forventer.
-     */
-    private Organisasjon tilOrganisasjon(EregService.Underenhet underenhet) {
-        return new Organisasjon(
-                underenhet.getNavn(),
-                "Business",
-                underenhet.getOverordnetEnhet(),
-                underenhet.getOrganisasjonsnummer(),
-                "BEDR",
-                "Active"
-        );
+    Stream<Organisasjon> hentUnderenhetOgOverenhet(String virksomhetsnummer) {
+        Organisasjon underenhet = eregService.hentUnderenhet(virksomhetsnummer);
+        Organisasjon overenhet = eregService.hentOverenhet(underenhet.getParentOrganizationNumber());
+        return Stream.of(underenhet, overenhet);
     }
-
 }
 
