@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static no.nav.arbeidsgiver.min_side.services.altinn.AltinnCacheConfig.ALTINN_CACHE;
 import static no.nav.arbeidsgiver.min_side.services.altinn.AltinnCacheConfig.ALTINN_TJENESTE_CACHE;
 
@@ -71,13 +72,13 @@ public class AltinnService {
             return fn.get();
         } catch (AltinnException exception) {
             if (exception.getProxyError().getMelding().contains("User profile could not be found")) {
-                throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
+                return emptyList();
             } else {
                 throw exception;
             }
         } catch (Exception exception) {
             if (exception.getMessage().contains("User profile could not be found")) {
-                throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
+                return emptyList();
             } else {
                 throw exception;
             }
