@@ -1,28 +1,30 @@
 package no.nav.arbeidsgiver.min_side.services.ereg;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.*;
+import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.stream.Stream;
 
+import static java.lang.invoke.MethodHandles.lookup;
 import static no.nav.arbeidsgiver.min_side.services.ereg.EregCacheConfig.EREG_CACHE;
 
 @Slf4j
 @Component
 public class EregService {
+    private static final Logger logger = LoggerFactory.getLogger(lookup().lookupClass());
 
     private final RestTemplate restTemplate;
 
@@ -46,11 +48,11 @@ public class EregService {
         JsonNode json = restTemplate
                     .getForEntity("/v1/organisasjon/{virksomhetsnummer}?inkluderHierarki=true", JsonNode.class, Map.of("virksomhetsnummer", virksomhetsnummer))
                     .getBody();
+        logger.info("#hentUnderenhet({}) => {}", virksomhetsnummer, json);
 
         if (json == null) {
             return null;
         }
-
         return underenhet(json);
     }
 
@@ -59,6 +61,7 @@ public class EregService {
         JsonNode json = restTemplate
                     .getForEntity("/v1/organisasjon/{orgnummer}", JsonNode.class, Map.of("orgnummer", orgnummer))
                     .getBody();
+        logger.info("#hentOverenhet({}) => {}", orgnummer, json);
 
         if (json == null) {
             return null;
