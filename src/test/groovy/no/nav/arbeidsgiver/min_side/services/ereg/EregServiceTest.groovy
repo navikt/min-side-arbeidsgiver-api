@@ -55,6 +55,26 @@ class EregServiceTest extends Specification {
         result.status == "Active"
     }
 
+    def "henter underenhet med orgledd fra ereg"() {
+        given:
+        def virksomhetsnummer = "42"
+        server
+                .expect(requestTo("/v1/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(underenhetMedOrgleddRespons, APPLICATION_JSON))
+
+        when:
+        def result = eregService.hentUnderenhet(virksomhetsnummer)
+
+        then:
+        result.organizationNumber == "912998827"
+        result.name == "ARBEIDS- OG VELFERDSDIREKTORATET"
+        result.parentOrganizationNumber == "889640782"
+        result.organizationForm == "BEDR"
+        result.type == "Business"
+        result.status == "Active"
+    }
+
     def "underenhet er null fra ereg"() {
         given:
         def virksomhetsnummer = "42"
@@ -86,6 +106,26 @@ class EregServiceTest extends Specification {
         result.name == "MALMEFJORD OG RIDABU REGNSKAP"
         result.parentOrganizationNumber == null
         result.organizationForm == "AS"
+        result.type == "Enterprise"
+        result.status == "Active"
+    }
+
+    def "henter orgledd fra ereg"() {
+        given:
+        def orgnr = "314"
+        server
+                .expect(requestTo("/v1/organisasjon/$orgnr"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(orgleddRespons, APPLICATION_JSON))
+
+        when:
+        def result = eregService.hentOverenhet(orgnr)
+
+        then:
+        result.organizationNumber == "889640782"
+        result.name == "ARBEIDS- OG VELFERDSETATEN"
+        result.parentOrganizationNumber == null
+        result.organizationForm == "ORGL"
         result.type == "Enterprise"
         result.status == "Active"
     }
@@ -302,6 +342,126 @@ class EregServiceTest extends Specification {
   },
   "juridiskEnhetDetaljer": {
     "enhetstype": "AS"
+  }
+}
+"""
+
+    def underenhetMedOrgleddRespons = """
+{
+  "organisasjonsnummer": "912998827",
+  "type": "Virksomhet",
+  "navn": {
+    "redigertnavn": "ARBEIDS- OG VELFERDSDIREKTORATET",
+    "navnelinje1": "ARBEIDS- OG VELFERDSDIREKTORATET",
+    "navnelinje3": "AVD FYRSTIKKALLÉEN",
+    "bruksperiode": {
+      "fom": "2020-08-12T04:01:10.282"
+    },
+    "gyldighetsperiode": {
+      "fom": "2020-08-11"
+    }
+  },
+  "organisasjonDetaljer": {
+    "registreringsdato": "2013-12-23T00:00:00",
+    "enhetstyper": [
+      {
+        "enhetstype": "BEDR",
+        "bruksperiode": {
+          "fom": "2014-05-21T15:05:45.667"
+        },
+        "gyldighetsperiode": {
+          "fom": "2013-12-23"
+        }
+      }
+    ],
+    "navn": [
+      {
+        "redigertnavn": "ARBEIDS- OG VELFERDSDIREKTORATET",
+        "navnelinje1": "ARBEIDS- OG VELFERDSDIREKTORATET",
+        "navnelinje3": "AVD FYRSTIKKALLÉEN",
+        "bruksperiode": {
+          "fom": "2020-08-12T04:01:10.282"
+        },
+        "gyldighetsperiode": {
+          "fom": "2020-08-11"
+        }
+      }
+    ]
+  },
+  "virksomhetDetaljer": {
+    "enhetstype": "BEDR",
+    "oppstartsdato": "2013-12-01"
+  },
+  "bestaarAvOrganisasjonsledd": [
+    {
+      "organisasjonsledd": {
+        "organisasjonsnummer": "889640782",
+        "type": "Organisasjonsledd",
+        "navn": {
+          "redigertnavn": "ARBEIDS- OG VELFERDSETATEN",
+          "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
+          "bruksperiode": {
+            "fom": "2015-02-23T08:04:53.2"
+          },
+          "gyldighetsperiode": {
+            "fom": "2006-03-23"
+          }
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T16:08:14.385"
+      },
+      "gyldighetsperiode": {
+        "fom": "2013-12-23"
+      }
+    }
+  ]
+}
+"""
+
+    def orgleddRespons = """
+{
+  "organisasjonsnummer": "889640782",
+  "type": "Organisasjonsledd",
+  "navn": {
+    "redigertnavn": "ARBEIDS- OG VELFERDSETATEN",
+    "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
+    "bruksperiode": {
+      "fom": "2015-02-23T08:04:53.2"
+    },
+    "gyldighetsperiode": {
+      "fom": "2006-03-23"
+    }
+  },
+  "organisasjonDetaljer": {
+    "registreringsdato": "2006-03-23T00:00:00",
+    "enhetstyper": [
+      {
+        "enhetstype": "ORGL",
+        "bruksperiode": {
+          "fom": "2020-04-28T04:01:22.192"
+        },
+        "gyldighetsperiode": {
+          "fom": "2006-03-23"
+        }
+      }
+    ],
+    "navn": [
+      {
+        "redigertnavn": "ARBEIDS- OG VELFERDSETATEN",
+        "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
+        "bruksperiode": {
+          "fom": "2015-02-23T08:04:53.2"
+        },
+        "gyldighetsperiode": {
+          "fom": "2006-03-23"
+        }
+      }
+    ]
+  },
+  "organisasjonsleddDetaljer": {
+    "enhetstype": "ORGL",
+    "sektorkode": "6100"
   }
 }
 """

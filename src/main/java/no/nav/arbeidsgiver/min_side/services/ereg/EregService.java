@@ -69,12 +69,15 @@ public class EregService {
             return null;
         }
 
+        String juridiskOrgnummer = json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText();
+        String orgleddOrgnummer = json.at("/bestaarAvOrganisasjonsledd/0/organisasjonsledd/organisasjonsnummer").asText();
+        String orgnummerTilOverenhet = orgleddOrgnummer.isBlank() ? juridiskOrgnummer : orgleddOrgnummer;
         return new Organisasjon(
                 json.at("/navn/redigertnavn").asText(),
                 "Business",
-                json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText(),
+                orgnummerTilOverenhet,
                 json.at("/organisasjonsnummer").asText(),
-                "BEDR",
+                json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
                 "Active"
         );
     }
@@ -89,7 +92,7 @@ public class EregService {
                 "Enterprise",
                 null,
                 json.at("/organisasjonsnummer").asText(),
-                json.at("/juridiskEnhetDetaljer/enhetstype").asText(),
+                json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
                 "Active"
         );
     }
