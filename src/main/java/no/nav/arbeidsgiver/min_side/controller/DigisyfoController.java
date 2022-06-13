@@ -55,7 +55,10 @@ public class DigisyfoController {
 
     Stream<Organisasjon> hentUnderenhetOgOverenhet(String virksomhetsnummer) {
         Organisasjon underenhet = eregService.hentUnderenhet(virksomhetsnummer);
-        Organisasjon overenhet = eregService.hentOverenhet(underenhet.getParentOrganizationNumber());
+        Organisasjon overenhet = null;
+        if (underenhet != null) {
+            overenhet = eregService.hentOverenhet(underenhet.getParentOrganizationNumber());
+        }
         return Stream.of(underenhet, overenhet);
     }
 }

@@ -8,12 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.test.web.client.MockRestServiceServer
 import spock.lang.Specification
 
 import static org.springframework.http.MediaType.APPLICATION_JSON
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
 @StubBeans([MultiIssuerConfiguration])
@@ -53,6 +55,21 @@ class EregServiceTest extends Specification {
         result.status == "Active"
     }
 
+    def "underenhet er null fra ereg"() {
+        given:
+        def virksomhetsnummer = "42"
+        server
+                .expect(requestTo("/v1/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND).body(underenhetIkkeFunnetRespons).contentType(APPLICATION_JSON))
+
+        when:
+        def result = eregService.hentUnderenhet(virksomhetsnummer)
+
+        then:
+        result == null
+    }
+
     def "henter overenhet fra ereg"() {
         given:
         def orgnr = "314"
@@ -71,6 +88,21 @@ class EregServiceTest extends Specification {
         result.organizationForm == "AS"
         result.type == "Enterprise"
         result.status == "Active"
+    }
+
+    def "overenhet er null fra ereg"() {
+        given:
+        def orgnr = "314"
+        server
+                .expect(requestTo("/v1/organisasjon/$orgnr"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND).body(overenhetIkkeFunnetRespons).contentType(APPLICATION_JSON))
+
+        when:
+        def result = eregService.hentOverenhet(orgnr)
+
+        then:
+        result == null
     }
 
     def underenhetRespons = """
@@ -272,5 +304,12 @@ class EregServiceTest extends Specification {
     "enhetstype": "AS"
   }
 }
+"""
+
+    def underenhetIkkeFunnetRespons = """
+{"melding": "Ingen organisasjon med organisasjonsnummer 910825674 ble funnet"}
+"""
+    def overenhetIkkeFunnetRespons = """
+{"timestamp":"2022-06-13T10:27:47.589+00:00","status":404,"error":"Not Found","path":"/v1/organisasjon/"}
 """
 }
