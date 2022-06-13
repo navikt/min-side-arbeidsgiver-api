@@ -77,7 +77,7 @@ public class EregService {
                 "Business",
                 orgnummerTilOverenhet,
                 json.at("/organisasjonsnummer").asText(),
-                "BEDR",
+                json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
                 "Active"
         );
     }
