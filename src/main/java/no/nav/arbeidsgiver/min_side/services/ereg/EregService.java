@@ -1,10 +1,8 @@
 package no.nav.arbeidsgiver.min_side.services.ereg;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -16,7 +14,6 @@ import org.springframework.web.client.*;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static no.nav.arbeidsgiver.min_side.services.ereg.EregCacheConfig.EREG_CACHE;
 
@@ -51,7 +48,7 @@ public class EregService {
             return null;
         }
 
-        return underenhet(json);
+        return underenhet(virksomhetsnummer, json);
     }
 
     @Cacheable(EREG_CACHE)
@@ -64,26 +61,26 @@ public class EregService {
             return null;
         }
 
-        return overenhet(json);
+        return overenhet(orgnummer, json);
     }
 
-    Organisasjon underenhet(JsonNode json) {
+    Organisasjon underenhet(String virksomhetsnummer, JsonNode json) {
         return new Organisasjon(
                 json.at("/navn/redigertnavn").asText(),
                 "Business",
                 json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText(),
-                json.at("/organisasjonsnummer").asText(),
+                virksomhetsnummer,
                 "BEDR",
                 "Active"
         );
     }
 
-    Organisasjon overenhet(JsonNode json) {
+    Organisasjon overenhet(String orgnummer, JsonNode json) {
         return new Organisasjon(
                 json.at("/navn/redigertnavn").asText(),
                 "Enterprise",
                 null,
-                json.at("/organisasjonsnummer").asText(),
+                orgnummer,
                 json.at("/juridiskEnhetDetaljer/enhetstype").asText(),
                 "Active"
         );
