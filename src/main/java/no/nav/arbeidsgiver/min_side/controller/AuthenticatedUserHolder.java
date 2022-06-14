@@ -21,7 +21,8 @@ public class AuthenticatedUserHolder {
     }
 
     public String getToken() {
-        return getJwtToken().getTokenAsString();
+        JwtToken jwtToken = getJwtToken();
+        return jwtToken != null ? jwtToken.getTokenAsString() : null;
     }
 
     private JwtToken getJwtToken() {
