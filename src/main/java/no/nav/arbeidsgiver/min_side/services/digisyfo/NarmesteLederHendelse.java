@@ -12,17 +12,20 @@ public class NarmesteLederHendelse {
     public final String narmesteLederFnr;
     public final String aktivTom;
     public final String virksomhetsnummer;
+    public final String ansattFnr;
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
     public NarmesteLederHendelse(
             @JsonProperty("narmesteLederId") UUID narmesteLederId,
             @JsonProperty("narmesteLederFnr") String narmesteLederFnr,
             @JsonProperty("aktivTom") String aktivTom,
-            @JsonProperty("orgnummer") String virksomhetsnummer
+            @JsonProperty("orgnummer") String virksomhetsnummer,
+            @JsonProperty("fnr") String ansattFnr
     ) {
         this.narmesteLederId = narmesteLederId;
         this.narmesteLederFnr = narmesteLederFnr;
         this.aktivTom = aktivTom;
         this.virksomhetsnummer = virksomhetsnummer;
+        this.ansattFnr = ansattFnr;
     }
 }
