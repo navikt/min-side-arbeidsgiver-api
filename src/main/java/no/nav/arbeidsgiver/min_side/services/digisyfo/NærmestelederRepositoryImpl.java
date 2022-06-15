@@ -30,7 +30,7 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
     @Override
     public List<String> virksomheterSomNærmesteLeder(String lederFnr) {
         return jdbcTemplate.queryForList(
-                "select virksomhetsnummer from naermeste_leder where naermeste_leder_fnr = ?",
+                "select distinct virksomhetsnummer from naermeste_leder where naermeste_leder_fnr = ?",
                 String.class,
                 lederFnr
         );
@@ -52,15 +52,34 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
             );
         } else {
             jdbcTemplate.update(
-                    "insert into naermeste_leder(id, naermeste_leder_fnr, virksomhetsnummer)" +
-                            "  values(?, ?, ?)" +
+                    "insert into naermeste_leder(id, naermeste_leder_fnr, virksomhetsnummer, ansatt_fnr)" +
+                            "  values(?, ?, ?, ?)" +
                             "  on conflict (id) do nothing;",
                     ps -> {
                         ps.setObject(1, hendelse.narmesteLederId);
                         ps.setString(2, hendelse.narmesteLederFnr);
                         ps.setString(3, hendelse.virksomhetsnummer);
+                        ps.setString(4, hendelse.ansattFnr);
                     }
             );
         }
+    }
+
+    @Profile({"dev-gcp","prod-gcp"})
+    @KafkaListener(
+            id = "min-side-arbeidsgiver-narmesteleder-model-builder-3",
+            // id = "min-side-arbeidsgiver-narmesteleder-model-builder-2", brukt 23.05.2022
+            topics = "teamsykmelding.syfo-narmesteleder-leesah",
+            containerFactory = "digisyfoKafkaListenerContainerFactory"
+    )
+    public void updateOldRecord(ConsumerRecord<String, String> record) throws JsonProcessingException {
+        NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
+        jdbcTemplate.update(
+                "update naermeste_leder set ansatt_fnr = ? where id = ?",
+                ps -> {
+                    ps.setString(1, hendelse.ansattFnr);
+                    ps.setObject(2, hendelse.narmesteLederId);
+                }
+        );
     }
 }
