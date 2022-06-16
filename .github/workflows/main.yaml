@@ -30,7 +30,7 @@ jobs:
     name: Bygg
     needs: test
     ### VALG AV DEV-BRANCH SETTES HER:
-    if: needs.test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/fnr_naermeste_leder')
+    if: needs.test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/insatt_fnr_notnull ')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
