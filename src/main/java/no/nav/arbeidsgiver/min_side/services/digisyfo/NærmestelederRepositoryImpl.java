@@ -40,6 +40,7 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
     @KafkaListener(
             id = "min-side-arbeidsgiver-narmesteleder-model-builder-1",
             // id = "min-side-arbeidsgiver-narmesteleder-model-builder-2", brukt 23.05.2022
+            // id = "min-side-arbeidsgiver-narmesteleder-model-builder-3", brukt 16.06.2022
             topics = "teamsykmelding.syfo-narmesteleder-leesah",
             containerFactory = "digisyfoKafkaListenerContainerFactory"
     )
@@ -63,23 +64,5 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
                     }
             );
         }
-    }
-
-    @Profile({"dev-gcp","prod-gcp"})
-    @KafkaListener(
-            id = "min-side-arbeidsgiver-narmesteleder-model-builder-3",
-            // id = "min-side-arbeidsgiver-narmesteleder-model-builder-2", brukt 23.05.2022
-            topics = "teamsykmelding.syfo-narmesteleder-leesah",
-            containerFactory = "digisyfoKafkaListenerContainerFactory"
-    )
-    public void updateOldRecord(ConsumerRecord<String, String> record) throws JsonProcessingException {
-        NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
-        jdbcTemplate.update(
-                "update naermeste_leder set ansatt_fnr = ? where id = ?",
-                ps -> {
-                    ps.setString(1, hendelse.ansattFnr);
-                    ps.setObject(2, hendelse.narmesteLederId);
-                }
-        );
     }
 }
