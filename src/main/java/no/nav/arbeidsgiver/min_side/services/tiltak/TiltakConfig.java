@@ -1,4 +1,4 @@
-package no.nav.arbeidsgiver.min_side.services.digisyfo;
+package no.nav.arbeidsgiver.min_side.services.tiltak;
 
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
@@ -13,10 +13,10 @@ import org.springframework.util.backoff.ExponentialBackOff;
 @Profile({"dev-gcp", "prod-gcp"})
 @Configuration
 @EnableKafka
-public class DigisyfoConfig {
+public class TiltakConfig {
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<String, String> digisyfoKafkaListenerContainerFactory(
+    ConcurrentKafkaListenerContainerFactory<String, String> tiltakKafkaListenerContainerFactory(
             KafkaProperties properties
     ) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
