@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -55,11 +56,20 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
     }
 
     @Override
-    public Map<String, Integer> statusoversikt(String virksomhetsummer) {
+    public List<Statusoversikt> statusoversikt(List<String> virksomhetsnumre) {
         return jdbcTemplate.queryForList(
-                        "select status, count(*) as count from refusjon_status where virksomhetsnummer = ?",
-                        virksomhetsummer
+                        "select virksomhetsnummer, status, count(*) as count " +
+                                "from refusjon_status " +
+                                "where virksomhetsnummer in (?) " +
+                                "group by virksomhetsnummer, status",
+                        virksomhetsnumre
                 )
+                .stream()
+                .collect(
+                        Collectors.groupingBy((it) -> (String)it.get("virksomhetsnummer")),
+                        Collectors.groupingBy((it) -> (String)it.get("status")),
+                        Collectors.counting()
+                        )
                 .stream()
                 .collect(Collectors.toMap(
                         (it) -> (String)it.get("status"),

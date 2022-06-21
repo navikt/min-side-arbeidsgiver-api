@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.tiltak;
 
+import jdk.jshell.Snippet;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.arbeidsgiver.min_side.services.digisyfo.NærmestelederRepository;
 import org.springframework.context.annotation.Profile;
@@ -13,7 +14,7 @@ import java.util.Map;
 @Repository
 public class RefusjonStatusRepositoryMock implements RefusjonStatusRepository {
     @Override
-    public Map<String, Integer> statusoversikt(String virksomhetsnummer) {
-        return Map.of();
+    public List<Statusoversikt> statusoversikt(List<String> virksomhetsnummer) {
+        return List.of();
     }
 }
