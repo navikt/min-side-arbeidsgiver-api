@@ -9,6 +9,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Repository;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Profile({"dev-gcp", "prod-gcp"})
 @Slf4j
 @Repository
@@ -49,5 +52,18 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
                     ps.setString(4, hendelse.status);
                 }
         );
+    }
+
+    @Override
+    public Map<String, Integer> statusoversikt(String virksomhetsummer) {
+        return jdbcTemplate.queryForList(
+                        "select status, count(*) as count from refusjon_status where virksomhetsnummer = ?",
+                        virksomhetsummer
+                )
+                .stream()
+                .collect(Collectors.toMap(
+                        (it) -> (String)it.get("status"),
+                        (it) -> (Integer)it.get("count")
+                ));
     }
 }
