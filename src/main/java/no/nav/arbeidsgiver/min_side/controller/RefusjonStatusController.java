@@ -24,8 +24,8 @@ import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.RE
 @Slf4j
 public class RefusjonStatusController {
 
-    private static final String TJENESTEKODE = ""; // TODO: wat it is?
-    private static final String TJENESTEVERSJON = ""; // TODO: wat it is?
+    private static final String TJENESTEKODE = "4936";
+    private static final String TJENESTEVERSJON = "1";
 
     private final AltinnService altinnService;
     private final RefusjonStatusRepository refusjonStatusRepository;

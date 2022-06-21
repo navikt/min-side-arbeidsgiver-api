@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
+
 @Profile({"dev-gcp", "prod-gcp"})
 @Slf4j
 @Repository
@@ -57,7 +59,7 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
 
     @Override
     public List<Statusoversikt> statusoversikt(List<String> virksomhetsnumre) {
-        return jdbcTemplate.queryForList(
+        Map<String, Map<String, Integer>> grouped = jdbcTemplate.queryForList(
                         "select virksomhetsnummer, status, count(*) as count " +
                                 "from refusjon_status " +
                                 "where virksomhetsnummer in (?) " +
@@ -66,14 +68,16 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
                 )
                 .stream()
                 .collect(
-                        Collectors.groupingBy((it) -> (String)it.get("virksomhetsnummer")),
-                        Collectors.groupingBy((it) -> (String)it.get("status")),
-                        Collectors.counting()
-                        )
-                .stream()
-                .collect(Collectors.toMap(
-                        (it) -> (String)it.get("status"),
-                        (it) -> (Integer)it.get("count")
-                ));
+                        groupingBy(
+                                m -> (String) m.get("virksomhetsnummer"),
+                                groupingBy(
+                                        m -> (String) m.get("status"),
+                                        Collectors.summingInt(m -> (Integer) m.get("count"))
+                                )
+                        ));
+
+        return grouped.entrySet().stream()
+                .map(entry -> new Statusoversikt(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
     }
 }
