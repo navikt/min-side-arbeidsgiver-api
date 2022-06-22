@@ -45,8 +45,8 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: ditt-nav-arbeidsgiver
         - application: min-side-arbeidsgiver
+        - application: min-side-arbeidsgiver-experimental
     outbound:
       rules:
         - application: min-side-ag-fakelogin
