@@ -30,8 +30,6 @@ public class MockServer {
     @Autowired
     MockServer(
             @Value("${mock.port}") int port,
-            @Value("${digisyfo.narmestelederUrl}") String digisyfoUrl,
-            @Value("classpath:mock/narmesteLeder.json") Resource narmesteLederJson,
             @Value("classpath:mock/organisasjoner.json") Resource organisasjonerJson,
             @Value("classpath:mock/rettigheterTilSkjema.json") Resource rettigheterTilSkjemaJson
     ) {
@@ -56,12 +54,6 @@ public class MockServer {
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(rettigheterTilSkjemaJson.getInputStream().readAllBytes())
-                )
-        );
-        server.stubFor(any(urlPathMatching(new URL(digisyfoUrl).getPath() + ".*"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(narmesteLederJson.getInputStream().readAllBytes())
                 )
         );
 

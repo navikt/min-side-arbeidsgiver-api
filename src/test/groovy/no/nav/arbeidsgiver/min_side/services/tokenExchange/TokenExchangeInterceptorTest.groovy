@@ -1,7 +1,7 @@
 package no.nav.arbeidsgiver.min_side.services.tokenExchange
 
 import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
-import no.nav.arbeidsgiver.min_side.utils.TokenUtils
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import org.spockframework.spring.SpringBean
 import org.spockframework.spring.StubBeans
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,7 +25,7 @@ class TokenExchangeInterceptorTest extends Specification {
     TokenExchangeClient tokenExchangeClient = Mock()
 
     @SpringBean
-    TokenUtils tokenUtils = Mock()
+    AuthenticatedUserHolder tokenUtils = Mock()
 
     @Autowired
     TokenExchangeInterceptor interceptor
@@ -51,7 +51,7 @@ class TokenExchangeInterceptorTest extends Specification {
         restTemplate.delete("")
 
         then:
-        1 * tokenUtils.getTokenForInnloggetBruker() >> subjectToken
+        1 * tokenUtils.getToken() >> subjectToken
         1 * tokenExchangeClient.exchangeToken(subjectToken) >> tokenXtoken
 
     }

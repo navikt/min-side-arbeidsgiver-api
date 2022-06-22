@@ -1,9 +1,7 @@
 package no.nav.arbeidsgiver.min_side.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.arbeidsgiver.min_side.utils.FnrExtractor;
 import no.nav.security.token.support.core.api.ProtectedWithClaims;
-import no.nav.security.token.support.core.context.TokenValidationContextHolder;
 import no.nav.arbeidsgiver.min_side.clients.altinn.AltinnTilgangssøknadClient;
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknad;
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknadsskjema;
@@ -17,8 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Set;
 
-import static no.nav.arbeidsgiver.min_side.utils.TokenUtils.ISSUER;
-import static no.nav.arbeidsgiver.min_side.utils.TokenUtils.REQUIRED_LOGIN_LEVEL;
+import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.ISSUER;
+import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.REQUIRED_LOGIN_LEVEL;
 
 @ProtectedWithClaims(issuer=ISSUER, claimMap={REQUIRED_LOGIN_LEVEL})
 @Slf4j
@@ -44,28 +42,28 @@ public class AltinnTilgangController {
 
     private final AltinnTilgangssøknadClient altinnTilgangssøknadClient;
     private final AltinnService altinnService;
-    private final TokenValidationContextHolder requestContextHolder;
+    private final AuthenticatedUserHolder tokenUtils;
 
     @Autowired
     public AltinnTilgangController(
             AltinnTilgangssøknadClient altinnTilgangssøknadClient,
             AltinnService altinnService,
-            TokenValidationContextHolder requestContextHolder
+            AuthenticatedUserHolder tokenUtils
     ) {
         this.altinnTilgangssøknadClient = altinnTilgangssøknadClient;
         this.altinnService = altinnService;
-        this.requestContextHolder = requestContextHolder;
+        this.tokenUtils = tokenUtils;
     }
 
     @GetMapping()
     public ResponseEntity<List<AltinnTilgangssøknad>> mineSøknaderOmTilgang() {
-        String fødselsnummer = FnrExtractor.extract(requestContextHolder);
+        String fødselsnummer = tokenUtils.getFnr();
         return ResponseEntity.ok(altinnTilgangssøknadClient.hentSøknader(fødselsnummer));
     }
 
     @PostMapping()
     public ResponseEntity<AltinnTilgangssøknad> sendSøknadOmTilgang(@RequestBody AltinnTilgangssøknadsskjema søknadsskjema) {
-        var fødselsnummer= FnrExtractor.extract(requestContextHolder);
+        var fødselsnummer= tokenUtils.getFnr();
 
         var brukerErIOrg = altinnService.hentOrganisasjoner(fødselsnummer)
                 .stream()

@@ -8,7 +8,7 @@ import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.error.exceptions.Altin
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.model.*;
 import no.nav.arbeidsgiver.min_side.exceptions.TilgangskontrollException;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
-import no.nav.arbeidsgiver.min_side.utils.TokenUtils;
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static no.nav.arbeidsgiver.min_side.services.altinn.AltinnCacheConfig.ALTINN_CACHE;
 import static no.nav.arbeidsgiver.min_side.services.altinn.AltinnCacheConfig.ALTINN_TJENESTE_CACHE;
 
@@ -25,10 +26,10 @@ import static no.nav.arbeidsgiver.min_side.services.altinn.AltinnCacheConfig.ALT
 public class AltinnService {
 
     private final AltinnrettigheterProxyKlient klient;
-    private final TokenUtils tokenUtils;
+    private final AuthenticatedUserHolder tokenUtils;
 
     @Autowired
-    public AltinnService(AltinnConfig altinnConfig, TokenUtils tokenUtils) {
+    public AltinnService(AltinnConfig altinnConfig, AuthenticatedUserHolder tokenUtils) {
         this.tokenUtils = tokenUtils;
         this.klient = new AltinnrettigheterProxyKlient(
                 new AltinnrettigheterProxyKlientConfig(
@@ -46,7 +47,7 @@ public class AltinnService {
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         return medFeilFraAltinnHåndtert(() -> mapTo(
                 klient.hentOrganisasjoner(
-                        new SelvbetjeningToken(tokenUtils.getTokenForInnloggetBruker()),
+                        new SelvbetjeningToken(tokenUtils.getToken()),
                         new Subject(fnr),
                         true
                 )
@@ -57,7 +58,7 @@ public class AltinnService {
     public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
         return medFeilFraAltinnHåndtert(() -> mapTo(
                 klient.hentOrganisasjoner(
-                        new SelvbetjeningToken(tokenUtils.getTokenForInnloggetBruker()),
+                        new SelvbetjeningToken(tokenUtils.getToken()),
                         new Subject(fnr),
                         new ServiceCode(serviceKode),
                         new ServiceEdition(serviceEdition),
@@ -70,14 +71,14 @@ public class AltinnService {
         try {
             return fn.get();
         } catch (AltinnException exception) {
-            if (exception.getProxyError().getHttpStatus() == 403) {
-                throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
+            if (exception.getProxyError().getMelding().contains("User profile could not be found")) {
+                return emptyList();
             } else {
                 throw exception;
             }
         } catch (Exception exception) {
-            if (exception.getMessage().contains("403")) {
-                throw new TilgangskontrollException("bruker har ikke en aktiv altinn profil", exception);
+            if (exception.getMessage().contains("User profile could not be found")) {
+                return emptyList();
             } else {
                 throw exception;
             }

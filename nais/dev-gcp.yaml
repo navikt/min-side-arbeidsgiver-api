@@ -24,6 +24,14 @@ spec:
   ingresses:
     - https://min-side-arbeidsgiver-api.dev.nav.no/ditt-nav-arbeidsgiver-api/
   webproxy: false
+  kafka:
+    pool: nav-dev
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_12
+        databases:
+          - name: min-side-arbeidsgiver-api
+            envVarPrefix: DB
   envFrom:
     - configmap: loginservice-idporten
     - secret: min-side-ag-secrets
