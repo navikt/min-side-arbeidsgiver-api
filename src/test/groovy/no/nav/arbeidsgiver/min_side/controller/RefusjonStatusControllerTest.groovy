@@ -4,9 +4,7 @@ import groovy.json.JsonSlurper
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
-import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import org.spockframework.spring.SpringBean
-import org.spockframework.spring.StubBeans
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
@@ -17,7 +15,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@StubBeans([MultiIssuerConfiguration])
 @WebMvcTest(
         value = RefusjonStatusController,
         properties = [
