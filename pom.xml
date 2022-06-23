@@ -91,7 +91,7 @@
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
+            <artifactId>groovy-json</artifactId>
             <version>3.0.8</version>
             <scope>test</scope>
         </dependency>
