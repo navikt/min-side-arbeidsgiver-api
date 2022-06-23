@@ -1,15 +1,12 @@
 package no.nav.arbeidsgiver.min_side;
 
-import no.nav.security.token.support.spring.api.EnableJwtTokenValidation;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-@EnableJwtTokenValidation(ignore = {
-        "org.springdoc",
-        "org.springframework"
-})
+@Import(TokenSupportJwtConfig.class)
 @EnableCaching
 public class DittNavArbeidsgiverApplication {
 
