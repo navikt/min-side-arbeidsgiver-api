@@ -18,11 +18,8 @@ class RefusjonStatusRepositoryImplTest extends Specification {
                 ["virksomhetsnummer": "44", "status": "a", "count": 22],
         ]
 
-        when:
-        def result = repo.statusoversikt(virksomhetsnumre)
-
-        then:
-        result.sort() == [
+        expect:
+        repo.statusoversikt(virksomhetsnumre).sort() == [
                 new RefusjonStatusRepository.Statusoversikt("42", ["a": 10, "b": 5]),
                 new RefusjonStatusRepository.Statusoversikt("44", ["a": 22]),
         ].sort()
