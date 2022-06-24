@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Repository;
 
@@ -22,13 +23,16 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
 
     private final ObjectMapper objectMapper;
     private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public RefusjonStatusRepositoryImpl(
             ObjectMapper objectMapper,
-            JdbcTemplate jdbcTemplate
+            JdbcTemplate jdbcTemplate,
+            NamedParameterJdbcTemplate namedParameterJdbcTemplate
     ) {
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
 
@@ -59,12 +63,12 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
 
     @Override
     public List<Statusoversikt> statusoversikt(List<String> virksomhetsnumre) {
-        Map<String, Map<String, Integer>> grouped = jdbcTemplate.queryForList(
+        Map<String, Map<String, Integer>> grouped = namedParameterJdbcTemplate.queryForList(
                         "select virksomhetsnummer, status, count(*) as count " +
                                 "from refusjon_status " +
-                                "where virksomhetsnummer in (?) " +
+                                "where virksomhetsnummer in (:virksomhetsnumre) " +
                                 "group by virksomhetsnummer, status",
-                        new Object[]{virksomhetsnumre.toArray(new String[0])}
+                        Map.of("virksomhetsnumre", virksomhetsnumre)
                 )
                 .stream()
                 .collect(

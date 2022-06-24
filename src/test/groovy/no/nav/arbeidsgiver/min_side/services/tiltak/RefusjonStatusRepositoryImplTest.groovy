@@ -2,17 +2,18 @@ package no.nav.arbeidsgiver.min_side.services.tiltak
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import spock.lang.Specification
 
 class RefusjonStatusRepositoryImplTest extends Specification {
 
-    def jdbcTemplate = Mock(JdbcTemplate)
-    def repo = new RefusjonStatusRepositoryImpl(new ObjectMapper(), jdbcTemplate)
+    def namedParameterJdbcTemplate = Mock(NamedParameterJdbcTemplate)
+    def repo = new RefusjonStatusRepositoryImpl(new ObjectMapper(), Mock(JdbcTemplate), namedParameterJdbcTemplate)
 
     def "henter liste av statusoversikt"() {
         given:
         def virksomhetsnumre = ["42","44"]
-        jdbcTemplate.queryForList(_ as String, virksomhetsnumre) >> [
+        namedParameterJdbcTemplate.queryForList(_ as String, [virksomhetsnumre: virksomhetsnumre]) >> [
                 ["virksomhetsnummer": "42", "status": "a", "count": 10],
                 ["virksomhetsnummer": "42", "status": "b", "count": 5],
                 ["virksomhetsnummer": "44", "status": "a", "count": 22],
