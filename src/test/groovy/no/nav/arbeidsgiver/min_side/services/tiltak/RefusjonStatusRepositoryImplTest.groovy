@@ -14,9 +14,9 @@ class RefusjonStatusRepositoryImplTest extends Specification {
         given:
         def virksomhetsnumre = ["42","44"]
         namedParameterJdbcTemplate.queryForList(_ as String, [virksomhetsnumre: virksomhetsnumre]) >> [
-                ["virksomhetsnummer": "42", "status": "a", "count": 10],
-                ["virksomhetsnummer": "42", "status": "b", "count": 5],
-                ["virksomhetsnummer": "44", "status": "a", "count": 22],
+                ["virksomhetsnummer": "42", "status": "a", "count": 10L],
+                ["virksomhetsnummer": "42", "status": "b", "count": 5L],
+                ["virksomhetsnummer": "44", "status": "a", "count": 22L],
         ]
 
         expect:

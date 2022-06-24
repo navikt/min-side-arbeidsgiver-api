@@ -76,7 +76,7 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
                                 m -> (String) m.get("virksomhetsnummer"),
                                 groupingBy(
                                         m -> (String) m.get("status"),
-                                        Collectors.summingInt(m -> (Integer) m.get("count"))
+                                        Collectors.summingInt(m -> ((Long) m.get("count")).intValue())
                                 )
                         ));
 
