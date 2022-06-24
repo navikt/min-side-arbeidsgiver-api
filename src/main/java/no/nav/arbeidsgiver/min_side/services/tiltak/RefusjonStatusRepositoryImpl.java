@@ -63,6 +63,10 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
 
     @Override
     public List<Statusoversikt> statusoversikt(List<String> virksomhetsnumre) {
+        if (virksomhetsnumre.isEmpty()) {
+            return List.of();
+        }
+
         Map<String, Map<String, Integer>> grouped = namedParameterJdbcTemplate.queryForList(
                         "select virksomhetsnummer, status, count(*) as count " +
                                 "from refusjon_status " +
