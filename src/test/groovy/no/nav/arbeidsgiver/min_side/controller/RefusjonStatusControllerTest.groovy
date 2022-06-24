@@ -58,7 +58,6 @@ class RefusjonStatusControllerTest extends Specification {
                 get("/api/refusjon_status").accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                //.andExpect(MockMvcResultMatchers.jsonPath('$', Matchers.hasSize(2)))
                 .andReturn().response.contentAsString
         jsonSlurper.parseText(jsonResponse) == jsonSlurper.parseText("""
         [
