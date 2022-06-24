@@ -7,7 +7,6 @@ metadata:
     team: fager
 spec:
   image: {{image}}
-  team: fager
   port: 8080
   replicas:
     min: 1
@@ -45,8 +44,8 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: ditt-nav-arbeidsgiver
         - application: min-side-arbeidsgiver
+        - application: min-side-arbeidsgiver-experimental
     outbound:
       rules:
         - application: min-side-ag-fakelogin

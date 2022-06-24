@@ -7,7 +7,6 @@ metadata:
     team: fager
 spec:
   image: {{ image }}
-  team: fager
   port: 8080
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
@@ -29,6 +28,7 @@ spec:
   gcp:
     sqlInstances:
       - type: POSTGRES_12
+        tier: db-custom-1-3840
         databases:
           - name: min-side-arbeidsgiver-api
             envVarPrefix: DB
