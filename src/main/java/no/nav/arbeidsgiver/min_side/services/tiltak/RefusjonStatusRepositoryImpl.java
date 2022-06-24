@@ -6,8 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 @Profile({"dev-gcp", "prod-gcp"})
 @Slf4j
@@ -16,13 +23,16 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
 
     private final ObjectMapper objectMapper;
     private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public RefusjonStatusRepositoryImpl(
             ObjectMapper objectMapper,
-            JdbcTemplate jdbcTemplate
+            JdbcTemplate jdbcTemplate,
+            NamedParameterJdbcTemplate namedParameterJdbcTemplate
     ) {
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
 
@@ -49,5 +59,29 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
                     ps.setString(4, hendelse.status);
                 }
         );
+    }
+
+    @Override
+    public List<Statusoversikt> statusoversikt(List<String> virksomhetsnumre) {
+        Map<String, Map<String, Integer>> grouped = namedParameterJdbcTemplate.queryForList(
+                        "select virksomhetsnummer, status, count(*) as count " +
+                                "from refusjon_status " +
+                                "where virksomhetsnummer in (:virksomhetsnumre) " +
+                                "group by virksomhetsnummer, status",
+                        Map.of("virksomhetsnumre", virksomhetsnumre)
+                )
+                .stream()
+                .collect(
+                        groupingBy(
+                                m -> (String) m.get("virksomhetsnummer"),
+                                groupingBy(
+                                        m -> (String) m.get("status"),
+                                        Collectors.summingInt(m -> ((Long) m.get("count")).intValue())
+                                )
+                        ));
+
+        return grouped.entrySet().stream()
+                .map(entry -> new Statusoversikt(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
     }
 }
