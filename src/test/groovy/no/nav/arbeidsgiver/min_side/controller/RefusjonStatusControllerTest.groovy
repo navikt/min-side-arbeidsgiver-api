@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         value = RefusjonStatusController,
         properties = [
             "server.servlet.context-path=/",
-            "tokenx.enabled=false",
+            "tokensupport.enabled=false",
         ]
 )
 class RefusjonStatusControllerTest extends Specification {

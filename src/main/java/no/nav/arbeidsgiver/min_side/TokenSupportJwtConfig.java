@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 
 @ConditionalOnProperty(
-        value = "tokenx.enabled",
+        value = "tokensupport.enabled",
         havingValue = "true",
         matchIfMissing = true
 )
