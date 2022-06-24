@@ -64,7 +64,7 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
                                 "from refusjon_status " +
                                 "where virksomhetsnummer in (?) " +
                                 "group by virksomhetsnummer, status",
-                        virksomhetsnumre
+                        (Object[]) virksomhetsnumre.toArray(new String[0])
                 )
                 .stream()
                 .collect(
