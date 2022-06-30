@@ -1,7 +1,6 @@
 package no.nav.arbeidsgiver.min_side.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.arbeidsgiver.min_side.models.NarmesteLedertilgang;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
 import no.nav.arbeidsgiver.min_side.services.digisyfo.NærmestelederRepository;
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService;
@@ -37,12 +36,6 @@ public class DigisyfoController {
         this.nærmestelederRepository = nærmestelederRepository;
         this.eregService = eregService;
         this.tokenUtils = authenticatedUserHolder;
-    }
-
-    @GetMapping(value = "/api/narmesteleder")
-    public NarmesteLedertilgang sjekkNarmestelederTilgang() {
-        boolean erNærmesteLeder = !hentVirksomheter().isEmpty();
-        return new NarmesteLedertilgang(erNærmesteLeder);
     }
 
     @GetMapping(value = "/api/narmesteleder/virksomheter")
