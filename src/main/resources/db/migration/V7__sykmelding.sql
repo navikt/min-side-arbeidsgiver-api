@@ -2,9 +2,9 @@ create table sykmelding
 (
     id text primary key,
     virksomhetsnummer text not null,
-    fnr_ansatt text not null,
+    ansatt_fnr text not null,
     -- val latestTom = sykmeldingArbeidsgiverKafkaMessage.sykmelding.sykmeldingsperioder.maxOf { it.tom }
-    sykmeldingsperiode_slutt timestamp
+    sykmeldingsperiode_slutt date
 );
 
 
@@ -14,6 +14,6 @@ on sykmelding(sykmeldingsperiode_slutt);
 
 -- for oppslag på join mot nærmesteleder-tabell.
 create index sykmelding_fnr_vnr_idx
-on sykmelding(virksomhetsnummer, fnr_ansatt);
+on sykmelding(virksomhetsnummer, ansatt_fnr);
 
 

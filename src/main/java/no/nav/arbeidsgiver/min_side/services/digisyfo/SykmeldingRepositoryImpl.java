@@ -57,13 +57,13 @@ public class SykmeldingRepositoryImpl implements InitializingBean, SykmeldingRep
         return jdbcTemplate.queryForStream(
                         """
                                 with nl as (
-                                    select virksomhetsnummer, fnr_ansatt from naermeste_leder where naermeste_leder_fnr = ?
+                                    select virksomhetsnummer, ansatt_fnr from naermeste_leder where naermeste_leder_fnr = ?
                                 )
                                 select s.virksomhetsnummer as virksomhetsnummer, count(*) as antall
                                 from sykmelding as s
                                 join nl on 
                                 nl.virksomhetsnummer = s.virksomhetsnummer and 
-                                nl.fnr_ansatt = s.fnr_ansatt
+                                nl.ansatt_fnr = s.ansatt_fnr
                                 group by s.virksomhetsnummer
                             """,
                         (PreparedStatement ps) ->
@@ -90,11 +90,11 @@ public class SykmeldingRepositoryImpl implements InitializingBean, SykmeldingRep
             jdbcTemplate.update(
                     """
                         insert into sykmelding
-                        (id, virksomhetsnummer, fnr_ansatt, sykmeldingsperiode_slutt)
+                        (id, virksomhetsnummer, ansatt_fnr, sykmeldingsperiode_slutt)
                         values (?, ?, ?, ?)
                         on conflict do update set
                         virksomhetsnummer = EXCLUDED.virksomhetsnummer,
-                        fnr_ansatt= EXCLUDED.fnr_ansatt,
+                        ansatt_fnr = EXCLUDED.ansatt_fnr,
                         sykmeldingsperiode_slutt = EXCLUDED.sykmeldingsperiode_slutt
                         """,
                     key,
