@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -23,21 +22,15 @@ import java.util.stream.Collectors;
 @Profile({"dev-gcp", "prod-gcp"})
 @Repository
 @Slf4j
-public class SykmeldingRepositoryImpl implements InitializingBean, SykmeldingRepository {
+public class SykmeldingRepositoryImpl implements SykmeldingRepository {
     private final JdbcTemplate jdbcTemplate;
-    private final MeterRegistry meterRegistry;
+    private final Counter tombstoneCounter;
+    private final Counter expiredCounter;
+    private final Counter updateCounter;
 
     SykmeldingRepositoryImpl(JdbcTemplate jdbcTemplate, MeterRegistry meterRegistry) {
         this.jdbcTemplate = jdbcTemplate;
-        this.meterRegistry = meterRegistry;
-    }
 
-    private Counter tombstoneCounter;
-    private Counter expiredCounter;
-    private Counter updateCounter;
-
-    @Override
-    public void afterPropertiesSet() {
         tombstoneCounter = Counter
                 .builder("fager.msa.sykmelding.tombstones")
                 .description("antall sykmelding-tombstones prosessert")
@@ -92,7 +85,7 @@ public class SykmeldingRepositoryImpl implements InitializingBean, SykmeldingRep
                         insert into sykmelding
                         (id, virksomhetsnummer, ansatt_fnr, sykmeldingsperiode_slutt)
                         values (?, ?, ?, ?)
-                        on conflict do update set
+                        on conflict (id) do update set
                         virksomhetsnummer = EXCLUDED.virksomhetsnummer,
                         ansatt_fnr = EXCLUDED.ansatt_fnr,
                         sykmeldingsperiode_slutt = EXCLUDED.sykmeldingsperiode_slutt
@@ -108,17 +101,15 @@ public class SykmeldingRepositoryImpl implements InitializingBean, SykmeldingRep
 
     @Scheduled(fixedDelay = 3, timeUnit = TimeUnit.MINUTES)
     public void deleteOldSykmelding() {
-        deleteOldSykmelding(
-            LocalDate.now(ZoneId.of("Europe/Oslo")).minusMonths(4)
-        );
+        deleteOldSykmelding(LocalDate.now(ZoneId.of("Europe/Oslo")));
     }
 
-    public void deleteOldSykmelding(LocalDate cutoff) {
+    public void deleteOldSykmelding(LocalDate today) {
         int rowsAffected = jdbcTemplate.update(
                 """
                     delete from sykmelding where sykmeldingsperiode_slutt < ?
                 """,
-                cutoff
+                today.minusMonths(4)
         );
         expiredCounter.increment(rowsAffected);
     }

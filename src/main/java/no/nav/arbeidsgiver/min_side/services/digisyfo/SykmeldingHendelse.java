@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Se https://github.com/navikt/sykmeldinger-arbeidsgiver/blob/main/src/main/kotlin/no/nav/syfo/sykmelding/kafka/model/SykmeldingArbeidsgiverKafkaMessage.kt
@@ -48,5 +49,24 @@ public class SykmeldingHendelse {
     static class ArbeidsgiverStatusDTO {
         @JsonProperty("orgnummer")
         final String virksomhetsnummer;
+    }
+
+    static SykmeldingHendelse create(
+            String fnrAnsatt,
+            String virksomhetsnummer,
+            List<String> toms
+    ) {
+        return new SykmeldingHendelse(
+                new ArbeidsgiverSykmelding(
+                        toms.stream()
+                                .map(LocalDate::parse)
+                                .map(SykmeldingsperiodeAGDTO::new)
+                                .collect(Collectors.toList())
+                ),
+                new KafkaMetadataDTO(fnrAnsatt),
+                new SykmeldingStatusKafkaEventDTO(
+                        new ArbeidsgiverStatusDTO(virksomhetsnummer)
+                )
+        );
     }
 }
