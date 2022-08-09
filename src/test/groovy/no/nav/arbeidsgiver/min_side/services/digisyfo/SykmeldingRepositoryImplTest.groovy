@@ -1,7 +1,7 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import org.apache.commons.lang3.tuple.ImmutablePair
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
 import org.springframework.jdbc.core.JdbcTemplate
@@ -27,7 +27,7 @@ class SykmeldingRepositoryImplTest extends Specification {
 
     def "sletter ikke dagens sykmeldinger"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = createSykmeldingRepositoryImpl([
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
                 nærmesteLedere: [[id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1]],
                 sykmeldinger: [
                         [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
@@ -41,7 +41,7 @@ class SykmeldingRepositoryImplTest extends Specification {
 
     def "sletter gamle sykmeldinger"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = createSykmeldingRepositoryImpl([
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                         [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt2, vnr: vnr2],
@@ -57,9 +57,25 @@ class SykmeldingRepositoryImplTest extends Specification {
         sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr2): 1]
     }
 
+    def "upsert bruker siste versjon"() {
+        given:
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+                nærmesteLedere: [
+                        [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
+                        [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr2],
+                ],
+                sykmeldinger: [
+                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
+                        [key: "1", event: [fnr: ansatt1, vnr: vnr2, dates: ["2020-01-01"]]],
+                ]
+        ])
+        expect:
+        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr2): 1]
+    }
+
     def "tombstones fjerner sykmeldinger"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = createSykmeldingRepositoryImpl([
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                 ],
@@ -74,7 +90,7 @@ class SykmeldingRepositoryImplTest extends Specification {
 
     def "bruker eldste tom-dato"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = createSykmeldingRepositoryImpl([
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                 ],
@@ -92,7 +108,7 @@ class SykmeldingRepositoryImplTest extends Specification {
 
     def "ser ikke ansatt som er sykmeldt i annen bedrift"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = createSykmeldingRepositoryImpl([
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                         [id: uuid2, fnrLeder: leder2, fnrAnsatt: ansatt1, vnr: vnr2],
@@ -106,7 +122,7 @@ class SykmeldingRepositoryImplTest extends Specification {
 
     def "ser ikke ansatt i samme bedrift man ikke er leder for"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = createSykmeldingRepositoryImpl([
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                         [id: uuid2, fnrLeder: leder2, fnrAnsatt: ansatt1, vnr: vnr2],
@@ -118,48 +134,98 @@ class SykmeldingRepositoryImplTest extends Specification {
         sykmeldingRepository.oversiktSykmeldinger(leder2) == [(vnr2): 1]
     }
 
-//    def "do some inserts"() {
-//        given:
-//        SykmeldingRepositoryImpl sykmeldingRepository = createSykmeldingRepositoryImpl([
-//                nærmesteLedere: [
-//                        [
-//                                id: "3608d78e-10a3-4179-9cac-000000000000",
-//                                fnrLeder: leder1,
-//                                fnrAnsatt: ansatt1,
-//                                vnr: vnr1,
-//                        ],
-//                        [
-//                                id: "3608d78e-10a3-4179-9cac-000000000001",
-//                                fnrLeder: leder1,
-//                                fnrAnsatt: ansatt1,
-//                                vnr: vnr2,
-//                        ],
-//                        [
-//                                id: "3608d78e-10a3-4179-9cac-000000000001",
-//                                fnrLeder: leder1,
-//                                fnrAnsatt: ansatt2,
-//                                vnr: vnr1,
-//                        ],
-//                        [
-//                                id: "3608d78e-10a3-4179-9cac-000000000001",
-//                                fnrLeder: leder1,
-//                                fnrAnsatt: ansatt2,
-//                                vnr: vnr1,
-//                        ]
-//                ],
-//                sykmeldinger: [
-//                        [key: "1", event: [fnr: "1", vnr: "2", dates: ["2020-01-01"]]],
-//                        [key: "1", event: [fnr: "1", vnr: "2", dates: ["2020-01-02"]]],
-//                ]
-//        ])
-//
-//        expect:
-//        sykmeldingRepository.oversiktSykmeldinger("3") == [
-//                "2": 1
-//        ]
-//    }
+    def "batch: upsert – tombstone"() {
+        given:
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseBatched([
+                nærmesteLedere: [
+                        [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
+                ],
+                sykmeldinger: [
+                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
+                        [key: "1", event: null],
+                ]
+        ])
+        expect:
+        sykmeldingRepository.oversiktSykmeldinger(leder1) == [:]
+    }
 
-    def createSykmeldingRepositoryImpl(setup) {
+    def "batch: upsert – upsert"() {
+        given:
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseBatched([
+                nærmesteLedere: [
+                        [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
+                        [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr2],
+                ],
+                sykmeldinger: [
+                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
+                        [key: "1", event: [fnr: ansatt1, vnr: vnr2, dates: ["2020-01-01"]]],
+                ]
+        ])
+        expect:
+        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr2): 1]
+    }
+
+    def "batch: tombstone – upsert"() {
+        given:
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseBatched([
+                nærmesteLedere: [
+                        [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
+                ],
+                sykmeldinger: [
+                        [key: "1", event: null],
+                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
+                ]
+        ])
+        expect:
+        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr1): 1]
+    }
+
+    def "batch: upsert – tombstone – upsert"() {
+        given:
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseBatched([
+                nærmesteLedere: [
+                        [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
+                        [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr2],
+                ],
+                sykmeldinger: [
+                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
+                        [key: "1", event: null],
+                        [key: "1", event: [fnr: ansatt1, vnr: vnr2, dates: ["2020-01-01"]]],
+                ]
+        ])
+        expect:
+        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr2): 1]
+    }
+
+    def prepareDatabaseSingletonBatches(setup) {
+        prepareDatabase(
+                setup.nærmesteLedere,
+                setup.sykmeldinger.collect {
+                    if (it.event == null) {
+                        [ImmutablePair.of(it.key, null)]
+                    } else {
+                        [ImmutablePair.of(it.key, createSykmelding(it.event.fnr, it.event.vnr, it.event.dates))]
+                    }
+                }
+        )
+    }
+
+    def prepareDatabaseBatched(setup) {
+        prepareDatabase(
+                setup.nærmesteLedere,
+                [
+                        setup.sykmeldinger.collect {
+                            if (it.event == null) {
+                                ImmutablePair.of(it.key, null)
+                            } else {
+                                ImmutablePair.of(it.key, createSykmelding(it.event.fnr, it.event.vnr, it.event.dates))
+                            }
+                        }
+                ]
+        )
+    }
+
+    def prepareDatabase(nærmesteLedere, batches) {
         PGSimpleDataSource ds = new PGSimpleDataSource()
         ds.setUrl("jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres")
 
@@ -173,7 +239,7 @@ class SykmeldingRepositoryImplTest extends Specification {
         SykmeldingRepository sykmeldingRepository = new SykmeldingRepositoryImpl(jdbcTemplate, new LoggingMeterRegistry())
         NærmestelederRepository nærmestelederRepository = new NærmestelederRepositoryImpl(jdbcTemplate)
 
-        setup.nærmesteLedere.each {
+        nærmesteLedere.each {
             nærmestelederRepository.processEvent(
                     new NarmesteLederHendelse(
                             UUID.fromString(it.id),
@@ -184,12 +250,8 @@ class SykmeldingRepositoryImplTest extends Specification {
                     )
             )
         }
-        setup.sykmeldinger.each {
-            if (it.event == null) {
-                sykmeldingRepository.processEvent(it.key, null)
-            } else {
-                sykmeldingRepository.processEvent(it.key, createSykmelding(it.event.fnr, it.event.vnr, it.event.dates))
-            }
+        batches.each {
+            sykmeldingRepository.processEvent(it)
         }
 
         return sykmeldingRepository

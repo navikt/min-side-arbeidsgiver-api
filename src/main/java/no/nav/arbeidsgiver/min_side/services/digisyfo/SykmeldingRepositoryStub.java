@@ -1,6 +1,7 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -17,6 +18,6 @@ public class SykmeldingRepositoryStub implements SykmeldingRepository {
     }
 
     @Override
-    public void processEvent(String key, SykmeldingHendelse hendelse) {
+    public void processEvent(List<ImmutablePair<String, SykmeldingHendelse>> records) {
     }
 }

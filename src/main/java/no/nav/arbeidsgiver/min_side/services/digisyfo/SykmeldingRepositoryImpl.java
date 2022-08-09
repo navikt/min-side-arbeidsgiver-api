@@ -15,6 +15,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -28,7 +29,10 @@ public class SykmeldingRepositoryImpl implements SykmeldingRepository {
     private final Counter expiredCounter;
     private final Counter updateCounter;
 
-    SykmeldingRepositoryImpl(JdbcTemplate jdbcTemplate, MeterRegistry meterRegistry) {
+    SykmeldingRepositoryImpl(
+            JdbcTemplate jdbcTemplate,
+            MeterRegistry meterRegistry
+    ) {
         this.jdbcTemplate = jdbcTemplate;
 
         tombstoneCounter = Counter
@@ -70,33 +74,44 @@ public class SykmeldingRepositoryImpl implements SykmeldingRepository {
     }
 
     @Override
-    public void processEvent(String key, SykmeldingHendelse hendelse) {
-        if (hendelse == null) {
-            jdbcTemplate.update("delete from sykmelding where id = ?", key);
-            tombstoneCounter.increment();
-        } else {
-            var tom = hendelse.sykmelding.sykmeldingsperioder
-                    .stream()
-                    .map((it) -> it.tom)
-                    .max(LocalDate::compareTo)
-                    .orElseThrow();
-            jdbcTemplate.update(
-                    """
-                        insert into sykmelding
-                        (id, virksomhetsnummer, ansatt_fnr, sykmeldingsperiode_slutt)
-                        values (?, ?, ?, ?)
-                        on conflict (id) do update set
-                        virksomhetsnummer = EXCLUDED.virksomhetsnummer,
-                        ansatt_fnr = EXCLUDED.ansatt_fnr,
-                        sykmeldingsperiode_slutt = EXCLUDED.sykmeldingsperiode_slutt
-                        """,
-                    key,
-                    hendelse.event.arbeidsgiver.virksomhetsnummer,
-                    hendelse.kafkaMetadata.fnrAnsatt,
-                    tom
-            );
-            updateCounter.increment();
-        }
+    public void processEvent(List<ImmutablePair<String, SykmeldingHendelse>> records) {
+        var tombstones = records
+                .stream()
+                .filter(it -> it.getValue() == null)
+                .map(it -> new Object[] { it.getKey() })
+                .collect(Collectors.toList());
+
+        jdbcTemplate.batchUpdate("delete from sykmelding where id = ?",  tombstones);
+        tombstoneCounter.increment(tombstones.size());
+
+        var upserts = records.stream()
+                .filter(it -> it.getValue() != null)
+                .map(it -> new Object[] {
+                                it.getKey(),
+                                it.getValue().event.arbeidsgiver.virksomhetsnummer,
+                                it.getValue().kafkaMetadata.fnrAnsatt,
+                                it.getValue().sykmelding.sykmeldingsperioder
+                                        .stream()
+                                        .map((periode) -> periode.tom)
+                                        .max(LocalDate::compareTo)
+                                        .orElseThrow()
+                        }
+                )
+                .collect(Collectors.toList());
+
+        jdbcTemplate.batchUpdate(
+                """
+                    insert into sykmelding
+                    (id, virksomhetsnummer, ansatt_fnr, sykmeldingsperiode_slutt)
+                    values (?, ?, ?, ?)
+                    on conflict (id) do update set
+                    virksomhetsnummer = EXCLUDED.virksomhetsnummer,
+                    ansatt_fnr = EXCLUDED.ansatt_fnr,
+                    sykmeldingsperiode_slutt = EXCLUDED.sykmeldingsperiode_slutt
+                    """,
+                upserts
+        );
+        updateCounter.increment(upserts.size());
     }
 
     @Scheduled(fixedDelay = 3, timeUnit = TimeUnit.MINUTES)

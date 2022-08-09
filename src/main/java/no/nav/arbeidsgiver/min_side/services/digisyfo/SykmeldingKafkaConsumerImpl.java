@@ -2,9 +2,13 @@ package no.nav.arbeidsgiver.min_side.services.digisyfo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -33,18 +37,26 @@ public class SykmeldingKafkaConsumerImpl {
     public void processConsumerRecord(
             List<ConsumerRecord<String, String>> records
     ) throws JsonProcessingException {
-        var msg = records
+        var parsedRecords = records
                 .stream()
-                .map(it -> String.format("p:%d o:%d", it.partition(), it.offset()))
-                .collect(Collectors.joining("; "));
-        log.info("batch info size: {}, records: {}", records.size(), msg);
-         throw new RuntimeException("simulate failure");
-//        records.stream().map(r ->
-//
-//        );
-//        var hendelse = record.value() == null
-//                ? null
-//                : objectMapper.readValue(record.value(), SykmeldingHendelse.class);
-//        sykmeldingRepository.processEvent(record.key(), hendelse);
+                .map(r ->
+                        ImmutablePair.of(
+                                r.key(),
+                                getSykmeldingHendelse(r)
+                        )
+
+                ).collect(Collectors.toList());
+        sykmeldingRepository.processEvent(parsedRecords);
+    }
+
+    @Nullable
+    private SykmeldingHendelse getSykmeldingHendelse(ConsumerRecord<String, String> r) {
+        try {
+            return r.value() == null
+                    ? null
+                    : objectMapper.readValue(r.value(), SykmeldingHendelse.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
