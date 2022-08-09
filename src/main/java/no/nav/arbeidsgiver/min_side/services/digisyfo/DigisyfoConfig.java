@@ -16,12 +16,23 @@ import org.springframework.util.backoff.ExponentialBackOff;
 public class DigisyfoConfig {
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<String, String> digisyfoKafkaListenerContainerFactory(
+    ConcurrentKafkaListenerContainerFactory<String, String> digisyfoNaermesteLederKafkaListenerContainerFactory(
             KafkaProperties properties
     ) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(properties.buildConsumerProperties()));
         factory.setCommonErrorHandler(new DefaultErrorHandler(new ExponentialBackOff()));
+        return factory;
+    }
+
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<String, String> digisyfoSykmeldingKafkaListenerContainerFactory(
+            KafkaProperties properties
+    ) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(properties.buildConsumerProperties()));
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new ExponentialBackOff()));
+        factory.setBatchListener(true);
         return factory;
     }
 

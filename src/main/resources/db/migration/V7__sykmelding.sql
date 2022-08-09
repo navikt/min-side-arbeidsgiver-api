@@ -4,7 +4,7 @@ create table sykmelding
     virksomhetsnummer text not null,
     ansatt_fnr text not null,
     -- val latestTom = sykmeldingArbeidsgiverKafkaMessage.sykmelding.sykmeldingsperioder.maxOf { it.tom }
-    sykmeldingsperiode_slutt date
+    sykmeldingsperiode_slutt date not null
 );
 
 
