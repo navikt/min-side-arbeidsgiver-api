@@ -26,7 +26,7 @@ public class SykmeldingKafkaConsumerImpl {
 
     @KafkaListener(
             id = "min-side-arbeidsgiver-sykmelding-1",
-            topics = "teamsykmelding.teamsykmelding.syfo-sendt-sykmelding",
+            topics = "teamsykmelding.syfo-sendt-sykmelding",
             containerFactory = "digisyfoSykmeldingKafkaListenerContainerFactory",
             properties = ConsumerConfig.MAX_POLL_RECORDS_CONFIG + "=2"
     )
