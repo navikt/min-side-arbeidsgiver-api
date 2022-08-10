@@ -36,17 +36,23 @@ public class SykmeldingKafkaConsumerImpl {
     )
     public void processConsumerRecord(
             List<ConsumerRecord<String, String>> records
-    ) throws JsonProcessingException {
-        var parsedRecords = records
-                .stream()
-                .map(r ->
-                        ImmutablePair.of(
-                                r.key(),
-                                getSykmeldingHendelse(r)
-                        )
-
-                ).collect(Collectors.toList());
-        sykmeldingRepository.processEvent(parsedRecords);
+    ) {
+        log.info("processConsumerRecord entered with {} records", records.size());
+        try {
+            var parsedRecords = records
+                    .stream()
+                    .map(r ->
+                            ImmutablePair.of(
+                                    r.key(),
+                                    getSykmeldingHendelse(r)
+                            )
+                    ).collect(Collectors.toList());
+            sykmeldingRepository.processEvent(parsedRecords);
+        } catch (Exception e) {
+            log.error("exception while parsing/processing messages {}", e.getMessage());
+            throw e;
+        }
+        log.info("processConsumerRecord returns");
     }
 
     @Nullable
