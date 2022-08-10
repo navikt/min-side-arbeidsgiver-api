@@ -15,9 +15,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Profile({"dev-gcp", "prod-gcp"})
@@ -73,8 +76,25 @@ public class SykmeldingRepositoryImpl implements SykmeldingRepository {
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
 
+    /**
+     * Deduplicate the stream, identifiying objects by keyMapper, and keeping
+     * the latest version (further back in the stream). The order in the final
+     * result may differ from order of the stream.
+     */
+    public static <T, K> Collector<T, ?, Collection<T>> latestBy(Function<? super T, ? extends K> keyMapper) {
+        return Collectors.collectingAndThen(
+                Collectors.toMap(
+                        keyMapper,
+                        Function.identity(),
+                        (older, newer) -> newer
+                ),
+                Map::values);
+    }
     @Override
-    public void processEvent(List<ImmutablePair<String, SykmeldingHendelse>> records) {
+    public void processEvent(List<ImmutablePair<String, SykmeldingHendelse>> batchRecords) {
+        var records = batchRecords.stream()
+                .collect(latestBy(ImmutablePair::getKey));
+
         var tombstones = records
                 .stream()
                 .filter(it -> it.getValue() == null)
