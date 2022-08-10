@@ -4,10 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.jetbrains.annotations.Nullable;
@@ -58,7 +56,7 @@ public class SykmeldingKafkaConsumerImpl {
                     .stream()
                     .collect(
                             Collectors.toMap(
-                            record -> new Foo(record.topic(), record.partition()),
+                            record -> new TopicPartition(record.topic(), record.partition()),
                             Function.identity(),
                             (left, right) -> {
                                 if (left.offset() < right.offset()) {
@@ -88,7 +86,7 @@ public class SykmeldingKafkaConsumerImpl {
 
     @Data
     @AllArgsConstructor
-    static class Foo {
+    static class TopicPartition {
         String topic;
         int partition;
     }
