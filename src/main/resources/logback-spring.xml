@@ -8,6 +8,8 @@
         <logger name="jsonLogger" additivity="false" level="DEBUG">
             <appender-ref ref="consoleAppender"/>
         </logger>
+        <logger name="org.apache.kafka" level="DEBUG"/>
+        <logger name="org.springframework.kafka" level="DEBUG"/>
         <root level="INFO">
             <appender-ref ref="consoleAppender"/>
         </root>
