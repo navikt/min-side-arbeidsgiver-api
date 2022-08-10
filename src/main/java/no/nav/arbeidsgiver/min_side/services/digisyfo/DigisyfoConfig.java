@@ -18,6 +18,7 @@ import org.springframework.util.backoff.ExponentialBackOff;
 @Profile({"dev-gcp", "prod-gcp"})
 @Configuration
 @EnableKafka
+@Slf4j
 public class DigisyfoConfig {
 
     @Bean
@@ -36,23 +37,14 @@ public class DigisyfoConfig {
     ) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(properties.buildConsumerProperties()));
-        factory.setCommonErrorHandler(new DefaultErrorHandlerWithLogging(new ExponentialBackOff()));
+        DefaultErrorHandler commonErrorHandler = new DefaultErrorHandler(new ExponentialBackOff());
+        commonErrorHandler.setRetryListeners(
+                (consumerRecord, exception, someInteger) -> {
+                    log.error("event fail with exception topic={} parition={} offset={} key={} exception={}", consumerRecord.topic(),  consumerRecord.partition(), consumerRecord.offset(), consumerRecord.key(), exception.getClass().getCanonicalName(), exception);
+                }
+        );
+        factory.setCommonErrorHandler(commonErrorHandler);
         factory.setBatchListener(true);
         return factory;
-    }
-
-    @Slf4j
-    static class DefaultErrorHandlerWithLogging extends DefaultErrorHandler {
-        DefaultErrorHandlerWithLogging(BackOff backOff) {
-            super(backOff);
-        }
-
-        @Override
-        public void handleBatch(Exception thrownException, ConsumerRecords<?, ?> data, Consumer<?, ?> consumer, MessageListenerContainer container, Runnable invokeListener) {
-            if (thrownException != null) {
-                log.warn("exception while handling batch: {}", thrownException.getMessage(), thrownException);
-            }
-            super.handleBatch(thrownException, data, consumer, container, invokeListener);
-        }
     }
 }
