@@ -50,7 +50,7 @@ public class SykmeldingKafkaConsumerImpl {
             sykmeldingRepository.processEvent(parsedRecords);
         } catch (Exception e) {
             log.error("exception while parsing/processing messages {}", e.getMessage());
-            throw e;
+            throw new RuntimeException(e);
         }
         log.info("processConsumerRecord returns");
     }
