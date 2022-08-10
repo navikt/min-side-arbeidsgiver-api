@@ -34,7 +34,7 @@ public class SykmeldingKafkaConsumerImpl {
             topics = "teamsykmelding.syfo-sendt-sykmelding",
             containerFactory = "digisyfoSykmeldingKafkaListenerContainerFactory",
             properties = {
-                    ConsumerConfig.MAX_POLL_RECORDS_CONFIG + "=2",
+                    ConsumerConfig.MAX_POLL_RECORDS_CONFIG + "=1000",
                     ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG + "=60000"
             }
     )
