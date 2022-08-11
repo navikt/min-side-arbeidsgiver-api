@@ -28,6 +28,7 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BROKERS}
     properties:
+      max.poll.interval.ms: 60000
       auto.offset.reset: earliest
       security.protocol: SSL
       ssl:
