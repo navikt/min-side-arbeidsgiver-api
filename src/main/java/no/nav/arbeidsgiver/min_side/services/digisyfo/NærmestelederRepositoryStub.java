@@ -9,9 +9,13 @@ import java.util.List;
 @Profile({"local", "labs"})
 @Slf4j
 @Repository
-public class NærmestelederRepositoryMock implements NærmestelederRepository {
+public class NærmestelederRepositoryStub implements NærmestelederRepository {
     @Override
     public List<String> virksomheterSomNærmesteLeder(String lederFnr) {
         return List.of("910825526");
+    }
+
+    @Override
+    public void processEvent(NarmesteLederHendelse hendelse) {
     }
 }

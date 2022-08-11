@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,10 +14,11 @@ import org.springframework.util.backoff.ExponentialBackOff;
 @Profile({"dev-gcp", "prod-gcp"})
 @Configuration
 @EnableKafka
+@Slf4j
 public class DigisyfoConfig {
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<String, String> digisyfoKafkaListenerContainerFactory(
+    ConcurrentKafkaListenerContainerFactory<String, String> digisyfoNaermesteLederKafkaListenerContainerFactory(
             KafkaProperties properties
     ) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
@@ -25,4 +27,14 @@ public class DigisyfoConfig {
         return factory;
     }
 
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<String, String> digisyfoSykmeldingKafkaListenerContainerFactory(
+            KafkaProperties properties
+    ) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(properties.buildConsumerProperties()));
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new ExponentialBackOff()));
+        factory.setBatchListener(true);
+        return factory;
+    }
 }

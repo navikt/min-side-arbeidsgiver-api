@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -25,6 +26,7 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 @Configuration
+@EnableScheduling
 public class AppConfig {
 
     public static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
