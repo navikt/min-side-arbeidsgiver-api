@@ -2,10 +2,12 @@ package no.nav.arbeidsgiver.min_side.services.digisyfo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 
+@Slf4j
 public class NærmesteLederKafkaConsumerImpl {
     private final ObjectMapper objectMapper;
     private final NærmestelederRepository nærmestelederRepository;
@@ -23,8 +25,20 @@ public class NærmesteLederKafkaConsumerImpl {
             topics = "teamsykmelding.syfo-narmesteleder-leesah",
             containerFactory = "digisyfoNaermesteLederKafkaListenerContainerFactory"
     )
-    public void processConsumerRecord(ConsumerRecord<String, String> record) throws JsonProcessingException {
-        NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
-        nærmestelederRepository.processEvent(hendelse);
+    public void processConsumerRecord(ConsumerRecord<String, String> record) {
+        try {
+            NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
+            nærmestelederRepository.processEvent(hendelse);
+        } catch (JsonProcessingException | RuntimeException e) {
+            log.error(
+                    "exception while processing kafka event exception={} topic={} parition={} offset={}",
+                    e.getClass().getCanonicalName(),
+                    record.topic(),
+                    record.partition(),
+                    record.offset(),
+                    e
+            );
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -35,7 +35,6 @@ public class SykmeldingKafkaConsumerImpl {
             containerFactory = "digisyfoSykmeldingKafkaListenerContainerFactory",
             properties = {
                     ConsumerConfig.MAX_POLL_RECORDS_CONFIG + "=1000",
-                    ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG + "=60000"
             }
     )
     public void processConsumerRecord(
@@ -51,7 +50,7 @@ public class SykmeldingKafkaConsumerImpl {
                             )
                     ).collect(Collectors.toList());
             sykmeldingRepository.processEvent(parsedRecords);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             var offsetSummaryMap = records
                     .stream()
                     .collect(
