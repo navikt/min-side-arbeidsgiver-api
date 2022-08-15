@@ -40,37 +40,25 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
     @KafkaListener(
             id = "min-side-arbeidsgiver-1",
             topics = "arbeidsgiver.tiltak-refusjon-endret-status",
-            containerFactory = "tiltakKafkaListenerContainerFactory"
+            containerFactory = "kafkaListenerContainerFactory"
     )
-    public void processConsumerRecord(ConsumerRecord<String, String> record) {
-        try {
-            RefusjonStatusHendelse hendelse = objectMapper.readValue(record.value(), RefusjonStatusHendelse.class);
-            jdbcTemplate.update(
-                    "insert into refusjon_status(refusjon_id, virksomhetsnummer, avtale_id, status)" +
-                            "   values(?, ?, ?, ?)" +
-                            "   on conflict (refusjon_id) " +
-                            "   do update set " +
-                            "       virksomhetsnummer = EXCLUDED.virksomhetsnummer, " +
-                            "       avtale_id = EXCLUDED.avtale_id, " +
-                            "       status = EXCLUDED.status;",
-                    ps -> {
-                        ps.setString(1, hendelse.refusjonId);
-                        ps.setString(2, hendelse.virksomhetsnummer);
-                        ps.setString(3, hendelse.avtaleId);
-                        ps.setString(4, hendelse.status);
-                    }
-            );
-        } catch (JsonProcessingException | RuntimeException e) {
-            log.error(
-                    "exception while processing kafka event exception={} topic={} parition={} offset={}",
-                    e.getClass().getCanonicalName(),
-                    record.topic(),
-                    record.partition(),
-                    record.offset(),
-                    e
-            );
-            throw new RuntimeException(e);
-        }
+    public void processConsumerRecord(ConsumerRecord<String, String> record) throws JsonProcessingException {
+        RefusjonStatusHendelse hendelse = objectMapper.readValue(record.value(), RefusjonStatusHendelse.class);
+        jdbcTemplate.update(
+                "insert into refusjon_status(refusjon_id, virksomhetsnummer, avtale_id, status)" +
+                        "   values(?, ?, ?, ?)" +
+                        "   on conflict (refusjon_id) " +
+                        "   do update set " +
+                        "       virksomhetsnummer = EXCLUDED.virksomhetsnummer, " +
+                        "       avtale_id = EXCLUDED.avtale_id, " +
+                        "       status = EXCLUDED.status;",
+                ps -> {
+                    ps.setString(1, hendelse.refusjonId);
+                    ps.setString(2, hendelse.virksomhetsnummer);
+                    ps.setString(3, hendelse.avtaleId);
+                    ps.setString(4, hendelse.status);
+                }
+        );
     }
 
     @Override

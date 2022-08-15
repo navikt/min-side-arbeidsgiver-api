@@ -9,7 +9,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -24,22 +23,19 @@ import java.util.stream.Collectors;
 public class SykmeldingKafkaConsumerImpl {
     private final ObjectMapper objectMapper;
     private final SykmeldingRepository sykmeldingRepository;
-    private final String cluster;
 
     public SykmeldingKafkaConsumerImpl(
             ObjectMapper objectMapper,
-            SykmeldingRepository sykmeldingRepository,
-            @Value("${nais.cluster.name:local}") String cluster
+            SykmeldingRepository sykmeldingRepository
     ) {
         this.objectMapper = objectMapper;
         this.sykmeldingRepository = sykmeldingRepository;
-        this.cluster = cluster;
     }
 
     @KafkaListener(
-            id = "min-side-arbeidsgiver-sykmelding-0",
+            id = "min-side-arbeidsgiver-sykmelding-1",
             topics = "teamsykmelding.syfo-sendt-sykmelding",
-            containerFactory = "digisyfoKafkaListenerContainerFactory",
+            containerFactory = "kafkaListenerContainerFactory",
             batch = "true",
             properties = {
                     ConsumerConfig.MAX_POLL_RECORDS_CONFIG + "=1000",
@@ -49,9 +45,6 @@ public class SykmeldingKafkaConsumerImpl {
             List<ConsumerRecord<String, String>> records
     ) {
         try {
-            if (cluster.equals("dev-gcp")) {
-                throw new RuntimeException("simulert feil");
-            }
             var parsedRecords = records
                     .stream()
                     .map(r ->
