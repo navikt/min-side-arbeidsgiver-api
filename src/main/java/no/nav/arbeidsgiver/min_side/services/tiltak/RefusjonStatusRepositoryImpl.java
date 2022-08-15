@@ -40,7 +40,7 @@ public class RefusjonStatusRepositoryImpl implements RefusjonStatusRepository {
     @KafkaListener(
             id = "min-side-arbeidsgiver-1",
             topics = "arbeidsgiver.tiltak-refusjon-endret-status",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "errorLoggingKafkaListenerContainerFactory"
     )
     public void processConsumerRecord(ConsumerRecord<String, String> record) throws JsonProcessingException {
         RefusjonStatusHendelse hendelse = objectMapper.readValue(record.value(), RefusjonStatusHendelse.class);

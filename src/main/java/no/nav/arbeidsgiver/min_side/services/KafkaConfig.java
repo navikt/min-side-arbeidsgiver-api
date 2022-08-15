@@ -18,7 +18,7 @@ import org.springframework.util.backoff.ExponentialBackOff;
 public class KafkaConfig {
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(
+    ConcurrentKafkaListenerContainerFactory<String, String> errorLoggingKafkaListenerContainerFactory(
             KafkaProperties properties
     ) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();

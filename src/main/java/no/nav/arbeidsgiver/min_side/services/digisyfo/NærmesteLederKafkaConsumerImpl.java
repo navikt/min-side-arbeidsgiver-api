@@ -29,7 +29,7 @@ public class NærmesteLederKafkaConsumerImpl {
             // id = "min-side-arbeidsgiver-narmesteleder-model-builder-2", brukt 23.05.2022
             // id = "min-side-arbeidsgiver-narmesteleder-model-builder-3", brukt 16.06.2022
             topics = "teamsykmelding.syfo-narmesteleder-leesah",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "errorLoggingKafkaListenerContainerFactory"
     )
     public void processConsumerRecord(ConsumerRecord<String, String> record) throws JsonProcessingException {
         NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
