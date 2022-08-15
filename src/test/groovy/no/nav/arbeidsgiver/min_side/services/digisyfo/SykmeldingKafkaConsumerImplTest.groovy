@@ -8,8 +8,8 @@ import java.time.LocalDate
 
 class SykmeldingKafkaConsumerImplTest extends Specification {
     def repository = new SykmeldingRepositoryStub()
-    def objectMapper = new Jackson2ObjectMapperBuilder().build();
-    def kafkaConsumer = new SykmeldingKafkaConsumerImpl(objectMapper, repository)
+    def objectMapper = new Jackson2ObjectMapperBuilder().build()
+    def kafkaConsumer = new SykmeldingKafkaConsumerImpl(objectMapper, repository, "local")
 
     def "handles localdate"() {
         given:

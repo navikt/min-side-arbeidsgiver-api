@@ -33,7 +33,14 @@ public class DigisyfoConfig {
     ) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(properties.buildConsumerProperties()));
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new ExponentialBackOff()));
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(new ExponentialBackOff());
+        errorHandler.setRetryListeners(
+                (r, ex, attempt) -> {
+                    log.error("retry listener invoked due to {}", ex.getClass().getCanonicalName(), ex);
+                    log.error("event fail with exception topic={} parition={} offset={} key={} exception={} attempt={}", r.topic(), r.partition(), r.offset(), r.key(), ex.getClass().getCanonicalName(), attempt, ex);
+                }
+        );
+        factory.setCommonErrorHandler(errorHandler);
         factory.setBatchListener(true);
         return factory;
     }
