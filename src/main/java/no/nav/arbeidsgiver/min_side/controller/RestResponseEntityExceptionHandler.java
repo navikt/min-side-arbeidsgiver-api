@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.controller;
 
-import io.ktor.client.features.ServerResponseException;
+import io.ktor.client.plugins.ServerResponseException;
 import io.ktor.http.HttpStatusCode;
 import lombok.Data;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.error.exceptions.AltinnrettigheterProxyKlientFallbackException;
