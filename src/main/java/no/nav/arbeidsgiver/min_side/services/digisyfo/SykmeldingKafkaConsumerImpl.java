@@ -51,7 +51,7 @@ public class SykmeldingKafkaConsumerImpl {
                     ).collect(Collectors.toList());
             sykmeldingRepository.processEvent(parsedRecords);
         } catch (RuntimeException e) {
-            throw new BatchListenerFailedException("exception while processing kafka event", e, 0);
+            throw new BatchListenerFailedException("exception while processing kafka event", e, records.get(0));
         }
     }
 
