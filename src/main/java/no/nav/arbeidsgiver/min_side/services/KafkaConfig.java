@@ -1,4 +1,4 @@
-package no.nav.arbeidsgiver.min_side.services.digisyfo;
+package no.nav.arbeidsgiver.min_side.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -15,26 +15,23 @@ import org.springframework.util.backoff.ExponentialBackOff;
 @Configuration
 @EnableKafka
 @Slf4j
-public class DigisyfoConfig {
+public class KafkaConfig {
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<String, String> digisyfoNaermesteLederKafkaListenerContainerFactory(
+    ConcurrentKafkaListenerContainerFactory<String, String> errorLoggingKafkaListenerContainerFactory(
             KafkaProperties properties
     ) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(properties.buildConsumerProperties()));
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new ExponentialBackOff()));
-        return factory;
-    }
-
-    @Bean
-    ConcurrentKafkaListenerContainerFactory<String, String> digisyfoSykmeldingKafkaListenerContainerFactory(
-            KafkaProperties properties
-    ) {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(properties.buildConsumerProperties()));
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new ExponentialBackOff()));
-        factory.setBatchListener(true);
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(new ExponentialBackOff());
+        errorHandler.setRetryListeners(
+                (r, ex, attempt) ->
+                        log.error(
+                                "KafkaListener failed. attempt={} topic={} parition={} offset={} key={}  exception={}",
+                                attempt, r.topic(), r.partition(), r.offset(), r.key(), ex.getClass().getCanonicalName(), ex
+                        )
+        );
+        factory.setCommonErrorHandler(errorHandler);
         return factory;
     }
 }

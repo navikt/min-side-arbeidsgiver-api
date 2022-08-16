@@ -15,7 +15,10 @@ public class NærmesteLederKafkaConsumerImpl {
     private final ObjectMapper objectMapper;
     private final NærmestelederRepository nærmestelederRepository;
 
-    public NærmesteLederKafkaConsumerImpl(ObjectMapper objectMapper, NærmestelederRepository nærmestelederRepository) {
+    public NærmesteLederKafkaConsumerImpl(
+            ObjectMapper objectMapper,
+            NærmestelederRepository nærmestelederRepository
+    ) {
         this.objectMapper = objectMapper;
         this.nærmestelederRepository = nærmestelederRepository;
     }
@@ -26,22 +29,10 @@ public class NærmesteLederKafkaConsumerImpl {
             // id = "min-side-arbeidsgiver-narmesteleder-model-builder-2", brukt 23.05.2022
             // id = "min-side-arbeidsgiver-narmesteleder-model-builder-3", brukt 16.06.2022
             topics = "teamsykmelding.syfo-narmesteleder-leesah",
-            containerFactory = "digisyfoNaermesteLederKafkaListenerContainerFactory"
+            containerFactory = "errorLoggingKafkaListenerContainerFactory"
     )
-    public void processConsumerRecord(ConsumerRecord<String, String> record) {
-        try {
-            NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
-            nærmestelederRepository.processEvent(hendelse);
-        } catch (JsonProcessingException | RuntimeException e) {
-            log.error(
-                    "exception while processing kafka event exception={} topic={} parition={} offset={}",
-                    e.getClass().getCanonicalName(),
-                    record.topic(),
-                    record.partition(),
-                    record.offset(),
-                    e
-            );
-            throw new RuntimeException(e);
-        }
+    public void processConsumerRecord(ConsumerRecord<String, String> record) throws JsonProcessingException {
+        NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
+        nærmestelederRepository.processEvent(hendelse);
     }
 }
