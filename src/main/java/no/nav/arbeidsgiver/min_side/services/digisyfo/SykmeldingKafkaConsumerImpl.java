@@ -33,6 +33,7 @@ public class SykmeldingKafkaConsumerImpl {
             id = "min-side-arbeidsgiver-sykmelding-1",
             topics = "teamsykmelding.syfo-sendt-sykmelding",
             containerFactory = "errorLoggingKafkaListenerContainerFactory",
+            batch = "true",
             properties = {
                     ConsumerConfig.MAX_POLL_RECORDS_CONFIG + "=1000",
             }
