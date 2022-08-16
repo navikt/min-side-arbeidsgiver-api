@@ -4,20 +4,16 @@ import lombok.extern.slf4j.Slf4j;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlient;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlientConfig;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.ProxyConfig;
-import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.error.exceptions.AltinnException;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.model.*;
-import no.nav.arbeidsgiver.min_side.exceptions.TilgangskontrollException;
-import no.nav.arbeidsgiver.min_side.models.Organisasjon;
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder;
+import no.nav.arbeidsgiver.min_side.models.Organisasjon;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
 import static no.nav.arbeidsgiver.min_side.services.altinn.AltinnCacheConfig.ALTINN_CACHE;
 import static no.nav.arbeidsgiver.min_side.services.altinn.AltinnCacheConfig.ALTINN_TJENESTE_CACHE;
 
@@ -45,18 +41,18 @@ public class AltinnService {
 
     @Cacheable(ALTINN_CACHE)
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
-        return medFeilFraAltinnHåndtert(() -> mapTo(
+        return mapTo(
                 klient.hentOrganisasjoner(
                         new SelvbetjeningToken(tokenUtils.getToken()),
                         new Subject(fnr),
                         true
                 )
-        ));
+        );
     }
 
     @Cacheable(ALTINN_TJENESTE_CACHE)
     public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
-        return medFeilFraAltinnHåndtert(() -> mapTo(
+        return mapTo(
                 klient.hentOrganisasjoner(
                         new SelvbetjeningToken(tokenUtils.getToken()),
                         new Subject(fnr),
@@ -64,25 +60,7 @@ public class AltinnService {
                         new ServiceEdition(serviceEdition),
                         true
                 )
-        ));
-    }
-
-    private List<Organisasjon> medFeilFraAltinnHåndtert(Supplier<List<Organisasjon>> fn) {
-        try {
-            return fn.get();
-        } catch (AltinnException exception) {
-            if (exception.getProxyError().getMelding().contains("User profile could not be found")) {
-                return emptyList();
-            } else {
-                throw exception;
-            }
-        } catch (Exception exception) {
-            if (exception.getMessage().contains("User profile could not be found")) {
-                return emptyList();
-            } else {
-                throw exception;
-            }
-        }
+        );
     }
 
     private List<Organisasjon> mapTo(List<AltinnReportee> altinnReportees) {
