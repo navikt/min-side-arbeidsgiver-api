@@ -56,7 +56,7 @@ public class DigisyfoController {
     @Data
     static class DigisyfoOrganisasjon {
         final Organisasjon organisasjon;
-        final int antallAktiveSykmeldinger;
+        final int antallSykmeldinger;
     }
 
     @GetMapping(value = "/api/narmesteleder/virksomheter-v2")

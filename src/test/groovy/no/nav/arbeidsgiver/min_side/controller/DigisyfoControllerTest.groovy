@@ -131,7 +131,7 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "BEDR",
               "Status": null
             },
-            "antallAktiveSykmeldinger": 1
+            "antallSykmeldinger": 1
           },
           {
             "organisasjon": {
@@ -142,7 +142,7 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "AS",
               "Status": null
             },
-            "antallAktiveSykmeldinger": 0
+            "antallSykmeldinger": 0
           },
           {
             "organisasjon": {
@@ -153,7 +153,7 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "BEDR",
               "Status": null
             },
-            "antallAktiveSykmeldinger": 2
+            "antallSykmeldinger": 2
           },
           {
             "organisasjon": {
@@ -164,7 +164,7 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "AS",
               "Status": null
             },
-            "antallAktiveSykmeldinger": 0
+            "antallSykmeldinger": 0
           },
           {
             "organisasjon": {
@@ -175,7 +175,7 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "BEDR",
               "Status": null
             },
-            "antallAktiveSykmeldinger": 0
+            "antallSykmeldinger": 0
           },
           {
             "organisasjon": {
@@ -186,7 +186,7 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "AS",
               "Status": null
             },
-            "antallAktiveSykmeldinger": 0
+            "antallSykmeldinger": 0
           }
         ]
 """)
