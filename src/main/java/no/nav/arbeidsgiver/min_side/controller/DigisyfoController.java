@@ -63,7 +63,7 @@ public class DigisyfoController {
     public List<DigisyfoOrganisasjon> hentVirksomheterv2() {
         String fnr = tokenUtils.getFnr();
         var aktiveSykmeldingerOversikt = sykmeldingRepository.oversiktSykmeldinger(fnr);
-        List<DigisyfoOrganisasjon> result = nærmestelederRepository.virksomheterSomNærmesteLeder(fnr)
+        return nærmestelederRepository.virksomheterSomNærmesteLeder(fnr)
                 .stream()
                 .flatMap(this::hentUnderenhetOgOverenhet)
                 .filter(Objects::nonNull)
@@ -72,7 +72,6 @@ public class DigisyfoController {
                         aktiveSykmeldingerOversikt.getOrDefault(org.getOrganizationNumber(), 0)
                 ))
                 .collect(Collectors.toList());
-        return result;
     }
 
     Stream<Organisasjon> hentUnderenhetOgOverenhet(String virksomhetsnummer) {
