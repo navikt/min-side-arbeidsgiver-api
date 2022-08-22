@@ -3,8 +3,7 @@ package no.nav.arbeidsgiver.min_side.services.ereg;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
@@ -13,15 +12,15 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static java.lang.invoke.MethodHandles.lookup;
 import static no.nav.arbeidsgiver.min_side.services.ereg.EregCacheConfig.EREG_CACHE;
 
 @Slf4j
 @Component
 public class EregService {
-    private static final Logger logger = LoggerFactory.getLogger(lookup().lookupClass());
-
     private final RestTemplate restTemplate;
 
     public EregService(
@@ -73,7 +72,7 @@ public class EregService {
         String orgleddOrgnummer = json.at("/bestaarAvOrganisasjonsledd/0/organisasjonsledd/organisasjonsnummer").asText();
         String orgnummerTilOverenhet = orgleddOrgnummer.isBlank() ? juridiskOrgnummer : orgleddOrgnummer;
         return new Organisasjon(
-                json.at("/navn/redigertnavn").asText(),
+                samletNavn(json),
                 "Business",
                 orgnummerTilOverenhet,
                 json.at("/organisasjonsnummer").asText(),
@@ -88,13 +87,26 @@ public class EregService {
         }
 
         return new Organisasjon(
-                json.at("/navn/redigertnavn").asText(),
+                samletNavn(json),
                 "Enterprise",
                 null,
                 json.at("/organisasjonsnummer").asText(),
                 json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
                 "Active"
         );
+    }
+
+    @NotNull
+    private static String samletNavn(JsonNode json) {
+        return Stream.of(
+                json.at("/navn/navnelinje1").asText(null),
+                json.at("/navn/navnelinje2").asText(null),
+                json.at("/navn/navnelinje3").asText(null),
+                json.at("/navn/navnelinje4").asText(null),
+                json.at("/navn/navnelinje5").asText(null)
+        )
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(" "));
     }
 
 }

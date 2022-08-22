@@ -48,7 +48,7 @@ class EregServiceTest extends Specification {
 
         then:
         result.organizationNumber == "910825526"
-        result.name == "GAMLE FREDRIKSTAD OG RAMNES REGNSKA"
+        result.name == "GAMLE FREDRIKSTAD OG RAMNES REGNSKA P"
         result.parentOrganizationNumber == "810825472"
         result.organizationForm == "BEDR"
         result.type == "Business"
@@ -68,7 +68,7 @@ class EregServiceTest extends Specification {
 
         then:
         result.organizationNumber == "912998827"
-        result.name == "ARBEIDS- OG VELFERDSDIREKTORATET"
+        result.name == "ARBEIDS- OG VELFERDSDIREKTORATET AVD FYRSTIKKALLÉEN"
         result.parentOrganizationNumber == "889640782"
         result.organizationForm == "BEDR"
         result.type == "Business"
