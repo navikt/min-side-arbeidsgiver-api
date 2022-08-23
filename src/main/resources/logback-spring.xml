@@ -14,6 +14,5 @@
     </springProfile>
     <springProfile name="local,labs">
         <include resource="org/springframework/boot/logging/logback/base.xml"/>
-        <logger name="org.springframework.web" level="DEBUG"/>
     </springProfile>
 </configuration>

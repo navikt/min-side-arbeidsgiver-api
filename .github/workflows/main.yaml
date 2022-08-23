@@ -43,7 +43,7 @@ jobs:
     name: Bygg
     needs: test
     ### VALG AV DEV-BRANCH SETTES HER:
-    if: needs.test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/retry_listeners')
+    if: needs.test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/sykmeldte_info_api')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
