@@ -29,7 +29,7 @@ public class TilgangsstyringUtføresTest {
     public void tilgangsstyringUtføres() {
         try {
             this.mockMvc
-                    .perform(get("/api/narmesteleder/virksomheter"))
+                    .perform(get("/api/narmesteleder/virksomheter-v2"))
                     .andExpect(status().isUnauthorized());
         } catch (Exception e) {
             throw new RuntimeException(e);

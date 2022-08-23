@@ -44,14 +44,6 @@ public class DigisyfoController {
         this.tokenUtils = authenticatedUserHolder;
     }
 
-    @GetMapping(value = "/api/narmesteleder/virksomheter")
-    public List<Organisasjon> hentVirksomheter() {
-        return nærmestelederRepository.virksomheterSomNærmesteLeder(tokenUtils.getFnr()).stream()
-                .flatMap(this::hentUnderenhetOgOverenhet)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-    }
-
     @AllArgsConstructor
     @Data
     static class DigisyfoOrganisasjon {
