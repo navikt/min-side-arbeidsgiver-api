@@ -17,6 +17,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.net.ssl.SSLHandshakeException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,9 @@ public class AltinnTilgangssøknadClient {
             RestTemplateBuilder restTemplateBuilder,
             AltinnConfig altinnConfig
     ) {
-        this.restTemplate = restTemplateBuilder.build();
+        restTemplate = restTemplateBuilder
+                .additionalInterceptors(new RetryInterceptor(3, 250L, SSLHandshakeException.class))
+                .build();
 
         delegationRequestApiPath = UriComponentsBuilder
                 .fromUriString(altinnConfig.getProxyFallbackUrl())
