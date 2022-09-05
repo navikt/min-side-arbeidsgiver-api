@@ -64,17 +64,15 @@ public class AltinnService {
     }
 
     private List<Organisasjon> mapTo(List<AltinnReportee> altinnReportees) {
-        return altinnReportees.stream().map(org -> {
-                    Organisasjon altinnOrganisasjon = new Organisasjon();
-                    altinnOrganisasjon.setName(org.getName());
-                    altinnOrganisasjon.setType(org.getType());
-                    altinnOrganisasjon.setParentOrganizationNumber(org.getParentOrganizationNumber());
-                    altinnOrganisasjon.setOrganizationNumber(org.getOrganizationNumber());
-                    altinnOrganisasjon.setOrganizationForm(org.getOrganizationForm());
-                    altinnOrganisasjon.setStatus(org.getStatus());
-
-                    return altinnOrganisasjon;
-                }
+        return altinnReportees.stream().map(org ->
+                Organisasjon.builder()
+                        .name(org.getName())
+                        .type(org.getType())
+                        .parentOrganizationNumber(org.getParentOrganizationNumber())
+                        .organizationNumber(org.getOrganizationNumber())
+                        .organizationForm(org.getOrganizationForm())
+                        .status(org.getStatus())
+                        .build()
         ).collect(Collectors.toList());
     }
 }
