@@ -5,7 +5,6 @@ import no.nav.security.token.support.core.api.ProtectedWithClaims;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,16 +32,16 @@ public class OrganisasjonController {
     }
 
     @GetMapping(value="/api/organisasjoner")
-    public ResponseEntity<List<Organisasjon>> hentOrganisasjoner() {
-        String fnr = tokenUtils.getFnr();
-        List <Organisasjon> result = altinnService.hentOrganisasjoner(fnr);
-        return ResponseEntity.ok(result);
+    public List<Organisasjon> hentOrganisasjoner() {
+        return altinnService.hentOrganisasjoner(tokenUtils.getFnr());
     }
 
     @GetMapping(value ="/api/rettigheter-til-skjema")
-    public ResponseEntity<List<Organisasjon>> hentRettigheter(@RequestParam String serviceKode, @RequestParam String serviceEdition){
-        String fnr = tokenUtils.getFnr();
-        List<Organisasjon> result = altinnService.hentOrganisasjonerBasertPaRettigheter(fnr, serviceKode,serviceEdition);
-        return ResponseEntity.ok(result);
+    public List<Organisasjon> hentRettigheter(@RequestParam String serviceKode, @RequestParam String serviceEdition){
+        return altinnService.hentOrganisasjonerBasertPaRettigheter(
+                tokenUtils.getFnr(),
+                serviceKode,
+                serviceEdition
+        );
     }
 }

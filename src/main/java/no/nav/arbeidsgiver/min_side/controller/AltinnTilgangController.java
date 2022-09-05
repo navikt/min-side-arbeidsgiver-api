@@ -24,20 +24,22 @@ import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.RE
 @RequestMapping("/api/altinn-tilgangssoknad")
 public class AltinnTilgangController {
     private static final Set<Pair<String, String>> våreTjenester = Set.of(
-            Pair.of("5216",  "1"),
-            Pair.of("5212",  "1"),
-            Pair.of("5384",  "1"),
-            Pair.of("5159", "1"),
+            Pair.of("3403", "2"),
             Pair.of("4936",  "1"),
-            Pair.of("5332", "2"),
+            Pair.of("5078",  "1"),
+            Pair.of("5159", "1"),
+            Pair.of("5212",  "1"),
+            Pair.of("5216",  "1"),
+            Pair.of("5278", "1"),
             Pair.of("5332", "1"),
+            Pair.of("5332", "2"),
+            Pair.of("5384",  "1"),
             Pair.of("5441",  "1"),
             Pair.of("5516", "1"),
             Pair.of("5516", "2"),
             Pair.of("5516", "3"),
-            Pair.of("3403", "2"),
-            Pair.of("5078",  "1"),
-            Pair.of("5278", "1")
+            Pair.of("5516", "4"),
+            Pair.of("5516", "5")
     );
 
     private final AltinnTilgangssøknadClient altinnTilgangssøknadClient;
