@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.controller;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;

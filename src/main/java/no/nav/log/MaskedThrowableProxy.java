@@ -37,7 +37,7 @@ public class MaskedThrowableProxy implements IThrowableProxy {
     }
 
     public static IThrowableProxy mask(IThrowableProxy throwableProxy) {
-        return throwableProxy == null ? throwableProxy : new MaskedThrowableProxy(throwableProxy);
+        return throwableProxy == null ? null : new MaskedThrowableProxy(throwableProxy);
     }
 
     @Override
