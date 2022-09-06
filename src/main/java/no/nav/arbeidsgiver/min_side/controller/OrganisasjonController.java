@@ -31,13 +31,16 @@ public class OrganisasjonController {
         this.tokenUtils = tokenUtils;
     }
 
-    @GetMapping(value="/api/organisasjoner")
+    @GetMapping("/api/organisasjoner")
     public List<Organisasjon> hentOrganisasjoner() {
         return altinnService.hentOrganisasjoner(tokenUtils.getFnr());
     }
 
-    @GetMapping(value ="/api/rettigheter-til-skjema")
-    public List<Organisasjon> hentRettigheter(@RequestParam String serviceKode, @RequestParam String serviceEdition){
+    @GetMapping("/api/rettigheter-til-skjema")
+    public List<Organisasjon> hentRettigheter(
+            @RequestParam String serviceKode,
+            @RequestParam String serviceEdition
+    ){
         return altinnService.hentOrganisasjonerBasertPaRettigheter(
                 tokenUtils.getFnr(),
                 serviceKode,

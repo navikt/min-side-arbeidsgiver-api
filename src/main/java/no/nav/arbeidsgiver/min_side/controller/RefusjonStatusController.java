@@ -42,7 +42,7 @@ public class RefusjonStatusController {
         this.authenticatedUserHolder = authenticatedUserHolder;
     }
 
-    @GetMapping(value = "/api/refusjon_status")
+    @GetMapping("/api/refusjon_status")
     public List<Statusoversikt> statusoversikt() {
         /* Man kan muligens filtrere organisasjoner ytligere med ("BEDR", annet?). */
         var orgnr = altinnService

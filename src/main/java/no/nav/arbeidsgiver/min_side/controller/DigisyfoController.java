@@ -51,7 +51,7 @@ public class DigisyfoController {
         final int antallSykmeldinger;
     }
 
-    @GetMapping(value = "/api/narmesteleder/virksomheter-v2")
+    @GetMapping("/api/narmesteleder/virksomheter-v2")
     public List<DigisyfoOrganisasjon> hentVirksomheterv2() {
         String fnr = tokenUtils.getFnr();
         var aktiveSykmeldingerOversikt = sykmeldingRepository.oversiktSykmeldinger(fnr);
