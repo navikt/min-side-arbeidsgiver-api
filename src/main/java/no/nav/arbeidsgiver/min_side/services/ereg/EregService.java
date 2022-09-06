@@ -64,7 +64,7 @@ public class EregService {
     }
 
     Organisasjon underenhet(JsonNode json) {
-        if (json == null) {
+        if (json == null || json.isEmpty()) {
             return null;
         }
 
