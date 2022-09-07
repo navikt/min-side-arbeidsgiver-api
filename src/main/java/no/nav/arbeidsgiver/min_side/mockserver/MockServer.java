@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.net.URL;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;

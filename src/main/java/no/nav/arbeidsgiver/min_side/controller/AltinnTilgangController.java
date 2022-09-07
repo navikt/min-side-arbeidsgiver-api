@@ -57,10 +57,10 @@ public class AltinnTilgangController {
         this.tokenUtils = tokenUtils;
     }
 
-    @GetMapping()
-    public ResponseEntity<List<AltinnTilgangssøknad>> mineSøknaderOmTilgang() {
+    @GetMapping
+    public List<AltinnTilgangssøknad> mineSøknaderOmTilgang() {
         String fødselsnummer = tokenUtils.getFnr();
-        return ResponseEntity.ok(altinnTilgangssøknadClient.hentSøknader(fødselsnummer));
+        return altinnTilgangssøknadClient.hentSøknader(fødselsnummer);
     }
 
     @PostMapping()

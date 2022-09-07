@@ -8,11 +8,12 @@ import org.junit.Test;
 public class AltinnDelegationRequestsDeserializeTest {
 
 
+    @SuppressWarnings({"resource", "ConstantConditions"})
     @Test
     public void deserialiseJsonResponseIntoDTO() throws Exception {
         var text = this.getClass().getResourceAsStream("/altinnTilgangerGet.json").readAllBytes();
         var mapper = new JsonMapper();
-        var json = mapper.readValue(text, new TypeReference<Søknadsstatus>() {
+        var ignored = mapper.readValue(text, new TypeReference<Søknadsstatus>() {
         });
 
         /* no parse error */

@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.controller;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
@@ -43,7 +42,7 @@ public class RefusjonStatusController {
         this.authenticatedUserHolder = authenticatedUserHolder;
     }
 
-    @GetMapping(value = "/api/refusjon_status")
+    @GetMapping("/api/refusjon_status")
     public List<Statusoversikt> statusoversikt() {
         /* Man kan muligens filtrere organisasjoner ytligere med ("BEDR", annet?). */
         var orgnr = altinnService

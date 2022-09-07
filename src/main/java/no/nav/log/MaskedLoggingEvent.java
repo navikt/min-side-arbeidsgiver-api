@@ -83,7 +83,7 @@ public class MaskedLoggingEvent implements ILoggingEvent {
 
     @Override
     public Map<String, String> getMdc() {
-        return new MaskedMap(iLoggingEvent.getMdc());
+        return getMDCPropertyMap();
     }
 
     @Override
