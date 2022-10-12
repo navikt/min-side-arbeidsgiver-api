@@ -165,28 +165,6 @@ class DigisyfoControllerTest extends Specification {
               "Status": null
             },
             "antallSykmeldinger": 0
-          },
-          {
-            "organisasjon": {
-              "Name": "underenhet",
-              "Type": null,
-              "ParentOrganizationNumber": "3",
-              "OrganizationNumber": "30",
-              "OrganizationForm": "BEDR",
-              "Status": null
-            },
-            "antallSykmeldinger": 0
-          },
-          {
-            "organisasjon": {
-              "Name": "overenhet",
-              "Type": null,
-              "ParentOrganizationNumber": null,
-              "OrganizationNumber": "3",
-              "OrganizationForm": "AS",
-              "Status": null
-            },
-            "antallSykmeldinger": 0
           }
         ]
 """)

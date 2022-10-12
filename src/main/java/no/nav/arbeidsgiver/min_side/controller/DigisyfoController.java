@@ -57,22 +57,36 @@ public class DigisyfoController {
         var aktiveSykmeldingerOversikt = sykmeldingRepository.oversiktSykmeldinger(fnr);
         return nærmestelederRepository.virksomheterSomNærmesteLeder(fnr)
                 .stream()
-                .flatMap(this::hentUnderenhetOgOverenhet)
+                .map(this::hentUnderenhetOgOverenhet)
+                .flatMap(underOverenhet -> {
+                    Integer aktiveSykmeldinger = aktiveSykmeldingerOversikt.get(underOverenhet.underenhet.getOrganizationNumber());
+                    if (aktiveSykmeldinger == null) {
+                        return null;
+                    } else {
+                        return Stream.of(
+                                new DigisyfoOrganisasjon(underOverenhet.underenhet, aktiveSykmeldinger),
+                                new DigisyfoOrganisasjon(underOverenhet.overenhet, 0)
+                        );
+                    }
+                })
                 .filter(Objects::nonNull)
-                .map(org -> new DigisyfoOrganisasjon(
-                        org,
-                        aktiveSykmeldingerOversikt.getOrDefault(org.getOrganizationNumber(), 0)
-                ))
                 .collect(Collectors.toList());
     }
 
-    Stream<Organisasjon> hentUnderenhetOgOverenhet(String virksomhetsnummer) {
+    UnderOverenhet hentUnderenhetOgOverenhet(String virksomhetsnummer) {
         Organisasjon underenhet = eregService.hentUnderenhet(virksomhetsnummer);
         Organisasjon overenhet = null;
         if (underenhet != null) {
             overenhet = eregService.hentOverenhet(underenhet.getParentOrganizationNumber());
         }
-        return Stream.of(underenhet, overenhet);
+        return new UnderOverenhet(underenhet, overenhet);
+    }
+
+    @AllArgsConstructor
+    @Data
+    static class UnderOverenhet {
+        final Organisasjon underenhet;
+        final Organisasjon overenhet;
     }
 }
 
