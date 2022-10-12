@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,38 +56,26 @@ public class DigisyfoController {
     public List<DigisyfoOrganisasjon> hentVirksomheterv2() {
         String fnr = tokenUtils.getFnr();
         var aktiveSykmeldingerOversikt = sykmeldingRepository.oversiktSykmeldinger(fnr);
+        Predicate<String> harAktiveSykmeldinger = virksomhetsnummer -> aktiveSykmeldingerOversikt.getOrDefault(virksomhetsnummer, 0) > 0;
         return nærmestelederRepository.virksomheterSomNærmesteLeder(fnr)
                 .stream()
-                .map(this::hentUnderenhetOgOverenhet)
-                .flatMap(underOverenhet -> {
-                    Integer aktiveSykmeldinger = aktiveSykmeldingerOversikt.get(underOverenhet.underenhet.getOrganizationNumber());
-                    if (aktiveSykmeldinger == null) {
-                        return null;
-                    } else {
-                        return Stream.of(
-                                new DigisyfoOrganisasjon(underOverenhet.underenhet, aktiveSykmeldinger),
-                                new DigisyfoOrganisasjon(underOverenhet.overenhet, 0)
-                        );
-                    }
-                })
+                .filter(harAktiveSykmeldinger)
+                .flatMap(this::hentUnderenhetOgOverenhet)
                 .filter(Objects::nonNull)
+                .map(org -> new DigisyfoOrganisasjon(
+                        org,
+                        aktiveSykmeldingerOversikt.getOrDefault(org.getOrganizationNumber(), 0)
+                ))
                 .collect(Collectors.toList());
     }
 
-    UnderOverenhet hentUnderenhetOgOverenhet(String virksomhetsnummer) {
+    Stream<Organisasjon> hentUnderenhetOgOverenhet(String virksomhetsnummer) {
         Organisasjon underenhet = eregService.hentUnderenhet(virksomhetsnummer);
         Organisasjon overenhet = null;
         if (underenhet != null) {
             overenhet = eregService.hentOverenhet(underenhet.getParentOrganizationNumber());
         }
-        return new UnderOverenhet(underenhet, overenhet);
-    }
-
-    @AllArgsConstructor
-    @Data
-    static class UnderOverenhet {
-        final Organisasjon underenhet;
-        final Organisasjon overenhet;
+        return Stream.of(underenhet, overenhet);
     }
 }
 
