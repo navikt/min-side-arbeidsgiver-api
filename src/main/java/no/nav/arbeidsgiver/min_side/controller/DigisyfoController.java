@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,8 +56,10 @@ public class DigisyfoController {
     public List<DigisyfoOrganisasjon> hentVirksomheterv2() {
         String fnr = tokenUtils.getFnr();
         var aktiveSykmeldingerOversikt = sykmeldingRepository.oversiktSykmeldinger(fnr);
+        Predicate<String> harAktiveSykmeldinger = virksomhetsnummer -> aktiveSykmeldingerOversikt.getOrDefault(virksomhetsnummer, 0) > 0;
         return nærmestelederRepository.virksomheterSomNærmesteLeder(fnr)
                 .stream()
+                .filter(harAktiveSykmeldinger)
                 .flatMap(this::hentUnderenhetOgOverenhet)
                 .filter(Objects::nonNull)
                 .map(org -> new DigisyfoOrganisasjon(
