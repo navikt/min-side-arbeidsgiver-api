@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 public class FeatureToggleService {
 
     private final Unleash unleash;
-    private final AuthenticatedUserHolder tokenUtil;
+    private final AuthenticatedUserHolder authenticatedUserHolder;
 
     @Autowired
-    public FeatureToggleService(Unleash unleash, AuthenticatedUserHolder tokenUtil) {
+    public FeatureToggleService(Unleash unleash, AuthenticatedUserHolder authenticatedUserHolder) {
         this.unleash = unleash;
-        this.tokenUtil = tokenUtil;
+        this.authenticatedUserHolder = authenticatedUserHolder;
     }
 
     public Map<String, Boolean> hentFeatureToggles(List<String> features) {
@@ -36,7 +36,7 @@ public class FeatureToggleService {
 
     private UnleashContext contextMedInnloggetBruker() {
         UnleashContext.Builder builder = UnleashContext.builder();
-        builder.userId(tokenUtil.getToken());
+        builder.userId(authenticatedUserHolder.getToken());
         return builder.build();
     }
 }

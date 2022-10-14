@@ -25,7 +25,7 @@ class TokenExchangeInterceptorTest extends Specification {
     TokenExchangeClient tokenExchangeClient = Mock()
 
     @SpringBean
-    AuthenticatedUserHolder tokenUtils = Mock()
+    AuthenticatedUserHolder authenticatedUserHolder = Mock()
 
     @Autowired
     TokenExchangeInterceptor interceptor
@@ -51,7 +51,7 @@ class TokenExchangeInterceptorTest extends Specification {
         restTemplate.delete("")
 
         then:
-        1 * tokenUtils.getToken() >> subjectToken
+        1 * authenticatedUserHolder.getToken() >> subjectToken
         1 * tokenExchangeClient.exchangeToken(subjectToken) >> tokenXtoken
 
     }

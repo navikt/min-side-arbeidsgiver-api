@@ -22,11 +22,11 @@ import static no.nav.arbeidsgiver.min_side.services.altinn.AltinnCacheConfig.ALT
 public class AltinnService {
 
     private final AltinnrettigheterProxyKlient klient;
-    private final AuthenticatedUserHolder tokenUtils;
+    private final AuthenticatedUserHolder authenticatedUserHolder;
 
     @Autowired
-    public AltinnService(AltinnConfig altinnConfig, AuthenticatedUserHolder tokenUtils) {
-        this.tokenUtils = tokenUtils;
+    public AltinnService(AltinnConfig altinnConfig, AuthenticatedUserHolder authenticatedUserHolder) {
+        this.authenticatedUserHolder = authenticatedUserHolder;
         this.klient = new AltinnrettigheterProxyKlient(
                 new AltinnrettigheterProxyKlientConfig(
                         new ProxyConfig("min-side-arbeidsgiver-api", altinnConfig.getProxyUrl()),
@@ -43,7 +43,7 @@ public class AltinnService {
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         return mapTo(
                 klient.hentOrganisasjoner(
-                        new SelvbetjeningToken(tokenUtils.getToken()),
+                        new SelvbetjeningToken(authenticatedUserHolder.getToken()),
                         new Subject(fnr),
                         true
                 )
@@ -54,7 +54,7 @@ public class AltinnService {
     public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
         return mapTo(
                 klient.hentOrganisasjoner(
-                        new SelvbetjeningToken(tokenUtils.getToken()),
+                        new SelvbetjeningToken(authenticatedUserHolder.getToken()),
                         new Subject(fnr),
                         new ServiceCode(serviceKode),
                         new ServiceEdition(serviceEdition),

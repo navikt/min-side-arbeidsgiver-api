@@ -30,7 +30,7 @@ public class DigisyfoController {
     private final NærmestelederRepository nærmestelederRepository;
     private final SykmeldingRepository sykmeldingRepository;
     private final EregService eregService;
-    private final AuthenticatedUserHolder tokenUtils;
+    private final AuthenticatedUserHolder authenticatedUserHolder;
 
     @Autowired
     public DigisyfoController(
@@ -42,7 +42,7 @@ public class DigisyfoController {
         this.nærmestelederRepository = nærmestelederRepository;
         this.sykmeldingRepository = sykmeldingRepository;
         this.eregService = eregService;
-        this.tokenUtils = authenticatedUserHolder;
+        this.authenticatedUserHolder = authenticatedUserHolder;
     }
 
     @AllArgsConstructor
@@ -54,7 +54,7 @@ public class DigisyfoController {
 
     @GetMapping("/api/narmesteleder/virksomheter-v2")
     public List<DigisyfoOrganisasjon> hentVirksomheterv2() {
-        String fnr = tokenUtils.getFnr();
+        String fnr = authenticatedUserHolder.getFnr();
         var aktiveSykmeldingerOversikt = sykmeldingRepository.oversiktSykmeldinger(fnr);
         Predicate<String> harAktiveSykmeldinger = virksomhetsnummer -> aktiveSykmeldingerOversikt.getOrDefault(virksomhetsnummer, 0) > 0;
         return nærmestelederRepository.virksomheterSomNærmesteLeder(fnr)

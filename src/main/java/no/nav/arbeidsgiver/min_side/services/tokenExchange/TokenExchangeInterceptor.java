@@ -16,14 +16,14 @@ import java.io.IOException;
 public class TokenExchangeInterceptor implements ClientHttpRequestInterceptor {
 
     final TokenExchangeClient tokenExchangeClient;
-    final AuthenticatedUserHolder tokenUtils;
+    final AuthenticatedUserHolder authenticatedUserHolder;
 
     public TokenExchangeInterceptor(
             TokenExchangeClient tokenExchangeClient,
-            AuthenticatedUserHolder tokenUtils
+            AuthenticatedUserHolder authenticatedUserHolder
     ) {
         this.tokenExchangeClient = tokenExchangeClient;
-        this.tokenUtils = tokenUtils;
+        this.authenticatedUserHolder = authenticatedUserHolder;
     }
 
     @NotNull
@@ -38,6 +38,6 @@ public class TokenExchangeInterceptor implements ClientHttpRequestInterceptor {
     }
 
     private TokenXToken getToken() {
-        return tokenExchangeClient.exchangeToken(tokenUtils.getToken());
+        return tokenExchangeClient.exchangeToken(authenticatedUserHolder.getToken());
     }
 }

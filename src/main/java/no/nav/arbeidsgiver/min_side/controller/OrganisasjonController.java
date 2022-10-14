@@ -20,20 +20,20 @@ import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.RE
 public class OrganisasjonController {
 
     private final AltinnService altinnService;
-    private final AuthenticatedUserHolder tokenUtils;
+    private final AuthenticatedUserHolder authenticatedUserHolder;
 
     @Autowired
     public OrganisasjonController(
             AltinnService altinnService,
-            AuthenticatedUserHolder tokenUtils
+            AuthenticatedUserHolder authenticatedUserHolder
     ) {
         this.altinnService = altinnService;
-        this.tokenUtils = tokenUtils;
+        this.authenticatedUserHolder = authenticatedUserHolder;
     }
 
     @GetMapping("/api/organisasjoner")
     public List<Organisasjon> hentOrganisasjoner() {
-        return altinnService.hentOrganisasjoner(tokenUtils.getFnr());
+        return altinnService.hentOrganisasjoner(authenticatedUserHolder.getFnr());
     }
 
     @GetMapping("/api/rettigheter-til-skjema")
@@ -42,7 +42,7 @@ public class OrganisasjonController {
             @RequestParam String serviceEdition
     ){
         return altinnService.hentOrganisasjonerBasertPaRettigheter(
-                tokenUtils.getFnr(),
+                authenticatedUserHolder.getFnr(),
                 serviceKode,
                 serviceEdition
         );
