@@ -22,9 +22,8 @@ public class TokenXProperties {
     static final String CLIENT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
     static final String SUBJECT_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:jwt";
 
-    String audience;
     String clientId;
-    String tokendingsUrl;
+    String issuer;
     String privateJwk;
 
     @Getter(lazy=true) private final RSAKey privateJwkRsa = parsePrivateJwk();

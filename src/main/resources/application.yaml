@@ -75,10 +75,9 @@ altinn:
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
 token.x:
-  clientId: "local"
-  tokendingsUrl: "tokendingsUrl"
-  audience: "local-client"
-
+  privateJwk: fake
+  clientId: fake
+  issuer: http://fake
 ---
 
 spring:
@@ -126,11 +125,6 @@ altinn:
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
-token.x:
-  privateJwk: ${TOKEN_X_PRIVATE_JWK}
-  clientId: ${TOKEN_X_CLIENT_ID}
-  tokendingsUrl: "https://tokendings.dev-gcp.nais.io/token"
-
 ---
 
 spring:
@@ -150,8 +144,3 @@ altinn:
   proxyFallbackUrl: https://api-gw.oera.no
 
 ereg-services.baseUrl: "https://ereg-services.prod-fss-pub.nais.io"
-
-token.x:
-  privateJwk: ${TOKEN_X_PRIVATE_JWK}
-  clientId: ${TOKEN_X_CLIENT_ID}
-  tokendingsUrl: "https://tokendings.prod-gcp.nais.io/token"

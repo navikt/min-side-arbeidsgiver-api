@@ -7,6 +7,7 @@ import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.ProxyConfig;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.model.*;
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
+import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -23,9 +24,15 @@ public class AltinnService {
 
     private final AltinnrettigheterProxyKlient klient;
     private final AuthenticatedUserHolder authenticatedUserHolder;
+    private final AltinnConfig altinnConfig;
+    private final TokenExchangeClient tokenExchangeClient;
 
     @Autowired
-    public AltinnService(AltinnConfig altinnConfig, AuthenticatedUserHolder authenticatedUserHolder) {
+    public AltinnService(
+            AltinnConfig altinnConfig,
+            AuthenticatedUserHolder authenticatedUserHolder,
+            TokenExchangeClient tokenExchangeClient
+    ) {
         this.authenticatedUserHolder = authenticatedUserHolder;
         this.klient = new AltinnrettigheterProxyKlient(
                 new AltinnrettigheterProxyKlientConfig(
@@ -37,13 +44,15 @@ public class AltinnService {
                         )
                 )
         );
+        this.altinnConfig = altinnConfig;
+        this.tokenExchangeClient = tokenExchangeClient;
     }
 
     @Cacheable(ALTINN_CACHE)
     public List<Organisasjon> hentOrganisasjoner(String fnr) {
         return mapTo(
                 klient.hentOrganisasjoner(
-                        new SelvbetjeningToken(authenticatedUserHolder.getToken()),
+                        getToken(),
                         new Subject(fnr),
                         true
                 )
@@ -54,12 +63,21 @@ public class AltinnService {
     public List<Organisasjon> hentOrganisasjonerBasertPaRettigheter(String fnr, String serviceKode, String serviceEdition) {
         return mapTo(
                 klient.hentOrganisasjoner(
-                        new SelvbetjeningToken(authenticatedUserHolder.getToken()),
+                        getToken(),
                         new Subject(fnr),
                         new ServiceCode(serviceKode),
                         new ServiceEdition(serviceEdition),
                         true
                 )
+        );
+    }
+
+    private Token getToken() {
+        return new TokenXToken(
+                tokenExchangeClient.exchange(
+                        authenticatedUserHolder.getToken(),
+                        altinnConfig.getProxyAudience()
+                ).getAccess_token()
         );
     }
 
