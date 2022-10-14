@@ -1,13 +1,12 @@
 apiVersion: nais.io/v1alpha1
-kind: "Application"
+kind: Application
 metadata:
   name: min-side-arbeidsgiver-api
   namespace: fager
   labels:
     team: fager
 spec:
-  image: {{ image }}
-  port: 8080
+  image: {{{ image }}}
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
     initialDelay: 90
@@ -22,7 +21,6 @@ spec:
     failureThreshold: 3
   ingresses:
     - https://min-side-arbeidsgiver-api.dev.nav.no/ditt-nav-arbeidsgiver-api/
-  webproxy: false
   kafka:
     pool: nav-dev
   gcp:
@@ -37,26 +35,18 @@ spec:
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: dev-gcp
-    - name: JAVA_OPTS
-      value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
   prometheus:
     enabled: true
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
   tokenx:
     enabled: true
-  azure:
-    application:
-      enabled: true
   accessPolicy:
     inbound:
       rules:
-        - application: ditt-nav-arbeidsgiver
         - application: min-side-arbeidsgiver
     outbound:
       rules:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
       external:
-        - host: min-side-arbeidsgiver-proxy.dev-fss-pub.nais.io
         - host: unleash.nais.io
-        - host: narmesteleder.dev.nav.no

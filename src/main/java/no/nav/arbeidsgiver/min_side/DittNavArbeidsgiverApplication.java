@@ -9,10 +9,7 @@ import org.springframework.context.annotation.Import;
 @Import(TokenSupportJwtConfig.class)
 @EnableCaching
 public class DittNavArbeidsgiverApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(DittNavArbeidsgiverApplication.class, args);
     }
-
-    public static final String APP_NAME = "srvditt-nav-arbeid";
 }

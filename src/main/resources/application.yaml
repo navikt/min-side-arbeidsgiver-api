@@ -74,9 +74,6 @@ altinn:
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
-unleash:
-  url: "https://unleash.herokuapp.com/api/"
-
 token.x:
   clientId: "local"
   tokendingsUrl: "tokendingsUrl"
@@ -110,9 +107,6 @@ altinn:
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
-unleash:
-  url: "https://unleash.herokuapp.com/api/"
-
 ---
 spring:
   config:
@@ -132,14 +126,10 @@ altinn:
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
-unleash:
-  url: https://unleash.nais.oera.no/api
-
 token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}
   clientId: ${TOKEN_X_CLIENT_ID}
   tokendingsUrl: "https://tokendings.dev-gcp.nais.io/token"
-  audience: "dev-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
 
 ---
 
@@ -161,11 +151,7 @@ altinn:
 
 ereg-services.baseUrl: "https://ereg-services.prod-fss-pub.nais.io"
 
-unleash:
-  url: https://unleash.nais.adeo.no/api
-
 token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}
   clientId: ${TOKEN_X_CLIENT_ID}
   tokendingsUrl: "https://tokendings.prod-gcp.nais.io/token"
-  audience: "prod-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
