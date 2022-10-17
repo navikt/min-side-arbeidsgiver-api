@@ -27,7 +27,7 @@ public class ClientAssertionTokenFactory {
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(properties.clientId)
                 .issuer(properties.clientId)
-                .audience(properties.issuer)
+                .audience(properties.tokenEndpoint)
                 .issueTime(new Date())
                 .notBeforeTime(new Date())
                 .expirationTime(new Date(new Date().getTime() + 120 * 1000))
