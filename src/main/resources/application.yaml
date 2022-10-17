@@ -75,6 +75,7 @@ altinn:
   APIGwHeader: "test"
   proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
+  proxyAudience: fake:fake:fake
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
@@ -112,6 +113,7 @@ altinn:
   APIGwHeader: "test"
   proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
+  proxyAudience: labs:labs:labs
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
@@ -135,6 +137,7 @@ altinn:
   APIGwHeader: ${APIGW_HEADER}
   proxyUrl: http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy
   proxyFallbackUrl: https://api-gw-q1.oera.no
+  proxyAudience: dev-gcp:arbeidsgiver:altinn-rettigheter-proxy
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
@@ -159,5 +162,6 @@ altinn:
   APIGwHeader: ${APIGW_HEADER}
   proxyUrl: http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy
   proxyFallbackUrl: https://api-gw.oera.no
+  proxyAudience: prod-gcp:arbeidsgiver:altinn-rettigheter-proxy
 
 ereg-services.baseUrl: "https://ereg-services.prod-fss-pub.nais.io"
