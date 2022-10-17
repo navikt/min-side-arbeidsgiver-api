@@ -22,8 +22,8 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
         properties = [
                 "token.x.privateJwk=imsecretjwk",
                 "token.x.clientId=clientId",
-                "token.x.tokendingsUrl=http://tolkiendjings",
-                "token.x.audience=aud",
+                "token.x.issuer=http://tolkiendjings",
+                "token.x.tokenEndpoint=http://tolkiendjings/token",
         ]
 )
 @EnableConfigurationProperties(TokenXProperties)
@@ -34,7 +34,7 @@ class TokenExchangeClientTest extends Specification {
     ClientAssertionTokenFactory clientAssertionTokenFactory = Mock()
 
     @Autowired
-    TokenExchangeClient client
+    TokenExchangeClientImpl client
 
     @Autowired
     MockRestServiceServer server
@@ -50,7 +50,7 @@ class TokenExchangeClientTest extends Specification {
         token.setAccess_token("tolrolro")
         1 * clientAssertionTokenFactory.getClientAssertion() >> clientAssertion
         server
-                .expect(requestTo(properties.tokendingsUrl))
+                .expect(requestTo(properties.tokenEndpoint))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(
                         content().formDataContains(
@@ -63,7 +63,7 @@ class TokenExchangeClientTest extends Specification {
                 .andRespond(withSuccess(mapper.writeValueAsString(token), APPLICATION_JSON))
 
         when:
-        def result = client.exchangeToken(subjectToken)
+        def result = client.exchange(subjectToken, "aud")
 
         then:
         result.getAccess_token() == token.getAccess_token()
