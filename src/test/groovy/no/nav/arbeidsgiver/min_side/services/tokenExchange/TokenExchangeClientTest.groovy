@@ -23,6 +23,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
                 "token.x.privateJwk=imsecretjwk",
                 "token.x.clientId=clientId",
                 "token.x.issuer=http://tolkiendjings",
+                "token.x.tokenEndpoint=http://tolkiendjings/token",
         ]
 )
 @EnableConfigurationProperties(TokenXProperties)
@@ -49,7 +50,7 @@ class TokenExchangeClientTest extends Specification {
         token.setAccess_token("tolrolro")
         1 * clientAssertionTokenFactory.getClientAssertion() >> clientAssertion
         server
-                .expect(requestTo(properties.issuer))
+                .expect(requestTo(properties.tokenEndpoint))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(
                         content().formDataContains(
