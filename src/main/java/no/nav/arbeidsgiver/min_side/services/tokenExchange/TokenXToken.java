@@ -10,6 +10,4 @@ public class TokenXToken {
     String issued_token_type;
     String token_type;
     int expires_in;
-
-
 }

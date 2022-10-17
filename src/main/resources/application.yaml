@@ -71,16 +71,15 @@ altinn:
   APIGwHeader: "test"
   proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
+  proxyAudience: fake:fake:fake
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
-unleash:
-  url: "https://unleash.herokuapp.com/api/"
-
 token.x:
-  clientId: "local"
-  tokendingsUrl: "tokendingsUrl"
-  audience: "local-client"
+  privateJwk: fake
+  clientId: fake
+  issuer: http://fake
+  tokenEndpoint: http://fake/token
 
 ---
 
@@ -107,11 +106,9 @@ altinn:
   APIGwHeader: "test"
   proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
+  proxyAudience: labs:labs:labs
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
-
-unleash:
-  url: "https://unleash.herokuapp.com/api/"
 
 ---
 spring:
@@ -129,17 +126,15 @@ altinn:
   APIGwHeader: ${APIGW_HEADER}
   proxyUrl: http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy
   proxyFallbackUrl: https://api-gw-q1.oera.no
+  proxyAudience: dev-gcp:arbeidsgiver:altinn-rettigheter-proxy
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
-unleash:
-  url: https://unleash.nais.oera.no/api
-
 token.x:
-  privateJwk: ${TOKEN_X_PRIVATE_JWK}
+  privateJwk: ${TOKEN_X_PRIVATE_JWK}}
   clientId: ${TOKEN_X_CLIENT_ID}
-  tokendingsUrl: "https://tokendings.dev-gcp.nais.io/token"
-  audience: "dev-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
+  tokenEndpoint: ${TOKEN_X_TOKEN_ENDPOINT}
+  issuer: ${TOKEN_X_ISSUER}
 
 ---
 
@@ -158,14 +153,12 @@ altinn:
   APIGwHeader: ${APIGW_HEADER}
   proxyUrl: http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy
   proxyFallbackUrl: https://api-gw.oera.no
+  proxyAudience: prod-gcp:arbeidsgiver:altinn-rettigheter-proxy
 
 ereg-services.baseUrl: "https://ereg-services.prod-fss-pub.nais.io"
 
-unleash:
-  url: https://unleash.nais.adeo.no/api
-
 token.x:
-  privateJwk: ${TOKEN_X_PRIVATE_JWK}
+  privateJwk: ${TOKEN_X_PRIVATE_JWK}}
   clientId: ${TOKEN_X_CLIENT_ID}
-  tokendingsUrl: "https://tokendings.prod-gcp.nais.io/token"
-  audience: "prod-fss:arbeidsgiver:min-side-arbeidsgiver-fss-proxy"
+  tokenEndpoint: ${TOKEN_X_TOKEN_ENDPOINT}
+  issuer: ${TOKEN_X_ISSUER}

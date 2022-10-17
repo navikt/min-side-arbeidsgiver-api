@@ -1,13 +1,12 @@
 apiVersion: nais.io/v1alpha1
-kind: "Application"
+kind: Application
 metadata:
   name: min-side-arbeidsgiver-api
   namespace: fager
   labels:
     team: fager
 spec:
-  image: {{image}}
-  port: 8080
+  image: {{{image}}}
   replicas:
     min: 1
     max: 1
@@ -27,14 +26,8 @@ spec:
     limits:
       cpu: 2000m
       memory: 3000Mi
-    requests:
-      cpu: 500m
-      memory: 600Mi
   ingresses:
     - https://arbeidsgiver.labs.nais.io/ditt-nav-arbeidsgiver-api/
-  webproxy: false
-  vault:
-    enabled: false
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: labs

@@ -5,7 +5,6 @@ import io.ktor.http.HttpStatusCode;
 import lombok.Data;
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.error.exceptions.AltinnrettigheterProxyKlientFallbackException;
 import no.nav.security.token.support.spring.validation.interceptor.JwtTokenUnauthorizedException;
-import no.nav.arbeidsgiver.min_side.exceptions.TilgangskontrollException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -67,7 +66,6 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     }
 
     @ExceptionHandler({
-            TilgangskontrollException.class,
             HttpClientErrorException.Forbidden.class,
     })
     @ResponseBody

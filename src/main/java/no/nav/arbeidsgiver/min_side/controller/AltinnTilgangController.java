@@ -44,28 +44,28 @@ public class AltinnTilgangController {
 
     private final AltinnTilgangssøknadClient altinnTilgangssøknadClient;
     private final AltinnService altinnService;
-    private final AuthenticatedUserHolder tokenUtils;
+    private final AuthenticatedUserHolder authenticatedUserHolder;
 
     @Autowired
     public AltinnTilgangController(
             AltinnTilgangssøknadClient altinnTilgangssøknadClient,
             AltinnService altinnService,
-            AuthenticatedUserHolder tokenUtils
+            AuthenticatedUserHolder authenticatedUserHolder
     ) {
         this.altinnTilgangssøknadClient = altinnTilgangssøknadClient;
         this.altinnService = altinnService;
-        this.tokenUtils = tokenUtils;
+        this.authenticatedUserHolder = authenticatedUserHolder;
     }
 
     @GetMapping
     public List<AltinnTilgangssøknad> mineSøknaderOmTilgang() {
-        String fødselsnummer = tokenUtils.getFnr();
+        String fødselsnummer = authenticatedUserHolder.getFnr();
         return altinnTilgangssøknadClient.hentSøknader(fødselsnummer);
     }
 
     @PostMapping()
     public ResponseEntity<AltinnTilgangssøknad> sendSøknadOmTilgang(@RequestBody AltinnTilgangssøknadsskjema søknadsskjema) {
-        var fødselsnummer= tokenUtils.getFnr();
+        var fødselsnummer= authenticatedUserHolder.getFnr();
 
         var brukerErIOrg = altinnService.hentOrganisasjoner(fødselsnummer)
                 .stream()
