@@ -5,6 +5,8 @@ import no.nav.security.token.support.core.context.TokenValidationContextHolder;
 import no.nav.security.token.support.core.jwt.JwtToken;
 import org.springframework.stereotype.Component;
 
+import java.util.NoSuchElementException;
+
 @Component
 public class AuthenticatedUserHolder {
     public static final String LOGINSERVICE = "selvbetjening";
@@ -27,7 +29,10 @@ public class AuthenticatedUserHolder {
     }
 
     private JwtToken getJwtToken() {
-        return requestContextHolder.getTokenValidationContext().getJwtToken(LOGINSERVICE);
+        return requestContextHolder.getTokenValidationContext()
+                .getFirstValidToken()
+                .orElseThrow(() -> new NoSuchElementException(
+                        "no valid token. how did you get so far without a valid token?"
+                ));
     }
-
 }
