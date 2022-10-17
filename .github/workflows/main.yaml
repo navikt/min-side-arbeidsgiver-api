@@ -43,7 +43,7 @@ jobs:
     name: Bygg
     needs: test
     ### VALG AV DEV-BRANCH SETTES HER:
-    if: needs.test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/tokenx_altinn')
+    if: needs.test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/tokenx_self')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
