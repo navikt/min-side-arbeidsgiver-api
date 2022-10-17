@@ -19,8 +19,8 @@ import java.util.Set;
 import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.*;
 
 @RequiredIssuers(value = {
-        ProtectedWithClaims(issuer = LOGINSERVICE, claimMap ={REQUIRED_LOGIN_LEVEL}),
-        ProtectedWithClaims(issuer = TOKENX, claimMap= {REQUIRED_LOGIN_LEVEL})
+        @ProtectedWithClaims(issuer = LOGINSERVICE, claimMap = {REQUIRED_LOGIN_LEVEL}),
+        @ProtectedWithClaims(issuer = TOKENX, claimMap = {REQUIRED_LOGIN_LEVEL})
 })
 @Slf4j
 @RestController
