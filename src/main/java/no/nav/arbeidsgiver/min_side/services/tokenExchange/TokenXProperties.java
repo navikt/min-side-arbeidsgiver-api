@@ -6,6 +6,8 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.jwk.RSAKey;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -16,7 +18,8 @@ import java.text.ParseException;
 @Profile({"local","dev-gcp","prod-gcp"})
 @Configuration
 @ConfigurationProperties("token.x")
-public class TokenXProperties {
+@Slf4j
+public class TokenXProperties implements InitializingBean {
 
     static final String GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange";
     static final String CLIENT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
@@ -43,5 +46,10 @@ public class TokenXProperties {
         } catch (JOSEException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info("TokenX configured with issuer={} and clientId={}", issuer, clientId);
     }
 }

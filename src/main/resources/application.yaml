@@ -128,6 +128,11 @@ altinn:
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
+token.x:
+  privateJwk: ${TOKEN_X_PRIVATE_JWK}}
+  clientId: ${TOKEN_X_CLIENT_ID}
+  issuer: ${TOKEN_X_ISSUER}
+
 ---
 
 spring:
@@ -148,3 +153,8 @@ altinn:
   proxyAudience: prod-gcp:arbeidsgiver:altinn-rettigheter-proxy
 
 ereg-services.baseUrl: "https://ereg-services.prod-fss-pub.nais.io"
+
+token.x:
+  privateJwk: ${TOKEN_X_PRIVATE_JWK}}
+  clientId: ${TOKEN_X_CLIENT_ID}
+  issuer: ${TOKEN_X_ISSUER}
