@@ -5,10 +5,10 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.ISSUER;
+import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.LOGINSERVICE;
 import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.REQUIRED_LOGIN_LEVEL;
 
-@ProtectedWithClaims(issuer=ISSUER, claimMap={REQUIRED_LOGIN_LEVEL})
+@ProtectedWithClaims(issuer= LOGINSERVICE, claimMap={REQUIRED_LOGIN_LEVEL})
 @RestController
 public class InnloggingsController {
     @GetMapping("/api/innlogget")

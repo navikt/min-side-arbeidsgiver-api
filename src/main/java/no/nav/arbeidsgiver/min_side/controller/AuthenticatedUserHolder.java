@@ -7,7 +7,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AuthenticatedUserHolder {
-    public static final String ISSUER = "selvbetjening";
+    public static final String LOGINSERVICE = "selvbetjening";
+    public static final String TOKENX = "tokenx";
     public static final String REQUIRED_LOGIN_LEVEL = "acr=Level4";
 
     private final TokenValidationContextHolder requestContextHolder;
@@ -26,7 +27,7 @@ public class AuthenticatedUserHolder {
     }
 
     private JwtToken getJwtToken() {
-        return requestContextHolder.getTokenValidationContext().getJwtToken(ISSUER);
+        return requestContextHolder.getTokenValidationContext().getJwtToken(LOGINSERVICE);
     }
 
 }

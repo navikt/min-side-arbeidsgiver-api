@@ -56,10 +56,14 @@ spring:
 
 nais.cluster.name: local
 
-no.nav.security.jwt.issuer.selvbetjening:
-  discoveryurl: http://localhost:${mock-oauth2-server.port}/issuer1/.well-known/openid-configuration
-  accepted_audience: someaudience
-  cookiename: localhost-idtoken
+no.nav.security.jwt.issuer:
+  selvbetjening:
+    discoveryurl: http://localhost:${mock-oauth2-server.port}/issuer1/.well-known/openid-configuration
+    accepted_audience: someaudience
+    cookiename: localhost-idtoken
+  tokenx:
+    discoveryurl: http://localhost:${mock-oauth2-server.port}/issuer1/.well-known/openid-configuration
+    accepted_audience: someaudience
 
 mock:
   enabled: true
@@ -78,6 +82,7 @@ token.x:
   privateJwk: fake
   clientId: fake
   issuer: http://fake
+
 ---
 
 spring:
@@ -88,10 +93,14 @@ spring:
     enabled: false
   autoconfigure.exclude: "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration"
 
-no.nav.security.jwt.issuer.selvbetjening:
-  discoveryurl: http://min-side-ag-fakelogin/metadata?issuer=selvbetjening
-  accepted_audience: aud-selvbetjening
-  cookiename: selvbetjening-idtoken
+no.nav.security.jwt.issuer:
+  selvbetjening:
+    discoveryurl: http://min-side-ag-fakelogin/metadata?issuer=selvbetjening
+    accepted_audience: aud-selvbetjening
+    cookiename: selvbetjening-idtoken
+  tokenx:
+    discoveryurl: http://min-side-ag-fakelogin/metadata?issuer=selvbetjening
+    accepted_audience: aud-selvbetjening
 
 mock:
   enabled: true
@@ -112,10 +121,14 @@ spring:
     activate:
       on-profile: dev-gcp
 
-no.nav.security.jwt.issuer.selvbetjening:
-  discoveryurl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL}
-  accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE}
-  cookiename: selvbetjening-idtoken
+no.nav.security.jwt.issuer:
+  selvbetjening:
+    discoveryurl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL}
+    accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE}
+    cookiename: selvbetjening-idtoken
+  tokenx:
+    discoveryurl: ${TOKEN_X_WELL_KNOWN_URL}
+    accepted_audience: ${TOKEN_X_CLIENT_ID}
 
 altinn:
   altinnHeader: ${ALTINN_HEADER}
@@ -132,10 +145,14 @@ spring:
     activate:
       on-profile: prod-gcp
 
-no.nav.security.jwt.issuer.selvbetjening:
-  discoveryurl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL}
-  accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE}
-  cookiename: selvbetjening-idtoken
+no.nav.security.jwt.issuer:
+  selvbetjening:
+    discoveryurl: ${LOGINSERVICE_IDPORTEN_DISCOVERY_URL}
+    accepted_audience: ${LOGINSERVICE_IDPORTEN_AUDIENCE}
+    cookiename: selvbetjening-idtoken
+  tokenx:
+    discoveryurl: ${TOKEN_X_WELL_KNOWN_URL}
+    accepted_audience: ${TOKEN_X_CLIENT_ID}
 
 altinn:
   altinnHeader: ${ALTINN_HEADER}

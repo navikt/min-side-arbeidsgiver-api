@@ -18,11 +18,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.ISSUER;
+import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.LOGINSERVICE;
 import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.REQUIRED_LOGIN_LEVEL;
 
 
-@ProtectedWithClaims(issuer = ISSUER, claimMap = {REQUIRED_LOGIN_LEVEL})
+@ProtectedWithClaims(issuer = LOGINSERVICE, claimMap = {REQUIRED_LOGIN_LEVEL})
 @RestController
 @Slf4j
 public class DigisyfoController {
