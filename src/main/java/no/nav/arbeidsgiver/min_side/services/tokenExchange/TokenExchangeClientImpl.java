@@ -48,6 +48,6 @@ public class TokenExchangeClientImpl implements TokenExchangeClient {
                 "client_id", List.of(properties.clientId)
         )), headers);
 
-        return restTemplate.postForEntity(properties.issuer, request, TokenXToken.class).getBody();
+        return restTemplate.postForEntity(properties.tokenEndpoint, request, TokenXToken.class).getBody();
     }
 }

@@ -29,6 +29,8 @@ public class TokenXProperties implements InitializingBean {
     String issuer;
     String privateJwk;
 
+    String tokenEndpoint;
+
     @Getter(lazy=true) private final RSAKey privateJwkRsa = parsePrivateJwk();
     @Getter(lazy=true) private final JWSSigner jwsSigner = createJWSSigner();
 
@@ -50,6 +52,10 @@ public class TokenXProperties implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        log.info("TokenX configured with issuer={} and clientId={}", issuer, clientId);
+        log.info("TokenX configured with issuer={} clientId={} tokenEndpoint={}",
+                issuer,
+                clientId,
+                tokenEndpoint
+        );
     }
 }

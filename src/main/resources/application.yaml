@@ -79,6 +79,8 @@ token.x:
   privateJwk: fake
   clientId: fake
   issuer: http://fake
+  tokenEndpoint: http://fake/token
+
 ---
 
 spring:
@@ -131,6 +133,7 @@ ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}}
   clientId: ${TOKEN_X_CLIENT_ID}
+  tokenEndpoint: ${TOKEN_X_TOKEN_ENDPOINT}
   issuer: ${TOKEN_X_ISSUER}
 
 ---
@@ -157,4 +160,5 @@ ereg-services.baseUrl: "https://ereg-services.prod-fss-pub.nais.io"
 token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}}
   clientId: ${TOKEN_X_CLIENT_ID}
+  tokenEndpoint: ${TOKEN_X_TOKEN_ENDPOINT}
   issuer: ${TOKEN_X_ISSUER}
