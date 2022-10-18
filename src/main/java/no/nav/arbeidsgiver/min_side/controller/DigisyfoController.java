@@ -8,6 +8,7 @@ import no.nav.arbeidsgiver.min_side.services.digisyfo.NærmestelederRepository;
 import no.nav.arbeidsgiver.min_side.services.digisyfo.SykmeldingRepository;
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService;
 import no.nav.security.token.support.core.api.ProtectedWithClaims;
+import no.nav.security.token.support.core.api.RequiredIssuers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,11 +19,13 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.ISSUER;
-import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.REQUIRED_LOGIN_LEVEL;
+import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.*;
 
 
-@ProtectedWithClaims(issuer = ISSUER, claimMap = {REQUIRED_LOGIN_LEVEL})
+@RequiredIssuers(value = {
+        @ProtectedWithClaims(issuer = LOGINSERVICE, claimMap = {REQUIRED_LOGIN_LEVEL}),
+        @ProtectedWithClaims(issuer = TOKENX, claimMap = {REQUIRED_LOGIN_LEVEL})
+})
 @RestController
 @Slf4j
 public class DigisyfoController {
