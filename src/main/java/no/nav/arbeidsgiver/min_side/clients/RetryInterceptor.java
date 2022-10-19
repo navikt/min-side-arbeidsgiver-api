@@ -1,4 +1,4 @@
-package no.nav.arbeidsgiver.min_side.clients.altinn;
+package no.nav.arbeidsgiver.min_side.clients;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpRequest;
@@ -10,7 +10,7 @@ import org.springframework.retry.support.RetryTemplate;
 import java.io.IOException;
 import java.util.List;
 
-class RetryInterceptor implements ClientHttpRequestInterceptor {
+public class RetryInterceptor implements ClientHttpRequestInterceptor {
     private final RetryTemplate retryTemplate;
 
     @SafeVarargs
