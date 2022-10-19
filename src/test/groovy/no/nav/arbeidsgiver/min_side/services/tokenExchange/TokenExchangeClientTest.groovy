@@ -27,7 +27,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
         ]
 )
 @EnableConfigurationProperties(TokenXProperties)
-@AutoConfigureWebClient(registerRestTemplate = true)
+@AutoConfigureWebClient
 class TokenExchangeClientTest extends Specification {
 
     @SpringBean
@@ -41,7 +41,7 @@ class TokenExchangeClientTest extends Specification {
 
     @Autowired
     TokenXProperties properties
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = new ObjectMapper()
     def "skal kalle tokenx"() {
         given:
         def subjectToken = "314"

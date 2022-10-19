@@ -1,5 +1,7 @@
 package no.nav.arbeidsgiver.min_side.services.tokenExchange;
 
+import no.nav.arbeidsgiver.min_side.clients.RetryInterceptor;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -26,11 +28,15 @@ public class TokenExchangeClientImpl implements TokenExchangeClient {
     TokenExchangeClientImpl(
             TokenXProperties properties,
             ClientAssertionTokenFactory clientAssertionTokenFactory,
-            RestTemplate restTemplate
+            RestTemplateBuilder restTemplateBuilder
     ) {
         this.properties = properties;
         this.clientAssertionTokenFactory = clientAssertionTokenFactory;
-        this.restTemplate = restTemplate;
+        this.restTemplate = restTemplateBuilder
+                .additionalInterceptors(
+                        new RetryInterceptor(3, 250L, org.apache.http.NoHttpResponseException.class)
+                )
+                .build();
     }
 
     @Override

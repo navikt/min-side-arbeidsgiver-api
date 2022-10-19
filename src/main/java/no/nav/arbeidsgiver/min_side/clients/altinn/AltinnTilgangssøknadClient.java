@@ -1,6 +1,7 @@
 package no.nav.arbeidsgiver.min_side.clients.altinn;
 
 import lombok.extern.slf4j.Slf4j;
+import no.nav.arbeidsgiver.min_side.clients.RetryInterceptor;
 import no.nav.arbeidsgiver.min_side.clients.altinn.dto.DelegationRequest;
 import no.nav.arbeidsgiver.min_side.clients.altinn.dto.Søknadsstatus;
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknad;
