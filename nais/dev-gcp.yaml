@@ -30,7 +30,6 @@ spec:
           - name: min-side-arbeidsgiver-api
             envVarPrefix: DB
   envFrom:
-    - configmap: loginservice-idporten
     - secret: min-side-ag-secrets
   env:
     - name: SPRING_PROFILES_ACTIVE

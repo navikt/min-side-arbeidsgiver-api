@@ -9,7 +9,6 @@ import java.util.NoSuchElementException;
 
 @Component
 public class AuthenticatedUserHolder {
-    public static final String LOGINSERVICE = "selvbetjening";
     public static final String TOKENX = "tokenx";
     public static final String REQUIRED_LOGIN_LEVEL = "acr=Level4";
 
