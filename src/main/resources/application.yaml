@@ -57,6 +57,7 @@ spring:
 nais.cluster.name: local
 
 no.nav.security.jwt.issuer:
+  tokenx:
     discoveryurl: http://localhost:${mock-oauth2-server.port}/issuer1/.well-known/openid-configuration
     accepted_audience: someaudience
 
