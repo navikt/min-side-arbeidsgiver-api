@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.nav.security.token.support.core.api.ProtectedWithClaims;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService;
-import no.nav.security.token.support.core.api.RequiredIssuers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,10 +13,7 @@ import java.util.List;
 
 import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.*;
 
-@RequiredIssuers(value = {
-        @ProtectedWithClaims(issuer = LOGINSERVICE, claimMap = {REQUIRED_LOGIN_LEVEL}),
-        @ProtectedWithClaims(issuer = TOKENX, claimMap = {REQUIRED_LOGIN_LEVEL})
-})
+@ProtectedWithClaims(issuer = TOKENX, claimMap = {REQUIRED_LOGIN_LEVEL})
 @Slf4j
 @RestController
 public class OrganisasjonController {

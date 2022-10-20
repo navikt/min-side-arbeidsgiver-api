@@ -6,7 +6,6 @@ import no.nav.arbeidsgiver.min_side.clients.altinn.AltinnTilgangssøknadClient;
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknad;
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknadsskjema;
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService;
-import no.nav.security.token.support.core.api.RequiredIssuers;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,10 +17,7 @@ import java.util.Set;
 
 import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.*;
 
-@RequiredIssuers(value = {
-        @ProtectedWithClaims(issuer = LOGINSERVICE, claimMap = {REQUIRED_LOGIN_LEVEL}),
-        @ProtectedWithClaims(issuer = TOKENX, claimMap = {REQUIRED_LOGIN_LEVEL})
-})
+@ProtectedWithClaims(issuer = TOKENX, claimMap = {REQUIRED_LOGIN_LEVEL})
 @Slf4j
 @RestController
 @RequestMapping("/api/altinn-tilgangssoknad")
