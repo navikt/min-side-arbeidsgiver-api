@@ -5,11 +5,13 @@ import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.cglib.core.Local;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
@@ -50,6 +52,33 @@ public class SykmeldingRepositoryImpl implements SykmeldingRepository {
                 .builder("fager.msa.sykmelding.updated")
                 .description("antall sykmeldinger som er opprettet/oppdatert")
                 .register(meterRegistry);
+    }
+
+    public Map<String, Integer> oversiktSykmeldte(String nærmestelederFnr, LocalDate sykmeldingSlutt) {
+        try (Stream<Pair<String, Integer>> stream = jdbcTemplate.queryForStream(
+                """
+                            with nl as (
+                                select virksomhetsnummer, ansatt_fnr from naermeste_leder where naermeste_leder_fnr = ?
+                            )
+                            select s.virksomhetsnummer as virksomhetsnummer, count( distinct( nl.ansatt_fnr ) ) as antall
+                            from sykmelding as s
+                            join nl on
+                            nl.virksomhetsnummer = s.virksomhetsnummer and
+                            nl.ansatt_fnr = s.ansatt_fnr
+                            where s.sykmeldingsperiode_slutt >= ?
+                            group by s.virksomhetsnummer
+                        """,
+                (PreparedStatement ps) -> {
+                    ps.setString(1, nærmestelederFnr);
+                    ps.setDate(2, Date.valueOf(sykmeldingSlutt));
+                },
+                (ResultSet rs, int row) -> new ImmutablePair<>(
+                        rs.getString("virksomhetsnummer"),
+                        rs.getInt("antall")
+                )
+        )) {
+            return stream.collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+        }
     }
 
     @Override

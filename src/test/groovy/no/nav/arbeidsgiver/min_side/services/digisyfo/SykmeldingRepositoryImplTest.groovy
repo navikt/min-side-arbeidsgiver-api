@@ -37,6 +37,7 @@ class SykmeldingRepositoryImplTest extends Specification {
         sykmeldingRepository.deleteOldSykmelding(LocalDate.parse("2020-01-01"))
         expect:
         sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr1): 1]
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2020-01-01")) == [(vnr1): 1]
     }
 
     def "sletter gamle sykmeldinger"() {
@@ -71,6 +72,7 @@ class SykmeldingRepositoryImplTest extends Specification {
         ])
         expect:
         sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr2): 1]
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2020-01-01")) == [(vnr2): 1]
     }
 
     def "tombstones fjerner sykmeldinger"() {
@@ -86,6 +88,7 @@ class SykmeldingRepositoryImplTest extends Specification {
         ])
         expect:
         sykmeldingRepository.oversiktSykmeldinger(leder1) == [:]
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2020-01-01")) == [:]
     }
 
     def "bruker eldste tom-dato"() {
@@ -98,12 +101,13 @@ class SykmeldingRepositoryImplTest extends Specification {
                         [key: "1", event: [
                                 fnr: ansatt1,
                                 vnr: vnr1,
-                                dates: [ "2020-01-01", "2020-01-02" ]]],
+                                dates: [ "2020-01-01", "2020-05-02" ]]],
                 ]
         ])
         sykmeldingRepository.deleteOldSykmelding(LocalDate.parse("2020-05-02"))
         expect:
         sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr1): 1]
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2020-05-02")) == [(vnr1): 1]
     }
 
     def "ser ikke ansatt som er sykmeldt i annen bedrift"() {
@@ -117,7 +121,9 @@ class SykmeldingRepositoryImplTest extends Specification {
         ])
         expect:
         sykmeldingRepository.oversiktSykmeldinger(leder1) == [:]
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2020-01-01")) == [:]
         sykmeldingRepository.oversiktSykmeldinger(leder2) == [(vnr2): 1]
+        sykmeldingRepository.oversiktSykmeldte(leder2, LocalDate.parse("2020-01-01")) == [(vnr2): 1]
     }
 
     def "ser ikke ansatt i samme bedrift man ikke er leder for"() {
@@ -131,7 +137,25 @@ class SykmeldingRepositoryImplTest extends Specification {
         ])
         expect:
         sykmeldingRepository.oversiktSykmeldinger(leder1) == [:]
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2020-01-01")) == [:]
         sykmeldingRepository.oversiktSykmeldinger(leder2) == [(vnr2): 1]
+        sykmeldingRepository.oversiktSykmeldte(leder2, LocalDate.parse("2020-01-01")) == [(vnr2): 1]
+    }
+
+    def "finner kun ansatt med aktiv sykmelding"() {
+        given:
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+                nærmesteLedere: [
+                        [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
+                        [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt2, vnr: vnr1]
+                ],
+                sykmeldinger: [
+                        [key: "1", event: [ fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-01" ]]],
+                        [key: "2", event: [ fnr: ansatt2, vnr: vnr1, dates: [ "2022-11-21" ]]]
+                ]
+        ])
+        expect:
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2022-11-07")) == [(vnr1): 1]
     }
 
     def "batch: upsert – tombstone"() {
