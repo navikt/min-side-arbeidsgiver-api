@@ -4,6 +4,4 @@ import java.util.List;
 
 public interface NærmestelederRepository {
     List<String> virksomheterSomNærmesteLeder(String lederFnr);
-
-    void processEvent(NarmesteLederHendelse hendelse);
 }

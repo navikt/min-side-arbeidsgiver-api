@@ -7,9 +7,9 @@ import spock.lang.Specification
 import java.time.LocalDate
 
 class SykmeldingKafkaConsumerImplTest extends Specification {
-    def repository = new SykmeldingRepositoryStub()
+    def repository = new DigisyfoRepositoryStub()
     def objectMapper = new Jackson2ObjectMapperBuilder().build()
-    def kafkaConsumer = new SykmeldingKafkaConsumerImpl(objectMapper, repository)
+    def kafkaConsumer = new DigisyfoKafkaConsumerImpl(objectMapper, repository)
 
     def "handles localdate"() {
         given:

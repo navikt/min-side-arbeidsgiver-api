@@ -14,8 +14,4 @@ public class NærmestelederRepositoryStub implements NærmestelederRepository {
     public List<String> virksomheterSomNærmesteLeder(String lederFnr) {
         return List.of("910825526");
     }
-
-    @Override
-    public void processEvent(NarmesteLederHendelse hendelse) {
-    }
 }

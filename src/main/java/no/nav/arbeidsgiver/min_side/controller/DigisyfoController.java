@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
+import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoRepository;
+import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoRepositoryImpl;
 import no.nav.arbeidsgiver.min_side.services.digisyfo.NærmestelederRepository;
 import no.nav.arbeidsgiver.min_side.services.digisyfo.SykmeldingRepository;
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService;
@@ -21,12 +23,12 @@ import java.util.stream.Stream;
 
 import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.*;
 
-
 @ProtectedWithClaims(issuer = TOKENX, claimMap = {REQUIRED_LOGIN_LEVEL})
 @RestController
 @Slf4j
 public class DigisyfoController {
 
+    private final DigisyfoRepository digisyfoRepository;
     private final NærmestelederRepository nærmestelederRepository;
     private final SykmeldingRepository sykmeldingRepository;
     private final EregService eregService;
@@ -34,24 +36,19 @@ public class DigisyfoController {
 
     @Autowired
     public DigisyfoController(
+            DigisyfoRepository digisyfoRepository,
             NærmestelederRepository nærmestelederRepository,
             SykmeldingRepository sykmeldingRepository,
             EregService eregService,
             AuthenticatedUserHolder authenticatedUserHolder
     ) {
+        this.digisyfoRepository = digisyfoRepository;
         this.nærmestelederRepository = nærmestelederRepository;
         this.sykmeldingRepository = sykmeldingRepository;
         this.eregService = eregService;
         this.authenticatedUserHolder = authenticatedUserHolder;
     }
 
-    @AllArgsConstructor
-    @Data
-    static class DigisyfoOrganisasjon {
-        final Organisasjon organisasjon;
-        final int antallSykmeldinger;
-        final int antallSykmeldte;
-    }
 
     @AllArgsConstructor
     @Data
@@ -61,26 +58,56 @@ public class DigisyfoController {
     }
 
     @GetMapping("/api/narmesteleder/virksomheter-v3")
-    public Collection<DigisyfoOrganisasjonV3> hentVirksomheterv3() {
+    public Collection<DigisyfoOrganisasjonV3> hentVirksomheterV3() {
         String fnr = authenticatedUserHolder.getFnr();
-        return sykmeldingRepository.sykmeldtePrVirksomhet(fnr)
+        var underenheter = digisyfoRepository
+                .sykmeldtePrVirksomhet(fnr)
                 .stream()
-                .flatMap(this::hentUnderenhetOgOverenhetV3)
-                /* deduplicate by orgnr */
-                .collect(Collectors.toMap(
-                        info -> info.getOrganisasjon().getOrganizationNumber(),
-                        info -> info,
-                        (info1, info2) -> info1
-                ))
-                .values();
+                .flatMap(this::hentUnderenhet)
+                .collect(Collectors.toList());
+        var overenheterOrgnr = underenheter
+                .stream()
+                .map(info -> info.organisasjon.getParentOrganizationNumber())
+                .collect(Collectors.toSet());
+        return Stream.concat(
+                underenheter.stream(),
+                overenheterOrgnr
+                        .stream()
+                        .flatMap(this::hentOverenhet)
+        ).collect(Collectors.toList());
+    }
+
+    private Stream<DigisyfoOrganisasjonV3> hentOverenhet(String orgnr) {
+        Organisasjon hovedenhet = eregService.hentOverenhet(orgnr);
+        if (hovedenhet == null) {
+            return Stream.of();
+        }
+        return Stream.of(new DigisyfoOrganisasjonV3(hovedenhet, 0));
+    }
+
+    private Stream<DigisyfoOrganisasjonV3> hentUnderenhet(DigisyfoRepositoryImpl.Virksomhetsinfo virksomhetsinfo) {
+        Organisasjon underenhet = eregService.hentUnderenhet(virksomhetsinfo.getVirksomhetsnummer());
+        if (underenhet == null) {
+            return Stream.of();
+        }
+        return Stream.of(new DigisyfoOrganisasjonV3(
+                underenhet,
+                virksomhetsinfo.getAntallSykmeldte()
+        ));
+    }
+
+    @AllArgsConstructor
+    @Data
+    static class DigisyfoOrganisasjon {
+        final Organisasjon organisasjon;
+        final int antallSykmeldinger;
     }
 
     @GetMapping("/api/narmesteleder/virksomheter-v2")
     public List<DigisyfoOrganisasjon> hentVirksomheterv2() {
         String fnr = authenticatedUserHolder.getFnr();
-        var sykmeldingerOversikt = sykmeldingRepository.oversiktSykmeldinger(fnr);
-        var sykmeldteOversikt = sykmeldingRepository.oversiktSykmeldte(fnr);
-        Predicate<String> harAktiveSykmeldinger = virksomhetsnummer -> sykmeldingerOversikt.getOrDefault(virksomhetsnummer, 0) > 0;
+        var aktiveSykmeldingerOversikt = sykmeldingRepository.oversiktSykmeldinger(fnr);
+        Predicate<String> harAktiveSykmeldinger = virksomhetsnummer -> aktiveSykmeldingerOversikt.getOrDefault(virksomhetsnummer, 0) > 0;
         return nærmestelederRepository.virksomheterSomNærmesteLeder(fnr)
                 .stream()
                 .filter(harAktiveSykmeldinger)
@@ -88,37 +115,11 @@ public class DigisyfoController {
                 .filter(Objects::nonNull)
                 .map(org -> new DigisyfoOrganisasjon(
                         org,
-                        sykmeldingerOversikt.getOrDefault(org.getOrganizationNumber(), 0),
-                        sykmeldteOversikt.getOrDefault(org.getOrganizationNumber(), 0)
+                        aktiveSykmeldingerOversikt.getOrDefault(org.getOrganizationNumber(), 0)
                 ))
                 .collect(Collectors.toList());
     }
 
-    Stream<DigisyfoOrganisasjonV3> hentUnderenhetOgOverenhetV3(SykmeldingRepository.Virksomhetsinfo virksomhetsinfo) {
-        Organisasjon underenhet = eregService.hentUnderenhet(virksomhetsinfo.getVirksomhetsnummer());
-        if (underenhet == null) {
-            return Stream.of();
-        }
-
-        var digisyfoInfoUnderenhet = new DigisyfoOrganisasjonV3(
-                underenhet,
-                virksomhetsinfo.getAntallSykmeldte()
-        );
-
-        Organisasjon overenhet = eregService.hentOverenhet(underenhet.getParentOrganizationNumber());
-
-        if (overenhet == null) {
-            return Stream.of(digisyfoInfoUnderenhet);
-        }
-
-        return Stream.of(
-                digisyfoInfoUnderenhet,
-                new DigisyfoOrganisasjonV3(
-                        overenhet,
-                        0
-                )
-        );
-    }
     Stream<Organisasjon> hentUnderenhetOgOverenhet(String virksomhetsnummer) {
         Organisasjon underenhet = eregService.hentUnderenhet(virksomhetsnummer);
         Organisasjon overenhet = null;
