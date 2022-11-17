@@ -49,13 +49,15 @@ public class DigisyfoController {
     static class DigisyfoOrganisasjon {
         final Organisasjon organisasjon;
         final int antallSykmeldinger;
+        final int antallSykmeldte;
     }
 
     @GetMapping("/api/narmesteleder/virksomheter-v2")
     public List<DigisyfoOrganisasjon> hentVirksomheterv2() {
         String fnr = authenticatedUserHolder.getFnr();
-        var aktiveSykmeldingerOversikt = sykmeldingRepository.oversiktSykmeldinger(fnr);
-        Predicate<String> harAktiveSykmeldinger = virksomhetsnummer -> aktiveSykmeldingerOversikt.getOrDefault(virksomhetsnummer, 0) > 0;
+        var sykmeldingerOversikt = sykmeldingRepository.oversiktSykmeldinger(fnr);
+        var sykmeldteOversikt = sykmeldingRepository.oversiktSykmeldte(fnr);
+        Predicate<String> harAktiveSykmeldinger = virksomhetsnummer -> sykmeldingerOversikt.getOrDefault(virksomhetsnummer, 0) > 0;
         return nærmestelederRepository.virksomheterSomNærmesteLeder(fnr)
                 .stream()
                 .filter(harAktiveSykmeldinger)
@@ -63,7 +65,8 @@ public class DigisyfoController {
                 .filter(Objects::nonNull)
                 .map(org -> new DigisyfoOrganisasjon(
                         org,
-                        aktiveSykmeldingerOversikt.getOrDefault(org.getOrganizationNumber(), 0)
+                        sykmeldingerOversikt.getOrDefault(org.getOrganizationNumber(), 0),
+                        sykmeldteOversikt.getOrDefault(org.getOrganizationNumber(), 0)
                 ))
                 .collect(Collectors.toList());
     }

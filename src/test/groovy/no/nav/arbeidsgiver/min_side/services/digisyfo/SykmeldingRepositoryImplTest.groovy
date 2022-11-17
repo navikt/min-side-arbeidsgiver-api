@@ -158,6 +158,40 @@ class SykmeldingRepositoryImplTest extends Specification {
         sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2022-11-07")) == [(vnr1): 1]
     }
 
+    def "to aktive sykmeldinger på en person gir en sykmeldt"() {
+        given:
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+                nærmesteLedere: [
+                        [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
+                ],
+                sykmeldinger: [
+                        [key: "1", event: [ fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-01" ]]],
+                        [key: "2", event: [ fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-21" ]]]
+                ]
+        ])
+        expect:
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2022-11-01")) == [(vnr1): 1]
+        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr1): 2]
+    }
+
+    def "aktive sykmeldinger på forskjellige person holdes seperat"() {
+        given:
+        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+                nærmesteLedere: [
+                        [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
+                        [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt2, vnr: vnr1],
+                ],
+                sykmeldinger: [
+                        [key: "1", event: [ fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-01" ]]],
+                        [key: "2", event: [ fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-21" ]]],
+                        [key: "3", event: [ fnr: ansatt2, vnr: vnr1, dates: [ "2022-11-01" ]]],
+                ]
+        ])
+        expect:
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2022-11-01")) == [(vnr1): 2]
+        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr1): 3]
+    }
+
     def "batch: upsert – tombstone"() {
         given:
         SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseBatched([

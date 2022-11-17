@@ -18,6 +18,11 @@ public class SykmeldingRepositoryStub implements SykmeldingRepository {
     }
 
     @Override
+    public Map<String, Integer> oversiktSykmeldte(String nærmestelederFnr) {
+        return Map.of("910825526", 4);
+    }
+
+    @Override
     public void processEvent(List<ImmutablePair<String, SykmeldingHendelse>> records) {
     }
 }

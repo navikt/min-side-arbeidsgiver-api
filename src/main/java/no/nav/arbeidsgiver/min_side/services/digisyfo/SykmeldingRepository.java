@@ -7,6 +7,7 @@ import java.util.Map;
 
 public interface SykmeldingRepository {
     Map<String, Integer> oversiktSykmeldinger(String nærmestelederFnr);
+    Map<String, Integer> oversiktSykmeldte(String nærmestelederFnr);
 
     void processEvent(List<ImmutablePair<String, SykmeldingHendelse>> records);
 }

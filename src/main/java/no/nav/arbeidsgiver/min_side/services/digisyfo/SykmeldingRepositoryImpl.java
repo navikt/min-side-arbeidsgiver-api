@@ -54,6 +54,13 @@ public class SykmeldingRepositoryImpl implements SykmeldingRepository {
                 .register(meterRegistry);
     }
 
+    @Override
+    public Map<String, Integer> oversiktSykmeldte(String nærmestelederFnr) {
+        return oversiktSykmeldte(nærmestelederFnr, LocalDate.now(
+                ZoneId.of("Europe/Oslo")
+        ));
+    }
+
     public Map<String, Integer> oversiktSykmeldte(String nærmestelederFnr, LocalDate sykmeldingSlutt) {
         try (Stream<Pair<String, Integer>> stream = jdbcTemplate.queryForStream(
                 """

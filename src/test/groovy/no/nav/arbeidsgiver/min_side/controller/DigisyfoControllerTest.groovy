@@ -114,6 +114,7 @@ class DigisyfoControllerTest extends Specification {
         authenticatedUserHolder.getFnr() >> "42"
         nærmestelederRepository.virksomheterSomNærmesteLeder("42") >> ["10", "20", "30"]
         sykmeldingRepository.oversiktSykmeldinger("42") >> ["10": 1, "20" : 2]
+        sykmeldingRepository.oversiktSykmeldte("42") >> ["10": 1]
         expect:
         def jsonResponse = mockMvc.perform(
                 get("/api/narmesteleder/virksomheter-v2").accept(MediaType.APPLICATION_JSON))
@@ -131,7 +132,8 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "BEDR",
               "Status": null
             },
-            "antallSykmeldinger": 1
+            "antallSykmeldinger": 1,
+            "antallSykmeldte": 1
           },
           {
             "organisasjon": {
@@ -142,7 +144,8 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "AS",
               "Status": null
             },
-            "antallSykmeldinger": 0
+            "antallSykmeldinger": 0,
+            "antallSykmeldte": 0
           },
           {
             "organisasjon": {
@@ -153,7 +156,8 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "BEDR",
               "Status": null
             },
-            "antallSykmeldinger": 2
+            "antallSykmeldinger": 2,
+            "antallSykmeldte": 0
           },
           {
             "organisasjon": {
@@ -164,7 +168,8 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "AS",
               "Status": null
             },
-            "antallSykmeldinger": 0
+            "antallSykmeldinger": 0,
+            "antallSykmeldte": 0
           }
         ]
 """)
