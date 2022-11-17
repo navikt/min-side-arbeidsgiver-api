@@ -37,7 +37,7 @@ public class DigisyfoKafkaConsumerImpl {
             topics = "teamsykmelding.syfo-narmesteleder-leesah",
             containerFactory = "errorLoggingKafkaListenerContainerFactory"
     )
-    public void processConsumerRecord(ConsumerRecord<String, String> record) throws JsonProcessingException {
+    public void processNærmestelederRecord(ConsumerRecord<String, String> record) throws JsonProcessingException {
         NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
         digisyfoRepository.processNærmesteLederEvent(hendelse);
     }
@@ -51,7 +51,7 @@ public class DigisyfoKafkaConsumerImpl {
                     ConsumerConfig.MAX_POLL_RECORDS_CONFIG + "=1000",
             }
     )
-    public void processConsumerRecord(
+    public void processSykmeldingRecords(
             List<ConsumerRecord<String, String>> records
     ) {
         try {

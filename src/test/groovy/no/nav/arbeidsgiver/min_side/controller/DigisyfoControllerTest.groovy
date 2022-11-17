@@ -3,6 +3,7 @@ package no.nav.arbeidsgiver.min_side.controller
 import groovy.json.JsonSlurper
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.NærmestelederRepository
 import no.nav.arbeidsgiver.min_side.services.digisyfo.SykmeldingRepository
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
@@ -34,6 +35,9 @@ class DigisyfoControllerTest extends Specification {
 
     @SpringBean
     SykmeldingRepository sykmeldingRepository = Mock()
+
+    @SpringBean
+    DigisyfoService digisyfoService = Mock()
 
     def mkUnderenhet(String orgnr, String parentOrgnr) {
         return Organisasjon.builder()
@@ -112,9 +116,76 @@ class DigisyfoControllerTest extends Specification {
     def "Er nærmeste leder, med sykmeldinger registrert"() {
         given:
         authenticatedUserHolder.getFnr() >> "42"
+        digisyfoService.hentVirksomheterOgSykmeldte("42") >> [
+                new DigisyfoController.VirksomhetOgAntallSykmeldte(mkUnderenhet("10", "1"), 0),
+                new DigisyfoController.VirksomhetOgAntallSykmeldte(mkOverenhet("1"), 0),
+                new DigisyfoController.VirksomhetOgAntallSykmeldte(mkUnderenhet("20", "2"), 1),
+                new DigisyfoController.VirksomhetOgAntallSykmeldte(mkOverenhet("2"), 0),
+        ]
+
+        expect:
+        def response = jsonSlurper.parseText(
+                mockMvc.perform(
+                        get("/api/narmesteleder/virksomheter-v3").accept(MediaType.APPLICATION_JSON))
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andReturn().response.contentAsString
+        )
+        response == jsonSlurper.parseText("""
+        [
+          {
+            "organisasjon": {
+              "Name": "underenhet",
+              "Type": null,
+              "ParentOrganizationNumber": "1",
+              "OrganizationNumber": "10",
+              "OrganizationForm": "BEDR",
+              "Status": null
+            },
+            "antallSykmeldte": 0
+          },
+          {
+            "organisasjon": {
+              "Name": "overenhet",
+              "Type": null,
+              "ParentOrganizationNumber": null,
+              "OrganizationNumber": "1",
+              "OrganizationForm": "AS",
+              "Status": null
+            },
+            "antallSykmeldte": 0
+          },
+          {
+            "organisasjon": {
+              "Name": "underenhet",
+              "Type": null,
+              "ParentOrganizationNumber": "2",
+              "OrganizationNumber": "20",
+              "OrganizationForm": "BEDR",
+              "Status": null
+            },
+            "antallSykmeldte": 1
+          },
+          {
+            "organisasjon": {
+              "Name": "overenhet",
+              "Type": null,
+              "ParentOrganizationNumber": null,
+              "OrganizationNumber": "2",
+              "OrganizationForm": "AS",
+              "Status": null
+            },
+            "antallSykmeldte": 0
+          }
+        ]
+""")
+    }
+
+    def "Er nærmeste leder, med sykmeldinger registrert, bakoverkompatibel"() {
+        given:
+        authenticatedUserHolder.getFnr() >> "42"
         nærmestelederRepository.virksomheterSomNærmesteLeder("42") >> ["10", "20", "30"]
         sykmeldingRepository.oversiktSykmeldinger("42") >> ["10": 1, "20" : 2]
-        sykmeldingRepository.oversiktSykmeldte("42") >> ["10": 1]
         expect:
         def jsonResponse = mockMvc.perform(
                 get("/api/narmesteleder/virksomheter-v2").accept(MediaType.APPLICATION_JSON))
@@ -132,8 +203,7 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "BEDR",
               "Status": null
             },
-            "antallSykmeldinger": 1,
-            "antallSykmeldte": 1
+            "antallSykmeldinger": 1
           },
           {
             "organisasjon": {
@@ -144,8 +214,7 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "AS",
               "Status": null
             },
-            "antallSykmeldinger": 0,
-            "antallSykmeldte": 0
+            "antallSykmeldinger": 0
           },
           {
             "organisasjon": {
@@ -156,8 +225,7 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "BEDR",
               "Status": null
             },
-            "antallSykmeldinger": 2,
-            "antallSykmeldte": 0
+            "antallSykmeldinger": 2
           },
           {
             "organisasjon": {
@@ -168,8 +236,7 @@ class DigisyfoControllerTest extends Specification {
               "OrganizationForm": "AS",
               "Status": null
             },
-            "antallSykmeldinger": 0,
-            "antallSykmeldte": 0
+            "antallSykmeldinger": 0
           }
         ]
 """)
