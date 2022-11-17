@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -52,6 +53,28 @@ public class DigisyfoController {
         final int antallSykmeldte;
     }
 
+    @AllArgsConstructor
+    @Data
+    static class DigisyfoOrganisasjonV3 {
+        final Organisasjon organisasjon;
+        final int antallSykmeldte;
+    }
+
+    @GetMapping("/api/narmesteleder/virksomheter-v3")
+    public Collection<DigisyfoOrganisasjonV3> hentVirksomheterv3() {
+        String fnr = authenticatedUserHolder.getFnr();
+        return sykmeldingRepository.sykmeldtePrVirksomhet(fnr)
+                .stream()
+                .flatMap(this::hentUnderenhetOgOverenhetV3)
+                /* deduplicate by orgnr */
+                .collect(Collectors.toMap(
+                        info -> info.getOrganisasjon().getOrganizationNumber(),
+                        info -> info,
+                        (info1, info2) -> info1
+                ))
+                .values();
+    }
+
     @GetMapping("/api/narmesteleder/virksomheter-v2")
     public List<DigisyfoOrganisasjon> hentVirksomheterv2() {
         String fnr = authenticatedUserHolder.getFnr();
@@ -71,6 +94,31 @@ public class DigisyfoController {
                 .collect(Collectors.toList());
     }
 
+    Stream<DigisyfoOrganisasjonV3> hentUnderenhetOgOverenhetV3(SykmeldingRepository.Virksomhetsinfo virksomhetsinfo) {
+        Organisasjon underenhet = eregService.hentUnderenhet(virksomhetsinfo.getVirksomhetsnummer());
+        if (underenhet == null) {
+            return Stream.of();
+        }
+
+        var digisyfoInfoUnderenhet = new DigisyfoOrganisasjonV3(
+                underenhet,
+                virksomhetsinfo.getAntallSykmeldte()
+        );
+
+        Organisasjon overenhet = eregService.hentOverenhet(underenhet.getParentOrganizationNumber());
+
+        if (overenhet == null) {
+            return Stream.of(digisyfoInfoUnderenhet);
+        }
+
+        return Stream.of(
+                digisyfoInfoUnderenhet,
+                new DigisyfoOrganisasjonV3(
+                        overenhet,
+                        0
+                )
+        );
+    }
     Stream<Organisasjon> hentUnderenhetOgOverenhet(String virksomhetsnummer) {
         Organisasjon underenhet = eregService.hentUnderenhet(virksomhetsnummer);
         Organisasjon overenhet = null;

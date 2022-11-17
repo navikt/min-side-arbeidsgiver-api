@@ -23,6 +23,11 @@ public class SykmeldingRepositoryStub implements SykmeldingRepository {
     }
 
     @Override
+    public List<Virksomhetsinfo> sykmeldtePrVirksomhet(String nærmestelederFnr) {
+        return List.of(new Virksomhetsinfo("910825526", 4));
+    }
+
+    @Override
     public void processEvent(List<ImmutablePair<String, SykmeldingHendelse>> records) {
     }
 }

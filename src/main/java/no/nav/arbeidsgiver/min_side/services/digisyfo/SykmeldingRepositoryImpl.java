@@ -89,6 +89,58 @@ public class SykmeldingRepositoryImpl implements SykmeldingRepository {
     }
 
     @Override
+    public List<Virksomhetsinfo> sykmeldtePrVirksomhet(String nærmestelederFnr) {
+        return sykmeldtePrVirksomhet(nærmestelederFnr, LocalDate.now(
+                ZoneId.of("Europe/Oslo")
+        ));
+    }
+    public List<Virksomhetsinfo> sykmeldtePrVirksomhet(String nærmestelederFnr, LocalDate sykmeldingSlutt) {
+                try (Stream<Virksomhetsinfo> stream = jdbcTemplate.queryForStream(
+                """
+                            with
+                            nl_koblinger as (
+                                select virksomhetsnummer, ansatt_fnr
+                                from naermeste_leder
+                                where naermeste_leder_fnr = ?
+                            ),
+                            virksomheter as (
+                                select distinct s.virksomhetsnummer as virksomhetsnummer
+                                from sykmelding as s
+                                join nl_koblinger nl on
+                                    nl.virksomhetsnummer = s.virksomhetsnummer and
+                                    nl.ansatt_fnr = s.ansatt_fnr
+                            ),
+                            sykmeldte as (
+                                select
+                                    s.virksomhetsnummer as virksomhetsnummer,
+                                    count(distinct(nl.ansatt_fnr)) as antall_sykmeldte
+                                from sykmelding as s
+                                join nl_koblinger nl on
+                                    nl.virksomhetsnummer = s.virksomhetsnummer and
+                                    nl.ansatt_fnr = s.ansatt_fnr
+                                where s.sykmeldingsperiode_slutt >= ?
+                                group by s.virksomhetsnummer
+                            )
+                            select
+                                v.virksomhetsnummer as virksomhetsnummer,
+                                coalesce(s.antall_sykmeldte, 0) as antall_sykmeldte
+                            from virksomheter v
+                            left join sykmeldte s using (virksomhetsnummer)
+                        """,
+                (PreparedStatement ps) -> {
+                    ps.setString(1, nærmestelederFnr);
+                    ps.setDate(2, Date.valueOf(sykmeldingSlutt));
+                },
+                (ResultSet rs, int row) -> new Virksomhetsinfo(
+                        rs.getString("virksomhetsnummer"),
+                        rs.getInt("antall_sykmeldte")
+                )
+        )) {
+            return stream.collect(Collectors.toList());
+        }
+    }
+
+    @Override
     public Map<String, Integer> oversiktSykmeldinger(String nærmestelederFnr) {
         try (Stream<Pair<String, Integer>> stream = jdbcTemplate.queryForStream(
                 """
