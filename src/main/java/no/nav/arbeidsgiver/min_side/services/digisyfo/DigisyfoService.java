@@ -21,7 +21,7 @@ public class DigisyfoService {
 
     public Collection<DigisyfoController.VirksomhetOgAntallSykmeldte> hentVirksomheterOgSykmeldte(String fnr) {
         var underenheter = digisyfoRepository
-                .sykmeldtePrVirksomhet(fnr)
+                .virksomheterOgSykmeldte(fnr)
                 .stream()
                 .flatMap(this::hentUnderenhet)
                 .collect(Collectors.toList());

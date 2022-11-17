@@ -13,7 +13,7 @@ public interface DigisyfoRepository {
         final String virksomhetsnummer;
         final Integer antallSykmeldte;
     }
-    List<Virksomhetsinfo> sykmeldtePrVirksomhet(String nærmestelederFnr);
+    List<Virksomhetsinfo> virksomheterOgSykmeldte(String nærmestelederFnr);
 
     void processNærmesteLederEvent(NarmesteLederHendelse hendelse);
     void processSykmeldingEvent(List<ImmutablePair<String, SykmeldingHendelse>> records);

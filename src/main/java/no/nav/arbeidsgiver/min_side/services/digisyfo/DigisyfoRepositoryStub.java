@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public class DigisyfoRepositoryStub implements DigisyfoRepository {
     @Override
-    public List<Virksomhetsinfo> sykmeldtePrVirksomhet(String nærmestelederFnr) {
+    public List<Virksomhetsinfo> virksomheterOgSykmeldte(String nærmestelederFnr) {
         return List.of(new Virksomhetsinfo("910825526", 4));
     }
     @Override

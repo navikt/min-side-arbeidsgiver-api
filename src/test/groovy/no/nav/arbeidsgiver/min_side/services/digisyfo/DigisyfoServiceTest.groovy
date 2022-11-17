@@ -53,14 +53,14 @@ class DigisyfoServiceTest extends Specification {
 
     def "ingen rettigheter"() {
         given:
-        digisyfoRepository.sykmeldtePrVirksomhet("42") >> []
+        digisyfoRepository.virksomheterOgSykmeldte("42") >> []
         expect:
         digisyfoService.hentVirksomheterOgSykmeldte("42") == []
     }
 
     def "noen rettigheter"() {
         given:
-        digisyfoRepository.sykmeldtePrVirksomhet("42") >> [
+        digisyfoRepository.virksomheterOgSykmeldte("42") >> [
                 new DigisyfoRepository.Virksomhetsinfo("10", 0),
                 new DigisyfoRepository.Virksomhetsinfo("11", 1),
                 new DigisyfoRepository.Virksomhetsinfo("20", 2),

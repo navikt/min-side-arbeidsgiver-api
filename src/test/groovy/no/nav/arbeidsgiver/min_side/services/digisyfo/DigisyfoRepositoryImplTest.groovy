@@ -330,7 +330,7 @@ class DigisyfoRepositoryImplTest extends Specification {
         digisyfoRepository.deleteOldSykmelding(LocalDate.parse(today))
 
         return { fnr ->
-            digisyfoRepository.sykmeldtePrVirksomhet(fnr, LocalDate.parse(today))
+            digisyfoRepository.virksomheterOgSykmeldte(fnr, LocalDate.parse(today))
                 .collectEntries {
                     [(it.virksomhetsnummer): it.antallSykmeldte]
             }

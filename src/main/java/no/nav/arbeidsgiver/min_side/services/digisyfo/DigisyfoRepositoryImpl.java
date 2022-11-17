@@ -149,12 +149,12 @@ public class DigisyfoRepositoryImpl implements DigisyfoRepository {
     }
 
     @Override
-    public List<Virksomhetsinfo> sykmeldtePrVirksomhet(String nærmestelederFnr) {
-        return sykmeldtePrVirksomhet(nærmestelederFnr, LocalDate.now(
+    public List<Virksomhetsinfo> virksomheterOgSykmeldte(String nærmestelederFnr) {
+        return virksomheterOgSykmeldte(nærmestelederFnr, LocalDate.now(
                 ZoneId.of("Europe/Oslo")
         ));
     }
-    public List<Virksomhetsinfo> sykmeldtePrVirksomhet(String nærmestelederFnr, LocalDate sykmeldingSlutt) {
+    public List<Virksomhetsinfo> virksomheterOgSykmeldte(String nærmestelederFnr, LocalDate sykmeldingSlutt) {
         try (Stream<Virksomhetsinfo> stream = jdbcTemplate.queryForStream(
                 """
                             with
