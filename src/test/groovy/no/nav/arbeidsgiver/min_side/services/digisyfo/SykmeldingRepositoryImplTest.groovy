@@ -171,6 +171,7 @@ class SykmeldingRepositoryImplTest extends Specification {
         ])
         expect:
         sykmeldingRepository.oversiktSykmeldinger(leder1) == [:]
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2020-01-01")) == [:]
     }
 
     def "batch: upsert – upsert"() {
@@ -187,6 +188,7 @@ class SykmeldingRepositoryImplTest extends Specification {
         ])
         expect:
         sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr2): 1]
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2020-01-01")) == [(vnr2): 1]
     }
 
     def "batch: tombstone – upsert"() {
@@ -202,6 +204,7 @@ class SykmeldingRepositoryImplTest extends Specification {
         ])
         expect:
         sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr1): 1]
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2020-01-01")) == [(vnr1): 1]
     }
 
     def "batch: upsert – tombstone – upsert"() {
@@ -219,6 +222,7 @@ class SykmeldingRepositoryImplTest extends Specification {
         ])
         expect:
         sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr2): 1]
+        sykmeldingRepository.oversiktSykmeldte(leder1, LocalDate.parse("2020-01-01")) == [(vnr2): 1]
     }
 
     def prepareDatabaseSingletonBatches(setup) {
