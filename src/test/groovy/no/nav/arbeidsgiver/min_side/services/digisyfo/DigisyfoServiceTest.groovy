@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.arbeidsgiver.min_side.controller.DigisyfoController
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
@@ -10,6 +11,9 @@ import spock.lang.Specification
 
 @SpringBootTest(classes = [DigisyfoService.class])
 class DigisyfoServiceTest extends Specification {
+    @SpringBean
+    MeterRegistry meterRegistry = Stub()
+
     @SpringBean
     DigisyfoRepositoryImpl digisyfoRepository = Mock()
 
@@ -48,8 +52,7 @@ class DigisyfoServiceTest extends Specification {
     }
 
     @Autowired
-    DigisyfoService digisyfoService = Mock()
-
+    DigisyfoService digisyfoService
 
     def "ingen rettigheter"() {
         given:

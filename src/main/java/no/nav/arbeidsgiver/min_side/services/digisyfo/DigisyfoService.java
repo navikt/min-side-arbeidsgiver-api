@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import no.nav.arbeidsgiver.min_side.controller.DigisyfoController;
 import no.nav.arbeidsgiver.min_side.models.Organisasjon;
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService;
@@ -13,10 +14,16 @@ import java.util.stream.Stream;
 public class DigisyfoService {
     private final DigisyfoRepository digisyfoRepository;
     private final EregService eregService;
+    private final MeterRegistry meterRegistry;
 
-    public DigisyfoService(DigisyfoRepository digisyfoRepository, EregService eregService) {
+    public DigisyfoService(
+            DigisyfoRepository digisyfoRepository,
+            EregService eregService,
+            MeterRegistry meterRegistry
+    ) {
         this.digisyfoRepository = digisyfoRepository;
         this.eregService = eregService;
+        this.meterRegistry = meterRegistry;
     }
 
     public Collection<DigisyfoController.VirksomhetOgAntallSykmeldte> hentVirksomheterOgSykmeldte(String fnr) {
@@ -29,12 +36,21 @@ public class DigisyfoService {
                 .stream()
                 .map(info -> info.getOrganisasjon().getParentOrganizationNumber())
                 .collect(Collectors.toSet());
-        return Stream.concat(
+        var resultat = Stream.concat(
                 underenheter.stream(),
                 overenheterOrgnr
                         .stream()
                         .flatMap(this::hentOverenhet)
         ).collect(Collectors.toList());
+
+        meterRegistry.counter(
+                        "msa.digisyfo.tilgang",
+                        "virksomheter",
+                        Integer.toString(resultat.size())
+                )
+                .increment();
+
+        return resultat;
     }
 
     private Stream<DigisyfoController.VirksomhetOgAntallSykmeldte> hentOverenhet(String orgnr) {
