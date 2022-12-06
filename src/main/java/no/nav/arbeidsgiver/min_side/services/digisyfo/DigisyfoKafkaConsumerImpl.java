@@ -2,8 +2,6 @@ package no.nav.arbeidsgiver.min_side.services.digisyfo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -17,16 +15,31 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @Profile({"dev-gcp", "prod-gcp"})
-@Slf4j
-public class SykmeldingKafkaConsumerImpl {
+public class DigisyfoKafkaConsumerImpl {
+    private final DigisyfoRepository digisyfoRepository;
     private final ObjectMapper objectMapper;
-    private final SykmeldingRepository sykmeldingRepository;
 
-    public SykmeldingKafkaConsumerImpl(ObjectMapper objectMapper, SykmeldingRepository sykmeldingRepository) {
+    public DigisyfoKafkaConsumerImpl(
+            ObjectMapper objectMapper,
+            DigisyfoRepository digisyfoRepository
+    ) {
         this.objectMapper = objectMapper;
-        this.sykmeldingRepository = sykmeldingRepository;
+        this.digisyfoRepository = digisyfoRepository;
+    }
+
+    @KafkaListener(
+            id = "min-side-arbeidsgiver-narmesteleder-model-builder-1",
+            // id = "min-side-arbeidsgiver-narmesteleder-model-builder-2", brukt 23.05.2022
+            // id = "min-side-arbeidsgiver-narmesteleder-model-builder-3", brukt 16.06.2022
+            topics = "teamsykmelding.syfo-narmesteleder-leesah",
+            containerFactory = "errorLoggingKafkaListenerContainerFactory"
+    )
+    public void processNærmestelederRecord(ConsumerRecord<String, String> record) throws JsonProcessingException {
+        NarmesteLederHendelse hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse.class);
+        digisyfoRepository.processNærmesteLederEvent(hendelse);
     }
 
     @KafkaListener(
@@ -38,7 +51,7 @@ public class SykmeldingKafkaConsumerImpl {
                     ConsumerConfig.MAX_POLL_RECORDS_CONFIG + "=1000",
             }
     )
-    public void processConsumerRecord(
+    public void processSykmeldingRecords(
             List<ConsumerRecord<String, String>> records
     ) {
         try {
@@ -47,28 +60,21 @@ public class SykmeldingKafkaConsumerImpl {
                     .map(r ->
                             ImmutablePair.of(
                                     r.key(),
-                                    getSykmeldingHendelse(r)
+                                    getSykmeldingHendelse(r.value())
                             )
                     ).collect(Collectors.toList());
-            sykmeldingRepository.processEvent(parsedRecords);
+            digisyfoRepository.processSykmeldingEvent(parsedRecords);
         } catch (RuntimeException e) {
             throw new BatchListenerFailedException("exception while processing kafka event", e, records.get(0));
         }
     }
 
-    @Data
-    @AllArgsConstructor
-    static class TopicPartition {
-        String topic;
-        int partition;
-    }
-
     @Nullable
-    private SykmeldingHendelse getSykmeldingHendelse(ConsumerRecord<String, String> r) {
+    private SykmeldingHendelse getSykmeldingHendelse(String value) {
         try {
-            return r.value() == null
+            return value == null
                     ? null
-                    : objectMapper.readValue(r.value(), SykmeldingHendelse.class);
+                    : objectMapper.readValue(value, SykmeldingHendelse.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

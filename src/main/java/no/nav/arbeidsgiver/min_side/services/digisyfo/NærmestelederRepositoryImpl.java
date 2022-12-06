@@ -28,25 +28,4 @@ public class NærmestelederRepositoryImpl implements NærmestelederRepository {
         );
     }
 
-    @Override
-    public void processEvent(NarmesteLederHendelse hendelse) {
-        if (hendelse.aktivTom != null) {
-            jdbcTemplate.update(
-                    "delete from naermeste_leder where id = ?",
-                    ps -> ps.setObject(1, hendelse.narmesteLederId)
-            );
-        } else {
-            jdbcTemplate.update(
-                    "insert into naermeste_leder(id, naermeste_leder_fnr, virksomhetsnummer, ansatt_fnr)" +
-                            "  values(?, ?, ?, ?)" +
-                            "  on conflict (id) do nothing;",
-                    ps -> {
-                        ps.setObject(1, hendelse.narmesteLederId);
-                        ps.setString(2, hendelse.narmesteLederFnr);
-                        ps.setString(3, hendelse.virksomhetsnummer);
-                        ps.setString(4, hendelse.ansattFnr);
-                    }
-            );
-        }
-    }
 }

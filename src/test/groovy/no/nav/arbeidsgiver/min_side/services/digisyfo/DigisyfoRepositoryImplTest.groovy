@@ -11,232 +11,275 @@ import java.time.LocalDate
 
 import static no.nav.arbeidsgiver.min_side.services.digisyfo.SykmeldingHendelse.create as createSykmelding
 
-class SykmeldingRepositoryImplTest extends Specification {
+class DigisyfoRepositoryImplTest extends Specification {
     def leder1 = "10011223344"
     def leder2 = "20011223344"
     def ansatt1 = "10044332211"
     def ansatt2 = "20044332211"
+    def ansatt3 = "30044332211"
     def vnr1 = "100111222"
     def vnr2 = "200111222"
+    def vnr3 = "300111222"
     def uuid1 = "3608d78e-10a3-4179-9cac-000000000001"
     def uuid2 = "3608d78e-10a3-4179-9cac-000000000002"
-
+    def uuid3 = "3608d78e-10a3-4179-9cac-000000000003"
 
     def "sletter ikke dagens sykmeldinger"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+        def lookup = prepareDatabaseSingletonBatches([
+                today: "2020-01-01",
                 nærmesteLedere: [[id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1]],
-                sykmeldinger: [
-                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
-                ],
-                deleteFrom: LocalDate.parse("2020-01-01"),
+                sykmeldinger: [[id: "1", fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
         ])
 
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr1): 1]
+        lookup(leder1) == [(vnr1): 1]
     }
 
     def "sletter gamle sykmeldinger"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+        def lookup = prepareDatabaseSingletonBatches([
+                today: "2020-05-02",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                         [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt2, vnr: vnr2],
                 ],
                 sykmeldinger: [
-                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
-                        [key: "2", event: [fnr: ansatt2, vnr: vnr2, dates: ["2020-01-02"]]],
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]],
+                        [id: "2", fnr: ansatt2, vnr: vnr2, dates: ["2020-01-02"]],
                 ],
-                deleteFrom: LocalDate.parse("2020-05-02"),
         ])
 
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr2): 1]
+        lookup(leder1) == [(vnr2): 0]
     }
 
     def "upsert bruker siste versjon"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+        def lookup = prepareDatabaseSingletonBatches([
+                today: "2020-01-01",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                         [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr2],
                 ],
                 sykmeldinger: [
-                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
-                        [key: "1", event: [fnr: ansatt1, vnr: vnr2, dates: ["2020-01-01"]]],
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]],
+                        [id: "1", fnr: ansatt1, vnr: vnr2, dates: ["2020-01-01"]],
                 ]
         ])
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr2): 1]
+        lookup(leder1) == [(vnr2): 1]
     }
 
     def "tombstones fjerner sykmeldinger"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+        def lookup = prepareDatabaseSingletonBatches([
+                today: "2020-01-01",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                 ],
                 sykmeldinger: [
-                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
-                        [key: "1", event: null],
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]],
+                        [id: "1"],
                 ]
         ])
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [:]
+        lookup(leder1) == [:]
     }
 
     def "bruker eldste tom-dato"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+        def lookup = prepareDatabaseSingletonBatches([
+                today: "2020-05-02",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                 ],
                 sykmeldinger: [
-                        [key: "1", event: [
-                                fnr: ansatt1,
-                                vnr: vnr1,
-                                dates: [ "2020-01-01", "2020-05-02" ]]],
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: [ "2020-01-01", "2020-05-02" ]],
                 ],
-                deleteFrom: LocalDate.parse("2020-05-02"),
         ])
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr1): 1]
+        lookup(leder1) == [(vnr1): 1]
+    }
+
+    def "tilgang selv uten aktiv sykmeldt"() {
+        given:
+        def lookup = prepareDatabaseSingletonBatches([
+                today: "2022-06-01",
+                nærmesteLedere: [
+                        [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
+                        [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt2, vnr: vnr2],
+                        [id: uuid3, fnrLeder: leder1, fnrAnsatt: ansatt3, vnr: vnr3],
+                ],
+                sykmeldinger: [
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: [ "2022-01-01" ]],
+                        [id: "2", fnr: ansatt2, vnr: vnr2, dates: [ "2022-03-01" ]],
+                        [id: "3", fnr: ansatt3, vnr: vnr3, dates: [ "2022-07-01" ]],
+                ]
+        ])
+        expect:
+        lookup(leder1) == [(vnr2): 0, (vnr3): 1]
     }
 
     def "ser ikke ansatt som er sykmeldt i annen bedrift"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+        def lookup = prepareDatabaseSingletonBatches([
+                today: "2020-01-01",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                         [id: uuid2, fnrLeder: leder2, fnrAnsatt: ansatt1, vnr: vnr2],
                 ],
-                sykmeldinger: [ [key: "1", event: [ fnr: ansatt1, vnr: vnr2, dates: [ "2020-01-01" ]]] ]
+                sykmeldinger: [ [id: "1", fnr: ansatt1, vnr: vnr2, dates: [ "2020-01-01" ]] ]
         ])
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [:]
-        sykmeldingRepository.oversiktSykmeldinger(leder2) == [(vnr2): 1]
+        lookup(leder1) == [:]
+        lookup(leder2) == [(vnr2): 1]
     }
 
     def "ser ikke ansatt i samme bedrift man ikke er leder for"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+        def lookup = prepareDatabaseSingletonBatches([
+                today: "2020-01-01",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                         [id: uuid2, fnrLeder: leder2, fnrAnsatt: ansatt1, vnr: vnr2],
                 ],
-                sykmeldinger: [ [key: "1", event: [ fnr: ansatt1, vnr: vnr2, dates: [ "2020-01-01" ]]] ]
+                sykmeldinger: [ [id: "1", fnr: ansatt1, vnr: vnr2, dates: [ "2020-01-01" ]] ]
         ])
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [:]
-        sykmeldingRepository.oversiktSykmeldinger(leder2) == [(vnr2): 1]
+        lookup(leder1) == [:]
+        lookup(leder2) == [(vnr2): 1]
+    }
+
+    def "finner kun ansatt med aktiv sykmelding"() {
+        given:
+        def lookup = prepareDatabaseSingletonBatches([
+                today: "2022-11-07",
+                nærmesteLedere: [
+                        [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
+                        [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt2, vnr: vnr1]
+                ],
+                sykmeldinger: [
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-01" ]],
+                        [id: "2", fnr: ansatt2, vnr: vnr1, dates: [ "2022-11-21" ]]
+                ]
+        ])
+        expect:
+        lookup(leder1) == [(vnr1): 1]
     }
 
     def "to aktive sykmeldinger på en person gir en sykmeldt"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+        def lookup = prepareDatabaseSingletonBatches([
+                today: "2022-11-01",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                 ],
                 sykmeldinger: [
-                        [key: "1", event: [ fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-01" ]]],
-                        [key: "2", event: [ fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-21" ]]]
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-01" ]],
+                        [id: "2", fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-21" ]]
                 ]
         ])
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr1): 2]
+        lookup(leder1) == [(vnr1): 1]
     }
 
     def "aktive sykmeldinger på forskjellige person holdes seperat"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseSingletonBatches([
+        def lookup = prepareDatabaseSingletonBatches([
+                today: "2022-11-01",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                         [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt2, vnr: vnr1],
                 ],
                 sykmeldinger: [
-                        [key: "1", event: [ fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-01" ]]],
-                        [key: "2", event: [ fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-21" ]]],
-                        [key: "3", event: [ fnr: ansatt2, vnr: vnr1, dates: [ "2022-11-01" ]]],
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-01" ]],
+                        [id: "2", fnr: ansatt1, vnr: vnr1, dates: [ "2022-11-21" ]],
+                        [id: "3", fnr: ansatt2, vnr: vnr1, dates: [ "2022-11-01" ]],
                 ]
         ])
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr1): 3]
+        lookup(leder1) == [(vnr1): 2]
     }
 
     def "batch: upsert – tombstone"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseBatched([
+        def lookup = prepareDatabaseBatched([
+                today: "2020-01-01",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                 ],
                 sykmeldinger: [
-                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
-                        [key: "1", event: null],
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]],
+                        [id: "1"],
                 ]
         ])
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [:]
+        lookup(leder1) == [:]
     }
 
     def "batch: upsert – upsert"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseBatched([
+        def lookup = prepareDatabaseBatched([
+                today: "2020-01-01",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                         [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr2],
                 ],
                 sykmeldinger: [
-                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
-                        [key: "1", event: [fnr: ansatt1, vnr: vnr2, dates: ["2020-01-01"]]],
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]],
+                        [id: "1", fnr: ansatt1, vnr: vnr2, dates: ["2020-01-01"]],
                 ]
         ])
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr2): 1]
+        lookup(leder1) == [(vnr2): 1]
     }
 
     def "batch: tombstone – upsert"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseBatched([
+        def lookup = prepareDatabaseBatched([
+                today: "2020-01-01",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                 ],
                 sykmeldinger: [
-                        [key: "1", event: null],
-                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
+                        [id: "1"],
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]],
                 ]
         ])
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr1): 1]
+        lookup(leder1) == [(vnr1): 1]
     }
 
     def "batch: upsert – tombstone – upsert"() {
         given:
-        SykmeldingRepositoryImpl sykmeldingRepository = prepareDatabaseBatched([
+        def lookup = prepareDatabaseBatched([
+                today: "2020-01-01",
                 nærmesteLedere: [
                         [id: uuid1, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr1],
                         [id: uuid2, fnrLeder: leder1, fnrAnsatt: ansatt1, vnr: vnr2],
                 ],
                 sykmeldinger: [
-                        [key: "1", event: [fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]]],
-                        [key: "1", event: null],
-                        [key: "1", event: [fnr: ansatt1, vnr: vnr2, dates: ["2020-01-01"]]],
+                        [id: "1", fnr: ansatt1, vnr: vnr1, dates: ["2020-01-01"]],
+                        [id: "1"],
+                        [id: "1", fnr: ansatt1, vnr: vnr2, dates: ["2020-01-01"]],
                 ]
         ])
         expect:
-        sykmeldingRepository.oversiktSykmeldinger(leder1) == [(vnr2): 1]
+        lookup(leder1) == [(vnr2): 1]
     }
 
     def prepareDatabaseSingletonBatches(setup) {
         prepareDatabase(
                 setup.nærmesteLedere,
                 setup.sykmeldinger.collect {
-                    if (it.event == null) {
-                        [ImmutablePair.of(it.key, null)]
+                    if (it.size() == 1) {
+                        [ImmutablePair.of(it.id, null)]
                     } else {
-                        [ImmutablePair.of(it.key, createSykmelding(it.event.fnr, it.event.vnr, it.event.dates))]
+                        [ImmutablePair.of(it.id, createSykmelding(it.fnr, it.vnr, it.dates))]
                     }
                 },
-                setup.deleteFrom
+                setup.today,
         )
     }
 
@@ -245,18 +288,18 @@ class SykmeldingRepositoryImplTest extends Specification {
                 setup.nærmesteLedere,
                 [
                         setup.sykmeldinger.collect {
-                            if (it.event == null) {
-                                ImmutablePair.of(it.key, null)
+                            if (it.size() == 1) {
+                                ImmutablePair.of(it.id, null)
                             } else {
-                                ImmutablePair.of(it.key, createSykmelding(it.event.fnr, it.event.vnr, it.event.dates))
+                                ImmutablePair.of(it.id, createSykmelding(it.fnr, it.vnr, it.dates))
                             }
                         }
                 ],
-                null
+                setup.today,
         )
     }
 
-    def prepareDatabase(nærmesteLedere, batches, deleteFrom) {
+    def prepareDatabase(nærmesteLedere, batches, today) {
         PGSimpleDataSource ds = new PGSimpleDataSource()
         ds.setUrl("jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres")
 
@@ -268,7 +311,6 @@ class SykmeldingRepositoryImplTest extends Specification {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(ds)
 
         DigisyfoRepository digisyfoRepository = new DigisyfoRepositoryImpl(jdbcTemplate, new LoggingMeterRegistry())
-        SykmeldingRepository sykmeldingRepository = new SykmeldingRepositoryImpl(jdbcTemplate)
 
         nærmesteLedere.each {
             digisyfoRepository.processNærmesteLederEvent(
@@ -285,11 +327,14 @@ class SykmeldingRepositoryImplTest extends Specification {
             digisyfoRepository.processSykmeldingEvent(it)
         }
 
-        if (deleteFrom != null) {
-            digisyfoRepository.deleteOldSykmelding(deleteFrom)
-        }
+        digisyfoRepository.deleteOldSykmelding(LocalDate.parse(today))
 
-        return sykmeldingRepository
+        return { fnr ->
+            digisyfoRepository.virksomheterOgSykmeldte(fnr, LocalDate.parse(today))
+                .collectEntries {
+                    [(it.virksomhetsnummer): it.antallSykmeldte]
+            }
+        }
     }
 }
 
