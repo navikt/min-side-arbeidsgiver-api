@@ -38,7 +38,8 @@ public class AltinnTilgangController {
             Pair.of("5516", "2"),
             Pair.of("5516", "3"),
             Pair.of("5516", "4"),
-            Pair.of("5516", "5")
+            Pair.of("5516", "5"),
+            Pair.of("5902", "1")
     );
 
     private final AltinnTilgangssøknadClient altinnTilgangssøknadClient;
