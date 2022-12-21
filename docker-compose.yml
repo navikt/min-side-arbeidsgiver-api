@@ -4,10 +4,12 @@ services:
   postgres:
     image: "postgres:12.10"
     ports:
-      - "5432:5432"
+      - "2345:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./local-db-init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
   database-data:
