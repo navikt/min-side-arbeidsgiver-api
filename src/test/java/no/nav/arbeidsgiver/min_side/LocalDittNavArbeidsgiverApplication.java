@@ -2,18 +2,16 @@ package no.nav.arbeidsgiver.min_side;
 
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 
-@SpringBootApplication
-@Import(TokenSupportJwtConfig.class)
-@EnableCaching
-@EnableMockOAuth2Server
-@Profile("local")
-public class LocalDittNavArbeidsgiverApplication {
+@Import(LocalDittNavArbeidsgiverApplication.MockOauthConfig.class)
+public class LocalDittNavArbeidsgiverApplication extends DittNavArbeidsgiverApplication {
     public static void main(String[] args) {
         SpringApplication.run(LocalDittNavArbeidsgiverApplication.class, args);
+    }
+
+    @EnableMockOAuth2Server
+    public static class MockOauthConfig {
+
     }
 }
