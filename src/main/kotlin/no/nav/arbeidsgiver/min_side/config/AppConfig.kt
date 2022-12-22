@@ -1,7 +1,6 @@
 package no.nav.arbeidsgiver.min_side.config
 
 import jakarta.servlet.FilterChain
-import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.Logger
@@ -18,7 +17,6 @@ import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.filter.OncePerRequestFilter
-import java.io.IOException
 import java.lang.invoke.MethodHandles
 import java.util.*
 
@@ -71,7 +69,6 @@ class AppConfig {
             "x_callId"
         )
         return object : OncePerRequestFilter() {
-            @Throws(ServletException::class, IOException::class)
             override fun doFilterInternal(
                 request: HttpServletRequest,
                 response: HttpServletResponse,
@@ -97,7 +94,6 @@ class AppConfig {
      */
     @Bean
     fun requestResponseLoggingFilter() = object : OncePerRequestFilter() {
-        @Throws(ServletException::class, IOException::class)
         override fun doFilterInternal(
             request: HttpServletRequest,
             response: HttpServletResponse,
