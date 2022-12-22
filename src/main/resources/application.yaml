@@ -1,6 +1,6 @@
 server:
   port: 8080
-  max-http-header-size: 10000
+  max-http-request-header-size: 10KB
   servlet:
     context-path: /ditt-nav-arbeidsgiver-api
 
@@ -8,7 +8,11 @@ management:
   endpoints.web:
     exposure.include: info, health, metrics, prometheus
     base-path: /internal/actuator
-  metrics.web.server.request.autotime.percentiles: 0.99,0.95,0.90,0.80,0.50
+  metrics.distribution:
+    percentiles-histogram:
+      http.server.requests: true
+    percentiles:
+      http.server.requests: 0.99,0.95,0.90,0.80,0.50
 
 spring:
   main:
