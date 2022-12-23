@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.boot.web.client.RestTemplateCustomizer
 import org.springframework.context.annotation.Bean
@@ -17,12 +18,17 @@ import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.filter.OncePerRequestFilter
-import java.lang.invoke.MethodHandles
 import java.util.*
+
+const val CALL_ID = "callId"
 
 @Configuration
 @EnableScheduling
+@ConfigurationPropertiesScan("no.nav.arbeidsgiver.min_side")
 class AppConfig {
+
+    private val log = logger()
+
     @Bean
     fun restTemplate(builder: RestTemplateBuilder): RestTemplate = builder.build()
 
@@ -114,9 +120,6 @@ class AppConfig {
             return request.requestURI.contains("internal/actuator")
         }
     }
-
-    companion object {
-        val log: Logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())
-        const val CALL_ID = "callId"
-    }
 }
+
+inline fun <reified T : Any> T.logger(): Logger = LoggerFactory.getLogger(this::class.java)

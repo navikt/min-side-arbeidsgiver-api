@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.services.tokenExchange;
 
-import no.nav.arbeidsgiver.min_side.clients.RetryInterceptor;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
@@ -14,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 import java.util.Map;
 
+import static no.nav.arbeidsgiver.min_side.clients.RetryInterceptorKt.retryInterceptor;
 import static no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenXProperties.*;
 
 @Profile({"local", "dev-gcp","prod-gcp"})
@@ -34,7 +34,11 @@ public class TokenExchangeClientImpl implements TokenExchangeClient {
         this.clientAssertionTokenFactory = clientAssertionTokenFactory;
         this.restTemplate = restTemplateBuilder
                 .additionalInterceptors(
-                        new RetryInterceptor(3, 250L, org.apache.http.NoHttpResponseException.class)
+                        retryInterceptor(
+                                3,
+                                250L,
+                                org.apache.http.NoHttpResponseException.class
+                        )
                 )
                 .build();
     }

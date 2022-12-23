@@ -8,11 +8,11 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AltinnTilgangssøknad {
-    String orgnr;
-    String serviceCode;
-    Integer serviceEdition;
-    String status;
-    String createdDateTime;
-    String lastChangedDateTime;
-    String submitUrl;
+    public String orgnr;
+    public String serviceCode;
+    public Integer serviceEdition;
+    public String status;
+    public String createdDateTime;
+    public String lastChangedDateTime;
+    public String submitUrl;
 }
