@@ -16,14 +16,11 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.request
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
-@MockBean(MultiIssuerConfiguration::class)
+@MockBean(MultiIssuerConfiguration::class, ClientAssertionTokenFactory::class)
 @RestClientTest(
     components = [EregService::class, EregCacheConfig::class],
 )
 class EregServiceTest {
-
-    @MockBean
-    lateinit var clientAssertionTokenFactory: ClientAssertionTokenFactory
 
     @Autowired
     lateinit var eregService: EregService

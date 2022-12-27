@@ -71,21 +71,21 @@ class AltinnTilgangssøknadClient(
                 log.warn("Altinn delegation requests: body missing")
                 break
             }
-            if (body.embedded.delegationRequests.isEmpty()) {
+            if (body.embedded!!.delegationRequests!!.isEmpty()) {
                 shouldContinue = false
             } else {
                 continuationtoken = body.continuationtoken
             }
-            body.embedded.delegationRequests
+            body.embedded!!.delegationRequests!!
                 .map { søknadDTO: DelegationRequest ->
                     val søknad = AltinnTilgangssøknad()
                     søknad.orgnr = søknadDTO.OfferedBy
                     søknad.status = søknadDTO.RequestStatus
                     søknad.createdDateTime = søknadDTO.Created
                     søknad.lastChangedDateTime = søknadDTO.LastChanged
-                    søknad.serviceCode = søknadDTO.RequestResources[0].ServiceCode
-                    søknad.serviceEdition = søknadDTO.RequestResources[0].ServiceEditionCode
-                    søknad.submitUrl = søknadDTO.links.sendRequest.href
+                    søknad.serviceCode = søknadDTO.RequestResources!![0].ServiceCode
+                    søknad.serviceEdition = søknadDTO.RequestResources!![0].ServiceEditionCode
+                    søknad.submitUrl = søknadDTO.links!!.sendRequest!!.href
                     søknad
                 }.toCollection(resultat)
         }
@@ -109,7 +109,7 @@ class AltinnTilgangssøknadClient(
         val body = response.body
         val svar = AltinnTilgangssøknad()
         svar.status = body!!.RequestStatus
-        svar.submitUrl = body.links.sendRequest.href
+        svar.submitUrl = body.links!!.sendRequest!!.href
         return svar
     }
 }

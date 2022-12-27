@@ -1,43 +1,30 @@
-package no.nav.arbeidsgiver.min_side.clients.altinn.dto;
+package no.nav.arbeidsgiver.min_side.clients.altinn.dto
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DelegationRequest {
-    public String RequestStatus;
-    public String OfferedBy;
-    public String CoveredBy;
-    public String RedirectUrl;
-    public String Created;
-    public String LastChanged;
-    public boolean KeepSessionAlive = true;
-
-    public List<RequestResource> RequestResources;
-
-    @JsonProperty("_links")
-    public Links links;
+data class DelegationRequest(
+    @field:JsonProperty("RequestStatus") var RequestStatus: String? = null,
+    @field:JsonProperty("OfferedBy") var OfferedBy: String? = null,
+    @field:JsonProperty("CoveredBy") var CoveredBy: String? = null,
+    @field:JsonProperty("RedirectUrl") var RedirectUrl: String? = null,
+    @field:JsonProperty("Created") var Created: String? = null,
+    @field:JsonProperty("LastChanged") var LastChanged: String? = null,
+    @field:JsonProperty("KeepSessionAlive") val KeepSessionAlive: Boolean = true,
+    @field:JsonProperty("RequestResources") var RequestResources: List<RequestResource>? = null,
+    @field:JsonProperty("_links") var links: Links? = null
+) {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class RequestResource {
-        public String ServiceCode;
-        public Integer ServiceEditionCode;
-    }
-
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Links {
-        public Link sendRequest;
-    }
+    data class RequestResource(
+        @field:JsonProperty("ServiceCode") var ServiceCode: String? = null,
+        @field:JsonProperty("ServiceEditionCode") var ServiceEditionCode: Int? = null
+    )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Link {
-        public String href;
-    }
+    data class Links(var sendRequest: Link? = null)
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class Link(var href: String? = null)
 }

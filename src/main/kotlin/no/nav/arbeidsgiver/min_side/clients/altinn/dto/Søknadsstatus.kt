@@ -1,19 +1,16 @@
-package no.nav.arbeidsgiver.min_side.clients.altinn.dto;
+package no.nav.arbeidsgiver.min_side.clients.altinn.dto
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Søknadsstatus {
-    @JsonProperty("_embedded")
-    public Embedded embedded;
-
-    public String continuationtoken;
-
+data class Søknadsstatus(
+    @field:JsonProperty("_embedded")
+    var embedded: Embedded? = null,
+    var continuationtoken: String? = null,
+) {
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Embedded {
-        public List<DelegationRequest> delegationRequests;
-    }
+    data class Embedded(
+        var delegationRequests: List<DelegationRequest>? = null
+    )
 }
