@@ -77,8 +77,8 @@ class AltinnTilgangControllerTest {
         val skjema = AltinnTilgangssøknadsskjema()
         skjema.orgnr = "314"
         skjema.redirectUrl = "https://yolo.it"
-        skjema.serviceCode = AltinnTilgangController.våreTjenester.first().left
-        skjema.serviceEdition = AltinnTilgangController.våreTjenester.first().right.toInt()
+        skjema.serviceCode = AltinnTilgangController.våreTjenester.first().first
+        skjema.serviceEdition = AltinnTilgangController.våreTjenester.first().second
 
         val søknad = AltinnTilgangssøknad()
         søknad.orgnr = "314"

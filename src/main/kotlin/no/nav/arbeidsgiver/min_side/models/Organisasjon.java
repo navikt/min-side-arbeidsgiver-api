@@ -16,15 +16,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Organisasjon {
     @JsonProperty("Name")
-    private String name;
+    String name;
     @JsonProperty("Type")
-    private String type;
+    String type;
     @JsonProperty("ParentOrganizationNumber")
-    private String parentOrganizationNumber;
+    String parentOrganizationNumber;
     @JsonProperty("OrganizationNumber")
-    private String organizationNumber;
+    public String organizationNumber;
     @JsonProperty("OrganizationForm")
-    private String organizationForm;
+    String organizationForm;
     @JsonProperty("Status")
-    private String status;
+    String status;
 }
