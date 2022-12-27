@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*
 )
 @RestController
 @RequestMapping("/api/altinn-tilgangssoknad")
-class AltinnTilgangController constructor(
+class AltinnTilgangController(
     private val altinnTilgangssøknadClient: AltinnTilgangssøknadClient,
     private val altinnService: AltinnService,
     private val authenticatedUserHolder: AuthenticatedUserHolder
