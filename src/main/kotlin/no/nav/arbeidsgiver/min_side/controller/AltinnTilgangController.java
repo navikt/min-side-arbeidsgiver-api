@@ -22,7 +22,7 @@ import static no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.*;
 @RestController
 @RequestMapping("/api/altinn-tilgangssoknad")
 public class AltinnTilgangController {
-    private static final Set<Pair<String, String>> våreTjenester = Set.of(
+    static final Set<Pair<String, String>> våreTjenester = Set.of(
             Pair.of("3403", "2"),
             Pair.of("4936",  "1"),
             Pair.of("5078",  "1"),
@@ -83,6 +83,7 @@ public class AltinnTilgangController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        return ResponseEntity.ok(altinnTilgangssøknadClient.sendSøknad(fødselsnummer, søknadsskjema));
+        AltinnTilgangssøknad body = altinnTilgangssøknadClient.sendSøknad(fødselsnummer, søknadsskjema);
+        return ResponseEntity.ok(body);
     }
 }
