@@ -1,37 +1,27 @@
-package no.nav.arbeidsgiver.min_side.controller;
+package no.nav.arbeidsgiver.min_side.controller
 
-
-import no.nav.security.token.support.core.context.TokenValidationContextHolder;
-import no.nav.security.token.support.core.jwt.JwtToken;
-import org.springframework.stereotype.Component;
-
-import java.util.NoSuchElementException;
+import no.nav.security.token.support.core.context.TokenValidationContextHolder
+import no.nav.security.token.support.core.jwt.JwtToken
+import org.springframework.stereotype.Component
 
 @Component
-public class AuthenticatedUserHolder {
-    public static final String TOKENX = "tokenx";
-    public static final String REQUIRED_LOGIN_LEVEL = "acr=Level4";
+class AuthenticatedUserHolder(private val requestContextHolder: TokenValidationContextHolder) {
+    val fnr: String
+        get() = jwtToken.jwtTokenClaims.getStringClaim("pid")
+    val token: String
+        get() = jwtToken.tokenAsString
 
-    private final TokenValidationContextHolder requestContextHolder;
+    private val jwtToken: JwtToken
+        get() = requestContextHolder.tokenValidationContext
+            .firstValidToken
+            .orElseThrow {
+                NoSuchElementException(
+                    "no valid token. how did you get so far without a valid token?"
+                )
+            }
 
-    public AuthenticatedUserHolder(TokenValidationContextHolder requestContextHolder) {
-        this.requestContextHolder = requestContextHolder;
-    }
-
-    public String getFnr() {
-        return getJwtToken().getJwtTokenClaims().getStringClaim("pid");
-    }
-
-    public String getToken() {
-        JwtToken jwtToken = getJwtToken();
-        return jwtToken != null ? jwtToken.getTokenAsString() : null;
-    }
-
-    private JwtToken getJwtToken() {
-        return requestContextHolder.getTokenValidationContext()
-                .getFirstValidToken()
-                .orElseThrow(() -> new NoSuchElementException(
-                        "no valid token. how did you get so far without a valid token?"
-                ));
+    companion object {
+        const val TOKENX = "tokenx"
+        const val REQUIRED_LOGIN_LEVEL = "acr=Level4"
     }
 }
