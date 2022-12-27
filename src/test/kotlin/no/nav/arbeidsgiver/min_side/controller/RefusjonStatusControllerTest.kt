@@ -4,7 +4,7 @@ import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,7 +39,7 @@ class RefusjonStatusControllerTest {
         val orgnr2 = "315"
 
         Mockito.`when`(authenticatedUserHolder.fnr).thenReturn("42")
-        Mockito.`when`(altinnService.hentOrganisasjonerBasertPaRettigheter(any(), any(), any())).thenReturn(listOf(
+        Mockito.`when`(altinnService.hentOrganisasjonerBasertPaRettigheter(anyString(), anyString(), anyString())).thenReturn(listOf(
             organisasjon(orgnr1),
             organisasjon(orgnr2),
         ))
@@ -80,8 +80,7 @@ class RefusjonStatusControllerTest {
     }
 }
 
-private fun organisasjon(orgnr: String) =
-    Organisasjon.builder().organizationNumber(orgnr).build()
+private fun organisasjon(orgnr: String) = Organisasjon(organizationNumber= orgnr)
 
 private fun statusoversikt(orgnr: String, status: Map<String, Int>) =
     RefusjonStatusRepository.Statusoversikt(orgnr, status)
