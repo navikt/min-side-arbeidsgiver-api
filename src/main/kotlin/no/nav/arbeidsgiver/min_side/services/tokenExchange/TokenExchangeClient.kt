@@ -1,5 +1,5 @@
-package no.nav.arbeidsgiver.min_side.services.tokenExchange;
+package no.nav.arbeidsgiver.min_side.services.tokenExchange
 
-public interface TokenExchangeClient {
-    TokenXToken exchange(String subjectToken, String audience);
+interface TokenExchangeClient {
+    fun exchange(subjectToken: String, audience: String): TokenXToken
 }
