@@ -1,39 +1,18 @@
-package no.nav.arbeidsgiver.min_side.services.unleash;
+package no.nav.arbeidsgiver.min_side.services.unleash
 
-import no.finn.unleash.strategy.Strategy;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
-import java.util.Map;
+import no.finn.unleash.strategy.Strategy
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 
 @Component
-public class ByClusterStrategy implements Strategy {
-    private final String cluster;
+class ByClusterStrategy(
+    @param:Value("\${nais.cluster.name}") private val cluster: String
+) : Strategy {
+    override fun getName() = "byCluster"
 
-    public ByClusterStrategy(
-            @Value("${nais.cluster.name}") String cluster
-    ) {
-        this.cluster = cluster;
-    }
-
-    @Override
-    public String getName() {
-        return "byCluster";
-    }
-
-    @Override
-    public boolean isEnabled(Map<String, String> parameters) {
-        if (parameters == null) {
-            return false;
+    override fun isEnabled(parameters: Map<String, String>) =
+        when (val clusterParameter = parameters["cluster"]) {
+            null -> false
+            else -> clusterParameter.split(",").contains(cluster)
         }
-
-        String clusterParameter = parameters.get("cluster");
-        if (clusterParameter == null) {
-            return false;
-        }
-
-        String[] alleClustere = clusterParameter.split(",");
-        return Arrays.asList(alleClustere).contains(cluster);
-    }
 }
