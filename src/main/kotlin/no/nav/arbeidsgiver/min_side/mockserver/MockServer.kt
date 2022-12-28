@@ -1,61 +1,62 @@
-package no.nav.arbeidsgiver.min_side.mockserver;
+package no.nav.arbeidsgiver.min_side.mockserver
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.common.ConsoleNotifier
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer
+import no.nav.arbeidsgiver.min_side.config.logger
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Profile
+import org.springframework.core.io.Resource
+import org.springframework.stereotype.Component
 
-import java.util.Map;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-
-@Profile({"local", "labs"})
-@Slf4j
+@Profile("local", "labs")
 @Component
-public class MockServer {
+class MockServer(
+    @Value("\${mock.port}") port: Int,
+    @Value("classpath:mock/organisasjoner.json") organisasjonerJson: Resource,
+    @Value("classpath:mock/rettigheterTilSkjema.json") rettigheterTilSkjemaJson: Resource
+) {
+    private val log = logger()
 
-    public static final String SERVICE_EDITION = "1";
-    public static final String SERVICE_CODE = "4936";
-    public static final String ALTINN_PROXY_PATH = "/altinn-rettigheter-proxy/v2/organisasjoner/*";
-
-    @SneakyThrows
-    @Autowired
-    MockServer(
-            @Value("${mock.port}") int port,
-            @Value("classpath:mock/organisasjoner.json") Resource organisasjonerJson,
-            @Value("classpath:mock/rettigheterTilSkjema.json") Resource rettigheterTilSkjemaJson
-    ) {
-        log.info("starter mockserveren");
-        WireMockServer server = new WireMockServer(
-                new WireMockConfiguration()
-                        .port(port)
-                        .extensions(new ResponseTemplateTransformer(true))
-                        .notifier(new ConsoleNotifier(true))
-        );
-        server.stubFor(any(urlPathMatching(ALTINN_PROXY_PATH + ".*"))
-                .willReturn(aResponse()
+    init {
+        log.info("starter mockserveren")
+        val server = WireMockServer(
+            WireMockConfiguration()
+                .port(port)
+                .extensions(ResponseTemplateTransformer(true))
+                .notifier(ConsoleNotifier(true))
+        )
+        server.stubFor(
+            WireMock.any(WireMock.urlPathMatching("$ALTINN_PROXY_PATH.*"))
+                .willReturn(
+                    WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(organisasjonerJson.getInputStream().readAllBytes())
+                        .withBody(organisasjonerJson.inputStream.readAllBytes())
                 )
-        );
-        server.stubFor(get(urlPathMatching(ALTINN_PROXY_PATH + ".*"))
-                .withQueryParams(Map.of(
-                        "serviceCode", equalTo(SERVICE_CODE),
-                        "serviceEdition", equalTo(SERVICE_EDITION)
-                ))
-                .willReturn(aResponse()
+        )
+        server.stubFor(
+            WireMock.get(WireMock.urlPathMatching("$ALTINN_PROXY_PATH.*"))
+                .withQueryParams(
+                    mapOf(
+                        "serviceCode" to WireMock.equalTo(SERVICE_CODE),
+                        "serviceEdition" to WireMock.equalTo(SERVICE_EDITION)
+                    )
+                )
+                .willReturn(
+                    WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(rettigheterTilSkjemaJson.getInputStream().readAllBytes())
+                        .withBody(rettigheterTilSkjemaJson.inputStream.readAllBytes())
                 )
-        );
+        )
+        server.start()
+    }
 
-        server.start();
+    companion object {
+        const val SERVICE_EDITION = "1"
+        const val SERVICE_CODE = "4936"
+        const val ALTINN_PROXY_PATH = "/altinn-rettigheter-proxy/v2/organisasjoner/*"
     }
 }
