@@ -6,7 +6,6 @@ import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.*
 
 
 private const val TJENESTEKODE = "4936"
@@ -28,8 +27,7 @@ class RefusjonStatusController(
         /* Man kan muligens filtrere organisasjoner ytligere med ("BEDR", annet?). */
         val orgnr = altinnService
             .hentOrganisasjonerBasertPaRettigheter(authenticatedUserHolder.fnr, TJENESTEKODE, TJENESTEVERSJON)
-            .map(Organisasjon::organizationNumber)
-            .filter(Objects::nonNull)
+            .mapNotNull(Organisasjon::organizationNumber)
 
         return refusjonStatusRepository
             .statusoversikt(orgnr)
