@@ -1,112 +1,95 @@
-package no.nav.arbeidsgiver.min_side.services.ereg;
+package no.nav.arbeidsgiver.min_side.services.ereg
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.extern.slf4j.Slf4j;
-import no.nav.arbeidsgiver.min_side.models.Organisasjon;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.databind.JsonNode
+import no.nav.arbeidsgiver.min_side.models.Organisasjon
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.http.HttpStatus
+import org.springframework.stereotype.Component
+import org.springframework.web.client.RestClientResponseException
+import java.util.*
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static no.nav.arbeidsgiver.min_side.services.ereg.EregCacheConfig.EREG_CACHE;
-
-@Slf4j
 @Component
-public class EregService {
-    private final RestTemplate restTemplate;
+class EregService(
+    @Value("\${ereg-services.baseUrl}") eregBaseUrl: String?,
+    restTemplateBuilder: RestTemplateBuilder
+) {
+    private val restTemplate = restTemplateBuilder.rootUri(eregBaseUrl).build()
 
-    public EregService(
-            @Value("${ereg-services.baseUrl}") String eregBaseUrl,
-            RestTemplateBuilder restTemplateBuilder
-    ) {
-        restTemplate = restTemplateBuilder
-                .rootUri(eregBaseUrl)
-                .build();
-    }
-
-    @Cacheable(EREG_CACHE)
-    public Organisasjon hentUnderenhet(String virksomhetsnummer) {
-        try {
-            JsonNode json = restTemplate
-                    .getForEntity("/v1/organisasjon/{virksomhetsnummer}?inkluderHierarki=true", JsonNode.class, Map.of("virksomhetsnummer", virksomhetsnummer))
-                    .getBody();
-            return underenhet(json);
-        } catch (RestClientResponseException e) {
-            if (e.getRawStatusCode() == 404) {
-                return null;
+    @Cacheable(EregCacheConfig.EREG_CACHE)
+    fun hentUnderenhet(virksomhetsnummer: String?): Organisasjon? {
+        return try {
+            val json = restTemplate.getForEntity(
+                "/v1/organisasjon/{virksomhetsnummer}?inkluderHierarki=true",
+                JsonNode::class.java,
+                mapOf("virksomhetsnummer" to virksomhetsnummer)
+            ).body
+            underenhet(json)
+        } catch (e: RestClientResponseException) {
+            if (e.statusCode == HttpStatus.NOT_FOUND) {
+                return null
             }
-            throw e;
+            throw e
         }
     }
 
-    @Cacheable(EREG_CACHE)
-    public Organisasjon hentOverenhet(String orgnummer) {
-        try {
-            JsonNode json = restTemplate
-                    .getForEntity("/v1/organisasjon/{orgnummer}", JsonNode.class, Map.of("orgnummer", orgnummer))
-                    .getBody();
-            return overenhet(json);
-        } catch (RestClientResponseException e) {
-            if (e.getRawStatusCode() == 404) {
-                return null;
+    @Cacheable(EregCacheConfig.EREG_CACHE)
+    fun hentOverenhet(orgnummer: String?): Organisasjon? {
+        return try {
+            val json = restTemplate.getForEntity(
+                "/v1/organisasjon/{orgnummer}",
+                JsonNode::class.java,
+                mapOf("orgnummer" to orgnummer)
+            ).body
+            overenhet(json)
+        } catch (e: RestClientResponseException) {
+            if (e.statusCode == HttpStatus.NOT_FOUND) {
+                return null
             }
-            throw e;
+            throw e
         }
-
     }
 
-    Organisasjon underenhet(JsonNode json) {
-        if (json == null || json.isEmpty()) {
-            return null;
+    fun underenhet(json: JsonNode?): Organisasjon? {
+        if (json == null || json.isEmpty) {
+            return null
         }
-
-        String juridiskOrgnummer = json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText();
-        String orgleddOrgnummer = json.at("/bestaarAvOrganisasjonsledd/0/organisasjonsledd/organisasjonsnummer").asText();
-        String orgnummerTilOverenhet = orgleddOrgnummer.isBlank() ? juridiskOrgnummer : orgleddOrgnummer;
-        return new Organisasjon(
-                samletNavn(json),
-                "Business",
-                orgnummerTilOverenhet,
-                json.at("/organisasjonsnummer").asText(),
-                json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
-                "Active"
-        );
-    }
-
-    Organisasjon overenhet(JsonNode json) {
-        if (json == null) {
-            return null;
-        }
-
-        return new Organisasjon(
-                samletNavn(json),
-                "Enterprise",
-                null,
-                json.at("/organisasjonsnummer").asText(),
-                json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
-                "Active"
-        );
-    }
-
-    @NotNull
-    private static String samletNavn(JsonNode json) {
-        return Stream.of(
-                json.at("/navn/navnelinje1").asText(null),
-                json.at("/navn/navnelinje2").asText(null),
-                json.at("/navn/navnelinje3").asText(null),
-                json.at("/navn/navnelinje4").asText(null),
-                json.at("/navn/navnelinje5").asText(null)
+        val juridiskOrgnummer = json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText()
+        val orgleddOrgnummer = json.at("/bestaarAvOrganisasjonsledd/0/organisasjonsledd/organisasjonsnummer").asText()
+        val orgnummerTilOverenhet = orgleddOrgnummer.ifBlank { juridiskOrgnummer }
+        return Organisasjon(
+            samletNavn(json),
+            "Business",
+            orgnummerTilOverenhet,
+            json.at("/organisasjonsnummer").asText(),
+            json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
+            "Active"
         )
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining(" "));
     }
 
+    fun overenhet(json: JsonNode?): Organisasjon? {
+        return if (json == null) {
+            null
+        } else Organisasjon(
+            samletNavn(json),
+            "Enterprise",
+            null,
+            json.at("/organisasjonsnummer").asText(),
+            json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
+            "Active"
+        )
+    }
+
+    companion object {
+        private fun samletNavn(json: JsonNode) = listOf(
+            json.at("/navn/navnelinje1").asText(null),
+            json.at("/navn/navnelinje2").asText(null),
+            json.at("/navn/navnelinje3").asText(null),
+            json.at("/navn/navnelinje4").asText(null),
+            json.at("/navn/navnelinje5").asText(null)
+        )
+            .filter(Objects::nonNull)
+            .joinToString(" ")
+    }
 }

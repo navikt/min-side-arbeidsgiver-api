@@ -35,7 +35,7 @@ class EregServiceTest {
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(underenhetRespons, APPLICATION_JSON))
 
-        val result = eregService.hentUnderenhet(virksomhetsnummer)
+        val result = eregService.hentUnderenhet(virksomhetsnummer)!!
 
         assertEquals("910825526", result.organizationNumber)
         assertEquals("GAMLE FREDRIKSTAD OG RAMNES REGNSKA P", result.name)
@@ -52,7 +52,7 @@ class EregServiceTest {
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(underenhetMedOrgleddRespons, APPLICATION_JSON))
 
-        val result = eregService.hentUnderenhet(virksomhetsnummer)
+        val result = eregService.hentUnderenhet(virksomhetsnummer)!!
 
         assertEquals("912998827", result.organizationNumber)
         assertEquals("ARBEIDS- OG VELFERDSDIREKTORATET AVD FYRSTIKKALLÉEN", result.name)
@@ -81,7 +81,7 @@ class EregServiceTest {
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(overenhetRespons, APPLICATION_JSON))
 
-        val result = eregService.hentOverenhet(orgnr)
+        val result = eregService.hentOverenhet(orgnr)!!
 
         assertEquals("810825472", result.organizationNumber)
         assertEquals("MALMEFJORD OG RIDABU REGNSKAP", result.name)
@@ -98,7 +98,7 @@ class EregServiceTest {
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(orgleddRespons, APPLICATION_JSON))
 
-        val result = eregService.hentOverenhet(orgnr)
+        val result = eregService.hentOverenhet(orgnr)!!
 
         assertEquals("889640782", result.organizationNumber)
         assertEquals("ARBEIDS- OG VELFERDSETATEN", result.name)
@@ -121,7 +121,7 @@ class EregServiceTest {
     }
 }
 
-private val underenhetRespons = """
+private const val underenhetRespons = """
 {
   "organisasjonsnummer": "910825526",
   "type": "Virksomhet",
@@ -234,7 +234,7 @@ private val underenhetRespons = """
 }
 """
 
-private val overenhetRespons = """
+private const val overenhetRespons = """
 {
   "organisasjonsnummer": "810825472",
   "type": "JuridiskEnhet",
@@ -322,7 +322,7 @@ private val overenhetRespons = """
 }
 """
 
-private val underenhetMedOrgleddRespons = """
+private const val underenhetMedOrgleddRespons = """
 {
   "organisasjonsnummer": "912998827",
   "type": "Virksomhet",
@@ -395,7 +395,7 @@ private val underenhetMedOrgleddRespons = """
 }
 """
 
-private val orgleddRespons = """
+private const val orgleddRespons = """
 {
   "organisasjonsnummer": "889640782",
   "type": "Organisasjonsledd",
@@ -442,10 +442,10 @@ private val orgleddRespons = """
 }
 """
 
-private val underenhetIkkeFunnetRespons = """
+private const val underenhetIkkeFunnetRespons = """
 {"melding": "Ingen organisasjon med organisasjonsnummer 910825674 ble funnet"}
 """
 
-private val overenhetIkkeFunnetRespons = """
+private const val overenhetIkkeFunnetRespons = """
 {"timestamp":"2022-06-13T10:27:47.589+00:00","status":404,"error":"Not Found","path":"/v1/organisasjon/"}
 """

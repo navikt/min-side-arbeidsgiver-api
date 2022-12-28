@@ -1,23 +1,22 @@
-package no.nav.arbeidsgiver.min_side.services.ereg;
+package no.nav.arbeidsgiver.min_side.services.ereg
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.cache.caffeine.CaffeineCache;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.github.benmanes.caffeine.cache.Caffeine
+import org.springframework.cache.caffeine.CaffeineCache
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
 @Configuration
-public class EregCacheConfig {
-
-    final static String EREG_CACHE = "ereg_cache";
-
+class EregCacheConfig {
     @Bean
-    public CaffeineCache eregCache(){
-        return new CaffeineCache(
-                EREG_CACHE,
-                Caffeine.newBuilder()
-                        .maximumSize(600_000)
-                        .recordStats()
-                        .build()
-        );
+    fun eregCache() = CaffeineCache(
+        EREG_CACHE,
+        Caffeine.newBuilder()
+            .maximumSize(600000)
+            .recordStats()
+            .build()
+    )
+
+    companion object {
+        const val EREG_CACHE = "ereg_cache"
     }
 }
