@@ -66,8 +66,7 @@ class DigisyfoRepositoryImpl(
     }
 
     override fun processSykmeldingEvent(records: List<Pair<String?, SykmeldingHendelse?>>) {
-        val deduplicated = records.stream()
-            .collect(latestBy(Pair<String?, SykmeldingHendelse?>::first))
+        val deduplicated = records.stream().collect(latestBy(Pair<String?, SykmeldingHendelse?>::first))
 
         val tombstones = deduplicated
             .stream()
@@ -80,21 +79,18 @@ class DigisyfoRepositoryImpl(
             .collect(Collectors.toList())
         jdbcTemplate.batchUpdate("delete from sykmelding where id = ?", tombstones)
         tombstoneCounter.increment(tombstones.size.toDouble())
-        val upserts = deduplicated.stream()
+        val upserts = deduplicated
             .filter { (_, value): Pair<String?, SykmeldingHendelse?> -> value != null }
             .map { (key, value): Pair<String?, SykmeldingHendelse?> ->
                 arrayOf<Any?>(
                     key,
-                    value!!.event.arbeidsgiver.virksomhetsnummer,
-                    value.kafkaMetadata.fnrAnsatt,
-                    value.sykmelding.sykmeldingsperioder
-                        .stream()
+                    value!!.event!!.arbeidsgiver!!.virksomhetsnummer,
+                    value.kafkaMetadata!!.fnrAnsatt,
+                    value.sykmelding!!.sykmeldingsperioder!!
                         .map { periode: SykmeldingsperiodeAGDTO -> periode.tom }
-                        .max { obj: LocalDate, other: LocalDate? -> obj.compareTo(other) }
-                        .orElseThrow()
+                        .maxOfOrNull { it!! }
                 )
             }
-            .collect(Collectors.toList())
         jdbcTemplate.batchUpdate(
             """
             insert into sykmelding

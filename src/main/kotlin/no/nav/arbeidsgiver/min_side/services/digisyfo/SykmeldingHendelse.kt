@@ -1,86 +1,53 @@
-package no.nav.arbeidsgiver.min_side.services.digisyfo;
+package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
+import java.time.LocalDate
+import java.util.stream.Collectors
 
 /**
- * Se <a href="https://github.com/navikt/sykmeldinger-arbeidsgiver/blob/main/src/main/kotlin/no/nav/syfo/sykmelding/kafka/model/SykmeldingArbeidsgiverKafkaMessage.kt">...</a>
+ * Se [...](https://github.com/navikt/sykmeldinger-arbeidsgiver/blob/main/src/main/kotlin/no/nav/syfo/sykmelding/kafka/model/SykmeldingArbeidsgiverKafkaMessage.kt)
  */
-
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class SykmeldingHendelse {
-    public ArbeidsgiverSykmelding sykmelding;
-    public KafkaMetadataDTO kafkaMetadata;
-    public SykmeldingStatusKafkaEventDTO event;
+data class SykmeldingHendelse(
+    var sykmelding: ArbeidsgiverSykmelding? = null,
+    var kafkaMetadata: KafkaMetadataDTO? = null,
+    var event: SykmeldingStatusKafkaEventDTO? = null
+) {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    static class ArbeidsgiverSykmelding {
-        public List<SykmeldingsperiodeAGDTO> sykmeldingsperioder;
-    }
+    data class ArbeidsgiverSykmelding(var sykmeldingsperioder: List<SykmeldingsperiodeAGDTO>? = null)
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    static class SykmeldingsperiodeAGDTO {
-        public LocalDate tom;
-    }
+    data class SykmeldingsperiodeAGDTO(var tom: LocalDate? = null)
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    static class KafkaMetadataDTO {
-        @JsonProperty("fnr")
-        public String fnrAnsatt;
-    }
+    data class KafkaMetadataDTO(@field:JsonProperty("fnr") var fnrAnsatt: String? = null)
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    static class SykmeldingStatusKafkaEventDTO {
-        public ArbeidsgiverStatusDTO arbeidsgiver;
-    }
+    data class SykmeldingStatusKafkaEventDTO(var arbeidsgiver: ArbeidsgiverStatusDTO? = null)
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    static class ArbeidsgiverStatusDTO {
-        @JsonProperty("orgnummer")
-        public String virksomhetsnummer;
-    }
+    data class ArbeidsgiverStatusDTO(@field:JsonProperty("orgnummer") var virksomhetsnummer: String? = null)
 
-    static SykmeldingHendelse create(
-            String fnrAnsatt,
-            String virksomhetsnummer,
-            List<String> toms
-    ) {
-        return new SykmeldingHendelse(
-                new ArbeidsgiverSykmelding(
-                        toms.stream()
-                                .map(LocalDate::parse)
-                                .map(SykmeldingsperiodeAGDTO::new)
-                                .collect(Collectors.toList())
+    companion object {
+        fun create(
+            fnrAnsatt: String?,
+            virksomhetsnummer: String?,
+            toms: List<String?>
+        ): SykmeldingHendelse {
+            return SykmeldingHendelse(
+                ArbeidsgiverSykmelding(
+                    toms.stream()
+                        .map { text: String? -> LocalDate.parse(text) }
+                        .map { tom: LocalDate? -> SykmeldingsperiodeAGDTO(tom) }
+                        .collect(Collectors.toList())
                 ),
-                new KafkaMetadataDTO(fnrAnsatt),
-                new SykmeldingStatusKafkaEventDTO(
-                        new ArbeidsgiverStatusDTO(virksomhetsnummer)
+                KafkaMetadataDTO(fnrAnsatt),
+                SykmeldingStatusKafkaEventDTO(
+                    ArbeidsgiverStatusDTO(virksomhetsnummer)
                 )
-        );
+            )
+        }
     }
 }

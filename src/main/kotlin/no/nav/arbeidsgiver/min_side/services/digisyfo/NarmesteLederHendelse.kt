@@ -1,31 +1,15 @@
-package no.nav.arbeidsgiver.min_side.services.digisyfo;
+package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
+import java.util.*
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NarmesteLederHendelse {
-    public final UUID narmesteLederId;
-    public final String narmesteLederFnr;
-    public final String aktivTom;
-    public final String virksomhetsnummer;
-    public final String ansattFnr;
-
-    @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-    public NarmesteLederHendelse(
-            @JsonProperty("narmesteLederId") UUID narmesteLederId,
-            @JsonProperty("narmesteLederFnr") String narmesteLederFnr,
-            @JsonProperty("aktivTom") String aktivTom,
-            @JsonProperty("orgnummer") String virksomhetsnummer,
-            @JsonProperty("fnr") String ansattFnr
-    ) {
-        this.narmesteLederId = narmesteLederId;
-        this.narmesteLederFnr = narmesteLederFnr;
-        this.aktivTom = aktivTom;
-        this.virksomhetsnummer = virksomhetsnummer;
-        this.ansattFnr = ansattFnr;
-    }
-}
+class NarmesteLederHendelse @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
+    @param:JsonProperty("narmesteLederId") val narmesteLederId: UUID,
+    @param:JsonProperty("narmesteLederFnr") val narmesteLederFnr: String,
+    @param:JsonProperty("aktivTom") val aktivTom: String?,
+    @param:JsonProperty("orgnummer") val virksomhetsnummer: String,
+    @param:JsonProperty("fnr") val ansattFnr: String
+)
