@@ -1,18 +1,16 @@
-package no.nav.arbeidsgiver.min_side.models;
+package no.nav.arbeidsgiver.min_side.models
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 
-@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AltinnTilgangssøknad {
-    public String orgnr;
-    public String serviceCode;
-    public Integer serviceEdition;
-    public String status;
-    public String createdDateTime;
-    public String lastChangedDateTime;
-    public String submitUrl;
-}
+data class AltinnTilgangssøknad(
+    var orgnr: String? = null,
+    var serviceCode: String? = null,
+    var serviceEdition: Int? = null,
+    var status: String? = null,
+    var createdDateTime: String? = null,
+    var lastChangedDateTime: String? = null,
+    var submitUrl: String? = null
+)
