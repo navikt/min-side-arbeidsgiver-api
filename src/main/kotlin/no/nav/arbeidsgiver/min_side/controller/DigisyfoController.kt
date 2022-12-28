@@ -17,8 +17,8 @@ class DigisyfoController(
 ) {
 
     data class VirksomhetOgAntallSykmeldte(
-        val organisasjon: Organisasjon? = null,
-        val antallSykmeldte: Int = 0,
+        val organisasjon: Organisasjon,
+        val antallSykmeldte: Int,
     )
 
     @GetMapping("/api/narmesteleder/virksomheter-v3")
