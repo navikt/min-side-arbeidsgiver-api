@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -8,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Profile({"dev-gcp", "prod-gcp"})
-@Slf4j
 @Repository
 public class NærmestelederRepositoryImpl implements NærmestelederRepository {
     private final JdbcTemplate jdbcTemplate;

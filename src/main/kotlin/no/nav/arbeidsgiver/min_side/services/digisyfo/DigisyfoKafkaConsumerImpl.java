@@ -2,7 +2,6 @@ package no.nav.arbeidsgiver.min_side.services.digisyfo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Component
 @Profile({"dev-gcp", "prod-gcp"})
 public class DigisyfoKafkaConsumerImpl {

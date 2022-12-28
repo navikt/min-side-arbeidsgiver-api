@@ -2,7 +2,6 @@ package no.nav.arbeidsgiver.min_side.services.digisyfo;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -25,7 +24,6 @@ import java.util.stream.Stream;
 
 @Profile({"dev-gcp", "prod-gcp"})
 @Repository
-@Slf4j
 public class DigisyfoRepositoryImpl implements DigisyfoRepository {
     private final JdbcTemplate jdbcTemplate;
     private final Counter tombstoneCounter;
