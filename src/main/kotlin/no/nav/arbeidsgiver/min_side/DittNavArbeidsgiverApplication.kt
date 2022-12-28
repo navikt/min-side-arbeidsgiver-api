@@ -1,15 +1,18 @@
-package no.nav.arbeidsgiver.min_side;
+package no.nav.arbeidsgiver.min_side
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.SpringApplication
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.cache.annotation.EnableCaching
+import org.springframework.context.annotation.Import
 
 @SpringBootApplication
-@Import(TokenSupportJwtConfig.class)
+@Import(TokenSupportJwtConfig::class)
 @EnableCaching
-public class DittNavArbeidsgiverApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(DittNavArbeidsgiverApplication.class, args);
+class DittNavArbeidsgiverApplication {
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            SpringApplication.run(DittNavArbeidsgiverApplication::class.java, *args)
+        }
     }
 }
