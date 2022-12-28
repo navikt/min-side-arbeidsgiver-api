@@ -1,24 +1,16 @@
-package no.nav.arbeidsgiver.min_side.services.digisyfo;
+package no.nav.arbeidsgiver.min_side.services.digisyfo
 
+import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoRepository.Virksomhetsinfo
+import org.springframework.context.annotation.Profile
+import org.springframework.stereotype.Repository
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
-
-@Profile({"local", "labs"})
+@Profile("local", "labs")
 @Repository
-public class DigisyfoRepositoryStub implements DigisyfoRepository {
-    @Override
-    public List<Virksomhetsinfo> virksomheterOgSykmeldte(String nærmestelederFnr) {
-        return List.of(new Virksomhetsinfo("910825526", 4));
-    }
-    @Override
-    public void processNærmesteLederEvent(NarmesteLederHendelse hendelse) {
+class DigisyfoRepositoryStub : DigisyfoRepository {
+    override fun virksomheterOgSykmeldte(nærmestelederFnr: String): List<Virksomhetsinfo> {
+        return listOf(Virksomhetsinfo("910825526", 4))
     }
 
-    @Override
-    public void processSykmeldingEvent(List<ImmutablePair<String, SykmeldingHendelse>> records) {
-    }
+    override fun processNærmesteLederEvent(hendelse: NarmesteLederHendelse) {}
+    override fun processSykmeldingEvent(records: List<Pair<String?, SykmeldingHendelse?>>) {}
 }

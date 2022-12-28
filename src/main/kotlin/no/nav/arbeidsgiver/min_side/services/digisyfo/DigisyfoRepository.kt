@@ -1,20 +1,12 @@
-package no.nav.arbeidsgiver.min_side.services.digisyfo;
+package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+interface DigisyfoRepository {
+    data class Virksomhetsinfo(
+        val virksomhetsnummer: String = "",
+        val antallSykmeldte: Int = 0
+    )
 
-import java.util.List;
-
-public interface DigisyfoRepository {
-    @Data
-    @AllArgsConstructor
-    class Virksomhetsinfo {
-        final String virksomhetsnummer;
-        final Integer antallSykmeldte;
-    }
-    List<Virksomhetsinfo> virksomheterOgSykmeldte(String nærmestelederFnr);
-
-    void processNærmesteLederEvent(NarmesteLederHendelse hendelse);
-    void processSykmeldingEvent(List<ImmutablePair<String, SykmeldingHendelse>> records);
+    fun virksomheterOgSykmeldte(nærmestelederFnr: String): List<Virksomhetsinfo>
+    fun processNærmesteLederEvent(hendelse: NarmesteLederHendelse)
+    fun processSykmeldingEvent(records: List<Pair<String?, SykmeldingHendelse?>>)
 }
