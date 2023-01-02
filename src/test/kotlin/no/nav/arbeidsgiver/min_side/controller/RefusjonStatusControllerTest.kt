@@ -80,7 +80,7 @@ class RefusjonStatusControllerTest {
     }
 }
 
-private fun organisasjon(orgnr: String) = Organisasjon(organizationNumber= orgnr)
+private fun organisasjon(orgnr: String) = Organisasjon(organizationNumber = orgnr)
 
 private fun statusoversikt(orgnr: String, status: Map<String, Int>) =
     RefusjonStatusRepository.Statusoversikt(orgnr, status)
