@@ -287,6 +287,7 @@ class SykmeldingRepositoryImplTest {
 
         val flyway = Flyway.configure()
             .dataSource(ds)
+            .cleanDisabled(false)
             .load()
         flyway.clean()
         flyway.migrate()
