@@ -301,7 +301,7 @@ class DigisyfoRepositoryImplTest extends Specification {
 
     def prepareDatabase(nærmesteLedere, batches, today) {
         PGSimpleDataSource ds = new PGSimpleDataSource()
-        ds.setUrl("jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres")
+        ds.setUrl("jdbc:postgresql://localhost:2345/postgres?user=postgres&password=postgres")
 
         Flyway flyway = Flyway.configure()
                 .dataSource(ds)

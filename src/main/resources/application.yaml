@@ -53,7 +53,10 @@ spring:
     activate:
       on-profile: local
   flyway:
-    enabled: false
+    enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:2345/msa?user=postgres&password=postgres
+
 
 nais.cluster.name: local
 
