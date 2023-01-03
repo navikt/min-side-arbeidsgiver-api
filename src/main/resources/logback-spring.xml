@@ -1,13 +1,10 @@
 <configuration scan="true">
-    <springProfile name="dev-gcp,prod-gcp">
-        <appender name="stdout_json_masked" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
-        </appender>
-        <root level="INFO">
-            <appender-ref ref="stdout_json_masked"/>
-        </root>
-    </springProfile>
-    <springProfile name="local,labs">
-        <include resource="org/springframework/boot/logging/logback/base.xml"/>
-    </springProfile>
+    <!--appender name="stdout_json_masked" class="no.nav.arbeidsgiver.min_side.logging.MaskingAppender"-->
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+    <!--/appender-->
+    <root level="INFO">
+        <appender-ref ref="consoleAppender"/>
+    </root>
 </configuration>
