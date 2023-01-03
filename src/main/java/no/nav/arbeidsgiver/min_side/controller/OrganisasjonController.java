@@ -35,7 +35,10 @@ public class OrganisasjonController {
         return altinnService.hentOrganisasjoner(authenticatedUserHolder.getFnr());
     }
 
-    @GetMapping("/api/rettigheter-til-skjema")
+    @GetMapping({
+            "/api/rettigheter-til-skjema",
+            "/api/rettigheter-til-skjema/"
+    })
     public List<Organisasjon> hentRettigheter(
             @RequestParam String serviceKode,
             @RequestParam String serviceEdition

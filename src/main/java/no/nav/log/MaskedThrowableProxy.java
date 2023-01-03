@@ -49,4 +49,9 @@ public class MaskedThrowableProxy implements IThrowableProxy {
         }
         return maskedSuppressed;
     }
+
+    @Override
+    public boolean isCyclic() {
+        return throwableProxy.isCyclic();
+    }
 }
