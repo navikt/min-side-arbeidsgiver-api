@@ -1,7 +1,7 @@
 package no.nav.arbeidsgiver.min_side.controller
 
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
-import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.skyscreamer.jsonassert.JSONAssert
@@ -15,10 +15,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(
-    value = [DigisyfoController::class],
-    properties = ["server.servlet.context-path=/", "tokensupport.enabled=false"]
+    value = [OrganisasjonController::class],
+    properties = [
+        "server.servlet.context-path=/",
+        "tokensupport.enabled=false",
+    ]
 )
-class DigisyfoControllerTest {
+class OrganisasjonControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -26,22 +29,29 @@ class DigisyfoControllerTest {
     lateinit var authenticatedUserHolder: AuthenticatedUserHolder
 
     @MockBean
-    lateinit var digisyfoService: DigisyfoService
+    lateinit var altinnService: AltinnService
 
     @Test
-    fun `Er nærmeste leder, med sykmeldinger registrert`() {
+    fun hentOrganisasjoner() {
         `when`(authenticatedUserHolder.fnr).thenReturn("42")
-        `when`(digisyfoService.hentVirksomheterOgSykmeldte("42")).thenReturn(
+        `when`(altinnService.hentOrganisasjoner("42")).thenReturn(
             listOf(
-                DigisyfoController.VirksomhetOgAntallSykmeldte(mkUnderenhet("10", "1"), 0),
-                DigisyfoController.VirksomhetOgAntallSykmeldte(mkOverenhet("1"), 0),
-                DigisyfoController.VirksomhetOgAntallSykmeldte(mkUnderenhet("20", "2"), 1),
-                DigisyfoController.VirksomhetOgAntallSykmeldte(mkOverenhet("2"), 0),
+                Organisasjon(
+                    name = "underenhet",
+                    parentOrganizationNumber = "1",
+                    organizationNumber = "10",
+                    organizationForm = "BEDR"
+                ),
+                Organisasjon(
+                    name = "overenhet",
+                    organizationNumber = "1",
+                    organizationForm = "AS"
+                ),
             )
         )
 
         val jsonResponse = mockMvc
-            .perform(get("/api/narmesteleder/virksomheter-v3").accept(MediaType.APPLICATION_JSON))
+            .perform(get("/api/organisasjoner").accept(MediaType.APPLICATION_JSON))
             .andDo(print())
             .andExpect(status().isOk)
             .andReturn().response.contentAsString
@@ -49,48 +59,20 @@ class DigisyfoControllerTest {
             """
             [
               {
-                "organisasjon": {
                   "Name": "underenhet",
                   "Type": null,
                   "ParentOrganizationNumber": "1",
                   "OrganizationNumber": "10",
                   "OrganizationForm": "BEDR",
                   "Status": null
-                },
-                "antallSykmeldte": 0
               },
               {
-                "organisasjon": {
                   "Name": "overenhet",
                   "Type": null,
                   "ParentOrganizationNumber": null,
                   "OrganizationNumber": "1",
                   "OrganizationForm": "AS",
                   "Status": null
-                },
-                "antallSykmeldte": 0
-              },
-              {
-                "organisasjon": {
-                  "Name": "underenhet",
-                  "Type": null,
-                  "ParentOrganizationNumber": "2",
-                  "OrganizationNumber": "20",
-                  "OrganizationForm": "BEDR",
-                  "Status": null
-                },
-                "antallSykmeldte": 1
-              },
-              {
-                "organisasjon": {
-                  "Name": "overenhet",
-                  "Type": null,
-                  "ParentOrganizationNumber": null,
-                  "OrganizationNumber": "2",
-                  "OrganizationForm": "AS",
-                  "Status": null
-                },
-                "antallSykmeldte": 0
               }
             ]
             """,
@@ -99,19 +81,55 @@ class DigisyfoControllerTest {
         )
     }
 
-
-    private fun mkUnderenhet(orgnr: String, parentOrgnr: String) =
-        Organisasjon(
-            name = "underenhet",
-            organizationNumber = orgnr,
-            parentOrganizationNumber = parentOrgnr,
-            organizationForm = "BEDR",
+    @Test
+    fun hentRettigheter() {
+        val serviceKode = "1234"
+        val serviceEdition = "1"
+        `when`(authenticatedUserHolder.fnr).thenReturn("42")
+        `when`(altinnService.hentOrganisasjonerBasertPaRettigheter("42", serviceKode, serviceEdition)).thenReturn(
+            listOf(
+                Organisasjon(
+                    name = "underenhet",
+                    parentOrganizationNumber = "1",
+                    organizationNumber = "10",
+                    organizationForm = "BEDR"
+                ),
+                Organisasjon(
+                    name = "overenhet",
+                    organizationNumber = "1",
+                    organizationForm = "AS"
+                ),
+            )
         )
 
-    private fun mkOverenhet(orgnr: String) =
-        Organisasjon(
-            name = "overenhet",
-            organizationNumber = orgnr,
-            organizationForm = "AS",
+        val jsonResponse = mockMvc
+            .perform(get("/api/rettigheter-til-skjema?serviceKode=$serviceKode&serviceEdition=$serviceEdition").accept(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andExpect(status().isOk)
+            .andReturn().response.contentAsString
+        JSONAssert.assertEquals(
+            """
+            [
+              {
+                  "Name": "underenhet",
+                  "Type": null,
+                  "ParentOrganizationNumber": "1",
+                  "OrganizationNumber": "10",
+                  "OrganizationForm": "BEDR",
+                  "Status": null
+              },
+              {
+                  "Name": "overenhet",
+                  "Type": null,
+                  "ParentOrganizationNumber": null,
+                  "OrganizationNumber": "1",
+                  "OrganizationForm": "AS",
+                  "Status": null
+              }
+            ]
+            """,
+            jsonResponse,
+            true
         )
+    }
 }

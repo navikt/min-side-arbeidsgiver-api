@@ -85,17 +85,17 @@ class DigisyfoServiceTest {
 
 
     private fun mkUnderenhet(orgnr: String, parentOrgnr: String) =
-        Organisasjon.builder()
-            .name("underenhet")
-            .organizationNumber(orgnr)
-            .parentOrganizationNumber(parentOrgnr)
-            .organizationForm("BEDR")
-            .build()
+        Organisasjon(
+            name = "underenhet",
+            organizationNumber = orgnr,
+            parentOrganizationNumber = parentOrgnr,
+            organizationForm = "BEDR",
+        )
 
     private fun mkOverenhet(orgnr: String) =
-        Organisasjon.builder()
-            .name("overenhet")
-            .organizationNumber(orgnr)
-            .organizationForm("AS")
-            .build()
+        Organisasjon(
+            name = "overenhet",
+            organizationNumber = orgnr,
+            organizationForm = "AS",
+        )
 }

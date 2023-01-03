@@ -1,7 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry
-import org.apache.commons.lang3.tuple.ImmutablePair
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Test
@@ -11,14 +10,14 @@ import java.time.LocalDate
 import java.util.*
 
 class SykmeldingRepositoryImplTest {
-    val leder1 = "10011223344"
-    val leder2 = "20011223344"
-    val ansatt1 = "10044332211"
-    val ansatt2 = "20044332211"
-    val vnr1 = "100111222"
-    val vnr2 = "200111222"
-    val uuid1 = "3608d78e-10a3-4179-9cac-000000000001"
-    val uuid2 = "3608d78e-10a3-4179-9cac-000000000002"
+    private val leder1 = "10011223344"
+    private val leder2 = "20011223344"
+    private val ansatt1 = "10044332211"
+    private val ansatt2 = "20044332211"
+    private val vnr1 = "100111222"
+    private val vnr2 = "200111222"
+    private val uuid1 = "3608d78e-10a3-4179-9cac-000000000001"
+    private val uuid2 = "3608d78e-10a3-4179-9cac-000000000002"
 
     @Test
     fun `sletter ikke dagens sykmeldinger`() {
@@ -259,9 +258,9 @@ class SykmeldingRepositoryImplTest {
             nærmasteLedere,
             sykmeldinger.map {
                 if (it.event == null) {
-                    listOf(ImmutablePair.of(it.key, null))
+                    listOf(it.key to null)
                 } else {
-                    listOf(ImmutablePair.of(it.key, SykmeldingHendelse.create(it.event.fnr, it.event.vnr, it.event.dates)))
+                    listOf(it.key to SykmeldingHendelse.create(it.event.fnr, it.event.vnr, it.event.dates))
                 }
             },
             deleteFrom
@@ -273,15 +272,15 @@ class SykmeldingRepositoryImplTest {
             listOf(
                 sykmeldinger.map {
                     if (it.event == null) {
-                        ImmutablePair.of(it.key, null)
+                        it.key to null
                     } else {
-                        ImmutablePair.of(it.key, SykmeldingHendelse.create(it.event.fnr, it.event.vnr, it.event.dates))
+                        it.key to SykmeldingHendelse.create(it.event.fnr, it.event.vnr, it.event.dates)
                     }
                 }),
             null
         )
 
-    private fun prepareDatabase(nærmesteLedere: List<NL>, batches: List<List<ImmutablePair<String, SykmeldingHendelse>>>, deleteFrom: LocalDate?) : SykmeldingRepositoryImpl {
+    private fun prepareDatabase(nærmesteLedere: List<NL>, batches: List<List<Pair<String, SykmeldingHendelse?>>>, deleteFrom: LocalDate?) : SykmeldingRepositoryImpl {
         val ds = PGSimpleDataSource()
         ds.setUrl("jdbc:postgresql://localhost:2345/postgres?user=postgres&password=postgres")
 
