@@ -19,7 +19,10 @@ class OrganisasjonController(
     fun hentOrganisasjoner() =
         altinnService.hentOrganisasjoner(authenticatedUserHolder.fnr)
 
-    @GetMapping("/api/rettigheter-til-skjema")
+    @GetMapping(path = [
+        "/api/rettigheter-til-skjema",
+        "/api/rettigheter-til-skjema/",
+    ])
     fun hentRettigheter(
         @RequestParam serviceKode: String,
         @RequestParam serviceEdition: String,

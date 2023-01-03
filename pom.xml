@@ -24,17 +24,6 @@
         <kotlin-coroutines.version>1.6.1</kotlin-coroutines.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- https://www.lunasec.io/docs/blog/log4j-zero-day/ -->
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-api</artifactId>
-                <version>2.17.1</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -57,7 +46,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>8.4.2</version>
+            <version>9.10.2</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -128,6 +117,7 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
+
         <!-- JSON-logging -->
         <dependency>
             <groupId>net.logstash.logback</groupId>

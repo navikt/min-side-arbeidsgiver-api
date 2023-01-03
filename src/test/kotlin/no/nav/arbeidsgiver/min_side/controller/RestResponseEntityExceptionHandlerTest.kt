@@ -8,7 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.web.context.request.WebRequest
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = [
+        "spring.flyway.enabled=false"
+    ],
+)
 @EnableMockOAuth2Server
 class RestResponseEntityExceptionHandlerTest {
 
