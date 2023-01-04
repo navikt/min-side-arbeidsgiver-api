@@ -1,10 +1,13 @@
 <configuration scan="true">
-    <!--appender name="stdout_json_masked" class="no.nav.arbeidsgiver.min_side.logging.MaskingAppender"-->
-    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    <appender name="stdout_json_masked" class="no.nav.arbeidsgiver.min_side.logging.MaskingAppender">
+        <appender-ref ref="consoleAppender" />
     </appender>
-    <!--/appender-->
+
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
     <root level="INFO">
-        <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="stdout_json_masked" />
     </root>
 </configuration>

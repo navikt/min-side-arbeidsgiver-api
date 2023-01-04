@@ -1,4 +1,16 @@
 <configuration scan="true">
-    <include resource="org/springframework/boot/logging/logback/base.xml"/>
-    <root level="INFO"/>
+
+
+    <appender name="stdout_json_masked" class="no.nav.arbeidsgiver.min_side.logging.MaskingAppender">
+        <appender-ref ref="consoleAppender" />
+    </appender>
+
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="stdout_json_masked" />
+    </root>
+
 </configuration>
