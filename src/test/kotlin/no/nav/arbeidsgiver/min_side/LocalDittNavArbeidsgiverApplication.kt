@@ -10,7 +10,9 @@ class LocalDittNavArbeidsgiverApplication : DittNavArbeidsgiverApplication() {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            SpringApplication.run(LocalDittNavArbeidsgiverApplication::class.java, *args)
+            SpringApplication(LocalDittNavArbeidsgiverApplication::class.java).apply {
+                setAdditionalProfiles("local-kafka")
+            }.run(*args)
         }
     }
 

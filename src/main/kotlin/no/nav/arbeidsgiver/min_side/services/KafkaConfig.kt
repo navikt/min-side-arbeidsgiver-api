@@ -13,7 +13,7 @@ import org.springframework.kafka.listener.DefaultErrorHandler
 import org.springframework.kafka.listener.RetryListener
 import org.springframework.util.backoff.ExponentialBackOff
 
-@Profile("dev-gcp", "prod-gcp")
+@Profile("local-kafka", "dev-gcp", "prod-gcp")
 @Configuration
 @EnableKafka
 class KafkaConfig {
@@ -36,4 +36,6 @@ class KafkaConfig {
         factory.setCommonErrorHandler(errorHandler)
         return factory
     }
+
+
 }

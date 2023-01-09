@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8180
   max-http-request-header-size: 10KB
   servlet:
     context-path: /ditt-nav-arbeidsgiver-api
@@ -60,6 +60,10 @@ spring:
     enabled: true
   datasource:
     url: jdbc:postgresql://localhost:2345/msa?user=postgres&password=postgres
+  kafka:
+    bootstrap-servers: localhost:9192
+    properties:
+      security.protocol: PLAINTEXT
 
 
 nais.cluster.name: local
@@ -67,7 +71,7 @@ nais.cluster.name: local
 no.nav.security.jwt.issuer:
   tokenx:
     discoveryurl: http://localhost:${mock-oauth2-server.port}/issuer1/.well-known/openid-configuration
-    accepted_audience: someaudience
+    accepted_audience: bruker-api
 
 mock:
   enabled: true

@@ -1,0 +1,4 @@
+PUT http://localhost:8180/ditt-nav-arbeidsgiver-api/api/pushboks/foo/999911111
+Content-Type: application/json
+
+null
