@@ -57,7 +57,7 @@ class AltinnTilgangssøknadClientTest {
 
         server.expect(requestToUriTemplate("http://localhost:8081/altinn/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication"))
             .andExpect(method(HttpMethod.POST))
-            .andExpect(content().json(altinnSendSøknadRequest))
+            .andExpect(content().json(altinnSendSøknadRequest, true))
             .andRespond(withSuccess(altinnSendSøknadResponse, MediaType.APPLICATION_JSON))
 
         val result = client.sendSøknad(fnr, skjema)
