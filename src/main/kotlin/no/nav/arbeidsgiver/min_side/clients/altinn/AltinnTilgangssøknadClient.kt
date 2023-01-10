@@ -14,7 +14,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.RequestEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
-import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException.BadGateway
 import org.springframework.web.util.UriComponentsBuilder
 import java.util.function.Consumer
@@ -106,13 +105,7 @@ class AltinnTilgangssøknadClient(
             .post("$delegationRequestApiPath?ForceEIAuthentication")
             .headers(altinnHeaders)
             .body(delegationRequest)
-        val response = try {
-            log.info("sendSøknad delegationRequest={}", delegationRequest)
-            restTemplate.exchange(request, object : ParameterizedTypeReference<DelegationRequest?>() {})
-        } catch (e: HttpClientErrorException.BadRequest) {
-            log.warn("sendSøknad feilet delegationRequest={}. e={}", delegationRequest, e.message)
-            throw e
-        }
+        val response = restTemplate.exchange(request, object : ParameterizedTypeReference<DelegationRequest?>() {})
         val body = response.body
         val svar = AltinnTilgangssøknad()
         svar.status = body!!.RequestStatus
