@@ -126,7 +126,6 @@ private const val underenhetRespons = """
   "organisasjonsnummer": "910825526",
   "type": "Virksomhet",
   "navn": {
-    "redigertnavn": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA",
     "navnelinje1": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA",
     "navnelinje2": "P",
     "bruksperiode": {
@@ -151,7 +150,6 @@ private const val underenhetRespons = """
     ],
     "navn": [
       {
-        "redigertnavn": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA",
         "navnelinje1": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA",
         "navnelinje2": "P",
         "bruksperiode": {
@@ -214,7 +212,6 @@ private const val underenhetRespons = """
     {
       "organisasjonsnummer": "810825472",
       "navn": {
-        "redigertnavn": "MALMEFJORD OG RIDABU REGNSKAP",
         "navnelinje1": "MALMEFJORD OG RIDABU REGNSKAP",
         "bruksperiode": {
           "fom": "2020-05-14T16:03:21.12"
@@ -239,7 +236,6 @@ private const val overenhetRespons = """
   "organisasjonsnummer": "810825472",
   "type": "JuridiskEnhet",
   "navn": {
-    "redigertnavn": "MALMEFJORD OG RIDABU REGNSKAP",
     "navnelinje1": "MALMEFJORD OG RIDABU REGNSKAP",
     "bruksperiode": {
       "fom": "2020-05-14T16:03:21.12"
@@ -263,7 +259,6 @@ private const val overenhetRespons = """
     ],
     "navn": [
       {
-        "redigertnavn": "MALMEFJORD OG RIDABU REGNSKAP",
         "navnelinje1": "MALMEFJORD OG RIDABU REGNSKAP",
         "bruksperiode": {
           "fom": "2020-05-14T16:03:21.12"
@@ -327,7 +322,6 @@ private const val underenhetMedOrgleddRespons = """
   "organisasjonsnummer": "912998827",
   "type": "Virksomhet",
   "navn": {
-    "redigertnavn": "ARBEIDS- OG VELFERDSDIREKTORATET",
     "navnelinje1": "ARBEIDS- OG VELFERDSDIREKTORATET",
     "navnelinje3": "AVD FYRSTIKKALLÉEN",
     "bruksperiode": {
@@ -352,7 +346,6 @@ private const val underenhetMedOrgleddRespons = """
     ],
     "navn": [
       {
-        "redigertnavn": "ARBEIDS- OG VELFERDSDIREKTORATET",
         "navnelinje1": "ARBEIDS- OG VELFERDSDIREKTORATET",
         "navnelinje3": "AVD FYRSTIKKALLÉEN",
         "bruksperiode": {
@@ -374,7 +367,6 @@ private const val underenhetMedOrgleddRespons = """
         "organisasjonsnummer": "889640782",
         "type": "Organisasjonsledd",
         "navn": {
-          "redigertnavn": "ARBEIDS- OG VELFERDSETATEN",
           "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
           "bruksperiode": {
             "fom": "2015-02-23T08:04:53.2"
@@ -400,7 +392,6 @@ private const val orgleddRespons = """
   "organisasjonsnummer": "889640782",
   "type": "Organisasjonsledd",
   "navn": {
-    "redigertnavn": "ARBEIDS- OG VELFERDSETATEN",
     "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
     "bruksperiode": {
       "fom": "2015-02-23T08:04:53.2"
@@ -424,7 +415,6 @@ private const val orgleddRespons = """
     ],
     "navn": [
       {
-        "redigertnavn": "ARBEIDS- OG VELFERDSETATEN",
         "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
         "bruksperiode": {
           "fom": "2015-02-23T08:04:53.2"
