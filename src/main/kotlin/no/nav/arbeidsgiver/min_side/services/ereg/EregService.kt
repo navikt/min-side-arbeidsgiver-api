@@ -2,6 +2,7 @@ package no.nav.arbeidsgiver.min_side.services.ereg
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.benmanes.caffeine.cache.Caffeine
+import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -19,7 +20,18 @@ class EregService(
     @Value("\${ereg-services.baseUrl}") eregBaseUrl: String?,
     restTemplateBuilder: RestTemplateBuilder
 ) {
-    private val restTemplate = restTemplateBuilder.rootUri(eregBaseUrl).build()
+    private val restTemplate = restTemplateBuilder
+        .rootUri(eregBaseUrl)
+        .additionalInterceptors(
+            retryInterceptor(
+                3,
+                250L,
+                org.apache.http.NoHttpResponseException::class.java,
+                java.net.SocketException::class.java,
+                javax.net.ssl.SSLHandshakeException::class.java,
+            )
+        )
+        .build()
 
     @Cacheable(EREG_CACHE_NAME)
     fun hentUnderenhet(virksomhetsnummer: String?): Organisasjon? {

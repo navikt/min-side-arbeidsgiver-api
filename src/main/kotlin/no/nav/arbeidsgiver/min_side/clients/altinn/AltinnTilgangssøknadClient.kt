@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpServerErrorException.BadGateway
 import org.springframework.web.util.UriComponentsBuilder
 import java.util.function.Consumer
-import javax.net.ssl.SSLHandshakeException
 
 @Component
 class AltinnTilgangssøknadClient(
@@ -31,7 +30,9 @@ class AltinnTilgangssøknadClient(
             retryInterceptor(
                 maxAttempts = 3,
                 backoffPeriod = 250L,
-                SSLHandshakeException::class.java
+                org.apache.http.NoHttpResponseException::class.java,
+                java.net.SocketException::class.java,
+                javax.net.ssl.SSLHandshakeException::class.java,
             )
         )
         .build()
