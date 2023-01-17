@@ -1,7 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.tokenExchange
 
 import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
-import org.apache.http.NoHttpResponseException
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpEntity
@@ -27,7 +26,9 @@ class TokenExchangeClientImpl(
         retryInterceptor(
             3,
             250L,
-            NoHttpResponseException::class.java
+            org.apache.http.NoHttpResponseException::class.java,
+            java.net.SocketException::class.java,
+            javax.net.ssl.SSLHandshakeException::class.java,
         )
     ).build()
 
