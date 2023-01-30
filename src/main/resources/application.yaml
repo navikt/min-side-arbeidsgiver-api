@@ -14,6 +14,9 @@ management:
     percentiles:
       http.server.requests: 0.99,0.95,0.90,0.80,0.50
 
+logging.level:
+    org.apache.tomcat.util.http.parser.Cookie: WARN
+
 spring:
   main:
     banner-mode: "off"
