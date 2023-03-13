@@ -19,8 +19,6 @@ spec:
     timeout: 15
     periodSeconds: 10
     failureThreshold: 3
-  ingresses:
-    - https://min-side-arbeidsgiver-api.nav.no/ditt-nav-arbeidsgiver-api/
   kafka:
     pool: nav-prod
   gcp:
