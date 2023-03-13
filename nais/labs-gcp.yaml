@@ -26,8 +26,6 @@ spec:
     limits:
       cpu: 2000m
       memory: 3000Mi
-  ingresses:
-    - https://arbeidsgiver.labs.nais.io/ditt-nav-arbeidsgiver-api/
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: labs
