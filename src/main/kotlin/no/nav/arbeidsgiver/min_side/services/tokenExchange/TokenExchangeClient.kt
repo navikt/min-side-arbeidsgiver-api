@@ -53,7 +53,7 @@ class TokenExchangeClientImpl(
     }
 }
 
-@Profile("labs")
+@Profile("demo")
 @Component
 class TokenExchangeClientStub : TokenExchangeClient {
     override fun exchange(subjectToken: String, audience: String): TokenXToken {

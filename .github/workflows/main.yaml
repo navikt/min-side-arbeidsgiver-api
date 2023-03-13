@@ -44,7 +44,7 @@ jobs:
     name: Bygg
     needs: test
     ### VALG AV DEV-BRANCH SETTES HER:
-    if: needs.test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/baseimg')
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/baseimg'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -77,9 +77,8 @@ jobs:
         cache-to: type=inline
 
   deploy-dev-gcp:
-    name: Deploy to dev-gcp
+    name: Deploy dev (dev-gcp)
     needs: bygg
-    if: needs.bygg.result == 'success'
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -89,12 +88,12 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/dev-gcp.yaml
+          RESOURCE: nais/dev-env.yaml
 
-  deploy-labs-gcp:
-    name: Deploy to labs-gcp
+  deploy-demo-gcp:
+    name: Deploy demo (dev-gcp)
     needs: bygg
-    if: needs.bygg.result == 'success' && github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -102,14 +101,14 @@ jobs:
         env:
           DEPLOY_SERVER: deploy.nais.io:443
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: labs-gcp
+          CLUSTER: dev-gcp
           VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/labs-gcp.yaml
+          RESOURCE: nais/demo-env.yaml
 
   deploy-prod-gcp:
-    name: Deploy to prod-gcp
+    name: Deploy prod (prod-gcp)
     needs: deploy-dev-gcp
-    if: needs.deploy-dev-gcp.result == 'success' && github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -118,5 +117,5 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/prod-gcp.yaml
+          RESOURCE: nais/prod-env.yaml
 

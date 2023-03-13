@@ -27,6 +27,6 @@ class FeatureToggleConfig {
         )
 
     @Bean
-    @Profile("local", "labs")
+    @Profile("local", "demo")
     fun unleashMock() = FakeUnleash().apply { enableAll() }
 }
