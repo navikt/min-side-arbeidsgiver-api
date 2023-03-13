@@ -39,4 +39,4 @@ spec:
         - application: demo-min-side-arbeidsgiver-experimental
     outbound:
       rules:
-        - application: demo-min-side-ag-fakelogin
+        - application: arbeidsgiver-fake-login
