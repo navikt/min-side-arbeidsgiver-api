@@ -40,7 +40,7 @@ class SykmeldingRepositoryImpl(
 }
 
 
-@Profile("local", "labs")
+@Profile("local", "demo")
 @Repository
 class SykmeldingRepositoryStub : SykmeldingRepository {
     override fun oversiktSykmeldinger(nærmestelederFnr: String): Map<String, Int> {

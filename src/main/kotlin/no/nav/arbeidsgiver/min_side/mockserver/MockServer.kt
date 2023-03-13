@@ -12,7 +12,7 @@ import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
 
 
-@Profile("local", "labs")
+@Profile("local", "demo")
 @Component
 class MockServer(
     @Value("\${mock.port}") port: Int,

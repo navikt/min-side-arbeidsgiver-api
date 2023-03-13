@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-  name: min-side-arbeidsgiver-api
+  name: demo-min-side-arbeidsgiver-api
   namespace: fager
   labels:
     team: fager
@@ -26,19 +26,17 @@ spec:
     limits:
       cpu: 2000m
       memory: 3000Mi
-  ingresses:
-    - https://arbeidsgiver.labs.nais.io/ditt-nav-arbeidsgiver-api/
   env:
     - name: SPRING_PROFILES_ACTIVE
-      value: labs
+      value: demo
   prometheus:
     enabled: true
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
   accessPolicy:
     inbound:
       rules:
-        - application: min-side-arbeidsgiver
-        - application: min-side-arbeidsgiver-experimental
+        - application: demo-min-side-arbeidsgiver
+        - application: demo-min-side-arbeidsgiver-experimental
     outbound:
       rules:
-        - application: min-side-ag-fakelogin
+        - application: demo-min-side-ag-fakelogin

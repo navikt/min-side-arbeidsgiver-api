@@ -97,7 +97,7 @@ token.x:
 spring:
   config:
     activate:
-      on-profile: labs
+      on-profile: demo
   flyway:
     enabled: false
   autoconfigure.exclude: "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration"
@@ -117,7 +117,7 @@ altinn:
   APIGwHeader: "test"
   proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
   proxyFallbackUrl: http://localhost:${mock.port}/altinn
-  proxyAudience: labs:labs:labs
+  proxyAudience: demo:demo:demo
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 

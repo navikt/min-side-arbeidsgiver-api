@@ -82,7 +82,7 @@ class RefusjonStatusRepositoryImpl(
     }
 }
 
-@Profile("local", "labs")
+@Profile("local", "demo")
 @Repository
 class RefusjonStatusRepositoryMock : RefusjonStatusRepository {
     override fun statusoversikt(virksomhetsnummer: List<String>): List<RefusjonStatusRepository.Statusoversikt> {
