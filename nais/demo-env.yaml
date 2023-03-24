@@ -35,8 +35,8 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: demo-min-side-arbeidsgiver
-        - application: demo-min-side-arbeidsgiver-experimental
+        - application: demo-prodlik-min-side-arbeidsgiver
+        - application: demo-devlik-min-side-arbeidsgiver
     outbound:
       rules:
-        - application: arbeidsgiver-fake-login
+        - application: demo-arbeidsgiver-fake-login
