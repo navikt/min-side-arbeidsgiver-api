@@ -39,7 +39,7 @@ jobs:
     name: Bygg
     needs: test
     ### VALG AV DEV-BRANCH SETTES HER:
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/baseimg'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/snyk-fix-863789b2a63529cdffedcc60b0107678'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
