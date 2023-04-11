@@ -198,7 +198,7 @@ class DigisyfoRepositoryImpl(
     }
 }
 
-@Profile("local", "demo")
+@Profile("local")
 @Repository
 class DigisyfoRepositoryStub : DigisyfoRepository {
     override fun virksomheterOgSykmeldte(nærmestelederFnr: String): List<DigisyfoRepository.Virksomhetsinfo> {
