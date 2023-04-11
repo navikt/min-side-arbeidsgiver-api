@@ -104,7 +104,7 @@ spring:
 
 no.nav.security.jwt.issuer:
   tokenx:
-    discoveryurl: http://arbeidsgiver-fake-login/metadata?issuer=selvbetjening
+    discoveryurl: http://demo-arbeidsgiver-fake-login/metadata?issuer=selvbetjening
     accepted_audience: aud-selvbetjening
 
 mock:
