@@ -39,7 +39,7 @@ jobs:
     name: Bygg
     needs: test
     ### VALG AV DEV-BRANCH SETTES HER:
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/snyk-fix-863789b2a63529cdffedcc60b0107678'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/remove_demo_profile'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -79,20 +79,6 @@ jobs:
           CLUSTER: dev-gcp
           VAR: image=${{ env.IMAGE }}
           RESOURCE: nais/dev-env.yaml
-
-  deploy-demo-gcp:
-    name: Deploy demo (dev-gcp)
-    needs: bygg
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: dev-gcp
-          VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/demo-env.yaml
 
   deploy-prod-gcp:
     name: Deploy prod (prod-gcp)

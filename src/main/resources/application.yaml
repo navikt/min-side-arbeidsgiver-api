@@ -92,34 +92,6 @@ token.x:
   issuer: http://fake
   tokenEndpoint: http://fake/token
 
----
-
-spring:
-  config:
-    activate:
-      on-profile: demo
-  flyway:
-    enabled: false
-  autoconfigure.exclude: "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration"
-
-no.nav.security.jwt.issuer:
-  tokenx:
-    discoveryurl: http://arbeidsgiver-fake-login/metadata?issuer=selvbetjening
-    accepted_audience: aud-selvbetjening
-
-mock:
-  enabled: true
-  port: 8081
-  aktorPort: 8082
-
-altinn:
-  altinnHeader: "test"
-  APIGwHeader: "test"
-  proxyUrl: http://localhost:${mock.port}/altinn-rettigheter-proxy
-  proxyFallbackUrl: http://localhost:${mock.port}/altinn
-  proxyAudience: demo:demo:demo
-
-ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
 
 ---
 spring:

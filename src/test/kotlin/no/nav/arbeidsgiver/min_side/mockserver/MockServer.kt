@@ -11,8 +11,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
 
-
-@Profile("local", "demo")
+@Profile("local")
 @Component
 class MockServer(
     @Value("\${mock.port}") port: Int,
