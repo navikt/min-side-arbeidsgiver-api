@@ -38,8 +38,6 @@ jobs:
   bygg:
     name: Bygg
     needs: test
-    ### VALG AV DEV-BRANCH SETTES HER:
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/remove_demo_profile'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -70,6 +68,7 @@ jobs:
     name: Deploy dev (dev-gcp)
     needs: bygg
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     continue-on-error: true
     steps:
       - uses: actions/checkout@v3
