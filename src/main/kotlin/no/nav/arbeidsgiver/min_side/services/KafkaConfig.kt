@@ -22,6 +22,9 @@ class KafkaConfig {
     fun errorLoggingKafkaListenerContainerFactory(
         properties: KafkaProperties
     ): ConcurrentKafkaListenerContainerFactory<String, String> {
+        data class Bar(val bar:  String)
+        val foo = Bar("baz").toString()
+        log.debug("foo=$foo")
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
         factory.consumerFactory = DefaultKafkaConsumerFactory(properties.buildConsumerProperties())
         val errorHandler = DefaultErrorHandler(ExponentialBackOff())

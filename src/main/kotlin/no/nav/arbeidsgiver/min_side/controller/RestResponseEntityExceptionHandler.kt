@@ -7,6 +7,7 @@ import io.ktor.http.HttpStatusCode.Companion.ServiceUnavailable
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.error.exceptions.AltinnrettigheterProxyKlientFallbackException
 import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.security.token.support.spring.validation.interceptor.JwtTokenUnauthorizedException
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -56,6 +57,11 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
     @ResponseBody
     fun handleUnauthorized(e: RuntimeException, ignored: WebRequest?) =
         getResponseEntity(e, "ingen tilgang", HttpStatus.UNAUTHORIZED)
+
+    @ExceptionHandler(OptimisticLockingFailureException::class)
+    @ResponseBody
+    fun handleOptimistickLockingFailure(e: RuntimeException, ignored: WebRequest?) =
+        getResponseEntity(e, e.message ?: "konflikt", HttpStatus.CONFLICT)
 
 
     private fun hentDriftsforstyrrelse(e: AltinnrettigheterProxyKlientFallbackException): HttpStatus? {
