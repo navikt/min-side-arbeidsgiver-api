@@ -9,7 +9,7 @@ import java.sql.PreparedStatement
 @Service
 class StorageService(val jdbcTemplate: JdbcTemplate) {
     fun delete(key: String, fnr: String, version: Int?) {
-        val existing = get(key, fnr) ?: return
+        val existing = get(key, fnr, true) ?: return
 
         if (version != null && existing.version != version) {
             throw OptimisticLockingFailureException(
@@ -25,7 +25,7 @@ class StorageService(val jdbcTemplate: JdbcTemplate) {
 
     @Transactional
     fun put(key: String, fnr: String, value: String, version: Int?) {
-        val existing = get(key, fnr)
+        val existing = get(key, fnr, true)
         if (existing == null) {
             jdbcTemplate.update(
                 "insert into storage(key, fnr, value, version, timestamp) values (?, ?, ?, 1, now())",
@@ -49,9 +49,9 @@ class StorageService(val jdbcTemplate: JdbcTemplate) {
         }
     }
 
-    fun get(key: String, fnr: String): StorageEntry? {
+    fun get(key: String, fnr: String, forUpdate: Boolean = false): StorageEntry? {
         return jdbcTemplate.query(
-            "select * from storage where key = ? and fnr = ?",
+            "select * from storage where key = ? and fnr = ? ${if (forUpdate) "for update" else ""}",
             { ps: PreparedStatement ->
                 ps.setString(1, key)
                 ps.setString(2, fnr)
