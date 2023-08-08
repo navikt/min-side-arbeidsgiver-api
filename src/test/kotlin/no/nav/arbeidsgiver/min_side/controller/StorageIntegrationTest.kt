@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONAssert.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -68,13 +69,27 @@ class StorageIntegrationTest {
             put("/api/storage/{key}", "lagret-filter").content(storage).buildRequest(it)
         }.andExpect(status().isOk)
 
-        val jsonResponse = mockMvc
+        mockMvc
             .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
             .andDo(print())
             .andExpect(status().isOk)
             .andExpect(header().stringValues("version", "1"))
-            .andReturn().response.contentAsString
-        JSONAssert.assertEquals(storage, jsonResponse, true)
+            .andReturn().response.contentAsString.also {
+                assertEquals(storage, it, true)
+            }
+
+        mockMvc.perform {
+            put("/api/storage/{key}", "lagret-filter").content(storage).buildRequest(it)
+        }.andExpect(status().isOk)
+
+        mockMvc
+            .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andExpect(status().isOk)
+            .andExpect(header().stringValues("version", "2"))
+            .andReturn().response.contentAsString.also {
+                assertEquals(storage, it, true)
+            }
 
         mockMvc.perform {
             put("/api/storage/{key}?version={version}", "lagret-filter", "42")
