@@ -1,13 +1,10 @@
 package no.nav.arbeidsgiver.min_side.controller
 
 import no.nav.arbeidsgiver.min_side.mockserver.MockServer
-import no.nav.arbeidsgiver.min_side.services.tokenExchange.ClientAssertionTokenFactory
-import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
-import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONAssert.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -17,7 +14,6 @@ import org.springframework.http.MediaType
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 @MockBean(MockServer::class)
@@ -41,24 +37,22 @@ class StorageIntegrationTest {
     lateinit var flyway: Flyway
 
     @BeforeEach
-    fun clearDatabase() {
+    fun setup() {
         flyway.clean()
         flyway.migrate()
+
+        `when`(authenticatedUserHolder.fnr).thenReturn("42")
     }
 
     @Test
     fun `no filter, no content`() {
-        `when`(authenticatedUserHolder.fnr).thenReturn("42")
-
         mockMvc
             .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
-            .andDo(print())
             .andExpect(status().isNoContent)
     }
 
     @Test
     fun `lagrer og henter storage`() {
-        `when`(authenticatedUserHolder.fnr).thenReturn("42")
         val storage = """
             {
                 "foo": "bar"
@@ -77,7 +71,6 @@ class StorageIntegrationTest {
 
         mockMvc
             .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
-            .andDo(print())
             .andExpect(status().isOk)
             .andExpect(header().stringValues("version", "1"))
             .andReturn().response.contentAsString.also {
@@ -96,7 +89,6 @@ class StorageIntegrationTest {
 
         mockMvc
             .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
-            .andDo(print())
             .andExpect(status().isOk)
             .andExpect(header().stringValues("version", "2"))
             .andReturn().response.contentAsString.also {
@@ -139,7 +131,6 @@ class StorageIntegrationTest {
 
         mockMvc
             .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
-            .andDo(print())
             .andExpect(status().isNoContent)
     }
 
