@@ -6,10 +6,8 @@ import io.ktor.http.HttpStatusCode.Companion.GatewayTimeout
 import io.ktor.http.HttpStatusCode.Companion.ServiceUnavailable
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.error.exceptions.AltinnrettigheterProxyKlientFallbackException
 import no.nav.arbeidsgiver.min_side.config.logger
-import no.nav.arbeidsgiver.min_side.services.storage.StaleStorageException
 import no.nav.security.token.support.spring.validation.interceptor.JwtTokenUnauthorizedException
 import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
