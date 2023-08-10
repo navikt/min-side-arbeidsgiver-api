@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.services.storage
 
-import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -8,23 +7,26 @@ import java.sql.PreparedStatement
 
 @Service
 class StorageService(val jdbcTemplate: JdbcTemplate) {
-    fun delete(key: String, fnr: String, version: Int?) {
-        val existing = get(key, fnr, true) ?: return
+    fun delete(key: String, fnr: String, version: Int?): StorageEntry? {
+        val existing = get(key, fnr, true) ?: return null
 
         if (version != null && existing.version != version) {
-            throw OptimisticLockingFailureException(
-                "Supplied version($version) does not match current version(${existing.version})"
+            throw StaleStorageException(
+                "Supplied version($version) does not match current version(${existing.version})",
+                existing
             )
         }
+
         jdbcTemplate.update(
             "delete from storage where key = ? and fnr = ?",
             key,
             fnr,
         )
+        return existing
     }
 
     @Transactional
-    fun put(key: String, fnr: String, value: String, version: Int?) {
+    fun put(key: String, fnr: String, value: String, version: Int?): StorageEntry? {
         val existing = get(key, fnr, true)
         if (existing == null) {
             jdbcTemplate.update(
@@ -35,8 +37,9 @@ class StorageService(val jdbcTemplate: JdbcTemplate) {
             )
         } else {
             if (version != null && existing.version != version) {
-                throw OptimisticLockingFailureException(
-                    "Supplied version($version) does not match current version(${existing.version})"
+                throw StaleStorageException(
+                    "Supplied version($version) does not match current version(${existing.version})",
+                    existing
                 )
             }
 
@@ -47,6 +50,7 @@ class StorageService(val jdbcTemplate: JdbcTemplate) {
                 fnr,
             )
         }
+        return get(key, fnr)
     }
 
     fun get(key: String, fnr: String, forUpdate: Boolean = false): StorageEntry? {
@@ -67,6 +71,8 @@ class StorageService(val jdbcTemplate: JdbcTemplate) {
         }.firstOrNull()
     }
 }
+
+class StaleStorageException(message: String, val existing: StorageEntry) : RuntimeException(message)
 
 data class StorageEntry(
     val key: String,

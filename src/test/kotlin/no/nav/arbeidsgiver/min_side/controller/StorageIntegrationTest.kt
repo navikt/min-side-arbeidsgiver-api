@@ -65,9 +65,15 @@ class StorageIntegrationTest {
             }
         """
 
-        mockMvc.perform {
-            put("/api/storage/{key}", "lagret-filter").content(storage).buildRequest(it)
-        }.andExpect(status().isOk)
+        mockMvc
+            .perform {
+                put("/api/storage/{key}", "lagret-filter").content(storage).buildRequest(it)
+            }
+            .andExpect(status().isOk)
+            .andExpect(header().stringValues("version", "1"))
+            .andReturn().response.contentAsString.also {
+                assertEquals(storage, it, true)
+            }
 
         mockMvc
             .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
@@ -78,9 +84,15 @@ class StorageIntegrationTest {
                 assertEquals(storage, it, true)
             }
 
-        mockMvc.perform {
-            put("/api/storage/{key}", "lagret-filter").content(storage).buildRequest(it)
-        }.andExpect(status().isOk)
+        mockMvc
+            .perform {
+                put("/api/storage/{key}", "lagret-filter").content(storage).buildRequest(it)
+            }
+            .andExpect(status().isOk)
+            .andExpect(header().stringValues("version", "2"))
+            .andReturn().response.contentAsString.also {
+                assertEquals(storage, it, true)
+            }
 
         mockMvc
             .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
@@ -91,21 +103,39 @@ class StorageIntegrationTest {
                 assertEquals(storage, it, true)
             }
 
-        mockMvc.perform {
-            put("/api/storage/{key}?version={version}", "lagret-filter", "42")
-                .content(storage)
-                .buildRequest(it)
-        }.andExpect(status().isConflict)
+        mockMvc
+            .perform {
+                put("/api/storage/{key}?version={version}", "lagret-filter", "42")
+                    .content(storage)
+                    .buildRequest(it)
+            }
+            .andExpect(status().isConflict)
+            .andExpect(header().stringValues("version", "2"))
+            .andReturn().response.contentAsString.also {
+                assertEquals(storage, it, true)
+            }
 
-        mockMvc.perform {
-            delete("/api/storage/{key}?version={version}", "lagret-filter", "42")
-                .buildRequest(it)
-        }.andExpect(status().isConflict)
+        mockMvc
+            .perform {
+                delete("/api/storage/{key}?version={version}", "lagret-filter", "42")
+                    .buildRequest(it)
+            }
+            .andExpect(status().isConflict)
+            .andExpect(header().stringValues("version", "2"))
+            .andReturn().response.contentAsString.also {
+                assertEquals(storage, it, true)
+            }
 
-        mockMvc.perform {
-            delete("/api/storage/{key}", "lagret-filter")
-                .buildRequest(it)
-        }.andExpect(status().isOk)
+        mockMvc
+            .perform {
+                delete("/api/storage/{key}", "lagret-filter")
+                    .buildRequest(it)
+            }
+            .andExpect(status().isOk)
+            .andExpect(header().stringValues("version", "2"))
+            .andReturn().response.contentAsString.also {
+                assertEquals(storage, it, true)
+            }
 
         mockMvc
             .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
