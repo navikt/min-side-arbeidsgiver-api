@@ -1,0 +1,19 @@
+name: Deploy dev
+on:
+  workflow_dispatch:
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}/min-side-arbeidsgiver-api:${{ github.sha }}
+
+jobs:
+  deploy-dev-gcp:
+    name: Deploy dev (dev-gcp)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-gcp
+          VAR: image=${{ env.IMAGE }}
+          RESOURCE: nais/dev-env.yaml
