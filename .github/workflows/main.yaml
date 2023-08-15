@@ -39,7 +39,7 @@ jobs:
     name: Bygg
     needs: test
     ### VALG AV DEV-BRANCH SETTES HER:
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/remove_demo_profile'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/TAG-2131_storage_api'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
