@@ -1,5 +1,8 @@
 package no.nav.arbeidsgiver.min_side.controller
 
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.Companion.ACR_CLAIM_NEW
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.Companion.ACR_CLAIM_OLD
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.Companion.TOKENX
 import no.nav.arbeidsgiver.min_side.services.storage.StaleStorageException
 import no.nav.arbeidsgiver.min_side.services.storage.StorageEntry
 import no.nav.arbeidsgiver.min_side.services.storage.StorageService
@@ -10,8 +13,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @ProtectedWithClaims(
-    issuer = AuthenticatedUserHolder.TOKENX,
-    claimMap = [AuthenticatedUserHolder.REQUIRED_LOGIN_LEVEL]
+    issuer = TOKENX,
+    claimMap = [ACR_CLAIM_OLD, ACR_CLAIM_NEW],
+    combineWithOr = true,
 )
 @RestController
 class StorageController(
