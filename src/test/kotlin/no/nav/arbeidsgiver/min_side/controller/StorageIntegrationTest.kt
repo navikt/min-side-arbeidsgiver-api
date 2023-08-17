@@ -1,17 +1,16 @@
 package no.nav.arbeidsgiver.min_side.controller
 
+import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.mockserver.MockServer
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.`when`
 import org.skyscreamer.jsonassert.JSONAssert.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.http.MediaType
-import org.springframework.test.annotation.DirtiesContext
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -21,17 +20,15 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
     properties = [
         "server.servlet.context-path=/",
         "spring.flyway.cleanDisabled=false",
-        "tokensupport.enabled=false",
     ]
 )
 @AutoConfigureMockMvc
-@DirtiesContext
 class StorageIntegrationTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
-    @MockBean
-    lateinit var authenticatedUserHolder: AuthenticatedUserHolder
+    @MockBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
+    lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
     lateinit var flyway: Flyway
@@ -40,14 +37,15 @@ class StorageIntegrationTest {
     fun setup() {
         flyway.clean()
         flyway.migrate()
-
-        `when`(authenticatedUserHolder.fnr).thenReturn("42")
     }
 
     @Test
     fun `no filter, no content`() {
         mockMvc
-            .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
+            .perform(
+                get("/api/storage/{key}", "lagret-filter")
+                    .with(jwtWithPid("42"))
+            )
             .andExpect(status().isNoContent)
     }
 
@@ -60,69 +58,34 @@ class StorageIntegrationTest {
         """
 
         mockMvc
-            .perform {
-                put("/api/storage/{key}", "lagret-filter").content(storage).buildRequest(it)
-            }
-            .andExpect(status().isOk)
-            .andExpect(header().stringValues("version", "1"))
-            .andReturn().response.contentAsString.also {
-                assertEquals(storage, it, true)
-            }
-
-        mockMvc
-            .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk)
-            .andExpect(header().stringValues("version", "1"))
-            .andReturn().response.contentAsString.also {
-                assertEquals(storage, it, true)
-            }
-
-        mockMvc
-            .perform {
-                put("/api/storage/{key}", "lagret-filter").content(storage).buildRequest(it)
-            }
-            .andExpect(status().isOk)
-            .andExpect(header().stringValues("version", "2"))
-            .andReturn().response.contentAsString.also {
-                assertEquals(storage, it, true)
-            }
-
-        mockMvc
-            .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk)
-            .andExpect(header().stringValues("version", "2"))
-            .andReturn().response.contentAsString.also {
-                assertEquals(storage, it, true)
-            }
-
-        mockMvc
-            .perform {
-                put("/api/storage/{key}?version={version}", "lagret-filter", "42")
+            .perform(
+                put("/api/storage/{key}", "lagret-filter")
+                    .with(jwtWithPid("42"))
                     .content(storage)
-                    .buildRequest(it)
-            }
-            .andExpect(status().isConflict)
-            .andExpect(header().stringValues("version", "2"))
+            )
+            .andExpect(status().isOk)
+            .andExpect(header().stringValues("version", "1"))
             .andReturn().response.contentAsString.also {
                 assertEquals(storage, it, true)
             }
 
         mockMvc
-            .perform {
-                delete("/api/storage/{key}?version={version}", "lagret-filter", "42")
-                    .buildRequest(it)
-            }
-            .andExpect(status().isConflict)
-            .andExpect(header().stringValues("version", "2"))
+            .perform(
+                get("/api/storage/{key}", "lagret-filter")
+                    .with(jwtWithPid("42"))
+            )
+            .andExpect(status().isOk)
+            .andExpect(header().stringValues("version", "1"))
             .andReturn().response.contentAsString.also {
                 assertEquals(storage, it, true)
             }
 
         mockMvc
-            .perform {
-                delete("/api/storage/{key}", "lagret-filter")
-                    .buildRequest(it)
-            }
+            .perform(
+                put("/api/storage/{key}", "lagret-filter")
+                    .with(jwtWithPid("42"))
+                    .content(storage)
+            )
             .andExpect(status().isOk)
             .andExpect(header().stringValues("version", "2"))
             .andReturn().response.contentAsString.also {
@@ -130,7 +93,55 @@ class StorageIntegrationTest {
             }
 
         mockMvc
-            .perform(get("/api/storage/{key}", "lagret-filter").accept(MediaType.APPLICATION_JSON))
+            .perform(
+                get("/api/storage/{key}", "lagret-filter")
+                    .with(jwtWithPid("42"))
+            )
+            .andExpect(status().isOk)
+            .andExpect(header().stringValues("version", "2"))
+            .andReturn().response.contentAsString.also {
+                assertEquals(storage, it, true)
+            }
+
+        mockMvc
+            .perform(
+                put("/api/storage/{key}?version={version}", "lagret-filter", "42")
+                    .with(jwtWithPid("42"))
+                    .content(storage)
+            )
+            .andExpect(status().isConflict)
+            .andExpect(header().stringValues("version", "2"))
+            .andReturn().response.contentAsString.also {
+                assertEquals(storage, it, true)
+            }
+
+        mockMvc
+            .perform(
+                delete("/api/storage/{key}?version={version}", "lagret-filter", "314")
+                    .with(jwtWithPid("42"))
+            )
+            .andExpect(status().isConflict)
+            .andExpect(header().stringValues("version", "2"))
+            .andReturn().response.contentAsString.also {
+                assertEquals(storage, it, true)
+            }
+
+        mockMvc
+            .perform(
+                delete("/api/storage/{key}", "lagret-filter")
+                    .with(jwtWithPid("42"))
+            )
+            .andExpect(status().isOk)
+            .andExpect(header().stringValues("version", "2"))
+            .andReturn().response.contentAsString.also {
+                assertEquals(storage, it, true)
+            }
+
+        mockMvc
+            .perform(
+                get("/api/storage/{key}", "lagret-filter")
+                    .with(jwtWithPid("42"))
+            )
             .andExpect(status().isNoContent)
     }
 

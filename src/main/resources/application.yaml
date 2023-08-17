@@ -5,6 +5,7 @@ server:
     context-path: /ditt-nav-arbeidsgiver-api
 
 management:
+  security.enabled: false
   endpoints.web:
     exposure.include: info, health, metrics, prometheus
     base-path: /internal/actuator
@@ -63,14 +64,15 @@ spring:
     enabled: true
   datasource:
     url: jdbc:postgresql://localhost:2345/msa?user=postgres&password=postgres
+  security:
+    oauth2.resourceserver.jwt:
+      issuer-uri: http://localhost:${mock-oauth2-server.port}/issuer1
+      #issuer-uri: http://localhost:${mock-oauth2-server.port}/issuer1/.well-known/openid-configuration
+      audiences: someaudience
 
 
 nais.cluster.name: local
 
-no.nav.security.jwt.issuer:
-  tokenx:
-    discoveryurl: http://localhost:${mock-oauth2-server.port}/issuer1/.well-known/openid-configuration
-    accepted_audience: someaudience
 
 mock:
   enabled: true
@@ -98,11 +100,11 @@ spring:
   config:
     activate:
       on-profile: dev-gcp
+  security:
+    oauth2.resourceserver.jwt:
+      issuer-uri: ${TOKEN_X_ISSUER}
+      audiences:  ${TOKEN_X_CLIENT_ID}
 
-no.nav.security.jwt.issuer:
-  tokenx:
-    discoveryurl: ${TOKEN_X_WELL_KNOWN_URL}
-    accepted_audience: ${TOKEN_X_CLIENT_ID}
 
 altinn:
   altinnHeader: ${ALTINN_HEADER}
@@ -125,11 +127,10 @@ spring:
   config:
     activate:
       on-profile: prod-gcp
-
-no.nav.security.jwt.issuer:
-  tokenx:
-    discoveryurl: ${TOKEN_X_WELL_KNOWN_URL}
-    accepted_audience: ${TOKEN_X_CLIENT_ID}
+  security:
+    oauth2.resourceserver.jwt:
+      issuer-uri: ${TOKEN_X_ISSUER}
+      audiences: ${TOKEN_X_CLIENT_ID}
 
 altinn:
   altinnHeader: ${ALTINN_HEADER}

@@ -1,5 +1,7 @@
 package no.nav.arbeidsgiver.min_side.controller
 
+import no.nav.arbeidsgiver.min_side.SecurityConfiguration
+import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.junit.jupiter.api.Test
@@ -9,16 +11,21 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
+@MockBean(JwtDecoder::class)
 @WebMvcTest(
-    value = [OrganisasjonController::class],
+    value = [
+        OrganisasjonController::class,
+        SecurityConfiguration::class,
+        AuthenticatedUserHolder::class,
+    ],
     properties = [
         "server.servlet.context-path=/",
-        "tokensupport.enabled=false",
     ]
 )
 class OrganisasjonControllerTest {
@@ -26,14 +33,10 @@ class OrganisasjonControllerTest {
     lateinit var mockMvc: MockMvc
 
     @MockBean
-    lateinit var authenticatedUserHolder: AuthenticatedUserHolder
-
-    @MockBean
     lateinit var altinnService: AltinnService
 
     @Test
     fun hentOrganisasjoner() {
-        `when`(authenticatedUserHolder.fnr).thenReturn("42")
         `when`(altinnService.hentOrganisasjoner("42")).thenReturn(
             listOf(
                 Organisasjon(
@@ -51,7 +54,11 @@ class OrganisasjonControllerTest {
         )
 
         val jsonResponse = mockMvc
-            .perform(get("/api/organisasjoner").accept(MediaType.APPLICATION_JSON))
+            .perform(
+                get("/api/organisasjoner")
+                    .with(jwtWithPid("42"))
+                    .accept(MediaType.APPLICATION_JSON)
+            )
             .andDo(print())
             .andExpect(status().isOk)
             .andReturn().response.contentAsString
@@ -85,7 +92,6 @@ class OrganisasjonControllerTest {
     fun hentRettigheter() {
         val serviceKode = "1234"
         val serviceEdition = "1"
-        `when`(authenticatedUserHolder.fnr).thenReturn("42")
         `when`(altinnService.hentOrganisasjonerBasertPaRettigheter("42", serviceKode, serviceEdition)).thenReturn(
             listOf(
                 Organisasjon(
@@ -103,7 +109,11 @@ class OrganisasjonControllerTest {
         )
 
         val jsonResponse = mockMvc
-            .perform(get("/api/rettigheter-til-skjema?serviceKode=$serviceKode&serviceEdition=$serviceEdition").accept(MediaType.APPLICATION_JSON))
+            .perform(
+                get("/api/rettigheter-til-skjema?serviceKode=$serviceKode&serviceEdition=$serviceEdition")
+                    .with(jwtWithPid("42"))
+                    .accept(MediaType.APPLICATION_JSON)
+            )
             .andDo(print())
             .andExpect(status().isOk)
             .andReturn().response.contentAsString

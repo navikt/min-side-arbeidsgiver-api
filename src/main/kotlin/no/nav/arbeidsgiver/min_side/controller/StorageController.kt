@@ -1,22 +1,13 @@
 package no.nav.arbeidsgiver.min_side.controller
 
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.Companion.ACR_CLAIM_NEW
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.Companion.ACR_CLAIM_OLD
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.Companion.TOKENX
 import no.nav.arbeidsgiver.min_side.services.storage.StaleStorageException
 import no.nav.arbeidsgiver.min_side.services.storage.StorageEntry
 import no.nav.arbeidsgiver.min_side.services.storage.StorageService
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-@ProtectedWithClaims(
-    issuer = TOKENX,
-    claimMap = [ACR_CLAIM_OLD, ACR_CLAIM_NEW],
-    combineWithOr = true,
-)
 @RestController
 class StorageController(
     val storageService: StorageService,

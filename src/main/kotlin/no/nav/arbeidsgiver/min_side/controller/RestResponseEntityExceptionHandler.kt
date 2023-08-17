@@ -6,7 +6,6 @@ import io.ktor.http.HttpStatusCode.Companion.GatewayTimeout
 import io.ktor.http.HttpStatusCode.Companion.ServiceUnavailable
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.error.exceptions.AltinnrettigheterProxyKlientFallbackException
 import no.nav.arbeidsgiver.min_side.config.logger
-import no.nav.security.token.support.spring.validation.interceptor.JwtTokenUnauthorizedException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -52,7 +51,7 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
     fun handleForbidden(e: RuntimeException, ignored: WebRequest?) =
         getResponseEntity(e, "ingen tilgang", HttpStatus.FORBIDDEN)
 
-    @ExceptionHandler(JwtTokenUnauthorizedException::class, Unauthorized::class)
+    @ExceptionHandler(Unauthorized::class)
     @ResponseBody
     fun handleUnauthorized(e: RuntimeException, ignored: WebRequest?) =
         getResponseEntity(e, "ingen tilgang", HttpStatus.UNAUTHORIZED)
