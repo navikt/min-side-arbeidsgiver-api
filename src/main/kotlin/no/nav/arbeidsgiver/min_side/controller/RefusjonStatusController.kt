@@ -1,5 +1,8 @@
 package no.nav.arbeidsgiver.min_side.controller
 
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.Companion.ACR_CLAIM_NEW
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.Companion.ACR_CLAIM_OLD
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder.Companion.TOKENX
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
@@ -12,8 +15,9 @@ private const val TJENESTEKODE = "4936"
 private const val TJENESTEVERSJON = "1"
 
 @ProtectedWithClaims(
-    issuer = AuthenticatedUserHolder.TOKENX,
-    claimMap = [AuthenticatedUserHolder.REQUIRED_LOGIN_LEVEL]
+    issuer = TOKENX,
+    claimMap = [ACR_CLAIM_OLD, ACR_CLAIM_NEW],
+    combineWithOr = true,
 )
 @RestController
 class RefusjonStatusController(

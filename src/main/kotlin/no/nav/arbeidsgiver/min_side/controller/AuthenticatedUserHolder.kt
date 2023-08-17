@@ -22,6 +22,7 @@ class AuthenticatedUserHolder(private val requestContextHolder: TokenValidationC
 
     companion object {
         const val TOKENX = "tokenx"
-        const val REQUIRED_LOGIN_LEVEL = "acr=Level4"
+        const val ACR_CLAIM_OLD = "acr=Level4"
+        const val ACR_CLAIM_NEW = "acr=idporten-loa-high"
     }
 }
