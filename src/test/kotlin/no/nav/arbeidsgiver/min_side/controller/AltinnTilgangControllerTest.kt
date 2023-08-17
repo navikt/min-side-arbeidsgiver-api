@@ -2,6 +2,7 @@ package no.nav.arbeidsgiver.min_side.controller
 
 import no.nav.arbeidsgiver.min_side.SecurityConfiguration
 import no.nav.arbeidsgiver.min_side.clients.altinn.AltinnTilgangssøknadClient
+import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknad
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknadsskjema
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
@@ -12,29 +13,28 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@MockBeans(
-    MockBean(JwtDecoder::class),
-)
+@MockBean(JwtDecoder::class)
 @WebMvcTest(
-    value = [AltinnTilgangController::class, SecurityConfiguration::class],
-    properties = ["server.servlet.context-path=/"]
+    value = [
+        AltinnTilgangController::class,
+        SecurityConfiguration::class,
+        AuthenticatedUserHolder::class,
+    ],
+    properties = [
+        "server.servlet.context-path=/"
+    ]
 )
 class AltinnTilgangControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
-
-    @MockBean
-    lateinit var authenticatedUserHolder: AuthenticatedUserHolder
 
     @MockBean
     lateinit var altinnTilgangssøknadClient: AltinnTilgangssøknadClient
@@ -44,7 +44,6 @@ class AltinnTilgangControllerTest {
 
     @Test
     fun mineSøknaderOmTilgang() {
-        `when`(authenticatedUserHolder.fnr).thenReturn("42")
         val altinnTilgangssøknad = AltinnTilgangssøknad()
         altinnTilgangssøknad.orgnr = "314"
         altinnTilgangssøknad.serviceCode = "13337"
@@ -56,7 +55,11 @@ class AltinnTilgangControllerTest {
         `when`(altinnTilgangssøknadClient.hentSøknader("42")).thenReturn(listOf(altinnTilgangssøknad))
 
         val jsonResponse = mockMvc
-            .perform(get("/api/altinn-tilgangssoknad").with(jwt()).accept(MediaType.APPLICATION_JSON))
+            .perform(
+                get("/api/altinn-tilgangssoknad")
+                    .with(jwtWithPid("42"))
+                    .accept(MediaType.APPLICATION_JSON)
+            )
             .andDo(print())
             .andExpect(status().isOk)
             .andReturn().response.contentAsString
@@ -96,24 +99,36 @@ class AltinnTilgangControllerTest {
         søknad.lastChangedDateTime = "whenever"
         søknad.submitUrl = "https://yolo.com"
 
-        `when`(authenticatedUserHolder.fnr).thenReturn("42")
-        `when`(altinnService.hentOrganisasjoner("42")).thenReturn(listOf(Organisasjon(null, null, null, "314", null, null)))
+        `when`(altinnService.hentOrganisasjoner("42")).thenReturn(
+            listOf(
+                Organisasjon(
+                    null,
+                    null,
+                    null,
+                    "314",
+                    null,
+                    null
+                )
+            )
+        )
         `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenReturn(søknad)
 
         val jsonResponse = mockMvc
             .perform(
                 post("/api/altinn-tilgangssoknad")
-                    .with(jwt())
+                    .with(jwtWithPid("42"))
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("""
+                    .content(
+                        """
                         {
                             "orgnr": "${skjema.orgnr}",
                             "redirectUrl": "${skjema.redirectUrl}",
                             "serviceCode": "${skjema.serviceCode}",
                             "serviceEdition": ${skjema.serviceEdition}
                         }
-                    """)
+                    """
+                    )
             )
             .andDo(print())
             .andExpect(status().isOk)

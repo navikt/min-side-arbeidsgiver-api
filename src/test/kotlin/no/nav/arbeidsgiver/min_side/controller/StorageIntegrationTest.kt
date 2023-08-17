@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.controller
 
+import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.mockserver.MockServer
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.BeforeEach
@@ -9,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -25,7 +23,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
     ]
 )
 @AutoConfigureMockMvc
-@DirtiesContext
 class StorageIntegrationTest {
     @Autowired
     lateinit var mockMvc: MockMvc
@@ -147,10 +144,5 @@ class StorageIntegrationTest {
             )
             .andExpect(status().isNoContent)
     }
-
-    private fun jwtWithPid(pid: String): SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor =
-        SecurityMockMvcRequestPostProcessors
-            .jwt()
-            .jwt(Jwt("tokenvalue", null, null, mapOf("alg" to "foo"), mapOf("pid" to pid)))
 
 }

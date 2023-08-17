@@ -1,6 +1,7 @@
 package no.nav.arbeidsgiver.min_side.controller
 
 import no.nav.arbeidsgiver.min_side.SecurityConfiguration
+import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
@@ -11,28 +12,25 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@MockBeans(
-    MockBean(JwtDecoder::class),
-)
+@MockBean(JwtDecoder::class)
 @WebMvcTest(
-    value = [RefusjonStatusController::class, SecurityConfiguration::class],
+    value = [
+        RefusjonStatusController::class,
+        SecurityConfiguration::class,
+        AuthenticatedUserHolder::class
+    ],
     properties = ["server.servlet.context-path=/"]
 )
 class RefusjonStatusControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
-
-    @MockBean
-    lateinit var authenticatedUserHolder: AuthenticatedUserHolder
 
     @MockBean
     lateinit var altinnService: AltinnService
@@ -45,18 +43,26 @@ class RefusjonStatusControllerTest {
         val orgnr1 = "314"
         val orgnr2 = "315"
 
-        Mockito.`when`(authenticatedUserHolder.fnr).thenReturn("42")
-        Mockito.`when`(altinnService.hentOrganisasjonerBasertPaRettigheter(anyString(), anyString(), anyString())).thenReturn(listOf(
-            organisasjon(orgnr1),
-            organisasjon(orgnr2),
-        ))
-        Mockito.`when`(refusjonStatusRepository.statusoversikt(listOf(orgnr1, orgnr2))).thenReturn(listOf(
-            statusoversikt(orgnr1, mapOf("ny" to 1, "gammel" to 2)),
-            statusoversikt(orgnr2, mapOf("ny" to 3, "gammel" to 4)),
-        ))
+        Mockito.`when`(altinnService.hentOrganisasjonerBasertPaRettigheter(anyString(), anyString(), anyString()))
+            .thenReturn(
+                listOf(
+                    organisasjon(orgnr1),
+                    organisasjon(orgnr2),
+                )
+            )
+        Mockito.`when`(refusjonStatusRepository.statusoversikt(listOf(orgnr1, orgnr2))).thenReturn(
+            listOf(
+                statusoversikt(orgnr1, mapOf("ny" to 1, "gammel" to 2)),
+                statusoversikt(orgnr2, mapOf("ny" to 3, "gammel" to 4)),
+            )
+        )
 
         val jsonResponse = mockMvc
-            .perform(get("/api/refusjon_status").with(jwt()).accept(MediaType.APPLICATION_JSON))
+            .perform(
+                get("/api/refusjon_status")
+                    .with(jwtWithPid("42"))
+                    .accept(MediaType.APPLICATION_JSON)
+            )
             .andDo(print())
             .andExpect(status().isOk)
             .andReturn().response.contentAsString
