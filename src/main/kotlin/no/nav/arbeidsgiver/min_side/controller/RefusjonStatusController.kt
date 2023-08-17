@@ -3,7 +3,6 @@ package no.nav.arbeidsgiver.min_side.controller
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -11,10 +10,6 @@ import org.springframework.web.bind.annotation.RestController
 private const val TJENESTEKODE = "4936"
 private const val TJENESTEVERSJON = "1"
 
-@ProtectedWithClaims(
-    issuer = AuthenticatedUserHolder.TOKENX,
-    claimMap = [AuthenticatedUserHolder.REQUIRED_LOGIN_LEVEL]
-)
 @RestController
 class RefusjonStatusController(
     private val altinnService: AltinnService,

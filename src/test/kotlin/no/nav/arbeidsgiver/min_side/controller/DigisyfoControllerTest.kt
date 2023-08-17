@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.controller
 
+import no.nav.arbeidsgiver.min_side.SecurityConfiguration
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
 import org.junit.jupiter.api.Test
@@ -8,15 +9,21 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
+@MockBeans(
+    MockBean(JwtDecoder::class),
+)
 @WebMvcTest(
-    value = [DigisyfoController::class],
-    properties = ["server.servlet.context-path=/", "tokensupport.enabled=false"]
+    value = [DigisyfoController::class, SecurityConfiguration::class],
+    properties = ["server.servlet.context-path=/"]
 )
 class DigisyfoControllerTest {
     @Autowired
@@ -41,7 +48,7 @@ class DigisyfoControllerTest {
         )
 
         val jsonResponse = mockMvc
-            .perform(get("/api/narmesteleder/virksomheter-v3").accept(MediaType.APPLICATION_JSON))
+            .perform(get("/api/narmesteleder/virksomheter-v3").with(jwt()).accept(MediaType.APPLICATION_JSON))
             .andDo(print())
             .andExpect(status().isOk)
             .andReturn().response.contentAsString

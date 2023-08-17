@@ -3,16 +3,11 @@ package no.nav.arbeidsgiver.min_side.controller
 import no.nav.arbeidsgiver.min_side.services.storage.StaleStorageException
 import no.nav.arbeidsgiver.min_side.services.storage.StorageEntry
 import no.nav.arbeidsgiver.min_side.services.storage.StorageService
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-@ProtectedWithClaims(
-    issuer = AuthenticatedUserHolder.TOKENX,
-    claimMap = [AuthenticatedUserHolder.REQUIRED_LOGIN_LEVEL]
-)
 @RestController
 class StorageController(
     val storageService: StorageService,

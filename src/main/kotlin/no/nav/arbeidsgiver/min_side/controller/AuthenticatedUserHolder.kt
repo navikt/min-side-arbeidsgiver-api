@@ -1,27 +1,28 @@
 package no.nav.arbeidsgiver.min_side.controller
 
-import no.nav.security.token.support.core.context.TokenValidationContextHolder
-import no.nav.security.token.support.core.jwt.JwtToken
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Component
 
+
 @Component
-class AuthenticatedUserHolder(private val requestContextHolder: TokenValidationContextHolder) {
+class AuthenticatedUserHolder {
     val fnr: String
-        get() = jwtToken.jwtTokenClaims.getStringClaim("pid")
+        get() = if (authentication is JwtAuthenticationToken) {
+            (authentication as JwtAuthenticationToken).token.getClaimAsString("pid")
+        } else {
+            throw RuntimeException("no valid token. auth: ${authentication.javaClass}")
+        }
+
     val token: String
-        get() = jwtToken.tokenAsString
+        get() = if (authentication is JwtAuthenticationToken) {
+            (authentication as JwtAuthenticationToken).token.getClaimAsString("pid")
+        } else {
+            // used by feature toggle service
+            "anonymous"
+        }
 
-    private val jwtToken: JwtToken
-        get() = requestContextHolder.tokenValidationContext
-            .firstValidToken
-            .orElseThrow {
-                NoSuchElementException(
-                    "no valid token. how did you get so far without a valid token?"
-                )
-            }
-
-    companion object {
-        const val TOKENX = "tokenx"
-        const val REQUIRED_LOGIN_LEVEL = "acr=Level4"
-    }
+    private val authentication: Authentication
+        get() = SecurityContextHolder.getContext().authentication
 }
