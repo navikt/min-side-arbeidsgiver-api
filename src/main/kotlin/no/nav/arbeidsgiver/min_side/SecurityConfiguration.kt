@@ -11,7 +11,7 @@ import org.springframework.security.oauth2.jwt.*
 import org.springframework.security.oauth2.jwt.JwtClaimNames.AUD
 import org.springframework.security.web.SecurityFilterChain
 
-
+// https://doc.nais.io/security/auth/concepts/tokens/#token-validation
 // https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html
 @Configuration
 @EnableWebSecurity
@@ -42,14 +42,9 @@ class SecurityConfiguration {
         return JwtDecoders.fromIssuerLocation<NimbusJwtDecoder>(issuerUri).apply {
             setJwtValidator(
                 DelegatingOAuth2TokenValidator(
-                    //JwtTimestampValidator(),
-                    JwtIssuerValidator(issuerUri),
+                    JwtValidators.createDefaultWithIssuer(issuerUri),
                     JwtClaimValidator<String>("acr") { it == "Level4" || it == "idporten-loa-high" },
-                    JwtClaimValidator(AUD) { aud: List<String>? ->
-                        aud?.any { allowedAudiences.contains(it) } ?: false
-                    },
-                    //JwtClaimValidator<String>("azp") {  it?.isNotBlank() ?: false},
-                    //JwtClaimValidator<String>("azp_name") { it?.isNotBlank() ?: false },
+                    JwtClaimValidator(AUD) { aud: List<String> -> aud.any { allowedAudiences.contains(it) }},
                 )
             )
         }
