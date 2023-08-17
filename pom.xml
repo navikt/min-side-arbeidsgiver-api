@@ -139,12 +139,6 @@
             <version>7.3</version>
         </dependency>
 
-        <!--Unleash-->
-        <dependency>
-            <groupId>no.finn.unleash</groupId>
-            <artifactId>unleash-client-java</artifactId>
-            <version>4.4.1</version>
-        </dependency>
         <!--Metrikker-->
         <dependency>
             <groupId>io.micrometer</groupId>

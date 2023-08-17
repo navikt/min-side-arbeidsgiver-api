@@ -24,7 +24,6 @@ class SecurityConfiguration {
             oauth2ResourceServer { jwt { } }
             authorizeRequests {
                 authorize("/internal/actuator/**", permitAll)
-                authorize("/api/feature", permitAll)
                 authorize("/api/**", authenticated)
                 authorize(anyRequest, denyAll)
             }

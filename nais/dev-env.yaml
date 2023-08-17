@@ -46,6 +46,5 @@ spec:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
       external:
-        - host: unleash.nais.io
         - host: api-gw-q1.oera.no
         - host: ereg-services.dev-fss-pub.nais.io
