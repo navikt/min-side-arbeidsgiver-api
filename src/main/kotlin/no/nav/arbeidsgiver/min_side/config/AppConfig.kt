@@ -17,6 +17,7 @@ import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.client.RestTemplate
+import org.springframework.web.filter.CharacterEncodingFilter
 import org.springframework.web.filter.OncePerRequestFilter
 import java.util.*
 
@@ -120,6 +121,9 @@ class AppConfig {
             return request.requestURI.contains("internal/actuator")
         }
     }
+
+    @Bean
+    fun characterEncodingFilter() = CharacterEncodingFilter("UTF-8", true)
 }
 
 inline fun <reified T : Any> T.logger(): Logger = LoggerFactory.getLogger(this::class.java)
