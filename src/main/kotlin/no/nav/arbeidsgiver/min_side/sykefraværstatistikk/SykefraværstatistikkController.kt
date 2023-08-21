@@ -2,7 +2,6 @@ package no.nav.arbeidsgiver.min_side.sykefraværstatistikk
 
 import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,17 +26,16 @@ class SykefraværstatistikkController(
     fun getStatistikk(
         @PathVariable orgnr: String,
     ): ResponseEntity<StatistikkRespons> {
-        val erRepresentantMedTilgang = altinnService
+        val org = altinnService
             .hentOrganisasjonerBasertPaRettigheter(authenticatedUserHolder.fnr, tjenestekode, tjenesteversjon)
-            .mapNotNull(Organisasjon::organizationNumber)
-            .contains(orgnr)
+            .firstOrNull { it.organizationNumber == orgnr }
 
-        return if (erRepresentantMedTilgang) {
+        return if (org != null) {
             // TODO: skal vi ikke falle tilbake på bransje/næring dersom virksomhetsstatistikk finnes i databasen?
-            return sykefraværstatistikkRepository.virksomhetstatistikk(orgnr)?.let {
+            sykefraværstatistikkRepository.virksomhetstatistikk(orgnr)?.let {
                 StatistikkRespons(
                     type = it.kategori,
-                    label = it.kode, // TODO: ta vare på navn på org fra tilgangssjekken over
+                    label = org.name ?: it.kode,
                     prosent = it.prosent,
                 )
             }.asResponseEntity()

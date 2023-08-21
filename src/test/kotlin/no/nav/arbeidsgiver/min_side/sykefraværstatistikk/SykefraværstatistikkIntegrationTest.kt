@@ -91,11 +91,11 @@ class SykefraværstatistikkIntegrationTest {
                     """
                     {
                         "type": "VIRKSOMHET",
-                        "label": "123",
+                        "label": "Foo & Co",
                         "prosent": 3.14
                     }
                 """, it, true
-                ) // TODO: "label": "Foo & Co"
+                )
             }
     }
 
