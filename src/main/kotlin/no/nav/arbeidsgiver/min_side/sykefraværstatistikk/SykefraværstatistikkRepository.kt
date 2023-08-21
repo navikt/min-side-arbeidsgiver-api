@@ -114,7 +114,7 @@ class SykefraværstatistikkKafkaListener(
 ) {
     @Profile("dev-gcp", "prod-gcp")
     @KafkaListener(
-        id = "min-side-arbeidsgiver-1",
+        id = "min-side-arbeidsgiver-sfmeta-1",
         topics = ["arbeidsgiver.sykefravarsstatistikk-metadata-virksomhet-v1"],
         containerFactory = "errorLoggingKafkaListenerContainerFactory"
     )
@@ -125,7 +125,7 @@ class SykefraværstatistikkKafkaListener(
 
     @Profile("dev-gcp", "prod-gcp")
     @KafkaListener(
-        id = "min-side-arbeidsgiver-1",
+        id = "min-side-arbeidsgiver-sfstats-1",
         topics = [
             "arbeidsgiver.sykefravarsstatistikk-virksomhet-v1",
             "arbeidsgiver.sykefravarsstatistikk-naring-v1",
