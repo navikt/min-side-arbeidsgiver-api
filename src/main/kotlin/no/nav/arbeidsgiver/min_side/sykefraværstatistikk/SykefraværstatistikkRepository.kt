@@ -50,6 +50,7 @@ class SykefraværstatistikkRepository(
                 left join sykefraværstatistikk sb on sb.kategori = 'BRANSJE' and sb.kode = meta.bransje
                 left join sykefraværstatistikk sn on sn.kategori = 'NÆRING' and sn.kode = meta.næring
                 where meta.virksomhetsnummer = :virksomhetsnummer
+                and coalesce(sb.prosent, sn.prosent) is not null
                 order by coalesce(sb.kategori, sn.kategori) 
             """.trimIndent(),
             mapOf("virksomhetsnummer" to virksomhetsnummer)

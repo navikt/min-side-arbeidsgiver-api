@@ -31,13 +31,20 @@ class SykefraværstatistikkController(
             .firstOrNull { it.organizationNumber == orgnr }
 
         return if (org != null) {
-            sykefraværstatistikkRepository.virksomhetstatistikk(orgnr)?.let {
+            val statistikk = sykefraværstatistikkRepository.virksomhetstatistikk(orgnr)?.let {
                 StatistikkRespons(
                     type = it.kategori,
                     label = org.name ?: it.kode,
                     prosent = it.prosent,
                 )
-            }.asResponseEntity()
+            } ?: sykefraværstatistikkRepository.statistikk(orgnr)?.let {
+                StatistikkRespons(
+                    type = it.kategori,
+                    label = it.kode,
+                    prosent = it.prosent,
+                )
+            }
+            statistikk.asResponseEntity()
         } else {
             sykefraværstatistikkRepository.statistikk(orgnr)?.let {
                 StatistikkRespons(

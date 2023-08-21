@@ -211,9 +211,94 @@ class SykefraværstatistikkIntegrationTest {
             }
     }
 
-    // TODO: skal bruker som har tilgang falle tilbake på bransje/næring dersom virksomhetsstatistikk ikke finnes i databasen?
 
-    // TODO: no content dersom ingen statistikk
+
+    @Test
+    fun `bruker med tilgang får statistikk for bransje når virksomhet mangler`() {
+        `when`(
+            altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co")))
+        processMetadataVirksomhet(
+            """
+                {
+                    "orgnr": "123",
+                    "bransje": "Testing",
+                    "naring": "IT"
+                }
+            """
+        )
+        processStatistikkkategori(
+            """
+                {
+                    "kode": "Testing",
+                    "kategori": "BRANSJE",
+                    "sistePubliserteKvartal": {
+                        "prosent": 3.15
+                    },
+                    "siste4Kvartal": {
+                        "prosent": 3.14
+                    }
+                }
+            """
+        )
+        processStatistikkkategori(
+            """
+                {
+                    "kode": "IT",
+                    "kategori": "NÆRING",
+                    "sistePubliserteKvartal": {
+                        "prosent": 3.16
+                    },
+                    "siste4Kvartal": {
+                        "prosent": 3.17
+                    }
+                }
+            """
+        )
+
+
+        mockMvc
+            .perform(
+                get("/api/sykefravaerstatistikk/{orgnr}", "123")
+                    .with(jwtWithPid("42"))
+            )
+            .andExpect(status().isOk)
+            .andReturn().response.contentAsString.also {
+                assertEquals(
+                    """
+                    {
+                        "type": "BRANSJE",
+                        "label": "Testing",
+                        "prosent": 3.14
+                    }
+                """, it, true
+                )
+            }
+    }
+
+    @Test
+    fun `no content dersom statistikk mangler`() {
+        `when`(
+            altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co")))
+        processMetadataVirksomhet(
+            """
+                {
+                    "orgnr": "123",
+                    "bransje": "Testing",
+                    "naring": "IT"
+                }
+            """
+        )
+
+
+        mockMvc
+            .perform(
+                get("/api/sykefravaerstatistikk/{orgnr}", "123")
+                    .with(jwtWithPid("42"))
+            )
+            .andExpect(status().isNoContent)
+    }
 
     private fun processStatistikkkategori(value: String) {
         sykefraværstatistikkKafkaListener.processStatistikkategori(
