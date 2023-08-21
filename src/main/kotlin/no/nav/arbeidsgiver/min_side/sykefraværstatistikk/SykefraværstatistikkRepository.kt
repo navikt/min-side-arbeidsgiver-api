@@ -145,8 +145,6 @@ class SykefraværstatistikkKafkaListener(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MetadataVirksomhetDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
     @param:JsonProperty("orgnr") val virksomhetsnummer: String,
-    //@param:JsonProperty("arstall") val arstall: String, // TODO: holder det med naiv oppslag, eller må vi ta hensyn til arstall og kvartal?
-    //@param:JsonProperty("kvartal") val kvartal: String,
     @param:JsonProperty("naring") val næring: String,
     @param:JsonProperty("bransje") val bransje: String?,
 )
@@ -159,15 +157,13 @@ data class MetadataVirksomhetDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES
 data class StatistikkategoriDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
     @param:JsonProperty("kategori") val kategori: String,
     @param:JsonProperty("kode") val kode: String, // orgnr dersom kategori er VIRKSOMHET, bransje dersom kategori er BRANSJE, osv
-    @param:JsonProperty("sistePubliserteKvartal") val sistKvartal: ProsentWrapper?,
     @param:JsonProperty("siste4Kvartal") val siste4Kvartal: ProsentWrapper?,
 ) {
-    val prosent: Double // TODO: trenger vi fallback eller kommer disse alltid?
-        get() = sistKvartal?.prosent ?: siste4Kvartal?.prosent ?: 0.0
+    val prosent: Double
+        get() = siste4Kvartal?.prosent ?: 0.0
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class ProsentWrapper @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
         @param:JsonProperty("prosent") val prosent: Double,
-        //@param:JsonProperty("erMaskert") val erMaskert: Boolean, // TODO: trenger vi ta hensyn tildette?
     )
 }

@@ -70,10 +70,10 @@ class SykefraværstatistikkIntegrationTest {
                     "kode": "123",
                     "kategori": "VIRKSOMHET",
                     "sistePubliserteKvartal": {
-                        "prosent": 3.14
+                        "prosent": 3.15
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.15
+                        "prosent": 3.14
                     }
                 }
             """
@@ -119,10 +119,10 @@ class SykefraværstatistikkIntegrationTest {
                     "kode": "Testing",
                     "kategori": "BRANSJE",
                     "sistePubliserteKvartal": {
-                        "prosent": 3.14
+                        "prosent": 3.15
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.15
+                        "prosent": 3.14
                     }
                 }
             """
@@ -182,10 +182,10 @@ class SykefraværstatistikkIntegrationTest {
                     "kode": "IT",
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
-                        "prosent": 3.14
+                        "prosent": 3.15
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.15
+                        "prosent": 3.14
                     }
                 }
             """
@@ -213,6 +213,7 @@ class SykefraværstatistikkIntegrationTest {
 
     // TODO: skal bruker som har tilgang falle tilbake på bransje/næring dersom virksomhetsstatistikk ikke finnes i databasen?
 
+    // TODO: no content dersom ingen statistikk
 
     private fun processStatistikkkategori(value: String) {
         sykefraværstatistikkKafkaListener.processStatistikkategori(

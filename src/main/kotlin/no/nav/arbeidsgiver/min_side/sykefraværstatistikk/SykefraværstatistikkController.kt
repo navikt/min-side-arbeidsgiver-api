@@ -31,7 +31,6 @@ class SykefraværstatistikkController(
             .firstOrNull { it.organizationNumber == orgnr }
 
         return if (org != null) {
-            // TODO: skal vi ikke falle tilbake på bransje/næring dersom virksomhetsstatistikk finnes i databasen?
             sykefraværstatistikkRepository.virksomhetstatistikk(orgnr)?.let {
                 StatistikkRespons(
                     type = it.kategori,
