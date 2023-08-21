@@ -82,7 +82,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefraværstatistikk/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isOk)
@@ -145,7 +145,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefraværstatistikk/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isOk)
@@ -194,7 +194,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefraværstatistikk/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isOk)

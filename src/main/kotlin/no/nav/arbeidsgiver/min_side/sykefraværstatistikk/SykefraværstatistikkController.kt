@@ -22,7 +22,7 @@ class SykefraværstatistikkController(
         other = { "1" },
     )
 
-    @GetMapping("/api/sykefraværstatistikk/{orgnr}")
+    @GetMapping("/api/sykefravaerstatistikk/{orgnr}")
     fun getStatistikk(
         @PathVariable orgnr: String,
     ): ResponseEntity<StatistikkRespons> {
