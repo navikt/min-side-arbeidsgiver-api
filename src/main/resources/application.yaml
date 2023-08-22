@@ -67,7 +67,6 @@ spring:
   security:
     oauth2.resourceserver.jwt:
       issuer-uri: http://localhost:${mock-oauth2-server.port}/issuer1
-      #issuer-uri: http://localhost:${mock-oauth2-server.port}/issuer1/.well-known/openid-configuration
       audiences: someaudience
 
 

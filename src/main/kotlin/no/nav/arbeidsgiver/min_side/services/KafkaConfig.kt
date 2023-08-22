@@ -28,7 +28,7 @@ class KafkaConfig {
         errorHandler.setRetryListeners(
             RetryListener { r: ConsumerRecord<*, *>, ex: Exception, attempt: Int ->
                 log.error(
-                    "KafkaListener failed. attempt={} topic={} parition={} offset={} key={}  exception={}",
+                    "KafkaListener failed. attempt={} topic={} parition={} offset={} key={} exception={}",
                     attempt, r.topic(), r.partition(), r.offset(), r.key(), ex.javaClass.canonicalName, ex
                 )
             }
