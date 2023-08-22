@@ -83,10 +83,6 @@ class SykefraværstatistikkRepository(
     }
 
     fun processStatistikkategori(statistikkategori: StatistikkategoriDto) {
-        //if (!listOf("NÆRING", "BRANSJE", "VIRKSOMHET").contains(statistikkategori.kategori)) {
-        //    return
-        //}
-
         jdbcTemplate.update(
             """
             insert into sykefraværstatistikk(kode, kategori, prosent) 
@@ -125,7 +121,7 @@ class SykefraværstatistikkKafkaListener(
 
     @Profile("dev-gcp", "prod-gcp")
     @KafkaListener(
-        id = "min-side-arbeidsgiver-sfstats-2",
+        id = "min-side-arbeidsgiver-sfstats-1",
         topics = [
             "arbeidsgiver.sykefravarsstatistikk-virksomhet-v1",
             "arbeidsgiver.sykefravarsstatistikk-naring-v1",
