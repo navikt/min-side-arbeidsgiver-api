@@ -2,18 +2,21 @@ name: Deploy dev
 on:
   workflow_dispatch:
 
-env:
-  IMAGE: ghcr.io/${{ github.repository }}/min-side-arbeidsgiver-api:${{ github.sha }}
-
 jobs:
   deploy-dev-gcp:
     name: Deploy dev (dev-gcp)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: nais/login@v0
+        id: login
+        with:
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+          team: fager
       - uses: nais/deploy/actions/deploy@v1
         env:
+          IMAGE: ${{ steps.login.outputs.registry }}/min-side-arbeidsgiver-api:${{ github.sha }}
+          RESOURCE: nais/dev-env.yaml
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
-          VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/dev-env.yaml

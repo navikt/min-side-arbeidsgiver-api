@@ -3,10 +3,6 @@ on:
   push:
   workflow_dispatch:
 
-env:
-  IMAGE_BASE: ghcr.io/${{ github.repository }}/min-side-arbeidsgiver-api
-  IMAGE: ghcr.io/${{ github.repository }}/min-side-arbeidsgiver-api:${{ github.sha }}
-
 jobs:
   test:
     name: Test
@@ -54,17 +50,19 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - uses: docker/build-push-action@v2
+
+    - uses: nais/docker-build-push@v0
+      id: gar-push
       with:
-        context: .
-        push: true
-        tags: |
-          ${{ env.IMAGE }}
-          ${{ env.IMAGE_BASE }}:latest
-        cache-from: type=registry,ref=${{ env.IMAGE_BASE }}:latest
-        cache-to: type=inline
+        team: fager
+        tag: ${{ github.sha }}
+        project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+        identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
 
   deploy-dev-gcp:
+    permissions:
+      contents: "read"
+      id-token: "write"
     name: Deploy dev (dev-gcp)
     needs: bygg
     runs-on: ubuntu-latest
@@ -72,24 +70,39 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v3
+      - uses: nais/login@v0
+        id: login
+        with:
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+          team: fager
       - uses: nais/deploy/actions/deploy@v1
         env:
+          IMAGE: ${{ steps.login.outputs.registry }}/min-side-arbeidsgiver-api:${{ github.sha }}
+          RESOURCE: nais/dev-env.yaml
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
-          VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/dev-env.yaml
 
   deploy-prod-gcp:
+    permissions:
+      contents: "read"
+      id-token: "write"
     name: Deploy prod (prod-gcp)
     needs: deploy-dev-gcp
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: nais/login@v0
+        id: login
+        with:
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+          team: fager
       - uses: nais/deploy/actions/deploy@v1
         env:
+          IMAGE: ${{ steps.login.outputs.registry }}/min-side-arbeidsgiver-api:${{ github.sha }}
+          RESOURCE: nais/prod-env.yaml
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
-          VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/prod-env.yaml
 
