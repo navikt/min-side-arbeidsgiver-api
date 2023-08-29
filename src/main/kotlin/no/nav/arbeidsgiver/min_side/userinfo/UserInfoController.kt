@@ -89,7 +89,7 @@ class UserInfoController(
     @GetMapping("/api/userInfo/v1")
     suspend fun getUserInfo(): UserInfoRespons {
         val (tilganger, organisasjoner) = supervisorScope {
-            val tjenester = tjenester.map { (id, tjeneste) ->
+            val tilganger = tjenester.map { (id, tjeneste) ->
                 async {
                     runCatching {
                         val organisasjonerBasertPaRettigheter = altinnService.hentOrganisasjonerBasertPaRettigheter(
@@ -118,7 +118,7 @@ class UserInfoController(
                 }
             }.await()
 
-            tjenester to organisasjoner
+            tilganger to organisasjoner
         }
 
         return UserInfoRespons(
