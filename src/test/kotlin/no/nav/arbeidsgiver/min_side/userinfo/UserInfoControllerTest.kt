@@ -6,6 +6,7 @@ import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import org.hamcrest.CoreMatchers.notNullValue
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.`when`
@@ -16,8 +17,9 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.request
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @MockBean(JwtDecoder::class)
@@ -66,6 +68,8 @@ class UserInfoControllerTest {
                         organizationForm = "BEDR"
                     ),
                 )
+            } else if (it.arguments[1] == "5516") {
+                throw RuntimeException("Kan ikke hente organisasjoner")
             } else {
                 emptyList()
             }
@@ -76,51 +80,56 @@ class UserInfoControllerTest {
                 get("/api/userInfo/v1")
                     .with(jwtWithPid("42"))
             )
-            .andDo(print())
-            .andExpect(status().isOk)
-            .andReturn().response.contentAsString.let {
-                JSONAssert.assertEquals(
-                    """
-                    {
-                      "organisasjoner": [
-                          {
-                              "Name": "underenhet",
-                              "Type": null,
-                              "ParentOrganizationNumber": "1",
-                              "OrganizationNumber": "10",
-                              "OrganizationForm": "BEDR",
-                              "Status": null
-                          },
-                          {
-                              "Name": "overenhet",
-                              "Type": null,
-                              "ParentOrganizationNumber": null,
-                              "OrganizationNumber": "1",
-                              "OrganizationForm": "AS",
-                              "Status": null
-                          }
-                        ],
-                        "tilganger": [
+            .andExpect(request().asyncStarted())
+            .andExpect(request().asyncResult(notNullValue()))
+            .andReturn().let { mvcresult ->
+                mockMvc.perform(asyncDispatch(mvcresult))
+                    .andExpect(status().isOk)
+                    .andReturn().response.contentAsString.let {
+                        JSONAssert.assertEquals(
+                            """
                             {
-                                "id": "sykefravarstatistikk",
-                                "tjenestekode": "3403",
-                                "tjenesteversjon": "1",
-                                "organisasjoner": [
-                                {
-                                    "Name": "underenhet",
-                                    "Type": null,
-                                    "ParentOrganizationNumber": "1",
-                                    "OrganizationNumber": "10",
-                                    "OrganizationForm": "BEDR",
-                                    "Status": null
-                                }]
+                              "altinnError": true,
+                              "organisasjoner": [
+                                  {
+                                      "Name": "underenhet",
+                                      "Type": null,
+                                      "ParentOrganizationNumber": "1",
+                                      "OrganizationNumber": "10",
+                                      "OrganizationForm": "BEDR",
+                                      "Status": null
+                                  },
+                                  {
+                                      "Name": "overenhet",
+                                      "Type": null,
+                                      "ParentOrganizationNumber": null,
+                                      "OrganizationNumber": "1",
+                                      "OrganizationForm": "AS",
+                                      "Status": null
+                                  }
+                                ],
+                                "tilganger": [
+                                    {
+                                        "id": "sykefravarstatistikk",
+                                        "tjenestekode": "3403",
+                                        "tjenesteversjon": "1",
+                                        "organisasjoner": [
+                                        {
+                                            "Name": "underenhet",
+                                            "Type": null,
+                                            "ParentOrganizationNumber": "1",
+                                            "OrganizationNumber": "10",
+                                            "OrganizationForm": "BEDR",
+                                            "Status": null
+                                        }]
+                                    }
+                                ]
                             }
-                        ]
+                            """,
+                            it,
+                            true
+                        )
                     }
-                    """,
-                    it,
-                    true
-                )
             }
     }
 

@@ -1,5 +1,8 @@
 package no.nav.arbeidsgiver.min_side.userinfo
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.supervisorScope
 import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
@@ -84,35 +87,47 @@ class UserInfoController(
     )
 
     @GetMapping("/api/userInfo/v1")
-    fun getUserInfo(): UserInfoRespons {
-        val organisasjoner = altinnService.hentOrganisasjoner(authenticatedUserHolder.fnr)
-        val tilganger = tjenester.mapNotNull { (id, tjeneste) ->
-            val organisasjonerBasertPaRettigheter = altinnService.hentOrganisasjonerBasertPaRettigheter(
-                authenticatedUserHolder.fnr,
-                tjeneste.tjenestekode,
-                tjeneste.tjenesteversjon
-            )
-            if (organisasjonerBasertPaRettigheter.isEmpty()) {
-                null
-            } else {
-                UserInfoRespons.Tilgang(
-                    id = id,
-                    tjenestekode = tjeneste.tjenestekode,
-                    tjenesteversjon = tjeneste.tjenesteversjon,
-                    organisasjoner = organisasjonerBasertPaRettigheter
-                )
-            }
+    suspend fun getUserInfo(): UserInfoRespons {
+        val organisasjoner = runCatching {
+            altinnService.hentOrganisasjoner(authenticatedUserHolder.fnr)
+        }
+
+        val tilganger = supervisorScope {
+            tjenester.map { (id, tjeneste) ->
+                async {
+                    runCatching {
+                        val organisasjonerBasertPaRettigheter = altinnService.hentOrganisasjonerBasertPaRettigheter(
+                            authenticatedUserHolder.fnr,
+                            tjeneste.tjenestekode,
+                            tjeneste.tjenesteversjon
+                        )
+
+                        if (organisasjonerBasertPaRettigheter.isEmpty()) {
+                            null
+                        } else {
+                            UserInfoRespons.Tilgang(
+                                id = id,
+                                tjenestekode = tjeneste.tjenestekode,
+                                tjenesteversjon = tjeneste.tjenesteversjon,
+                                organisasjoner = organisasjonerBasertPaRettigheter
+                            )
+                        }
+                    }
+                }
+            }.awaitAll()
         }
 
         return UserInfoRespons(
-            organisasjoner = organisasjoner,
-            tilganger = tilganger,
+            altinnError = organisasjoner.isFailure || tilganger.any { it.isFailure },
+            organisasjoner = organisasjoner.getOrDefault(emptyList()),
+            tilganger = tilganger.mapNotNull { it.getOrNull() },
         )
     }
 
     data class UserInfoRespons(
         val organisasjoner: List<Organisasjon>,
         val tilganger: List<Tilgang>,
+        val altinnError: Boolean = false,
     ) {
         data class Tilgang(
             val id: String,
@@ -121,7 +136,6 @@ class UserInfoController(
             val organisasjoner: List<Organisasjon>,
         )
     }
-
 
     sealed interface Tjeneste {
         val sort: Sort
