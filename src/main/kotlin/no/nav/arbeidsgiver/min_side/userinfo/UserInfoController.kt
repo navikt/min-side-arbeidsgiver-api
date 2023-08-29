@@ -88,12 +88,8 @@ class UserInfoController(
 
     @GetMapping("/api/userInfo/v1")
     suspend fun getUserInfo(): UserInfoRespons {
-        val organisasjoner = runCatching {
-            altinnService.hentOrganisasjoner(authenticatedUserHolder.fnr)
-        }
-
-        val tilganger = supervisorScope {
-            tjenester.map { (id, tjeneste) ->
+        val (tilganger, organisasjoner) = supervisorScope {
+            val tjenester = tjenester.map { (id, tjeneste) ->
                 async {
                     runCatching {
                         val organisasjonerBasertPaRettigheter = altinnService.hentOrganisasjonerBasertPaRettigheter(
@@ -115,6 +111,14 @@ class UserInfoController(
                     }
                 }
             }.awaitAll()
+
+            val organisasjoner = async {
+                runCatching {
+                    altinnService.hentOrganisasjoner(authenticatedUserHolder.fnr)
+                }
+            }.await()
+
+            tjenester to organisasjoner
         }
 
         return UserInfoRespons(
