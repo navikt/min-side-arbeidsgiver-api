@@ -54,7 +54,9 @@ class UserInfoControllerTest {
                 Organisasjon(
                     name = "overenhet",
                     organizationNumber = "1",
-                    organizationForm = "AS"
+                    organizationForm = "AS",
+                    type = "Enterprise"
+
                 ),
             )
         )
@@ -101,7 +103,7 @@ class UserInfoControllerTest {
                                   },
                                   {
                                       "Name": "overenhet",
-                                      "Type": null,
+                                      "Type": "Enterprise",
                                       "ParentOrganizationNumber": null,
                                       "OrganizationNumber": "1",
                                       "OrganizationForm": "AS",
@@ -113,15 +115,7 @@ class UserInfoControllerTest {
                                         "id": "sykefravarstatistikk",
                                         "tjenestekode": "3403",
                                         "tjenesteversjon": "1",
-                                        "organisasjoner": [
-                                        {
-                                            "Name": "underenhet",
-                                            "Type": null,
-                                            "ParentOrganizationNumber": "1",
-                                            "OrganizationNumber": "10",
-                                            "OrganizationForm": "BEDR",
-                                            "Status": null
-                                        }]
+                                        "organisasjoner": [ "10" ]
                                     }
                                 ]
                             }

@@ -105,7 +105,7 @@ class UserInfoController(
                                 id = id,
                                 tjenestekode = tjeneste.tjenestekode,
                                 tjenesteversjon = tjeneste.tjenesteversjon,
-                                organisasjoner = organisasjonerBasertPaRettigheter
+                                organisasjoner = organisasjonerBasertPaRettigheter.mapNotNull { it.organizationNumber }
                             )
                         }
                     }
@@ -115,6 +115,11 @@ class UserInfoController(
             val organisasjoner = async {
                 runCatching {
                     altinnService.hentOrganisasjoner(authenticatedUserHolder.fnr)
+                        .filter {
+                            it.organizationForm == "BEDR"
+                                    || it.organizationForm == "AAFY"
+                                    || it.type == "Enterprise"
+                        }
                 }
             }.await()
 
@@ -137,7 +142,7 @@ class UserInfoController(
             val id: String,
             val tjenestekode: String,
             val tjenesteversjon: String,
-            val organisasjoner: List<Organisasjon>,
+            val organisasjoner: List<String>,
         )
     }
 
