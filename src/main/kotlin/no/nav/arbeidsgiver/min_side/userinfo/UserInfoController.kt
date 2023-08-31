@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.userinfo
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.supervisorScope
@@ -92,23 +93,31 @@ class UserInfoController(
             val tilganger = tjenester.map { (id, tjeneste) ->
                 async {
                     runCatching {
-                        val organisasjonerBasertPaRettigheter = altinnService.hentOrganisasjonerBasertPaRettigheter(
+                        altinnService.hentOrganisasjonerBasertPaRettigheter(
                             authenticatedUserHolder.fnr,
                             tjeneste.tjenestekode,
                             tjeneste.tjenesteversjon
                         )
-
-                        if (organisasjonerBasertPaRettigheter.isEmpty()) {
-                            null
-                        } else {
+                    }.fold(
+                        onSuccess = {
                             UserInfoRespons.Tilgang(
                                 id = id,
                                 tjenestekode = tjeneste.tjenestekode,
                                 tjenesteversjon = tjeneste.tjenesteversjon,
-                                organisasjoner = organisasjonerBasertPaRettigheter.mapNotNull { it.organizationNumber }
+                                organisasjoner = it.mapNotNull { it.organizationNumber },
+                                altinnError = false,
+                            )
+                        },
+                        onFailure = {
+                            UserInfoRespons.Tilgang(
+                                id = id,
+                                tjenestekode = tjeneste.tjenestekode,
+                                tjenesteversjon = tjeneste.tjenesteversjon,
+                                organisasjoner = emptyList(),
+                                altinnError = true,
                             )
                         }
-                    }
+                    )
                 }
             }.awaitAll()
 
@@ -127,22 +136,23 @@ class UserInfoController(
         }
 
         return UserInfoRespons(
-            altinnError = organisasjoner.isFailure || tilganger.any { it.isFailure },
+            altinnError = organisasjoner.isFailure || tilganger.any { it.altinnError },
             organisasjoner = organisasjoner.getOrDefault(emptyList()),
-            tilganger = tilganger.mapNotNull { it.getOrNull() },
+            tilganger = tilganger
         )
     }
 
     data class UserInfoRespons(
         val organisasjoner: List<Organisasjon>,
         val tilganger: List<Tilgang>,
-        val altinnError: Boolean = false,
+        val altinnError: Boolean,
     ) {
         data class Tilgang(
             val id: String,
             val tjenestekode: String,
             val tjenesteversjon: String,
             val organisasjoner: List<String>,
+            @get:JsonIgnore val altinnError: Boolean,
         )
     }
 

@@ -14,6 +14,8 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous
 import org.springframework.test.web.servlet.MockMvc
@@ -21,6 +23,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.async
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.request
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.web.filter.CharacterEncodingFilter
 
 @MockBean(JwtDecoder::class)
 @WebMvcTest(
@@ -34,6 +37,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
         "server.servlet.context-path=/"
     ]
 )
+@Import(UserInfoControllerTest.ForceUTF8Encoding::class)
 class UserInfoControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
@@ -112,10 +116,96 @@ class UserInfoControllerTest {
                                 ],
                                 "tilganger": [
                                     {
-                                        "id": "sykefravarstatistikk",
-                                        "tjenestekode": "3403",
-                                        "tjenesteversjon": "1",
-                                        "organisasjoner": [ "10" ]
+                                      "id": "ekspertbistand",
+                                      "tjenestekode": "5384",
+                                      "tjenesteversjon": "1",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "inntektsmelding",
+                                      "tjenestekode": "4936",
+                                      "tjenesteversjon": "1",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "utsendtArbeidstakerEØS",
+                                      "tjenestekode": "4826",
+                                      "tjenesteversjon": "1",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "arbeidstrening",
+                                      "tjenestekode": "5332",
+                                      "tjenesteversjon": "1",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "arbeidsforhold",
+                                      "tjenestekode": "5441",
+                                      "tjenesteversjon": "1",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "midlertidigLønnstilskudd",
+                                      "tjenestekode": "5516",
+                                      "tjenesteversjon": "1",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "varigLønnstilskudd",
+                                      "tjenestekode": "5516",
+                                      "tjenesteversjon": "2",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "sommerjobb",
+                                      "tjenestekode": "5516",
+                                      "tjenesteversjon": "3",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "mentortilskudd",
+                                      "tjenestekode": "5516",
+                                      "tjenesteversjon": "4",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "inkluderingstilskudd",
+                                      "tjenestekode": "5516",
+                                      "tjenesteversjon": "5",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "sykefravarstatistikk",
+                                      "tjenestekode": "3403",
+                                      "tjenesteversjon": "1",
+                                      "organisasjoner": [
+                                        "10"
+                                      ]
+                                    },
+                                    {
+                                      "id": "forebyggefravar",
+                                      "tjenestekode": "5934",
+                                      "tjenesteversjon": "1",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "rekruttering",
+                                      "tjenestekode": "5078",
+                                      "tjenesteversjon": "1",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "tilskuddsbrev",
+                                      "tjenestekode": "5278",
+                                      "tjenesteversjon": "1",
+                                      "organisasjoner": []
+                                    },
+                                    {
+                                      "id": "yrkesskade",
+                                      "tjenestekode": "5902",
+                                      "tjenesteversjon": "1",
+                                      "organisasjoner": []
                                     }
                                 ]
                             }
@@ -135,5 +225,14 @@ class UserInfoControllerTest {
                     .with(anonymous())
             )
             .andExpect(status().isUnauthorized)
+    }
+
+
+    /**
+     * Force utf 8 encoding siden AppConfig ikke benyttes i @WebMvcTest
+     */
+    class ForceUTF8Encoding {
+        @Bean
+        fun characterEncodingFilter() = CharacterEncodingFilter("UTF-8", true)
     }
 }
