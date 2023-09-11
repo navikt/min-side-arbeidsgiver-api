@@ -1,6 +1,7 @@
 package no.nav.arbeidsgiver.min_side
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.mockito.Mockito.*
@@ -34,10 +35,9 @@ class LocalDittNavArbeidsgiverApplication : DittNavArbeidsgiverApplication() {
             return mock(AltinnService::class.java).also {
                 `when`(it.hentOrganisasjoner(anyString()))
                     .thenReturn(
-                        objectMapper.readValue(
-                            organisasjonerJson.inputStream.readAllBytes(),
-                            Array<Organisasjon>::class.java
-                        ).toList()
+                        objectMapper.readValue<List<Organisasjon>>(
+                            organisasjonerJson.inputStream.readAllBytes()
+                        )
                     )
                 `when`(
                     it.hentOrganisasjonerBasertPaRettigheter(
@@ -46,10 +46,9 @@ class LocalDittNavArbeidsgiverApplication : DittNavArbeidsgiverApplication() {
                         anyString(), //eq("1")
                     )
                 ).thenReturn(
-                    objectMapper.readValue(
-                        rettigheterTilSkjemaJson.inputStream.readAllBytes(),
-                        Array<Organisasjon>::class.java
-                    ).toList()
+                    objectMapper.readValue<List<Organisasjon>>(
+                        rettigheterTilSkjemaJson.inputStream.readAllBytes()
+                    )
                 )
             }
         }
