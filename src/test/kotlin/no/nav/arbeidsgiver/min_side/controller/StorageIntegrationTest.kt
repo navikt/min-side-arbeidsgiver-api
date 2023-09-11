@@ -1,7 +1,6 @@
 package no.nav.arbeidsgiver.min_side.controller
 
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-import no.nav.arbeidsgiver.min_side.mockserver.MockServer
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,7 +14,6 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@MockBean(MockServer::class)
 @SpringBootTest(
     properties = [
         "server.servlet.context-path=/",
