@@ -6,7 +6,7 @@ Applikasjonen tilbyr et API som brukes fra ditt nav arbeidsgiver og potensielt a
 
 ### Komme i gang
 
-Applikasjonen bruker Spring boot. Ved lokal kjøring brukes Wiremock for mocking av integrasjoner.
+Applikasjonen bruker Spring boot. 
 
 * Swagger finner du her: http://localhost:8080/ditt-nav-arbeidsgiver-api/swagger-ui.html#/
 * For å teste endpunktene lokalt kan man hente autorisasjons cookie fra http://localhost:8080/ditt-nav-arbeidsgiver-api/local/cookie
