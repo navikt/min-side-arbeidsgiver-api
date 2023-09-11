@@ -7,10 +7,10 @@ Applikasjonen tilbyr et API som brukes fra ditt nav arbeidsgiver og potensielt a
 ### Komme i gang
 
 Applikasjonen bruker Spring boot. 
+Autentisering gjøres med tokenx.
 
 * Swagger finner du her: http://localhost:8080/ditt-nav-arbeidsgiver-api/swagger-ui.html#/
-* For å teste endpunktene lokalt kan man hente autorisasjons cookie fra http://localhost:8080/ditt-nav-arbeidsgiver-api/local/cookie
-med cookiename: selvbetjening-idtoken
+* For å teste endpunktene lokalt se `local-test.http` filen i prosjektet. Denne kan kjøres fra intellij.
 
 ## Henvendelser
 Alle kan lage issues i repoet.

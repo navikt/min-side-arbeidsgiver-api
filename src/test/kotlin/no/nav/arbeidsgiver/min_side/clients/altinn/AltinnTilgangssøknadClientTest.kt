@@ -32,10 +32,10 @@ class AltinnTilgangssøknadClientTest {
     @Test
     fun hentSøknader() {
         val fnr = "42"
-        server.expect(requestToUriTemplate("http://localhost:8081/altinn/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter={filter}", "CoveredBy eq '$fnr'"))
+        server.expect(requestToUriTemplate("http://altinn/altinn/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter={filter}", "CoveredBy eq '$fnr'"))
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(altinnHentSøknadResponse, MediaType.APPLICATION_JSON))
-        server.expect(requestToUriTemplate("http://localhost:8081/altinn/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter={filter}&continuation={continuation}", "CoveredBy eq '$fnr'", continuationtoken))
+        server.expect(requestToUriTemplate("http://altinn/altinn/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter={filter}&continuation={continuation}", "CoveredBy eq '$fnr'", continuationtoken))
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(altinnHentSøknadTomResponse, MediaType.APPLICATION_JSON))
 
@@ -55,7 +55,7 @@ class AltinnTilgangssøknadClientTest {
         skjema.serviceCode = "1337"
         skjema.serviceEdition = 7
 
-        server.expect(requestToUriTemplate("http://localhost:8081/altinn/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication"))
+        server.expect(requestToUriTemplate("http://altinn/altinn/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication"))
             .andExpect(method(HttpMethod.POST))
             .andExpect(content().json(altinnSendSøknadRequest, true))
             .andRespond(withSuccess(altinnSendSøknadResponse, MediaType.APPLICATION_JSON))

@@ -1,10 +1,8 @@
 package no.nav.arbeidsgiver.min_side
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.arbeidsgiver.min_side.LocalDittNavArbeidsgiverApplication.MockOauthConfig
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.SpringApplication
@@ -15,7 +13,6 @@ import org.springframework.core.io.Resource
 
 
 @Import(
-    MockOauthConfig::class,
     LocalDittNavArbeidsgiverApplication.MockAltinnConfig::class,
 )
 class LocalDittNavArbeidsgiverApplication : DittNavArbeidsgiverApplication() {
@@ -25,9 +22,6 @@ class LocalDittNavArbeidsgiverApplication : DittNavArbeidsgiverApplication() {
             SpringApplication.run(LocalDittNavArbeidsgiverApplication::class.java, *args)
         }
     }
-
-    @EnableMockOAuth2Server
-    class MockOauthConfig
 
     class MockAltinnConfig {
         @Bean
