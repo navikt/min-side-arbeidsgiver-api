@@ -2,7 +2,6 @@ package no.nav.arbeidsgiver.min_side.sykefraværstatistikk
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-import no.nav.arbeidsgiver.min_side.mockserver.MockServer
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -20,7 +19,6 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@MockBean(MockServer::class)
 @SpringBootTest(
     properties = [
         "server.servlet.context-path=/",

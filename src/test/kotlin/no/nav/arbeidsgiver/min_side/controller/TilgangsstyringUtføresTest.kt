@@ -10,17 +10,19 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
 
-@SpringBootTest
+@SpringBootTest(
+    properties = [
+        "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8118/issuer1"
+    ]
+)
 @AutoConfigureMockMvc
 @ActiveProfiles("local")
-@TestPropertySource(properties = ["mock.port=8083"])
-@EnableMockOAuth2Server
+@EnableMockOAuth2Server(port = 8118)
 class TilgangsstyringUtføresTest {
     @Autowired
     lateinit var mockMvc: MockMvc

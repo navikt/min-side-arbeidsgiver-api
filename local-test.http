@@ -1,0 +1,17 @@
+### up?
+GET localhost:8080/ditt-nav-arbeidsgiver-api/internal/actuator/health
+
+### get access token from fakedings
+GET fakedings.intern.dev.nav.no/fake/tokenx
+    ?client_id=someclientid
+    &aud=someaudience
+    &acr=idporten-loa-high
+    &pid=12345678910
+
+> {%
+    client.global.set("faketoken", response.body);
+%}
+
+### get organizations using faketoken as authorization header
+GET localhost:8080/ditt-nav-arbeidsgiver-api/api/organisasjoner
+Authorization: Bearer {{faketoken}}
