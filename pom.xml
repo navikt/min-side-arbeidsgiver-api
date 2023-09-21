@@ -121,13 +121,6 @@
             <version>3.1.0</version>
         </dependency>
 
-        <!-- Swagger -->
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.7.0</version>
-        </dependency>
-
         <!--Login -->
         <dependency>
             <groupId>org.apache.commons</groupId>
