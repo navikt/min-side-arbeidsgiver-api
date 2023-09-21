@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.userinfo
 
-import no.nav.arbeidsgiver.min_side.SecurityConfiguration
+import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
@@ -29,7 +29,7 @@ import org.springframework.web.filter.CharacterEncodingFilter
 @WebMvcTest(
     value = [
         UserInfoController::class,
-        SecurityConfiguration::class,
+        SecurityConfig::class,
         AuthenticatedUserHolder::class,
         GittMiljø::class,
     ],

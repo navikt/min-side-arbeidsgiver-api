@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.controller
 
-import no.nav.arbeidsgiver.min_side.SecurityConfiguration
+import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
@@ -23,7 +23,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @WebMvcTest(
     value = [
         RefusjonStatusController::class,
-        SecurityConfiguration::class,
+        SecurityConfig::class,
         AuthenticatedUserHolder::class
     ],
     properties = ["server.servlet.context-path=/"]

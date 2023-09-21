@@ -1,4 +1,4 @@
-package no.nav.arbeidsgiver.min_side
+package no.nav.arbeidsgiver.min_side.config
 
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties
 import org.springframework.context.annotation.Bean
@@ -15,7 +15,7 @@ import org.springframework.security.web.SecurityFilterChain
 // https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html
 @Configuration
 @EnableWebSecurity
-class SecurityConfiguration {
+class SecurityConfig {
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -37,12 +37,13 @@ class SecurityConfiguration {
     fun jwtDecoder(resourceServerProperties: OAuth2ResourceServerProperties): JwtDecoder {
         val issuerUri = resourceServerProperties.jwt.issuerUri
         val allowedAudiences = resourceServerProperties.jwt.audiences
+        val validAcrClaims = listOf("Level4", "idporten-loa-high")
 
         return JwtDecoders.fromIssuerLocation<NimbusJwtDecoder>(issuerUri).apply {
             setJwtValidator(
                 DelegatingOAuth2TokenValidator(
                     JwtValidators.createDefaultWithIssuer(issuerUri),
-                    JwtClaimValidator<String>("acr") { it == "Level4" || it == "idporten-loa-high" },
+                    JwtClaimValidator<String>("acr") { validAcrClaims.contains(it) },
                     JwtClaimValidator(AUD) { aud: List<String> -> aud.any { allowedAudiences.contains(it) }},
                 )
             )
