@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.controller
 
-import no.nav.arbeidsgiver.min_side.SecurityConfiguration
+import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.clients.altinn.AltinnTilgangssøknadClient
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknad
@@ -25,7 +25,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @WebMvcTest(
     value = [
         AltinnTilgangController::class,
-        SecurityConfiguration::class,
+        SecurityConfig::class,
         AuthenticatedUserHolder::class,
     ],
     properties = [
