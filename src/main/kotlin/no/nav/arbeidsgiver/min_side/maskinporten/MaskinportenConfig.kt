@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Profile
  * Plukker opp miljø-variablene som nais injecter i poden.
  * Se: https://doc.nais.io/security/auth/maskinporten/client/#runtime-variables-and-credentials
  */
-@Profile("dev", "prod")
+@Profile("dev-gcp", "prod-gcp")
 @ConfigurationProperties("maskinporten")
 class MaskinportenConfig : InitializingBean {
     lateinit var scopes: String

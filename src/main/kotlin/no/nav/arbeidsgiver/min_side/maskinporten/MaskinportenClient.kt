@@ -25,7 +25,7 @@ interface MaskinportenClient {
 }
 
 @Component
-@Profile("dev", "prod")
+@Profile("dev-gcp", "prod-gcp")
 class MaskinportenClientImpl(
     val config: MaskinportenConfig,
     val gittMiljø: GittMiljø,
