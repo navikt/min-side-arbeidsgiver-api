@@ -1,8 +1,8 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.arbeidsgiver.min_side.controller.DigisyfoController
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
+import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -75,11 +75,11 @@ class DigisyfoServiceTest {
 
         val result = digisyfoService.hentVirksomheterOgSykmeldte("42")
         assertThat(result).containsExactly(
-            DigisyfoController.VirksomhetOgAntallSykmeldte(mkUnderenhet("10", "1"), 0),
-            DigisyfoController.VirksomhetOgAntallSykmeldte(mkUnderenhet("11", "1"), 1),
-            DigisyfoController.VirksomhetOgAntallSykmeldte(mkUnderenhet("20", "2"), 2),
-            DigisyfoController.VirksomhetOgAntallSykmeldte(mkOverenhet("1"), 0),
-            DigisyfoController.VirksomhetOgAntallSykmeldte(mkOverenhet("2"), 0),
+            VirksomhetOgAntallSykmeldte(mkUnderenhet("10", "1"), 0),
+            VirksomhetOgAntallSykmeldte(mkUnderenhet("11", "1"), 1),
+            VirksomhetOgAntallSykmeldte(mkUnderenhet("20", "2"), 2),
+            VirksomhetOgAntallSykmeldte(mkOverenhet("1"), 0),
+            VirksomhetOgAntallSykmeldte(mkOverenhet("2"), 0),
         )
     }
 

@@ -8,12 +8,15 @@ import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
+import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class UserInfoController(
     private val altinnService: AltinnService,
+    private val digisyfoService: DigisyfoService,
     private val authenticatedUserHolder: AuthenticatedUserHolder,
     gittMiljø: GittMiljø,
 ) {
@@ -89,7 +92,7 @@ class UserInfoController(
 
     @GetMapping("/api/userInfo/v1")
     suspend fun getUserInfo(): UserInfoRespons {
-        val (tilganger, organisasjoner) = supervisorScope {
+        val (tilganger, organisasjoner, syfoVirksomheter) = supervisorScope {
             val tilganger = tjenester.map { (id, tjeneste) ->
                 async {
                     runCatching {
@@ -119,7 +122,7 @@ class UserInfoController(
                         }
                     )
                 }
-            }.awaitAll()
+            }
 
             val organisasjoner = async {
                 runCatching {
@@ -130,14 +133,23 @@ class UserInfoController(
                                     || it.type == "Enterprise"
                         }
                 }
-            }.await()
+            }
 
-            tilganger to organisasjoner
+            val syfoVirksomheter = async {
+                runCatching {
+                    digisyfoService.hentVirksomheterOgSykmeldte(authenticatedUserHolder.fnr)
+                }
+            }
+
+
+            Triple(tilganger.awaitAll(), organisasjoner.await(), syfoVirksomheter.await())
         }
 
         return UserInfoRespons(
             altinnError = organisasjoner.isFailure || tilganger.any { it.altinnError },
+            digisyfoError = syfoVirksomheter.isFailure,
             organisasjoner = organisasjoner.getOrDefault(emptyList()),
+            digisyfoOrganisasjoner = syfoVirksomheter.getOrDefault(emptyList()),
             tilganger = tilganger
         )
     }
@@ -145,7 +157,9 @@ class UserInfoController(
     data class UserInfoRespons(
         val organisasjoner: List<Organisasjon>,
         val tilganger: List<Tilgang>,
+        val digisyfoOrganisasjoner: Collection<VirksomhetOgAntallSykmeldte>,
         val altinnError: Boolean,
+        val digisyfoError: Boolean,
     ) {
         data class Tilgang(
             val id: String,

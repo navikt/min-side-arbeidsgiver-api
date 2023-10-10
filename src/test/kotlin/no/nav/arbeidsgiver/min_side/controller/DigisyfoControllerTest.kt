@@ -4,6 +4,7 @@ import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
+import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.skyscreamer.jsonassert.JSONAssert
@@ -39,10 +40,10 @@ class DigisyfoControllerTest {
     fun `Er nærmeste leder, med sykmeldinger registrert`() {
         `when`(digisyfoService.hentVirksomheterOgSykmeldte("42")).thenReturn(
             listOf(
-                DigisyfoController.VirksomhetOgAntallSykmeldte(mkUnderenhet("10", "1"), 0),
-                DigisyfoController.VirksomhetOgAntallSykmeldte(mkOverenhet("1"), 0),
-                DigisyfoController.VirksomhetOgAntallSykmeldte(mkUnderenhet("20", "2"), 1),
-                DigisyfoController.VirksomhetOgAntallSykmeldte(mkOverenhet("2"), 0),
+                VirksomhetOgAntallSykmeldte(mkUnderenhet("10", "1"), 0),
+                VirksomhetOgAntallSykmeldte(mkOverenhet("1"), 0),
+                VirksomhetOgAntallSykmeldte(mkUnderenhet("20", "2"), 1),
+                VirksomhetOgAntallSykmeldte(mkOverenhet("2"), 0),
             )
         )
 
