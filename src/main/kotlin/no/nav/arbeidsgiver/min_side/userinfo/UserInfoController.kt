@@ -122,7 +122,7 @@ class UserInfoController(
                         }
                     )
                 }
-            }.awaitAll()
+            }
 
             val organisasjoner = async {
                 runCatching {
@@ -133,16 +133,16 @@ class UserInfoController(
                                     || it.type == "Enterprise"
                         }
                 }
-            }.await()
+            }
 
             val syfoVirksomheter = async {
                 runCatching {
                     digisyfoService.hentVirksomheterOgSykmeldte(authenticatedUserHolder.fnr)
                 }
-            }.await()
+            }
 
 
-            Triple(tilganger, organisasjoner, syfoVirksomheter)
+            Triple(tilganger.awaitAll(), organisasjoner.await(), syfoVirksomheter.await())
         }
 
         return UserInfoRespons(
