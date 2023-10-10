@@ -1,7 +1,7 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.arbeidsgiver.min_side.controller.DigisyfoController.VirksomhetOgAntallSykmeldte
+import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoRepository.Virksomhetsinfo
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import org.springframework.stereotype.Component
@@ -12,6 +12,12 @@ class DigisyfoService(
     private val eregService: EregService,
     private val meterRegistry: MeterRegistry
 ) {
+
+    data class VirksomhetOgAntallSykmeldte(
+        val organisasjon: Organisasjon,
+        val antallSykmeldte: Int,
+    )
+
     fun hentVirksomheterOgSykmeldte(fnr: String): Collection<VirksomhetOgAntallSykmeldte> {
         val underenheter = digisyfoRepository.virksomheterOgSykmeldte(fnr)
             .flatMap { hentUnderenhet(it) }
