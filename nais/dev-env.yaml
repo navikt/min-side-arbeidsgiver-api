@@ -19,6 +19,12 @@ spec:
     timeout: 15
     periodSeconds: 10
     failureThreshold: 3
+  maskinporten:
+    enabled: true
+    scopes:
+      consumes:
+        - name: "altinn:serviceowner/rolesandrights"
+        - name: "altinn:serviceowner/organizations"
   kafka:
     pool: nav-dev
   gcp:
