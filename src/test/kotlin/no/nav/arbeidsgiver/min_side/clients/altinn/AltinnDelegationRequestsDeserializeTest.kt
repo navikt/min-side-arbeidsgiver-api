@@ -1,18 +1,23 @@
 package no.nav.arbeidsgiver.min_side.clients.altinn
 
-import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.arbeidsgiver.min_side.clients.altinn.dto.Søknadsstatus
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
+import org.springframework.boot.test.context.SpringBootTest
 
+@SpringBootTest(classes = [JacksonAutoConfiguration::class])
 class AltinnDelegationRequestsDeserializeTest {
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
 
     @Test
     fun deserialiseJsonResponseIntoDTO() {
         val text = this.javaClass.getResourceAsStream("/altinnTilgangerGet.json")!!.readAllBytes()
-        val mapper = JsonMapper()
-        val readValue = mapper.readValue<Søknadsstatus>(text)
+        val readValue = objectMapper.readValue<Søknadsstatus>(text)
         assertThat(readValue.embedded).isNotNull
         assertThat(readValue.embedded!!.delegationRequests).isNotNull
         assertThat(readValue.embedded!!.delegationRequests!![0].CoveredBy).isNotNull
