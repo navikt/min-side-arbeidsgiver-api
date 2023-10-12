@@ -3,6 +3,8 @@ package no.nav.arbeidsgiver.min_side.kontaktinfo
 import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
+import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -16,6 +18,10 @@ import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.request.RequestPostProcessor
 
 @MockBean(JwtDecoder::class)
+@MockBean(AuthenticatedUserHolder::class)
+@MockBean(AltinnRollerClient::class)
+@MockBean(EregService::class)
+@MockBean(KontaktinfoClient::class)
 @WebMvcTest(
     value = [
         KontaktinfoController::class,
@@ -26,7 +32,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor
         "server.servlet.context-path=/"
     ]
 )
-class KontaktinfoControllerTest {
+class KontaktinfoControllerSerdeTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 

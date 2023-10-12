@@ -34,7 +34,7 @@ class EregService(
         .build()
 
     @Cacheable(EREG_CACHE_NAME)
-    fun hentUnderenhet(virksomhetsnummer: String?): Organisasjon? {
+    fun hentUnderenhet(virksomhetsnummer: String): Organisasjon? {
         return try {
             val json = restTemplate.getForEntity(
                 "/v1/organisasjon/{virksomhetsnummer}?inkluderHierarki=true",
@@ -51,7 +51,7 @@ class EregService(
     }
 
     @Cacheable(EREG_CACHE_NAME)
-    fun hentOverenhet(orgnummer: String?): Organisasjon? {
+    fun hentOverenhet(orgnummer: String): Organisasjon? {
         return try {
             val json = restTemplate.getForEntity(
                 "/v1/organisasjon/{orgnummer}",
