@@ -5,6 +5,7 @@ import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import java.time.Instant
 import java.time.LocalDateTime
 
 @RestController
@@ -24,7 +25,7 @@ class VarslingStatusController(
             return VarslingStatus(
                 status = Status.OK,
                 varselTimestamp = LocalDateTime.now(),
-                eventTimestamp = LocalDateTime.now(),
+                kvittertEventTimestamp = Instant.now(),
             )
         }
 

@@ -10,9 +10,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.core.io.Resource
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.web.servlet.MockMvc
@@ -46,6 +48,9 @@ class VarslingStatusIntegrationTest {
     @Autowired
     lateinit var flyway: Flyway
 
+    @Value("classpath:fager.ekstern-varsling-status.topic")
+    lateinit var sampleTopic: Resource
+
     @BeforeEach
     fun setup() {
         flyway.clean()
@@ -68,7 +73,7 @@ class VarslingStatusIntegrationTest {
                     "virksomhetsnummer": "314",
                     "varselId": "vid1",
                     "varselTimestamp": "2021-01-01T00:00:00",
-                    "eventTimestamp": "2021-01-01T00:00:00",
+                    "kvittertEventTimestamp": "2021-01-01T00:00:00Z",
                     "status": "MANGLER_KOFUVI",
                     "version": "1"
                 }
@@ -98,7 +103,7 @@ class VarslingStatusIntegrationTest {
                     "virksomhetsnummer": "86",
                     "varselId": "vid1",
                     "varselTimestamp": "2021-01-01T00:00:00",
-                    "eventTimestamp": "2021-01-01T00:00:00",
+                    "kvittertEventTimestamp": "2021-01-01T00:00:00Z",
                     "status": "MANGLER_KOFUVI",
                     "version": "1"
                 }
@@ -123,10 +128,10 @@ class VarslingStatusIntegrationTest {
         ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co")))
 
         listOf(
-            "MANGLER_KOFUVI" to "2021-01-02T00:00:00",
-            "OK" to "2021-01-01T00:00:00",
-            "MANGLER_KOFUVI" to "2021-01-04T00:00:00",
-            "ANNEN_FEIL" to "2021-01-03T00:00:00",
+            "MANGLER_KOFUVI" to "2021-01-02T00:00:00Z",
+            "OK" to "2021-01-01T00:00:00Z",
+            "MANGLER_KOFUVI" to "2021-01-04T00:00:00Z",
+            "ANNEN_FEIL" to "2021-01-03T00:00:00Z",
         ).forEachIndexed { index, (status, timestamp) ->
             processVarslingStatus(
                 """
@@ -134,7 +139,7 @@ class VarslingStatusIntegrationTest {
                         "virksomhetsnummer": "314",
                         "varselId": "vid$index",
                         "varselTimestamp": "2021-01-01T00:00:00",
-                        "eventTimestamp": "$timestamp",
+                        "kvittertEventTimestamp": "$timestamp",
                         "status": "$status",
                         "version": "1"
                     }
@@ -154,7 +159,7 @@ class VarslingStatusIntegrationTest {
                     """{
                     "status": "MANGLER_KOFUVI", 
                     "varselTimestamp": "2021-01-01T00:00:00",
-                    "eventTimestamp": "2021-01-04T00:00:00"
+                    "kvittertEventTimestamp": "2021-01-04T00:00:00Z"
                     }""",
                     true
                 )
@@ -169,10 +174,10 @@ class VarslingStatusIntegrationTest {
         ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co")))
 
         listOf(
-            "MANGLER_KOFUVI" to "2021-01-01T00:00:00",
-            "OK" to "2021-01-07T00:00:00",
-            "ANNEN_FEIL" to "2021-01-02T00:00:00",
-            "MANGLER_KOFUVI" to "2021-01-03T00:00:00",
+            "MANGLER_KOFUVI" to "2021-01-01T00:00:00Z",
+            "OK" to "2021-01-07T00:00:00Z",
+            "ANNEN_FEIL" to "2021-01-02T00:00:00Z",
+            "MANGLER_KOFUVI" to "2021-01-03T00:00:00Z",
         ).forEachIndexed { index, (status, timestamp) ->
             processVarslingStatus(
                 """
@@ -180,7 +185,7 @@ class VarslingStatusIntegrationTest {
                         "virksomhetsnummer": "314",
                         "varselId": "vid$index",
                         "varselTimestamp": "2021-01-01T00:00:00",
-                        "eventTimestamp": "$timestamp",
+                        "kvittertEventTimestamp": "$timestamp",
                         "status": "$status",
                         "version": "1"
                     }
@@ -200,11 +205,22 @@ class VarslingStatusIntegrationTest {
                     """{
                     "status": "OK", 
                     "varselTimestamp": "2021-01-01T00:00:00",
-                    "eventTimestamp": "2021-01-07T00:00:00"
+                    "kvittertEventTimestamp": "2021-01-07T00:00:00Z"
                     }""",
                     true
                 )
             }
+        }
+    }
+
+    /**
+     * fil generert med:
+     * kafka-console-consumer.sh --bootstrap-server $KAFKA_BROKERS --consumer.config $KAFKA_CONFIG/kafka.properties --topic fager.ekstern-varsling-status --formatter kafka.tools.DefaultMessageFormatter --property print.value=true --from-beginning --timeout-ms 30000 > fager.ekstern-varsling-status.topic
+     */
+    @Test
+    fun `konsumerer innhold på topic fra dev`() {
+        sampleTopic.file.readLines().forEach {
+            processVarslingStatus(it)
         }
     }
 

@@ -12,12 +12,13 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 import java.sql.PreparedStatement
+import java.time.Instant
 import java.time.LocalDateTime
 
 data class VarslingStatus(
     val status: Status,
     val varselTimestamp: LocalDateTime,
-    val eventTimestamp: LocalDateTime,
+    val kvittertEventTimestamp: Instant,
 )
 
 @Repository
@@ -38,12 +39,12 @@ class VarslingStatusRepository(
             VarslingStatus(
                 status = Status.valueOf(it["status"] as String),
                 varselTimestamp = LocalDateTime.parse(it["varslet_tidspunkt"] as String),
-                eventTimestamp = LocalDateTime.parse(it["status_tidspunkt"] as String),
+                kvittertEventTimestamp = Instant.parse(it["status_tidspunkt"] as String),
             )
         } ?: VarslingStatus(
             status = Status.OK,
             varselTimestamp = LocalDateTime.now(),
-            eventTimestamp = LocalDateTime.now(),
+            kvittertEventTimestamp = Instant.now(),
         )
     }
 
@@ -93,7 +94,7 @@ data class VarslingStatusDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) co
     @param:JsonProperty("virksomhetsnummer") val virksomhetsnummer: String,
     @param:JsonProperty("varselId") val varselId: String,
     @param:JsonProperty("varselTimestamp") val varselTimestamp: LocalDateTime,
-    @param:JsonProperty("eventTimestamp") val eventTimestamp: LocalDateTime,
+    @param:JsonProperty("kvittertEventTimestamp") val eventTimestamp: Instant,
     @param:JsonProperty("status") val status: Status,
     @param:JsonProperty("version") val version: String,
 )
