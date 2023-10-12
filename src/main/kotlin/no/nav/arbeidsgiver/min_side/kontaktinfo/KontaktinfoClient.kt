@@ -36,8 +36,8 @@ class KontaktinfoClient(
         .build()
 
     data class Kontaktinfo(
-        val eposter: List<String>,
-        val telefonnumre: List<String>,
+        val eposter: Set<String>,
+        val telefonnumre: Set<String>,
     )
 
     fun hentKontaktinfo(orgnr: String): Kontaktinfo? {
@@ -60,8 +60,8 @@ class KontaktinfoClient(
          * HTTP/1.1 400 Invalid organization number: 0000000
          **/
 
-        val eposter = mutableListOf<String>()
-        val telefonnumre = mutableListOf<String>()
+        val eposter = mutableSetOf<String>()
+        val telefonnumre = mutableSetOf<String>()
 
         for (contact in officialcontacts) {
             if (contact.emailAddress.isNotBlank()) {

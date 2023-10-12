@@ -25,6 +25,10 @@ class KontaktinfoClientTest {
     @Autowired
     lateinit var kontaktinfoClient: KontaktinfoClient
 
+    /* NB. Har sjekket hvordan responsen påvirkes av sletting av kontaktinfo, og
+     * de slettede blir bare fjernet fra listen; ingen markering eller noe sånt noe.
+     */
+
     @Test
     fun telefonnummerErRegistrert() {
         mockKontaktinfoResponse(orgnr = "1", kunTelefonnumerResponse)
@@ -32,8 +36,8 @@ class KontaktinfoClientTest {
         val kontaktinfo = kontaktinfoClient.hentKontaktinfo("1")
         assertEquals(
             KontaktinfoClient.Kontaktinfo(
-                telefonnumre = listOf("+4711223344"),
-                eposter = listOf(),
+                telefonnumre = setOf("+4711223344"),
+                eposter = setOf(),
             ),
             kontaktinfo
         )
@@ -46,8 +50,8 @@ class KontaktinfoClientTest {
         val kontaktinfo = kontaktinfoClient.hentKontaktinfo("2")
         assertEquals(
             KontaktinfoClient.Kontaktinfo(
-                telefonnumre = listOf(),
-                eposter = listOf("test@test.no"),
+                telefonnumre = setOf(),
+                eposter = setOf("test@test.no"),
             ),
             kontaktinfo
         )
@@ -59,8 +63,8 @@ class KontaktinfoClientTest {
         val kontaktinfo = kontaktinfoClient.hentKontaktinfo("1234")
         assertEquals(
             KontaktinfoClient.Kontaktinfo(
-                telefonnumre = listOf("+4700112233"),
-                eposter = listOf("foo@example.com"),
+                telefonnumre = setOf("+4700112233"),
+                eposter = setOf("foo@example.com"),
             ),
             kontaktinfo
         )
@@ -74,8 +78,22 @@ class KontaktinfoClientTest {
         val kontaktinfo = kontaktinfoClient.hentKontaktinfo("3")
         assertEquals(
             KontaktinfoClient.Kontaktinfo(
-                telefonnumre = listOf(),
-                eposter = listOf(),
+                telefonnumre = setOf(),
+                eposter = setOf(),
+            ),
+            kontaktinfo
+        )
+    }
+
+    @Test
+    fun flereEposterRegistrert() {
+        mockKontaktinfoResponse(orgnr = "3", flereEposterRequest)
+
+        val kontaktinfo = kontaktinfoClient.hentKontaktinfo("3")
+        assertEquals(
+            KontaktinfoClient.Kontaktinfo(
+                telefonnumre = setOf("+4700112233"),
+                eposter = setOf("foo@example.com", "foo3@example.com", "foo2@example.com"),
             ),
             kontaktinfo
         )
@@ -155,3 +173,33 @@ private val ingenKontaktinfoResponse = """
     []
 """
 
+
+/* Legger på 3 eposter på en gang fra altinns GUI */
+private val flereEposterRequest = """
+    [
+      {
+        "MobileNumber": "+4700112233",
+        "MobileNumberChanged": "2021-10-05T13:04:19.367",
+        "EMailAddress": "",
+        "EMailAddressChanged": "0001-01-01T00:00:00"
+      },
+      {
+        "MobileNumber": "",
+        "MobileNumberChanged": "0001-01-01T00:00:00",
+        "EMailAddress": "foo@example.com",
+        "EMailAddressChanged": "2023-10-12T15:17:15.497"
+      },
+      {
+        "MobileNumber": "",
+        "MobileNumberChanged": "0001-01-01T00:00:00",
+        "EMailAddress": "foo3@example.com",
+        "EMailAddressChanged": "2023-10-12T15:38:44.297"
+      },
+      {
+        "MobileNumber": "",
+        "MobileNumberChanged": "0001-01-01T00:00:00",
+        "EMailAddress": "foo2@example.com",
+        "EMailAddressChanged": "2023-10-12T15:38:44.437"
+      }
+    ]
+"""
