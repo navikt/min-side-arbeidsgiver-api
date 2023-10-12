@@ -47,7 +47,7 @@ class KontaktinfoClient(
         }
 
         val officialcontacts = restTemplate.exchange(
-            "api/serviceowner/organizations/{organizationNumber}/officialcontacts?ForceEIAuthentication",
+            "/api/serviceowner/organizations/{organizationNumber}/officialcontacts?ForceEIAuthentication",
             GET,
             HttpEntity<Nothing>(headers),
             contactInfoListType,
