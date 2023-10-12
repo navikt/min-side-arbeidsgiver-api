@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.client.MockRestServiceServer
@@ -17,7 +18,7 @@ import org.springframework.web.client.HttpClientErrorException
     KontaktinfoClient::class,
     MaskinportenTokenServiceStub::class,
 )
-@ActiveProfiles("test")
+@ActiveProfiles("local")
 class KontaktinfoClientTest {
     @Autowired
     lateinit var altinnServer: MockRestServiceServer
@@ -102,7 +103,7 @@ class KontaktinfoClientTest {
     @Test
     fun organisasjonFinnesIkke() {
         altinnServer.expect {
-            assertEquals("/serviceowner/organizations/1/officialcontacts", it.uri.path)
+            assertEquals("/api/serviceowner/organizations/1/officialcontacts", it.uri.path)
             assertNotNull("query-parameters må være gitt", it.uri.query)
             assertTrue(it.uri.query.contains("ForceEIAuthentication"))
         }.andRespond(withBadRequest())
@@ -116,7 +117,8 @@ class KontaktinfoClientTest {
 
     private fun mockKontaktinfoResponse(orgnr: String, response: String) =
         altinnServer.expect {
-            assertEquals("/serviceowner/organizations/${orgnr}/officialcontacts", it.uri.path)
+            assertEquals(HttpMethod.GET, it.method)
+            assertEquals("/api/serviceowner/organizations/${orgnr}/officialcontacts", it.uri.path)
             assertNotNull("query-parameters må være gitt", it.uri.query)
             assertTrue(it.uri.query.contains("ForceEIAuthentication"), "altinn forventer spesiell header for autentiserting")
             assertTrue(it.headers.getFirst("authorization")!!.startsWith("Bearer"), "bearer token må være satt")

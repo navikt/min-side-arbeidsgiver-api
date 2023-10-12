@@ -18,8 +18,8 @@ import kotlin.collections.List
 @Component
 class KontaktinfoClient(
     restTemplateBuilder: RestTemplateBuilder,
-    @Value("altinn.apiBaseUrl") altinnApiBaseUrl: String,
-    @Value("altinn.altinnHeader") private val altinnApiKey: String,
+    @Value("\${altinn.apiBaseUrl}") altinnApiBaseUrl: String,
+    @Value("\${altinn.altinnHeader}") private val altinnApiKey: String,
     private val maskinportenTokenService: MaskinportenTokenService,
 ) {
     private val restTemplate = restTemplateBuilder
@@ -47,7 +47,7 @@ class KontaktinfoClient(
         }
 
         val officialcontacts = restTemplate.exchange(
-            "serviceowner/organizations/{organizationNumber}/officialcontacts?ForceEIAuthentication",
+            "api/serviceowner/organizations/{organizationNumber}/officialcontacts?ForceEIAuthentication",
             GET,
             HttpEntity<Nothing>(headers),
             contactInfoListType,
