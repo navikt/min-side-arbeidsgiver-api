@@ -34,10 +34,10 @@ class AltinnRollerClientTest {
 
     @Test
     fun `ingen tilgang ved ingen roller`() {
-        mockRoles("1234", "5678", ingenRollerResponse)
+        mockRoles("1234", "567812345", ingenRollerResponse)
         assertFalse(altinnRollerClient.harAltinnRolle(
             fnr = "1234",
-            orgnr = "5678",
+            orgnr = "567812345",
             altinnRoller = setOf("SIGNE"),
             externalRoller = setOf("DAGL")
         ))
@@ -45,10 +45,10 @@ class AltinnRollerClientTest {
 
     @Test
     fun `tilgang hvis vi sjekker DAGL(ereg) og bruker er DAGL(ereg), ATTST(altinn)`() {
-        mockRoles("1234", "5678", daglOgAttstRolleResponse)
+        mockRoles("1234", "567812345", daglOgAttstRolleResponse)
         assertTrue(altinnRollerClient.harAltinnRolle(
             fnr = "1234",
-            orgnr = "5678",
+            orgnr = "567812345",
             altinnRoller = setOf("SIGN"),
             externalRoller = setOf("DAGL"),
         ))
@@ -56,10 +56,10 @@ class AltinnRollerClientTest {
 
     @Test
     fun `tilgang hvis vi sjekker HADM(altinn) og bruker er DAGL(ereg), HADM(altinn)`() {
-        mockRoles("1234", "5678", daglOgHadmRolleResponse)
+        mockRoles("1234", "567812345", daglOgHadmRolleResponse)
         assertTrue(altinnRollerClient.harAltinnRolle(
             fnr = "1234",
-            orgnr = "5678",
+            orgnr = "567812345",
             altinnRoller = setOf("HADM"),
             externalRoller = setOf("ANNENROLLE"),
         ))
@@ -67,10 +67,10 @@ class AltinnRollerClientTest {
 
     @Test
     fun `ikke tilgang hvis altinn- og ereg-roller byttes om`() {
-        mockRoles("1234", "5678", daglOgHadmRolleResponse)
+        mockRoles("1234", "567811223", daglOgHadmRolleResponse)
         assertFalse(altinnRollerClient.harAltinnRolle(
             fnr = "1234",
-            orgnr = "5678",
+            orgnr = "567811223",
             altinnRoller = setOf("DAGL"),
             externalRoller = setOf("HADM"),
         ))
@@ -78,10 +78,10 @@ class AltinnRollerClientTest {
 
     @Test
     fun `har tilgang hvis man både har ereg- og altinn-rolle`() {
-        mockRoles("1234", "5678", daglOgAttstRolleResponse)
+        mockRoles("1234", "567811223", daglOgAttstRolleResponse)
         assertTrue(altinnRollerClient.harAltinnRolle(
             fnr = "1234",
-            orgnr = "5678",
+            orgnr = "567811223",
             altinnRoller = setOf("ATTST"),
             externalRoller = setOf("DAGL")
         ))
@@ -89,10 +89,10 @@ class AltinnRollerClientTest {
 
     @Test
     fun `bruker trenger ikke å ha alle rollene vi spør om`() {
-        mockRoles("1234", "5678", daglOgAttstRolleResponse)
+        mockRoles("1234", "567811223", daglOgAttstRolleResponse)
         assertTrue(altinnRollerClient.harAltinnRolle(
             fnr = "1234",
-            orgnr = "5678",
+            orgnr = "567811223",
             altinnRoller = setOf("ATTST"),
             externalRoller = setOf("DAGL", "ANNENROLLE"),
         ))
@@ -100,10 +100,10 @@ class AltinnRollerClientTest {
 
     @Test
     fun `ikke tilgang selv med flere roller og rolle-sjekker`() {
-        mockRoles("789", "5678", daglOgAttstRolleResponse)
+        mockRoles("789", "567811223", daglOgAttstRolleResponse)
         assertFalse(altinnRollerClient.harAltinnRolle(
             fnr = "789",
-            orgnr = "5678",
+            orgnr = "567811223",
             altinnRoller = setOf("IKKEROLLE"),
             externalRoller = setOf("ANNENIKKEROLLE"),
         ))
@@ -111,10 +111,10 @@ class AltinnRollerClientTest {
 
     @Test
     fun `tolker ikke Local-roller som ereg-roller`() {
-        mockRoles("1234", "567", daglMenLocalRolleResponse)
+        mockRoles("1234", "567811223", daglMenLocalRolleResponse)
         assertFalse(altinnRollerClient.harAltinnRolle(
             fnr = "1234",
-            orgnr = "567",
+            orgnr = "567811223",
             altinnRoller = setOf("ANNEN"),
             externalRoller = setOf("DAGL"),
         ))
@@ -123,11 +123,11 @@ class AltinnRollerClientTest {
 
     @Test
     fun `exception hvis ingen roller oppgis`() {
-        mockRoles("1234", "5678", daglOgAttstRolleResponse)
+        mockRoles("1234", "567811223", daglOgAttstRolleResponse)
         assertThrows<IllegalArgumentException> {
             altinnRollerClient.harAltinnRolle(
                 fnr = "1234",
-                orgnr = "5678",
+                orgnr = "567811223",
                 altinnRoller = setOf(),
                 externalRoller = setOf()
             )

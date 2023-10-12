@@ -36,6 +36,7 @@ class AltinnRollerClient(
         .build()
 
     private val safeRoleName = Regex("^[A-ZÆØÅ]+$")
+    private val orgnrRegex = Regex("^[0-9]{9}$")
 
     fun harAltinnRolle(
         fnr: String,
@@ -43,6 +44,7 @@ class AltinnRollerClient(
         altinnRoller: Set<String>,
         externalRoller: Set<String>,
     ): Boolean {
+        require(orgnr.matches(orgnrRegex)) // user-controlled, so ensure only digits before injecting into query
         require(altinnRoller.isNotEmpty() && externalRoller.isNotEmpty()) {
             "skrevet under antagelse om at både altinnRoller og externalRoller er non-empty"
         }
