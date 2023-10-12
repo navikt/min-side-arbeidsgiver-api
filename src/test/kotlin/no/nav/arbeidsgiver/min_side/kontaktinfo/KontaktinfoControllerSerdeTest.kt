@@ -79,7 +79,7 @@ class KontaktinfoControllerSerdeTest {
     fun superflousJsonFields() {
         /* spring's objectmapper godtar ekstra felter. */
         mockMvc.kontaktinfo(
-            content = """{ "virksomhetsnummer": "12341234", "garbage": 2 }"""
+            content = """{ "virksomhetsnummer": "123412341", "garbage": 2 }"""
         ).andExpect {
             status { isOk() }
         }
@@ -88,7 +88,7 @@ class KontaktinfoControllerSerdeTest {
     @Test
     fun disallowAcceptXML() {
         mockMvc.kontaktinfo(
-            content = """{ "virksomhetsnummer": "12341234" }""",
+            content = """{ "virksomhetsnummer": "123412341" }""",
             accept = MediaType.APPLICATION_XML
         ).andExpect {
             status { is4xxClientError() }

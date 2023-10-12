@@ -12,7 +12,6 @@ class KontaktinfoController(
     private val eregService: EregService,
     private val kontaktinfoClient: KontaktinfoClient,
 ) {
-
     @PostMapping("/api/kontaktinfo/v1")
     fun getKontaktinfo(@RequestBody requestBody: KontaktinfoRequest): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
@@ -48,7 +47,15 @@ class KontaktinfoController(
 
     class KontaktinfoRequest(
         val virksomhetsnummer: String,
-    )
+    ) {
+        init {
+            require(virksomhetsnummer.matches(orgnrRegex))
+        }
+
+        companion object {
+            private val orgnrRegex = Regex("^[0-9]{9}$")
+        }
+    }
 
     @Suppress("unused") // DTO
     class Kontaktinfo(
