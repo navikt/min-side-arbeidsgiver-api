@@ -23,14 +23,11 @@ class VarslingStatusController(
      * TODO: fjern før merge
      */
     fun mapStatus(varslingStatus: VarslingStatus) = gittMiljø.resolve(
-        prod = {
-            varslingStatus
+        dev = {
+            varslingStatus.copy(status = Status.MANGLER_KOFUVI)
         },
         other = {
-            when(varslingStatus.status) {
-                Status.OK -> varslingStatus
-                else -> varslingStatus.copy(status = Status.MANGLER_KOFUVI)
-            }
+            varslingStatus
         },
     )
 
@@ -41,11 +38,11 @@ class VarslingStatusController(
             .any { it.organizationNumber == virksomhetsnummer }
 
         if (!harTilgang) {
-            return VarslingStatus(
+            return mapStatus(VarslingStatus(
                 status = Status.OK,
                 varselTimestamp = LocalDateTime.now(),
                 kvittertEventTimestamp = Instant.now(),
-            )
+            ))
         }
 
         return mapStatus(repository.varslingStatus(virksomhetsnummer = virksomhetsnummer))
