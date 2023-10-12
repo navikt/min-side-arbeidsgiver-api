@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
+import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusDto.Status
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.context.annotation.Profile
 import org.springframework.jdbc.core.JdbcTemplate
@@ -97,12 +98,12 @@ data class VarslingStatusDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) co
     @param:JsonProperty("kvittertEventTimestamp") val eventTimestamp: Instant,
     @param:JsonProperty("status") val status: Status,
     @param:JsonProperty("version") val version: String,
-)
-
-enum class Status {
-    OK,
-    MANGLER_KOFUVI,
-    ANNEN_FEIL,
+) {
+    enum class Status {
+        OK,
+        MANGLER_KOFUVI,
+        ANNEN_FEIL,
+    }
 }
 
 
