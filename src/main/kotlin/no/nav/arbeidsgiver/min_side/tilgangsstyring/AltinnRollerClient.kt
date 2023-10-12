@@ -35,7 +35,7 @@ class AltinnRollerClient(
         )
         .build()
 
-    private val safeRoleName = Regex("^[A-Z]+$")
+    private val safeRoleName = Regex("^[A-ZÆØÅ]+$")
 
     fun harAltinnRolle(
         fnr: String,
