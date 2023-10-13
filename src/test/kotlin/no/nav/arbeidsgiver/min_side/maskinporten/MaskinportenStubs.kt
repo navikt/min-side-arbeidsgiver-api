@@ -21,3 +21,8 @@ class MaskinportenClientStub: MaskinportenClient {
     }
 }
 
+@Component
+@Profile("local", "test")
+class MaskinportenTokenServiceStub: MaskinportenTokenService {
+    override fun currentAccessToken() = "fake.maskinporten.token"
+}

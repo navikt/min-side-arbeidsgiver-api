@@ -3,20 +3,26 @@ package no.nav.arbeidsgiver.min_side.maskinporten
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.InitializingBean
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.lang.management.ManagementFactory
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
 
+interface MaskinportenTokenService {
+    fun currentAccessToken(): String
+}
+
 @Component
-class MaskinportenTokenService(
+@Profile("dev-gcp", "prod-gcp")
+class MaskinportenTokenServiceImpl(
     private val maskinportenClient: MaskinportenClient,
     private val meterRegistry: MeterRegistry,
-): InitializingBean {
+): MaskinportenTokenService, InitializingBean {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val tokenStore = AtomicReference<TokenResponseWrapper?>()
 
-    fun currentAccessToken(): String {
+    override fun currentAccessToken(): String {
         val storedToken = tokenStore.get()
         val token = if (storedToken != null && storedToken.percentageRemaining() > 20.0) {
             storedToken
