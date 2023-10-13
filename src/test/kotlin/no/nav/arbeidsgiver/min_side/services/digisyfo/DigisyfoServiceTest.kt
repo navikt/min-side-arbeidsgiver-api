@@ -1,6 +1,7 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.arbeidsgiver.min_side.kotlinCapture
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
@@ -43,13 +44,13 @@ class DigisyfoServiceTest {
     @BeforeEach
     fun setUp() {
         Mockito.`when`(
-            eregService.hentOverenhet(orgnrCaptor.capture())
+            eregService.hentOverenhet(orgnrCaptor.kotlinCapture())
         ).thenAnswer {
             enhetsregisteret[orgnrCaptor.value]
         }
 
         Mockito.`when`(
-            eregService.hentUnderenhet(orgnrCaptor.capture())
+            eregService.hentUnderenhet(orgnrCaptor.kotlinCapture())
         ).thenAnswer {
             enhetsregisteret[orgnrCaptor.value]
         }

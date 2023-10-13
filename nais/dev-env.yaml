@@ -52,5 +52,6 @@ spec:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
       external:
+        - host: tt02.altinn.no
         - host: api-gw-q1.oera.no
         - host: ereg-services.dev-fss-pub.nais.io
