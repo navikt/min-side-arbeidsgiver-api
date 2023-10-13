@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.kontaktinfo
 
-import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
@@ -13,14 +12,12 @@ class KontaktinfoController(
     private val eregService: EregService,
     private val kontaktinfoClient: KontaktinfoClient,
 ) {
-    private val log = logger()
 
     @PostMapping("/api/kontaktinfo/v1")
     fun getKontaktinfo(@RequestBody requestBody: KontaktinfoRequest): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
         val orgnrHovedenhet = eregService.hentUnderenhet(orgnrUnderenhet)
             ?.parentOrganizationNumber
-        log.info("/api/kontaktinfo/v1 hovedenhet: $orgnrHovedenhet underenhet: $orgnrUnderenhet") // TODO ikke i prod
 
         return KontaktinfoResponse(
             underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet),
