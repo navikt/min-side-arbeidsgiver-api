@@ -18,7 +18,6 @@ import org.springframework.web.client.HttpClientErrorException
     KontaktinfoClient::class,
     MaskinportenTokenServiceStub::class,
 )
-@ActiveProfiles("local")
 class KontaktinfoClientTest {
     @Autowired
     lateinit var altinnServer: MockRestServiceServer
