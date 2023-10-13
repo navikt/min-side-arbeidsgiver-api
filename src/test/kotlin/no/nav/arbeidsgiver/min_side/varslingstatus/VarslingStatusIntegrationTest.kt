@@ -35,6 +35,9 @@ class VarslingStatusIntegrationTest {
     lateinit var varslingStatusRepository: VarslingStatusRepository
 
     @Autowired
+    lateinit var kontaktInfoPollerRepository: KontaktInfoPollerRepository
+
+    @Autowired
     lateinit var objectMapper: ObjectMapper
 
     lateinit var varslingStatusKafkaListener: VarslingStatusKafkaListener
@@ -210,6 +213,37 @@ class VarslingStatusIntegrationTest {
                     true
                 )
             }
+        }
+    }
+
+    @Test
+    fun `får ok dersom kontaktinfo er pollet og funnet`() {
+        `when`(
+            altinnService.hentOrganisasjoner("42")
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co")))
+
+        processVarslingStatus(
+            """
+                {
+                    "virksomhetsnummer": "314",
+                    "varselId": "vid1",
+                    "varselTimestamp": "2021-01-01T00:00:00",
+                    "kvittertEventTimestamp": "2021-01-01T00:00:00Z",
+                    "status": "MANGLER_KOFUVI",
+                    "version": "1"
+                }
+            """
+        )
+        kontaktInfoPollerRepository.updateKontaktInfo("314", true, true)
+
+        mockMvc.post("/api/varslingStatus/v1") {
+            content = """{"virksomhetsnummer": "314"}"""
+            contentType = APPLICATION_JSON
+            accept = APPLICATION_JSON
+            with(jwtWithPid("42"))
+        }.andExpect {
+            status { isOk() }
+            content { json("""{"status": "OK"}""") }
         }
     }
 
