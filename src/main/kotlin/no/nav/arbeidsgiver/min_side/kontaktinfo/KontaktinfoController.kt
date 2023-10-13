@@ -37,7 +37,7 @@ class KontaktinfoController(
             kontaktinfoClient.hentKontaktinfo(orgnr)?.let {
                 Kontaktinfo(
                     eposter = it.eposter.toList(),
-                    telefonnummer = it.telefonnumre.toList(),
+                    telefonnumre = it.telefonnumre.toList(),
                 )
             }
         } else {
@@ -60,7 +60,7 @@ class KontaktinfoController(
     @Suppress("unused") // DTO
     class Kontaktinfo(
         val eposter: List<String>,
-        val telefonnummer: List<String>,
+        val telefonnumre: List<String>,
     )
 
     @Suppress("unused") // DTO
