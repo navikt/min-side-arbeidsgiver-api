@@ -64,7 +64,9 @@ class VarslingStatusRepository(
             join newest_statuses
                 on vs.virksomhetsnummer = newest_statuses.virksomhetsnummer 
                 and vs.status_tidspunkt = newest_statuses.newest_status_timestamp
-            where vs.status = 'MANGLER_KOFUVI';
+            left join kontaktinfo_resultat ki on vs.virksomhetsnummer = ki.virksomhetsnummer
+                where (ki is null or (ki.har_epost = false and ki.har_tlf = false)) 
+                and vs.status = 'MANGLER_KOFUVI';
             """
         ).map { it["virksomhetsnummer"] as String }
     }

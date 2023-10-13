@@ -23,6 +23,9 @@ class VarslingStatusRepositoryTest {
     lateinit var varslingStatusRepository: VarslingStatusRepository
 
     @Autowired
+    lateinit var kontaktInfoPollerRepository: KontaktInfoPollerRepository
+
+    @Autowired
     lateinit var objectMapper: ObjectMapper
 
     lateinit var varslingStatusKafkaListener: VarslingStatusKafkaListener
@@ -50,11 +53,15 @@ class VarslingStatusRepositoryTest {
             // 314 siste status = MANGLER_KOFUVI
             Triple("MANGLER_KOFUVI", "2021-01-03T00:00:00Z", "314"),
             Triple("OK", "2021-01-02T00:00:00Z", "314"),
+
+            // 333 siste status = MANGLER_KOFUVI, men har kontaktinfo fra poll
+            Triple("MANGLER_KOFUVI", "2021-01-03T00:00:00Z", "333"),
+            Triple("OK", "2021-01-02T00:00:00Z", "333"),
         ).forEachIndexed { index, (status, timestamp, vnr) ->
             processVarslingStatus(
                 """
                     {
-                        "virksomhetsnummer": "314",
+                        "virksomhetsnummer": "$vnr",
                         "varselId": "vid$index",
                         "varselTimestamp": "2021-01-01T00:00:00",
                         "kvittertEventTimestamp": "$timestamp",
@@ -64,6 +71,7 @@ class VarslingStatusRepositoryTest {
                 """
             )
         }
+        kontaktInfoPollerRepository.updateKontaktInfo("333", true, true)
 
         val result = varslingStatusRepository.hentVirksomheterMedFeil()
         assertEquals(listOf("314"), result)
