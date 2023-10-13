@@ -1,11 +1,13 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient
+import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
+@Profile("dev-gcp", "prod-gcp")
 @Service
 class KontaktInfoPollingService(
     private val varslingStatusRepository: VarslingStatusRepository,
