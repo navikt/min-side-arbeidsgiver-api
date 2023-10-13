@@ -7,7 +7,6 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
 import org.springframework.http.MediaType
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import java.lang.IllegalArgumentException
@@ -17,7 +16,6 @@ import java.lang.IllegalArgumentException
     AltinnRollerClient::class,
     MaskinportenTokenServiceStub::class,
 )
-@ActiveProfiles("local")
 class AltinnRollerClientTest {
     @Autowired
     lateinit var altinnServer: MockRestServiceServer
