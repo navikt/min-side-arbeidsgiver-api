@@ -54,16 +54,17 @@ class VarslingStatusRepository(
     fun hentVirksomheterMedFeil(): List<String> {
         return jdbcTemplate.queryForList(
             """
+            with newest_statuses as (
+                select virksomhetsnummer, max(status_tidspunkt) as newest_status_timestamp
+                from varsling_status
+                group by virksomhetsnummer
+            ) 
             select vs.*
-                from varsling_status vs
-                    join (
-                        select virksomhetsnummer, max(status_tidspunkt) as newest_status_timestamp
-                            from varsling_status
-                            group by virksomhetsnummer
-                    ) newest_statuses
+            from varsling_status vs
+            join newest_statuses
                 on vs.virksomhetsnummer = newest_statuses.virksomhetsnummer 
-                    and vs.status_tidspunkt = newest_statuses.newest_status_timestamp
-                where vs.status = 'MANGLER_KOFUVI';
+                and vs.status_tidspunkt = newest_statuses.newest_status_timestamp
+            where vs.status = 'MANGLER_KOFUVI';
             """
         ).map { it["virksomhetsnummer"] as String }
     }
