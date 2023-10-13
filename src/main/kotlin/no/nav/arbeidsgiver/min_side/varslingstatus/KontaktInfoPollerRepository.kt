@@ -9,11 +9,11 @@ class KontaktInfoPollerRepository(
     private val jdbcTemplate: JdbcTemplate,
 ) {
 
-    fun schedulePoll(virksomheterMedFeil: List<String>, poll_tidspunkt: String) {
+    fun schedulePoll(virksomheterMedFeil: List<String>, pollTidspunkt: String) {
         jdbcTemplate.batchUpdate("""
                 insert into poll_kontaktinfo (virksomhetsnummer, poll_tidspunkt) values (?, ?)
                     on conflict (virksomhetsnummer) do update set poll_tidspunkt = EXCLUDED.poll_tidspunkt;
-            """, virksomheterMedFeil.map { arrayOf(it, poll_tidspunkt) })
+            """, virksomheterMedFeil.map { arrayOf(it, pollTidspunkt) })
     }
 
     fun updateKontaktInfo(
