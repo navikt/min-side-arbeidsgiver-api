@@ -4,9 +4,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Test
+  bygg:
+    name: Bygg
     runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
     services:
       postgres:
         image: postgres:12.10
@@ -29,32 +32,15 @@ jobs:
           java-version: 17
           cache: maven
 
-      - run: mvn -B -Dsurefire.useFile=false test
+      - run: mvn -B package
 
-  bygg:
-    name: Bygg
-    needs: test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: "read"
-      id-token: "write"
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: 17
-        cache: maven
-
-    - run: mvn -B -DskipTests package
-
-    - uses: nais/docker-build-push@v0
-      id: gar-push
-      with:
-        team: fager
-        tag: ${{ github.sha }}
-        project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
-        identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+      - uses: nais/docker-build-push@v0
+        id: gar-push
+        with:
+          team: fager
+          tag: ${{ github.sha }}
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
 
   deploy-dev-gcp:
     permissions:
