@@ -12,16 +12,16 @@ class KontaktinfoController(
     private val eregService: EregService,
     private val kontaktinfoClient: KontaktinfoClient,
 ) {
+
     @PostMapping("/api/kontaktinfo/v1")
     fun getKontaktinfo(@RequestBody requestBody: KontaktinfoRequest): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
         val orgnrHovedenhet = eregService.hentUnderenhet(orgnrUnderenhet)
             ?.parentOrganizationNumber
-            ?: return KontaktinfoResponse(null, null)
 
         return KontaktinfoResponse(
             underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet),
-            hovedenhet = tilgangsstyrOgHentKontaktinfo(orgnrHovedenhet),
+            hovedenhet = orgnrHovedenhet?.let { tilgangsstyrOgHentKontaktinfo(it) } ,
         )
     }
 
