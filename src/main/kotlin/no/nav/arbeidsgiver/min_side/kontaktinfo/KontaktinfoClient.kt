@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.kontaktinfo
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
@@ -78,6 +79,7 @@ class KontaktinfoClient(
         )
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private class ContactInfoDTO(
         @JsonProperty("MobileNumber")
         val mobileNumber: String,
