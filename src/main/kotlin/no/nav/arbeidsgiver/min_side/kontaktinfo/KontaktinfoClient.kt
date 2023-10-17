@@ -39,9 +39,12 @@ class KontaktinfoClient(
     data class Kontaktinfo(
         val eposter: Set<String>,
         val telefonnumre: Set<String>,
-    )
+    ) {
+        val harKontaktinfo: Boolean
+            get() = eposter.isNotEmpty() || telefonnumre.isNotEmpty()
+    }
 
-    fun hentKontaktinfo(orgnr: String): Kontaktinfo? {
+    fun hentKontaktinfo(orgnr: String): Kontaktinfo {
         val headers = HttpHeaders().apply {
             set("apikey", altinnApiKey)
             setBearerAuth(maskinportenTokenService.currentAccessToken())
