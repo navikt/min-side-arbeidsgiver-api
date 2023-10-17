@@ -61,7 +61,7 @@ class KontaktInfoPollingService(
 
     private fun finnKontaktinfoIOrgTre(virksomhetsnummer: String) =
         kontaktinfoClient.hentKontaktinfo(virksomhetsnummer)
-            ?: eregService.hentOverenhet(virksomhetsnummer)?.organizationNumber
+            ?: eregService.hentUnderenhet(virksomhetsnummer)?.parentOrganizationNumber
                 ?.let { kontaktinfoClient.hentKontaktinfo(it) }
 
 }
