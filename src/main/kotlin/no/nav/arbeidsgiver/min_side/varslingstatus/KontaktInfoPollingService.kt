@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import kotlin.time.Duration.Companion.days
 
-@Profile("dev-gcp", "prod-gcp")
 @Service
 class KontaktInfoPollingService(
     private val varslingStatusRepository: VarslingStatusRepository,
@@ -59,9 +58,14 @@ class KontaktInfoPollingService(
         kontaktInfoPollerRepository.slettKontaktinfoMedOkStatusEllerEldreEnn(retention)
     }
 
-    private fun finnKontaktinfoIOrgTre(virksomhetsnummer: String) =
-        kontaktinfoClient.hentKontaktinfo(virksomhetsnummer)
-            ?: eregService.hentUnderenhet(virksomhetsnummer)?.parentOrganizationNumber
-                ?.let { kontaktinfoClient.hentKontaktinfo(it) }
+    private fun finnKontaktinfoIOrgTre(virksomhetsnummer: String): KontaktinfoClient.Kontaktinfo? {
+        val kontaktinfoUnderenhet = kontaktinfoClient.hentKontaktinfo(virksomhetsnummer)
+        if (kontaktinfoUnderenhet.harKontaktinfo) {
+            return kontaktinfoUnderenhet
+        }
+
+        return eregService.hentUnderenhet(virksomhetsnummer)?.parentOrganizationNumber
+            ?.let { kontaktinfoClient.hentKontaktinfo(it) }
+    }
 
 }
