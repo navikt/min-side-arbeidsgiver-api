@@ -1,6 +1,7 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient
+import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -13,6 +14,7 @@ import kotlin.time.Duration.Companion.days
 class KontaktInfoPollingService(
     private val varslingStatusRepository: VarslingStatusRepository,
     private val kontaktinfoClient: KontaktinfoClient,
+    private val eregService: EregService,
     private val kontaktInfoPollerRepository: KontaktInfoPollerRepository,
 ) {
 
@@ -38,7 +40,7 @@ class KontaktInfoPollingService(
     @Transactional
     fun pollAndPullKontaktInfo() {
         val virksomhetsnummer = kontaktInfoPollerRepository.getAndDeleteForPoll() ?: return
-        val kontaktInfo = kontaktinfoClient.hentKontaktinfo(virksomhetsnummer) ?: return
+        val kontaktInfo = finnKontaktinfoIOrgTre(virksomhetsnummer) ?: return
 
         kontaktInfoPollerRepository.updateKontaktInfo(
             virksomhetsnummer,
@@ -56,5 +58,10 @@ class KontaktInfoPollingService(
         varslingStatusRepository.slettVarslingStatuserEldreEnn(retention)
         kontaktInfoPollerRepository.slettKontaktinfoMedOkStatusEllerEldreEnn(retention)
     }
+
+    private fun finnKontaktinfoIOrgTre(virksomhetsnummer: String) =
+        kontaktinfoClient.hentKontaktinfo(virksomhetsnummer)
+            ?: eregService.hentOverenhet(virksomhetsnummer)?.organizationNumber
+                ?.let { kontaktinfoClient.hentKontaktinfo(it) }
 
 }
