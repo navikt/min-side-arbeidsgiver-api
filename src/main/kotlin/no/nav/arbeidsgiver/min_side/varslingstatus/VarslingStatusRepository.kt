@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service
 import java.sql.PreparedStatement
 import java.time.Instant
 import java.time.LocalDateTime
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
 
 data class VarslingStatus(
     val status: Status,
@@ -31,8 +33,10 @@ class VarslingStatusRepository(
         return namedParameterJdbcTemplate.queryForList(
             """
             select status, varslet_tidspunkt, status_tidspunkt
-                from varsling_status
+                from varsling_status vs
+                left join kontaktinfo_resultat ki using (virksomhetsnummer)
                 where virksomhetsnummer = :virksomhetsnummer
+                    and (ki is null or (ki.har_epost = false and ki.har_tlf = false))
                 order by status_tidspunkt desc
             """.trimIndent(),
             mapOf("virksomhetsnummer" to virksomhetsnummer)
@@ -47,6 +51,28 @@ class VarslingStatusRepository(
             varselTimestamp = LocalDateTime.now(),
             kvittertEventTimestamp = Instant.now(),
         )
+    }
+
+    fun hentVirksomheterMedFeil(maxAge: Duration): List<String> {
+        return jdbcTemplate.queryForList(
+            """
+            with newest_statuses as (
+                select virksomhetsnummer, max(status_tidspunkt) as newest_status_timestamp
+                from varsling_status
+                group by virksomhetsnummer
+            ) 
+            select vs.*
+            from varsling_status vs
+            join newest_statuses
+                on vs.virksomhetsnummer = newest_statuses.virksomhetsnummer 
+                and vs.status_tidspunkt = newest_statuses.newest_status_timestamp
+            left join kontaktinfo_resultat ki on vs.virksomhetsnummer = ki.virksomhetsnummer
+                where (ki is null or (ki.har_epost = false and ki.har_tlf = false)) 
+                and vs.status = 'MANGLER_KOFUVI'
+                and newest_statuses.newest_status_timestamp > ?;
+            """,
+            Instant.now().minus(maxAge.toJavaDuration()).toString()
+        ).map { it["virksomhetsnummer"] as String }
     }
 
     fun processVarslingStatus(varslingStatus: VarslingStatusDto) {
@@ -69,6 +95,15 @@ class VarslingStatusRepository(
             ps.setString(4, varslingStatus.eventTimestamp.toString())
             ps.setString(5, varslingStatus.varselTimestamp.toString())
         }
+    }
+
+    fun slettVarslingStatuserEldreEnn(retention: Duration) {
+        jdbcTemplate.update(
+            """
+            delete from varsling_status where varsling_status.status_tidspunkt < ?
+            """,
+            Instant.now().minus(retention.toJavaDuration()).toString()
+        )
     }
 }
 
