@@ -3,6 +3,8 @@ package no.nav.arbeidsgiver.min_side.varslingstatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
 import java.time.Instant
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
 
 @Repository
 class KontaktInfoPollerRepository(
@@ -57,5 +59,30 @@ class KontaktInfoPollerRepository(
             virksomhetsnummer
         )
         return virksomhetsnummer
+    }
+
+    fun slettKontaktinfoMedOkStatusEllerEldreEnn(retention: Duration) {
+        jdbcTemplate.update(
+            """
+                with newest_statuses as (
+                    select virksomhetsnummer, max(status_tidspunkt) as newest_status_timestamp
+                    from varsling_status
+                    group by virksomhetsnummer
+                ), ok_eller_utgått as (
+                    select vs.virksomhetsnummer, vs.status_tidspunkt, vs.status
+                            from varsling_status vs
+                            join newest_statuses
+                                on vs.virksomhetsnummer = newest_statuses.virksomhetsnummer 
+                                and vs.status_tidspunkt = newest_statuses.newest_status_timestamp
+                )
+                delete from kontaktinfo_resultat
+                    where virksomhetsnummer in (
+                        select virksomhetsnummer from ok_eller_utgått
+                        where status_tidspunkt < ?
+                            or status = 'OK'
+                    );
+            """,
+            Instant.now().minus(retention.toJavaDuration()).toString()
+        )
     }
 }

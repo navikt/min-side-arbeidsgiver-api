@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import kotlin.time.Duration.Companion.days
 
 @Profile("dev-gcp", "prod-gcp")
 @Service
@@ -14,12 +15,15 @@ class KontaktInfoPollingService(
     private val kontaktinfoClient: KontaktinfoClient,
     private val kontaktInfoPollerRepository: KontaktInfoPollerRepository,
 ) {
+
+    val retention = 90.days
+
     @Scheduled(
         initialDelayString = "PT1M",
         fixedDelayString = "PT60M",
     )
     fun schedulePolling() {
-        val virksomheterMedFeil = varslingStatusRepository.hentVirksomheterMedFeil()
+        val virksomheterMedFeil = varslingStatusRepository.hentVirksomheterMedFeil(retention)
         kontaktInfoPollerRepository.schedulePoll(
             virksomheterMedFeil,
             Instant.now().toString()
@@ -47,8 +51,10 @@ class KontaktInfoPollingService(
         initialDelayString = "PT1M",
         fixedDelayString = "PT1H",
     )
-    fun cleanupOldAndOk() {
-        // TODO: cleanup kontaktinfo_resultat where siste varsel_status = OK, or older than 3 months
+    @Transactional
+    fun cleanup() {
+        varslingStatusRepository.slettVarslingStatuserEldreEnn(retention)
+        kontaktInfoPollerRepository.slettKontaktinfoMedOkStatusEllerEldreEnn(retention)
     }
 
 }

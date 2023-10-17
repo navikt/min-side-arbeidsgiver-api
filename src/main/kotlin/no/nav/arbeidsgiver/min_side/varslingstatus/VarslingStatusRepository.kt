@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service
 import java.sql.PreparedStatement
 import java.time.Instant
 import java.time.LocalDateTime
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
 
 data class VarslingStatus(
     val status: Status,
@@ -51,7 +53,7 @@ class VarslingStatusRepository(
         )
     }
 
-    fun hentVirksomheterMedFeil(): List<String> {
+    fun hentVirksomheterMedFeil(maxAge: Duration): List<String> {
         return jdbcTemplate.queryForList(
             """
             with newest_statuses as (
@@ -66,8 +68,10 @@ class VarslingStatusRepository(
                 and vs.status_tidspunkt = newest_statuses.newest_status_timestamp
             left join kontaktinfo_resultat ki on vs.virksomhetsnummer = ki.virksomhetsnummer
                 where (ki is null or (ki.har_epost = false and ki.har_tlf = false)) 
-                and vs.status = 'MANGLER_KOFUVI';
-            """
+                and vs.status = 'MANGLER_KOFUVI'
+                and newest_statuses.newest_status_timestamp > ?;
+            """,
+            Instant.now().minus(maxAge.toJavaDuration()).toString()
         ).map { it["virksomhetsnummer"] as String }
     }
 
@@ -91,6 +95,15 @@ class VarslingStatusRepository(
             ps.setString(4, varslingStatus.eventTimestamp.toString())
             ps.setString(5, varslingStatus.varselTimestamp.toString())
         }
+    }
+
+    fun slettVarslingStatuserEldreEnn(retention: Duration) {
+        jdbcTemplate.update(
+            """
+            delete from varsling_status where varsling_status.status_tidspunkt < ?
+            """,
+            Instant.now().minus(retention.toJavaDuration()).toString()
+        )
     }
 }
 

@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import java.time.Instant
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
 
 @MockBean(JwtDecoder::class)
 @SpringBootTest(
@@ -73,8 +76,38 @@ class VarslingStatusRepositoryTest {
         }
         kontaktInfoPollerRepository.updateKontaktInfo("333", true, true)
 
-        val result = varslingStatusRepository.hentVirksomheterMedFeil()
+        val result = varslingStatusRepository.hentVirksomheterMedFeil(10000.days)
         assertEquals(listOf("314"), result)
+    }
+
+    @Test
+    fun `sletter statuser eldre enn`() {
+        val now = Instant.now()
+        listOf(
+            now.minusSeconds(1) to "1000",
+            now.minusSeconds(2) to "2000",
+            now.minusSeconds(3) to "3000",
+            now.minusSeconds(4) to "4000",
+            now.minusSeconds(5) to "5000",
+            now.minusSeconds(6) to "6000",
+        ).forEachIndexed { index, (timestamp, vnr) ->
+            processVarslingStatus(
+                """
+                    {
+                        "virksomhetsnummer": "$vnr",
+                        "varselId": "vid$index",
+                        "varselTimestamp": "2021-01-01T00:00:00",
+                        "kvittertEventTimestamp": "$timestamp",
+                        "status": "MANGLER_KOFUVI",
+                        "version": "1"
+                    }
+                """
+            )
+        }
+        varslingStatusRepository.slettVarslingStatuserEldreEnn(3.seconds)
+
+        val result = varslingStatusRepository.hentVirksomheterMedFeil(1.days)
+        assertEquals(listOf("1000", "2000").sorted(), result.sorted())
     }
 
 
