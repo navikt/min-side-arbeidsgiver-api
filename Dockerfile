@@ -1,3 +1,3 @@
-FROM ghcr.io/navikt/baseimages/temurin:17
+FROM gcr.io/distroless/java17-debian12
 COPY /target/*.jar app.jar
-EXPOSE 8080
+CMD ["app.jar"]
