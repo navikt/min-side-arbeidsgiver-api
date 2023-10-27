@@ -41,7 +41,7 @@ class TilgangsstyringUtføresTest {
     fun tilgangsstyringErOkForAcrLevel4() {
         val token = token("42", mapOf("acr" to "Level4"))
         mockMvc
-            .perform(get("/api/innlogget").header(HttpHeaders.AUTHORIZATION, "Bearer $token"))
+            .perform(get("/api/userInfo/v1").header(HttpHeaders.AUTHORIZATION, "Bearer $token"))
             .andExpect(MockMvcResultMatchers.status().isOk)
     }
 
@@ -49,7 +49,7 @@ class TilgangsstyringUtføresTest {
     fun tilgangsstyringErOkForAcridportenLoaHigh() {
         val token = token("42", mapOf("acr" to "idporten-loa-high"))
         mockMvc
-            .perform(get("/api/innlogget").header(HttpHeaders.AUTHORIZATION, "Bearer $token"))
+            .perform(get("/api/userInfo/v1").header(HttpHeaders.AUTHORIZATION, "Bearer $token"))
             .andExpect(MockMvcResultMatchers.status().isOk)
     }
 
