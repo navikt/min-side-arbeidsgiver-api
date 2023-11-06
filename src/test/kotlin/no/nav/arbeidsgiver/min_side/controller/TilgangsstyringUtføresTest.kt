@@ -9,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
@@ -32,25 +34,30 @@ class TilgangsstyringUtføresTest {
 
     @Test
     fun tilgangsstyringUtføres() {
-        mockMvc
-            .perform(get("/api/narmesteleder/virksomheter-v3"))
-            .andExpect(MockMvcResultMatchers.status().isUnauthorized)
+        mockMvc.get("/api/userInfo/v1")
+            .andExpect {
+                status { isUnauthorized() }
+            }
     }
 
     @Test
     fun tilgangsstyringErOkForAcrLevel4() {
         val token = token("42", mapOf("acr" to "Level4"))
-        mockMvc
-            .perform(get("/api/userInfo/v1").header(HttpHeaders.AUTHORIZATION, "Bearer $token"))
-            .andExpect(MockMvcResultMatchers.status().isOk)
+        mockMvc.get("/api/userInfo/v1") {
+            header(AUTHORIZATION, "Bearer $token")
+        }.andExpect {
+            status { isOk() }
+        }
     }
 
     @Test
     fun tilgangsstyringErOkForAcridportenLoaHigh() {
         val token = token("42", mapOf("acr" to "idporten-loa-high"))
-        mockMvc
-            .perform(get("/api/userInfo/v1").header(HttpHeaders.AUTHORIZATION, "Bearer $token"))
-            .andExpect(MockMvcResultMatchers.status().isOk)
+        mockMvc.get("/api/userInfo/v1") {
+            header(AUTHORIZATION, "Bearer $token")
+        }.andExpect {
+            status { isOk() }
+        }
     }
 
     private fun token(subject: String, claims: Map<String, String>): String? {
