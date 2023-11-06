@@ -4,15 +4,22 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.context.annotation.Profile
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.sql.PreparedStatement
 
-interface RefusjonStatusRepository {
+
+@Repository
+class RefusjonStatusRepository(
+    private val jdbcTemplate: JdbcTemplate,
+    private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate
+) {
     data class Statusoversikt(
         val virksomhetsnummer: String = "",
         /**
@@ -22,25 +29,7 @@ interface RefusjonStatusRepository {
         val statusoversikt: Map<String, Int> = mapOf()
     )
 
-    fun statusoversikt(virksomhetsnummer: List<String>): List<Statusoversikt>
-}
-
-@Profile("dev-gcp", "prod-gcp")
-@Repository
-class RefusjonStatusRepositoryImpl(
-    private val objectMapper: ObjectMapper,
-    private val jdbcTemplate: JdbcTemplate,
-    private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate
-) : RefusjonStatusRepository {
-
-    @Profile("dev-gcp", "prod-gcp")
-    @KafkaListener(
-        id = "min-side-arbeidsgiver-1",
-        topics = ["arbeidsgiver.tiltak-refusjon-endret-status"],
-        containerFactory = "errorLoggingKafkaListenerContainerFactory"
-    )
-    fun processConsumerRecord(record: ConsumerRecord<String?, String?>) {
-        val hendelse = objectMapper.readValue(record.value(), RefusjonStatusHendelse::class.java)
+    fun processHendelse(hendelse: RefusjonStatusHendelse) {
         jdbcTemplate.update(
             """
             insert into refusjon_status(refusjon_id, virksomhetsnummer, avtale_id, status) 
@@ -59,7 +48,7 @@ class RefusjonStatusRepositoryImpl(
         }
     }
 
-    override fun statusoversikt(virksomhetsnummer: List<String>): List<RefusjonStatusRepository.Statusoversikt> {
+    fun statusoversikt(virksomhetsnummer: List<String>): List<Statusoversikt> {
         if (virksomhetsnummer.isEmpty()) {
             return listOf()
         }
@@ -78,17 +67,28 @@ class RefusjonStatusRepositoryImpl(
                     .associateBy { v -> v["status"] as String }
                     .mapValues { v -> (v.value["count"] as Long).toInt() }
             }
-        return grouped.map { RefusjonStatusRepository.Statusoversikt(it.key as String, it.value) }
+        return grouped.map { Statusoversikt(it.key as String, it.value) }
     }
 }
 
-@Profile("local")
-@Repository
-class RefusjonStatusRepositoryMock : RefusjonStatusRepository {
-    override fun statusoversikt(virksomhetsnummer: List<String>): List<RefusjonStatusRepository.Statusoversikt> {
-        return listOf()
-    }
+@Profile("dev-gcp", "prod-gcp")
+@Service
+class RefusjonStatusKafkaListener(
+    private val objectMapper: ObjectMapper,
+    private val refusjonStatusRepository: RefusjonStatusRepository,
+) {
+
+    @Profile("dev-gcp", "prod-gcp")
+    @KafkaListener(
+        id = "min-side-arbeidsgiver-1",
+        topics = ["arbeidsgiver.tiltak-refusjon-endret-status"],
+        containerFactory = "errorLoggingKafkaListenerContainerFactory"
+    )
+    fun processConsumerRecord(record: ConsumerRecord<String, String>) =
+        refusjonStatusRepository.processHendelse(objectMapper.readValue(record.value()))
 }
+
+
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RefusjonStatusHendelse @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(

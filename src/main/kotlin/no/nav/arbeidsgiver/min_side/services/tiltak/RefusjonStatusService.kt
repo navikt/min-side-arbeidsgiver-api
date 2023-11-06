@@ -1,27 +1,19 @@
-package no.nav.arbeidsgiver.min_side.controller
+package no.nav.arbeidsgiver.min_side.services.tiltak
 
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.stereotype.Service
 
 
-private const val TJENESTEKODE = "4936"
-private const val TJENESTEVERSJON = "1"
-
-@RestController
-class RefusjonStatusController(
+@Service
+class RefusjonStatusService(
     private val altinnService: AltinnService,
     private val refusjonStatusRepository: RefusjonStatusRepository,
-    private val authenticatedUserHolder: AuthenticatedUserHolder
 ) {
 
-    @GetMapping("/api/refusjon_status")
-    fun statusoversikt(): List<Statusoversikt> {
-        /* Man kan muligens filtrere organisasjoner ytligere med ("BEDR", annet?). */
+    fun statusoversikt(fnr: String): List<Statusoversikt> {
         val orgnr = altinnService
-            .hentOrganisasjonerBasertPaRettigheter(authenticatedUserHolder.fnr, TJENESTEKODE, TJENESTEVERSJON)
+            .hentOrganisasjonerBasertPaRettigheter(fnr, TJENESTEKODE, TJENESTEVERSJON)
             .mapNotNull(Organisasjon::organizationNumber)
 
         return refusjonStatusRepository
@@ -42,5 +34,10 @@ class RefusjonStatusController(
                     statusoversikt.statusoversikt
                 )
         }
+    }
+
+    companion object {
+        const val TJENESTEKODE = "4936"
+        const val TJENESTEVERSJON = "1"
     }
 }

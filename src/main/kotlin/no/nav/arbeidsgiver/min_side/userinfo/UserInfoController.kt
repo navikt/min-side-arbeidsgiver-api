@@ -10,6 +10,7 @@ import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
+import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 class UserInfoController(
     private val altinnService: AltinnService,
     private val digisyfoService: DigisyfoService,
+    private val refusjonStatusService: RefusjonStatusService,
     private val authenticatedUserHolder: AuthenticatedUserHolder,
     gittMiljø: GittMiljø,
 ) {
@@ -92,7 +94,7 @@ class UserInfoController(
 
     @GetMapping("/api/userInfo/v1")
     suspend fun getUserInfo(): UserInfoRespons {
-        val (tilganger, organisasjoner, syfoVirksomheter) = supervisorScope {
+        val (tilganger, organisasjoner, syfoVirksomheter, refusjoner) = supervisorScope {
             val tilganger = tjenester.map { (id, tjeneste) ->
                 async {
                     runCatching {
@@ -141,18 +143,32 @@ class UserInfoController(
                 }
             }
 
+            val refusjoner = async {
+                runCatching {
+                    refusjonStatusService.statusoversikt(authenticatedUserHolder.fnr)
+                }
+            }
 
-            Triple(tilganger.awaitAll(), organisasjoner.await(), syfoVirksomheter.await())
+
+            UserInfoData(tilganger.awaitAll(), organisasjoner.await(), syfoVirksomheter.await(), refusjoner.await())
         }
 
         return UserInfoRespons(
-            altinnError = organisasjoner.isFailure || tilganger.any { it.altinnError },
+            altinnError = organisasjoner.isFailure || tilganger.any { it.altinnError } || refusjoner.isFailure,
             digisyfoError = syfoVirksomheter.isFailure,
             organisasjoner = organisasjoner.getOrDefault(emptyList()),
             digisyfoOrganisasjoner = syfoVirksomheter.getOrDefault(emptyList()),
-            tilganger = tilganger
+            refusjoner = refusjoner.getOrDefault(emptyList()),
+            tilganger = tilganger,
         )
     }
+
+    data class UserInfoData(
+        val tilganger: List<UserInfoRespons.Tilgang>,
+        val organisasjoner: Result<List<Organisasjon>>,
+        val digisyfoOrganisasjoner: Result<Collection<VirksomhetOgAntallSykmeldte>>,
+        val refusjoner: Result<List<RefusjonStatusService.Statusoversikt>>,
+    )
 
     data class UserInfoRespons(
         val organisasjoner: List<Organisasjon>,
@@ -160,6 +176,7 @@ class UserInfoController(
         val digisyfoOrganisasjoner: Collection<VirksomhetOgAntallSykmeldte>,
         val altinnError: Boolean,
         val digisyfoError: Boolean,
+        val refusjoner: List<RefusjonStatusService.Statusoversikt>,
     ) {
         data class Tilgang(
             val id: String,
