@@ -29,6 +29,7 @@ class TokenExchangeClientImpl(
             org.apache.http.NoHttpResponseException::class.java,
             java.net.SocketException::class.java,
             javax.net.ssl.SSLHandshakeException::class.java,
+            org.springframework.web.client.HttpServerErrorException.GatewayTimeout::class.java,
         )
     ).build()
 
