@@ -84,7 +84,7 @@ altinn:
   proxyAudience: fake:fake:fake
   apiBaseUrl: "http://altinn.example.org"
 
-ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
+ereg-services.baseUrl: "https://localhost"
 
 token.x:
   privateJwk: fake

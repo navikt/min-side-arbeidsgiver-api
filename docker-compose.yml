@@ -1,5 +1,5 @@
 ---
-version: '2'
+version: '3'
 services:
   postgres:
     image: "postgres:12.11"
@@ -10,6 +10,12 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - ${PWD}/local-db-init.sql:/docker-entrypoint-initdb.d/init.sql
+  fakedings:
+    platform: linux/amd64
+    image: ghcr.io/navikt/fakedings/fakedings:37fa232fd7feed67484d442d37f1e525625cad8b
+    ports:
+      - 8080:8080
+    hostname: localhost
 
 volumes:
   database-data:

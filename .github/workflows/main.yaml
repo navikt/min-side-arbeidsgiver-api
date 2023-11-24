@@ -23,6 +23,12 @@ jobs:
           --health-retries 5
         ports:
           - 2345:5432
+      fakedings:
+        image: ghcr.io/navikt/fakedings/fakedings:37fa232fd7feed67484d442d37f1e525625cad8b
+        env:
+          OAUTH2_SERVER_HOST: "localhost"
+        ports:
+          - 8080:8080
     steps:
       - uses: actions/checkout@v3
       - run: PGPASSWORD=postgres psql -U postgres -h localhost -p 2345 -f ./local-db-init.sql
