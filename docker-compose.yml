@@ -10,12 +10,44 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - ${PWD}/local-db-init.sql:/docker-entrypoint-initdb.d/init.sql
-  fakedings:
-    platform: linux/amd64
-    image: ghcr.io/navikt/fakedings/fakedings:37fa232fd7feed67484d442d37f1e525625cad8b
+  mock-oauth2-server:
+    image: ghcr.io/navikt/mock-oauth2-server:2.0.1
     ports:
-      - 8080:8080
-    hostname: localhost
+      - 8118:8080
+    environment:
+      JSON_CONFIG: >
+        {
+          "interactiveLogin": true,
+          "httpServer": "NettyWrapper",
+          "tokenCallbacks": [
+            {
+              "issuerId": "faketokenx",
+              "tokenExpiry": 600000,
+              "requestMappings": [
+                {
+                  "requestParam": "acr",
+                  "match": "Level4",
+                  "claims": {
+                    "sub": "42",
+                    "aud": "someaudience",
+                    "pid": "42",
+                    "acr": "Level4"
+                  }
+                },
+                {
+                  "requestParam": "acr",
+                  "match": "idporten-loa-high",
+                  "claims": {
+                    "sub": "42",
+                    "aud": "someaudience",
+                    "pid": "42",
+                    "acr": "idporten-loa-high"
+                  }
+                }
+              ]
+            }
+          ]
+        }
 
 volumes:
   database-data:
