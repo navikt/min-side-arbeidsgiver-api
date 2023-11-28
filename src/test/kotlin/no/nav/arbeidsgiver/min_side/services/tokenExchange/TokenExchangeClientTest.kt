@@ -1,7 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.tokenExchange
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -15,7 +14,6 @@ import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.*
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
-@MockBean(MultiIssuerConfiguration::class)
 @RestClientTest(
     components = [TokenExchangeClient::class],
     properties = [

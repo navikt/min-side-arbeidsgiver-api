@@ -1,7 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.ereg
 
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.ClientAssertionTokenFactory
-import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,7 +15,7 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.request
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
-@MockBean(MultiIssuerConfiguration::class, ClientAssertionTokenFactory::class)
+@MockBean(ClientAssertionTokenFactory::class)
 @RestClientTest(
     components = [EregService::class, EregCacheConfig::class],
 )

@@ -3,7 +3,6 @@ package no.nav.arbeidsgiver.min_side.clients.altinn
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknadsskjema
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnConfig
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.ClientAssertionTokenFactory
-import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,7 +15,7 @@ import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.*
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
-@MockBean(MultiIssuerConfiguration::class, ClientAssertionTokenFactory::class)
+@MockBean(ClientAssertionTokenFactory::class)
 @RestClientTest(AltinnTilgangssøknadClient::class)
 @EnableConfigurationProperties(AltinnConfig::class)
 class AltinnTilgangssøknadClientTest {
