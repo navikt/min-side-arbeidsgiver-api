@@ -7,6 +7,13 @@ metadata:
     team: fager
 spec:
   image: {{{ image }}}
+  resources:
+    requests:
+      cpu: 400m
+      memory: 512Mi
+    limits:
+      cpu: 5000m # https://home.robusta.dev/blog/stop-using-cpu-limits/
+      memory: 1024Mi
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
     initialDelay: 90
@@ -39,6 +46,8 @@ spec:
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: prod-gcp
+    - name: JAVA_OPTS
+      value: "-XX:+UseParallelGC -XX:MaxRAMPercentage=75.0 -XX:ActiveProcessorCount=2"
   prometheus:
     enabled: true
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
