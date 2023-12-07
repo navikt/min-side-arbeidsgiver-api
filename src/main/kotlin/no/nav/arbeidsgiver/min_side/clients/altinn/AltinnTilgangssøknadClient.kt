@@ -33,6 +33,7 @@ class AltinnTilgangssøknadClient(
                 org.apache.http.NoHttpResponseException::class.java,
                 java.net.SocketException::class.java,
                 javax.net.ssl.SSLHandshakeException::class.java,
+                org.springframework.web.client.ResourceAccessException::class.java,
             )
         )
         .build()
