@@ -1,7 +1,7 @@
 package no.nav.arbeidsgiver.min_side.controller
 
-import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.clients.altinn.AltinnTilgangssøknadClient
+import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknad
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknadsskjema
@@ -16,10 +16,10 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
+import org.springframework.web.client.HttpClientErrorException
+import java.nio.charset.Charset
 
 @MockBean(JwtDecoder::class)
 @WebMvcTest(
@@ -54,15 +54,13 @@ class AltinnTilgangControllerTest {
         altinnTilgangssøknad.submitUrl = "https://yolo.com"
         `when`(altinnTilgangssøknadClient.hentSøknader("42")).thenReturn(listOf(altinnTilgangssøknad))
 
-        val jsonResponse = mockMvc
-            .perform(
-                get("/api/altinn-tilgangssoknad")
-                    .with(jwtWithPid("42"))
-                    .accept(MediaType.APPLICATION_JSON)
-            )
-            .andDo(print())
-            .andExpect(status().isOk)
-            .andReturn().response.contentAsString
+        val jsonResponse = mockMvc.get("/api/altinn-tilgangssoknad") {
+            with(jwtWithPid("42"))
+            accept = MediaType.APPLICATION_JSON
+        }.andExpect {
+            status { isOk() }
+        }.andReturn().response.contentAsString
+
         JSONAssert.assertEquals(
             """
             [
@@ -84,43 +82,35 @@ class AltinnTilgangControllerTest {
 
     @Test
     fun sendSøknadOmTilgang() {
-        val skjema = AltinnTilgangssøknadsskjema()
-        skjema.orgnr = "314"
-        skjema.redirectUrl = "https://yolo.it"
-        skjema.serviceCode = AltinnTilgangController.våreTjenester.first().first
-        skjema.serviceEdition = AltinnTilgangController.våreTjenester.first().second
-
-        val søknad = AltinnTilgangssøknad()
-        søknad.orgnr = "314"
-        søknad.serviceCode = "13337"
-        søknad.serviceEdition = 3
-        søknad.status = "Created"
-        søknad.createdDateTime = "now"
-        søknad.lastChangedDateTime = "whenever"
-        søknad.submitUrl = "https://yolo.com"
+        val skjema = AltinnTilgangssøknadsskjema(
+            orgnr = "314",
+            redirectUrl = "https://yolo.it",
+            serviceCode = AltinnTilgangController.våreTjenester.first().first,
+            serviceEdition = AltinnTilgangController.våreTjenester.first().second,
+        )
+        val søknad = AltinnTilgangssøknad(
+            orgnr = "314",
+            serviceCode = "13337",
+            serviceEdition = 3,
+            status = "Created",
+            createdDateTime = "now",
+            lastChangedDateTime = "whenever",
+            submitUrl = "https://yolo.com",
+        )
 
         `when`(altinnService.hentOrganisasjoner("42")).thenReturn(
             listOf(
-                Organisasjon(
-                    null,
-                    null,
-                    null,
-                    "314",
-                    null,
-                    null
-                )
+                Organisasjon(organizationNumber = "314")
             )
         )
         `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenReturn(søknad)
 
         val jsonResponse = mockMvc
-            .perform(
-                post("/api/altinn-tilgangssoknad")
-                    .with(jwtWithPid("42"))
-                    .accept(MediaType.APPLICATION_JSON)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(
-                        """
+            .post("/api/altinn-tilgangssoknad") {
+                with(jwtWithPid("42"))
+                accept = MediaType.APPLICATION_JSON
+                contentType = MediaType.APPLICATION_JSON
+                content = """
                         {
                             "orgnr": "${skjema.orgnr}",
                             "redirectUrl": "${skjema.redirectUrl}",
@@ -128,11 +118,10 @@ class AltinnTilgangControllerTest {
                             "serviceEdition": ${skjema.serviceEdition}
                         }
                     """
-                    )
-            )
-            .andDo(print())
-            .andExpect(status().isOk)
-            .andReturn().response.contentAsString
+            }.andExpect {
+                status { isOk() }
+            }.andReturn().response.contentAsString
+
         JSONAssert.assertEquals(
             """
               {
@@ -148,5 +137,47 @@ class AltinnTilgangControllerTest {
             jsonResponse,
             true
         )
+    }
+
+    @Test
+    fun sendSøknadOmTilgangSomAlleredeErSøktPåGirBadRequest() {
+        val skjema = AltinnTilgangssøknadsskjema(
+            orgnr = "314",
+            redirectUrl = "https://yolo.it",
+            serviceCode = AltinnTilgangController.våreTjenester.first().first,
+            serviceEdition = AltinnTilgangController.våreTjenester.first().second,
+        )
+
+        `when`(altinnService.hentOrganisasjoner("42")).thenReturn(
+            listOf(
+                Organisasjon(organizationNumber = "314")
+            )
+        )
+        `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenThrow(
+            HttpClientErrorException(
+                org.springframework.http.HttpStatus.BAD_REQUEST,
+                "Bad Request",
+                """[{"ErrorCode":"40318","ErrorMessage":"This request for access has already been registered"}]""".encodeToByteArray(),
+                Charset.defaultCharset()
+            )
+        )
+
+        mockMvc
+            .post("/api/altinn-tilgangssoknad") {
+                with(jwtWithPid("42"))
+                accept = MediaType.APPLICATION_JSON
+                contentType = MediaType.APPLICATION_JSON
+                content = """
+                        {
+                            "orgnr": "${skjema.orgnr}",
+                            "redirectUrl": "${skjema.redirectUrl}",
+                            "serviceCode": "${skjema.serviceCode}",
+                            "serviceEdition": ${skjema.serviceEdition}
+                        }
+                    """
+            }.andExpect {
+                status { isBadRequest() }
+            }
+
     }
 }
