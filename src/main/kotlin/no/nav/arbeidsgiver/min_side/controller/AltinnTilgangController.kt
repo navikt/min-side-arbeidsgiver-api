@@ -8,6 +8,7 @@ import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.client.HttpClientErrorException
 
 @RestController
 @RequestMapping("/api/altinn-tilgangssoknad")
@@ -43,7 +44,16 @@ class AltinnTilgangController(
             )
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
         }
-        val body = altinnTilgangssøknadClient.sendSøknad(fødselsnummer, søknadsskjema)
+        val body = try {
+            altinnTilgangssøknadClient.sendSøknad(fødselsnummer, søknadsskjema)
+        } catch (e: HttpClientErrorException) {
+            if (e.responseBodyAsString.contains("40318")) {
+                // Bruker forsøker å sende en søknad som allerede er sendt.
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+            } else {
+                throw e
+            }
+        }
         return ResponseEntity.ok(body)
     }
 
