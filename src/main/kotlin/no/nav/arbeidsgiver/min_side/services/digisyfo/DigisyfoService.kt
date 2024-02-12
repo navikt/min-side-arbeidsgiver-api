@@ -33,12 +33,27 @@ class DigisyfoService(
             resultat.size.toString()
         ).increment()
 
-        return resultat
+        return resultat.distinctBy { it.organisasjon.organizationNumber }
     }
+
+    private fun hentForfedre(org: Organisasjon, orgs: MutableList<Organisasjon> = mutableListOf()): List<Organisasjon> {
+        if (org.parentOrganizationNumber == null) return orgs
+
+        val overenhet = eregService.hentOverenhet(org.parentOrganizationNumber!!) ?: return orgs
+
+        orgs.add(overenhet)
+        return hentForfedre(overenhet, orgs)
+
+    }
+
 
     private fun hentOverenhet(orgnr: String): List<VirksomhetOgAntallSykmeldte> {
         val hovedenhet = eregService.hentOverenhet(orgnr) ?: return listOf()
-        return listOf(VirksomhetOgAntallSykmeldte(hovedenhet, 0))
+        val forfedre = hentForfedre(hovedenhet)
+        val result = mutableListOf<VirksomhetOgAntallSykmeldte>()
+        result.add(VirksomhetOgAntallSykmeldte(hovedenhet, 0))
+        result.addAll(forfedre.map { VirksomhetOgAntallSykmeldte(it, 0) })
+        return result
     }
 
     private fun hentUnderenhet(virksomhetsinfo: Virksomhetsinfo): List<VirksomhetOgAntallSykmeldte> {
