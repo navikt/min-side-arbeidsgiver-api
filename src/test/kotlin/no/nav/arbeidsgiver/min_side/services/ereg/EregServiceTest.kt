@@ -101,8 +101,25 @@ class EregServiceTest {
 
         assertEquals("889640782", result.organizationNumber)
         assertEquals("ARBEIDS- OG VELFERDSETATEN", result.name)
-        assertEquals(null, result.parentOrganizationNumber)
+        assertEquals("983887457", result.parentOrganizationNumber)
         assertEquals("ORGL", result.organizationForm)
+        assertEquals("Enterprise", result.type)
+        assertEquals("Active", result.status)
+    }
+
+    @Test
+    fun `henter jurudisk enhet for orgledd 889640782`(){
+        val orgnr = "314"
+        server.expect(requestTo("/v1/organisasjon/$orgnr"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess(juridiskEnhetForOrgleddRespons, APPLICATION_JSON))
+
+        val result = eregService.hentOverenhet(orgnr)!!
+
+        assertEquals("983887457", result.organizationNumber)
+        assertEquals("ARBEIDS- OG SOSIALDEPARTEMENTET", result.name)
+        assertEquals(null, result.parentOrganizationNumber)
+        assertEquals("STAT", result.organizationForm)
         assertEquals("Enterprise", result.type)
         assertEquals("Active", result.status)
     }
@@ -119,6 +136,8 @@ class EregServiceTest {
         assertEquals(null, result)
     }
 }
+
+//Responsene er hentet fra https://ereg-services.dev.intern.nav.no/swagger-ui/index.html#/organisasjon.v1/hentOrganisasjonUsingGET
 
 private const val underenhetRespons = """
 {
@@ -401,11 +420,12 @@ private const val orgleddRespons = """
   },
   "organisasjonDetaljer": {
     "registreringsdato": "2006-03-23T00:00:00",
+    "stiftelsesdato": "2005-12-31",
     "enhetstyper": [
       {
         "enhetstype": "ORGL",
         "bruksperiode": {
-          "fom": "2020-04-28T04:01:22.192"
+          "fom": "2014-05-21T18:52:38"
         },
         "gyldighetsperiode": {
           "fom": "2006-03-23"
@@ -422,13 +442,662 @@ private const val orgleddRespons = """
           "fom": "2006-03-23"
         }
       }
-    ]
+    ],
+    "naeringer": [
+      {
+        "naeringskode": "84.120",
+        "hjelpeenhet": false,
+        "bruksperiode": {
+          "fom": "2014-05-22T00:42:43.812"
+        },
+        "gyldighetsperiode": {
+          "fom": "2005-12-31"
+        }
+      }
+    ],
+    "forretningsadresser": [
+      {
+        "type": "Forretningsadresse",
+        "adresselinje1": "Økernveien 94",
+        "postnummer": "0579",
+        "landkode": "NO",
+        "kommunenummer": "0301",
+        "bruksperiode": {
+          "fom": "2014-07-13T04:02:31.517"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-07-12"
+        }
+      }
+    ],
+    "postadresser": [
+      {
+        "type": "Postadresse",
+        "adresselinje1": "Postboks 5 St Olavs Plass",
+        "postnummer": "0130",
+        "landkode": "NO",
+        "kommunenummer": "0301",
+        "bruksperiode": {
+          "fom": "2015-02-23T10:38:34.403"
+        },
+        "gyldighetsperiode": {
+          "fom": "2010-11-03"
+        }
+      }
+    ],
+    "internettadresser": [
+      {
+        "adresse": "www.nav.no",
+        "bruksperiode": {
+          "fom": "2014-05-21T18:52:37.997"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-03-18"
+        }
+      }
+    ],
+    "telefonnummer": [
+      {
+        "nummer": "21 07 00 00",
+        "telefontype": "TFON",
+        "bruksperiode": {
+          "fom": "2014-05-21T18:52:38"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-03-18"
+        }
+      }
+    ],
+    "telefaksnummer": [
+      {
+        "nummer": "21 07 00 01",
+        "telefontype": "TFAX",
+        "bruksperiode": {
+          "fom": "2014-05-21T18:52:38"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-03-18"
+        }
+      }
+    ],
+    "formaal": [
+      {
+        "formaal": "Arbeids- og velferdsetaten har ansvaret for gjennomføringen av\narbeidsmarkeds- trygde- og pensjonspolitikken",
+        "bruksperiode": {
+          "fom": "2014-05-21T23:46:16.225"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-03-18"
+        }
+      }
+    ],
+    "registrertMVA": [
+      {
+        "registrertIMVA": true,
+        "bruksperiode": {
+          "fom": "2014-05-21T18:52:38"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-03-18"
+        }
+      }
+    ],
+    "navSpesifikkInformasjon": {
+      "erIA": true,
+      "bruksperiode": {
+        "fom": "2014-12-29T09:43:08.386"
+      },
+      "gyldighetsperiode": {
+        "fom": "2014-12-29"
+      }
+    },
+    "maalform": "NB",
+    "sistEndret": "2015-10-07"
   },
   "organisasjonsleddDetaljer": {
     "enhetstype": "ORGL",
     "sektorkode": "6100"
-  }
+  },
+  "driverVirksomheter": [
+    {
+      "organisasjonsnummer": "991003525",
+      "navn": {
+        "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
+        "navnelinje3": "IKT DRIFT STEINKJER",
+        "bruksperiode": {
+          "fom": "2018-01-11T04:00:43.413"
+        },
+        "gyldighetsperiode": {
+          "fom": "2018-01-10"
+        }
+      },
+      "bruksperiode": {
+        "fom": "2018-01-11T04:00:53.145"
+      },
+      "gyldighetsperiode": {
+        "fom": "2018-01-10"
+      }
+    },
+    {
+      "organisasjonsnummer": "912998827",
+      "navn": {
+        "navnelinje1": "ARBEIDS- OG VELFERDSDIREKTORATET",
+        "navnelinje3": "AVD ØKERNVEIEN",
+        "bruksperiode": {
+          "fom": "2015-02-23T08:04:53.2"
+        },
+        "gyldighetsperiode": {
+          "fom": "2013-12-23"
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T16:08:14.385"
+      },
+      "gyldighetsperiode": {
+        "fom": "2013-12-23"
+      }
+    },
+    {
+      "organisasjonsnummer": "986001344",
+      "navn": {
+        "navnelinje1": "NAV ABETAL",
+        "bruksperiode": {
+          "fom": "2015-02-23T08:04:53.2"
+        },
+        "gyldighetsperiode": {
+          "fom": "2010-04-09"
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T19:26:04.911"
+      },
+      "gyldighetsperiode": {
+        "fom": "2010-04-12"
+      }
+    },
+    {
+      "organisasjonsnummer": "995298775",
+      "navn": {
+        "navnelinje1": "ARBEIDS- OG VELFERDSDIREKTORATET",
+        "navnelinje3": "AVD SANNERGATA",
+        "bruksperiode": {
+          "fom": "2015-02-23T08:04:53.2"
+        },
+        "gyldighetsperiode": {
+          "fom": "2010-03-16"
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T21:01:47.564"
+      },
+      "gyldighetsperiode": {
+        "fom": "2010-03-16"
+      }
+    }
+  ],
+  "inngaarIJuridiskEnheter": [
+    {
+      "organisasjonsnummer": "983887457",
+      "navn": {
+        "navnelinje1": "ARBEIDS- OG SOSIALDEPARTEMENTET",
+        "bruksperiode": {
+          "fom": "2015-02-23T08:04:53.2"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-02-14"
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T15:42:14.826"
+      },
+      "gyldighetsperiode": {
+        "fom": "2006-03-23"
+      }
+    }
+  ],
+  "organisasjonsleddUnder": [
+    {
+      "organisasjonsledd": {
+        "type": "Organisasjonsledd",
+        "organisasjonsleddUnder": [
+          {
+            "organisasjonsledd": {
+              "organisasjonsnummer": "995277670",
+              "type": "Organisasjonsledd",
+              "navn": {
+                "navnelinje1": "NAV ØKONOMILINJEN",
+                "bruksperiode": {
+                  "fom": "2015-02-23T08:04:53.2"
+                },
+                "gyldighetsperiode": {
+                  "fom": "2013-12-24"
+                }
+              }
+            },
+            "bruksperiode": {
+              "fom": "2014-05-23T21:01:30.126"
+            },
+            "gyldighetsperiode": {
+              "fom": "2010-03-11"
+            }
+          },
+          {
+            "organisasjonsledd": {
+              "organisasjonsnummer": "991012206",
+              "type": "Organisasjonsledd",
+              "navn": {
+                "navnelinje1": "NAV YTELSESLINJEN",
+                "bruksperiode": {
+                  "fom": "2014-05-21T16:53:56.633"
+                },
+                "gyldighetsperiode": {
+                  "fom": "2014-01-07"
+                }
+              }
+            },
+            "bruksperiode": {
+              "fom": "2014-05-23T20:17:58.91"
+            },
+            "gyldighetsperiode": {
+              "fom": "2007-03-12"
+            }
+          },
+          {
+            "organisasjonsledd": {
+              "organisasjonsnummer": "991012133",
+              "type": "Organisasjonsledd",
+              "navn": {
+                "navnelinje1": "NAV ARBEIDS- OG TJENESTELINJEN",
+                "bruksperiode": {
+                  "fom": "2016-02-02T04:02:14.967"
+                },
+                "gyldighetsperiode": {
+                  "fom": "2016-02-01"
+                }
+              }
+            },
+            "bruksperiode": {
+              "fom": "2014-05-23T20:17:58.879"
+            },
+            "gyldighetsperiode": {
+              "fom": "2007-03-12"
+            }
+          },
+          {
+            "organisasjonsledd": {
+              "organisasjonsnummer": "990983291",
+              "type": "Organisasjonsledd",
+              "navn": {
+                "navnelinje1": "NAV IKT",
+                "bruksperiode": {
+                  "fom": "2015-02-23T08:04:53.2"
+                },
+                "gyldighetsperiode": {
+                  "fom": "2010-04-09"
+                }
+              }
+            },
+            "bruksperiode": {
+              "fom": "2014-05-23T20:17:42.452"
+            },
+            "gyldighetsperiode": {
+              "fom": "2007-03-05"
+            }
+          }
+        ]
+      },
+      "bruksperiode": {},
+      "gyldighetsperiode": {}
+    }
+  ]
 }
+"""
+
+private const val juridiskEnhetForOrgleddRespons = """
+    {
+  "organisasjonsnummer": "983887457",
+  "type": "JuridiskEnhet",
+  "navn": {
+    "navnelinje1": "ARBEIDS- OG SOSIALDEPARTEMENTET",
+    "bruksperiode": {
+      "fom": "2015-02-23T08:04:53.2"
+    },
+    "gyldighetsperiode": {
+      "fom": "2014-02-14"
+    }
+  },
+  "organisasjonDetaljer": {
+    "registreringsdato": "2001-11-08T00:00:00",
+    "enhetstyper": [
+      {
+        "enhetstype": "STAT",
+        "bruksperiode": {
+          "fom": "2014-05-21T21:07:05.975"
+        },
+        "gyldighetsperiode": {
+          "fom": "2001-11-08"
+        }
+      }
+    ],
+    "navn": [
+      {
+        "navnelinje1": "ARBEIDS- OG SOSIALDEPARTEMENTET",
+        "bruksperiode": {
+          "fom": "2015-02-23T08:04:53.2"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-02-14"
+        }
+      }
+    ],
+    "naeringer": [
+      {
+        "naeringskode": "84.110",
+        "hjelpeenhet": false,
+        "bruksperiode": {
+          "fom": "2014-05-22T01:07:26.409"
+        },
+        "gyldighetsperiode": {
+          "fom": "2001-11-08"
+        }
+      }
+    ],
+    "forretningsadresser": [
+      {
+        "type": "Forretningsadresse",
+        "adresselinje1": "Akersgata 64",
+        "postnummer": "0180",
+        "landkode": "NO",
+        "kommunenummer": "0301",
+        "bruksperiode": {
+          "fom": "2015-02-23T10:38:34.403"
+        },
+        "gyldighetsperiode": {
+          "fom": "2012-02-07"
+        }
+      }
+    ],
+    "postadresser": [
+      {
+        "type": "Postadresse",
+        "adresselinje1": "Postboks 8019 Dep",
+        "postnummer": "0030",
+        "landkode": "NO",
+        "kommunenummer": "0301",
+        "bruksperiode": {
+          "fom": "2015-02-23T10:38:34.403"
+        },
+        "gyldighetsperiode": {
+          "fom": "2004-10-15"
+        }
+      }
+    ],
+    "epostadresser": [
+      {
+        "adresse": "postmottak@asd.dep.no",
+        "bruksperiode": {
+          "fom": "2016-08-02T04:03:15.626"
+        },
+        "gyldighetsperiode": {
+          "fom": "2016-08-01"
+        }
+      }
+    ],
+    "internettadresser": [
+      {
+        "adresse": "regjeringen.no/asd",
+        "bruksperiode": {
+          "fom": "2016-08-02T04:03:15.641"
+        },
+        "gyldighetsperiode": {
+          "fom": "2016-08-01"
+        }
+      }
+    ],
+    "telefonnummer": [
+      {
+        "nummer": "22 24 90 90",
+        "telefontype": "TFON",
+        "bruksperiode": {
+          "fom": "2014-05-21T21:07:05.975"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-02-17"
+        }
+      }
+    ],
+    "telefaksnummer": [
+      {
+        "nummer": "22 24 95 75",
+        "telefontype": "TFAX",
+        "bruksperiode": {
+          "fom": "2014-05-21T21:07:05.975"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-02-17"
+        }
+      }
+    ],
+    "formaal": [
+      {
+        "formaal": "Sosialdepartementet har konstitusjonelt ansvar for trygd og sosiale\nytelser.",
+        "bruksperiode": {
+          "fom": "2014-05-22T00:09:46.195"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-02-17"
+        }
+      }
+    ],
+    "navSpesifikkInformasjon": {
+      "erIA": true,
+      "bruksperiode": {
+        "fom": "2016-02-19T14:38:16.635"
+      },
+      "gyldighetsperiode": {
+        "fom": "2016-02-19"
+      }
+    },
+    "maalform": "NB",
+    "sistEndret": "2017-05-29"
+  },
+  "juridiskEnhetDetaljer": {
+    "enhetstype": "STAT",
+    "sektorkode": "6100"
+  },
+  "driverVirksomheter": [
+    {
+      "organisasjonsnummer": "983893449",
+      "navn": {
+        "navnelinje1": "ARBEIDS- OG SOSIALDEPARTEMENTET",
+        "bruksperiode": {
+          "fom": "2015-02-23T08:04:53.2"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-02-14"
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T19:04:32.777"
+      },
+      "gyldighetsperiode": {
+        "fom": "2001-11-08"
+      }
+    }
+  ],
+  "bestaarAvOrganisasjonsledd": [
+    {
+      "organisasjonsledd": {
+        "organisasjonsnummer": "982583462",
+        "type": "Organisasjonsledd",
+        "navn": {
+          "navnelinje1": "STATENS PENSJONSKASSE",
+          "navnelinje2": "FORVALTNINGSBEDRIFT",
+          "bruksperiode": {
+            "fom": "2015-02-23T08:04:53.2"
+          },
+          "gyldighetsperiode": {
+            "fom": "2001-04-27"
+          }
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T18:50:12.687"
+      },
+      "gyldighetsperiode": {
+        "fom": "2010-04-27"
+      }
+    },
+    {
+      "organisasjonsledd": {
+        "organisasjonsnummer": "974761084",
+        "type": "Organisasjonsledd",
+        "navn": {
+          "navnelinje1": "TRYGDERETTEN",
+          "bruksperiode": {
+            "fom": "2015-02-23T08:04:53.2"
+          },
+          "gyldighetsperiode": {
+            "fom": "1995-08-09"
+          }
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T17:27:41.742"
+      },
+      "gyldighetsperiode": {
+        "fom": "2007-03-08"
+      }
+    },
+    {
+      "organisasjonsledd": {
+        "organisasjonsnummer": "889640782",
+        "type": "Organisasjonsledd",
+        "navn": {
+          "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
+          "bruksperiode": {
+            "fom": "2015-02-23T08:04:53.2"
+          },
+          "gyldighetsperiode": {
+            "fom": "2006-03-23"
+          }
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T15:42:14.826"
+      },
+      "gyldighetsperiode": {
+        "fom": "2006-03-23"
+      }
+    },
+    {
+      "organisasjonsledd": {
+        "organisasjonsnummer": "971525681",
+        "type": "Organisasjonsledd",
+        "navn": {
+          "navnelinje1": "ARBEIDSRETTEN",
+          "bruksperiode": {
+            "fom": "2015-02-23T08:04:53.2"
+          },
+          "gyldighetsperiode": {
+            "fom": "1995-08-09"
+          }
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T16:19:26.171"
+      },
+      "gyldighetsperiode": {
+        "fom": "2004-11-16"
+      }
+    },
+    {
+      "organisasjonsledd": {
+        "organisasjonsnummer": "971524626",
+        "type": "Organisasjonsledd",
+        "navn": {
+          "navnelinje1": "RIKSMEKLEREN",
+          "bruksperiode": {
+            "fom": "2015-02-23T08:04:53.2"
+          },
+          "gyldighetsperiode": {
+            "fom": "2012-03-02"
+          }
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T16:19:26.04"
+      },
+      "gyldighetsperiode": {
+        "fom": "2004-11-16"
+      }
+    },
+    {
+      "organisasjonsledd": {
+        "organisasjonsnummer": "986174613",
+        "type": "Organisasjonsledd",
+        "navn": {
+          "navnelinje1": "PETROLEUMSTILSYNET",
+          "bruksperiode": {
+            "fom": "2015-02-23T08:04:53.2"
+          },
+          "gyldighetsperiode": {
+            "fom": "2003-10-22"
+          }
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T19:27:51.325"
+      },
+      "gyldighetsperiode": {
+        "fom": "2004-11-10"
+      }
+    },
+    {
+      "organisasjonsledd": {
+        "organisasjonsnummer": "974761211",
+        "type": "Organisasjonsledd",
+        "navn": {
+          "navnelinje1": "ARBEIDSTILSYNET",
+          "bruksperiode": {
+            "fom": "2014-05-25T15:57:59.354"
+          },
+          "gyldighetsperiode": {
+            "fom": "2014-04-24"
+          }
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T17:27:41.865"
+      },
+      "gyldighetsperiode": {
+        "fom": "2004-11-10"
+      }
+    },
+    {
+      "organisasjonsledd": {
+        "organisasjonsnummer": "940415683",
+        "type": "Organisasjonsledd",
+        "navn": {
+          "navnelinje1": "PENSJONSTRYGDEN FOR SJØMENN",
+          "bruksperiode": {
+            "fom": "2015-02-23T08:04:53.2"
+          },
+          "gyldighetsperiode": {
+            "fom": "1995-08-09"
+          }
+        }
+      },
+      "bruksperiode": {
+        "fom": "2014-05-23T16:16:06.686"
+      },
+      "gyldighetsperiode": {
+        "fom": "2002-07-25"
+      }
+    }
+  ]
+}
+
 """
 
 private const val underenhetIkkeFunnetRespons = """
