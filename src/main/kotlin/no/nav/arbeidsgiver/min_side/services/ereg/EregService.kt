@@ -71,31 +71,39 @@ class EregService(
         if (json == null || json.isEmpty) {
             return null
         }
-        val juridiskOrgnummer = json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText()
-        val orgleddOrgnummer = json.at("/bestaarAvOrganisasjonsledd/0/organisasjonsledd/organisasjonsnummer").asText()
-        val orgnummerTilOverenhet = orgleddOrgnummer.ifBlank { juridiskOrgnummer }
         return Organisasjon(
-            samletNavn(json),
-            "Business",
-            orgnummerTilOverenhet,
-            json.at("/organisasjonsnummer").asText(),
-            json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
-            "Active"
+            name = samletNavn(json),
+            type = "Business",
+            parentOrganizationNumber = orgnummerTilOverenhet(json),
+            organizationNumber = json.at("/organisasjonsnummer").asText(),
+            organizationForm = json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
+            status = "Active"
         )
     }
 
+
     fun overenhet(json: JsonNode?): Organisasjon? {
-        return if (json == null) {
-            null
-        } else Organisasjon(
-            samletNavn(json),
-            "Enterprise",
-            null,
-            json.at("/organisasjonsnummer").asText(),
-            json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
-            "Active"
+        if (json == null || json.isEmpty) {
+            return null
+        }
+        return Organisasjon(
+            name = samletNavn(json),
+            type = "Enterprise",
+            parentOrganizationNumber = orgnummerTilOverenhet(json),
+            organizationNumber = json.at("/organisasjonsnummer").asText(),
+            organizationForm = json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
+            status = "Active"
         )
     }
+
+    private fun orgnummerTilOverenhet(json: JsonNode): String? =
+        if ("JuridiskEnhet" == json.at("/type").asText()) {
+            null
+        } else {
+            val juridiskOrgnummer = json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText()
+            val orgleddOrgnummer = json.at("/bestaarAvOrganisasjonsledd/0/organisasjonsledd/organisasjonsnummer").asText()
+            orgleddOrgnummer.ifBlank { juridiskOrgnummer }
+        }
 
     companion object {
         private fun samletNavn(json: JsonNode) = listOf(

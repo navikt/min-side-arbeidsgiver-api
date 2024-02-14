@@ -39,6 +39,11 @@ class DigisyfoServiceTest {
         "11" to mkUnderenhet("11", "1"),
         "2" to mkOverenhet("2"),
         "20" to mkUnderenhet("20", "2"),
+        "3" to mkOverenhet("3"),
+        "30" to mkUnderenhet("30", "3"),
+        "300" to mkUnderenhet("300", "30"),
+        "3000" to mkUnderenhet("3000", "300"),
+        "301" to mkUnderenhet("301", "30"),
     )
 
     @BeforeEach
@@ -81,6 +86,25 @@ class DigisyfoServiceTest {
             VirksomhetOgAntallSykmeldte(mkUnderenhet("20", "2"), 2),
             VirksomhetOgAntallSykmeldte(mkOverenhet("1"), 0),
             VirksomhetOgAntallSykmeldte(mkOverenhet("2"), 0),
+        )
+    }
+
+    @Test
+    fun `nestede rettigheter`() {
+        Mockito.`when`(digisyfoRepository.virksomheterOgSykmeldte("42")).thenReturn(
+            listOf(
+                DigisyfoRepository.Virksomhetsinfo("3000", 2),
+                DigisyfoRepository.Virksomhetsinfo("301", 1),
+            )
+        )
+
+        val result = digisyfoService.hentVirksomheterOgSykmeldte("42")
+        assertThat(result).containsExactly(
+            VirksomhetOgAntallSykmeldte(mkUnderenhet("3000", "300"), 2),
+            VirksomhetOgAntallSykmeldte(mkUnderenhet("301", "30"), 1),
+            VirksomhetOgAntallSykmeldte(mkUnderenhet("300", "30"), 0),
+            VirksomhetOgAntallSykmeldte(mkUnderenhet("30", "3"), 0),
+            VirksomhetOgAntallSykmeldte(mkOverenhet("3"), 0),
         )
     }
 
