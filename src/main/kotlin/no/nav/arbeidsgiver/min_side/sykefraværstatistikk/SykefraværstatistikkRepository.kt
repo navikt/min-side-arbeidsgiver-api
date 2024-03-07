@@ -97,8 +97,8 @@ class SykefraværstatistikkRepository(
                 "kode" to statistikkategori.kode,
                 "kategori" to statistikkategori.kategori,
                 "prosent" to statistikkategori.prosent,
-                "arstall" to statistikkategori.siste4Kvartal?.arstall,
-                "kvartal" to statistikkategori.siste4Kvartal?.kvartal,
+                "arstall" to statistikkategori.arstall,
+                "kvartal" to statistikkategori.kvartal,
             )
         )
     }
@@ -160,14 +160,25 @@ data class StatistikkategoriDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
     @param:JsonProperty("kategori") val kategori: String,
     @param:JsonProperty("kode") val kode: String, // orgnr dersom kategori er VIRKSOMHET, bransje dersom kategori er BRANSJE, osv
     @param:JsonProperty("siste4Kvartal") val siste4Kvartal: ProsentWrapper?,
+    @param:JsonProperty("sistePubliserteKvartal") val sistePubliserteKvartal: ÅrstallKvartalWrapper,
 ) {
     val prosent: Double
         get() = siste4Kvartal?.prosent ?: 0.0
 
+    val arstall: Number
+        get() = sistePubliserteKvartal.arstall
+
+    val kvartal: Number
+        get() = sistePubliserteKvartal.kvartal
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class ProsentWrapper @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
         @param:JsonProperty("prosent") val prosent: Double,
-        @param:JsonProperty("arstall") val arstall: Number,
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class ÅrstallKvartalWrapper @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
+        @param:JsonProperty("årstall") val arstall: Number,
         @param:JsonProperty("kvartal") val kvartal: Number,
     )
 }
