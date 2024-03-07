@@ -182,7 +182,7 @@ data class MetadataVirksomhetDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES
     @param:JsonProperty("orgnr") val virksomhetsnummer: String,
     @param:JsonProperty("naring") val næring: String,
     @param:JsonProperty("bransje") val bransje: String?,
-    @param:JsonProperty("arstall") val arstall: Number,
+    @param:JsonProperty("årstall") val arstall: Number,
     @param:JsonProperty("kvartal") val kvartal: Number,
 )
 
@@ -213,7 +213,7 @@ data class StatistikkategoriDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class ÅrstallKvartalWrapper @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
-        @param:JsonProperty("arstall") val arstall: Number,
+        @param:JsonProperty("årstall") val arstall: Number,
         @param:JsonProperty("kvartal") val kvartal: Number,
     )
 }

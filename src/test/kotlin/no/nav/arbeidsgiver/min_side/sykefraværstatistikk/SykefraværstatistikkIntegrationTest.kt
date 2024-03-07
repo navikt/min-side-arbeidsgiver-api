@@ -69,7 +69,7 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "VIRKSOMHET",
                     "sistePubliserteKvartal": {
                         "prosent": 3.15,
-                        "arstall": "2023",
+                        "årstall": "2023",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -85,7 +85,7 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "VIRKSOMHET",
                     "sistePubliserteKvartal": {
                         "prosent": 2.15,
-                        "arstall": "2022",
+                        "årstall": "2022",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -126,7 +126,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "arstall": "2023",
+                    "årstall": "2023",
                     "kvartal": "1"
                 }
             """
@@ -137,7 +137,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing Gammel",
                     "naring": "IT Gammel",
-                    "arstall": "2022",
+                    "årstall": "2022",
                     "kvartal": "1"
                 }
             """
@@ -149,7 +149,7 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "BRANSJE",
                     "sistePubliserteKvartal": {
                         "prosent": 3.15,
-                        "arstall": "2023",
+                        "årstall": "2023",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -165,7 +165,7 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "BRANSJE",
                     "sistePubliserteKvartal": {
                         "prosent": 2.15,
-                        "arstall": "2022",
+                        "årstall": "2022",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -181,7 +181,7 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 3.16,
-                        "arstall": "2023",
+                        "årstall": "2023",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -197,7 +197,7 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 2.16,
-                        "arstall": "2022",
+                        "årstall": "2022",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -238,7 +238,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "arstall": "2023",
+                    "årstall": "2023",
                     "kvartal": "1"
                 }
             """
@@ -250,7 +250,7 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 3.15,
-                        "arstall": "2023",
+                        "årstall": "2023",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -266,7 +266,7 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 2.15,
-                        "arstall": "2022",
+                        "årstall": "2022",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -309,7 +309,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "arstall": "2023",
+                    "årstall": "2023",
                     "kvartal": "1"
                 }
             """
@@ -320,7 +320,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing Gammel",
                     "naring": "IT",
-                    "arstall": "2022",
+                    "årstall": "2022",
                     "kvartal": "1"
                 }
             """
@@ -332,12 +332,12 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "BRANSJE",
                     "sistePubliserteKvartal": {
                         "prosent": 3.15,
-                        "arstall": "2023",
+                        "årstall": "2023",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
                         "prosent": 3.14,
-                        "arstall": "2023",
+                        "årstall": "2023",
                         "kvartal": "1"
                     }
                 }
@@ -350,12 +350,12 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "BRANSJE",
                     "sistePubliserteKvartal": {
                         "prosent": 2.15,
-                        "arstall": "2022",
+                        "årstall": "2022",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
                         "prosent": 2.14,
-                        "arstall": "2022",
+                        "årstall": "2022",
                         "kvartal": "1"
                     }
                 }
@@ -368,12 +368,12 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 3.16,
-                        "arstall": "2023",
+                        "årstall": "2023",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
                         "prosent": 3.17,
-                        "arstall": "2023",
+                        "årstall": "2023",
                         "kvartal": "1"
                     }
                 }
@@ -386,12 +386,12 @@ class SykefraværstatistikkIntegrationTest {
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 2.16,
-                        "arstall": "2022",
+                        "årstall": "2022",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
                         "prosent": 2.17,
-                        "arstall": "2022",
+                        "årstall": "2022",
                         "kvartal": "1"
                     }
                 }
@@ -429,7 +429,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "arstall": "2023",
+                    "årstall": "2023",
                     "kvartal": "1"
                 }
             """
