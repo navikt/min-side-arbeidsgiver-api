@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.LocalDateTime
 
 @SpringBootTest(
     properties = [
@@ -46,6 +47,8 @@ class SykefraværstatistikkIntegrationTest {
 
     @Autowired
     lateinit var flyway: Flyway
+    
+    val innenværendeår = LocalDateTime.now().year
 
     @BeforeEach
     fun setup() {
@@ -63,13 +66,14 @@ class SykefraværstatistikkIntegrationTest {
             altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
         ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co")))
         processStatistikkkategori(
+            """{ "kategori": "VIRKSOMHET", "kode": "123", "årstall": "$innenværendeår", "kvartal": "1" }""",
             """
                 {
                     "kode": "123",
                     "kategori": "VIRKSOMHET",
                     "sistePubliserteKvartal": {
                         "prosent": 3.15,
-                        "årstall": "2023",
+                        "årstall": "$innenværendeår",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -79,13 +83,14 @@ class SykefraværstatistikkIntegrationTest {
             """
         )
         processStatistikkkategori(
+            """{ "kategori": "VIRKSOMHET", "kode": "123", "årstall": "${innenværendeår - 1}", "kvartal": "1" }""",
             """
                 {
                     "kode": "123",
                     "kategori": "VIRKSOMHET",
                     "sistePubliserteKvartal": {
                         "prosent": 2.15,
-                        "årstall": "2022",
+                        "årstall": "${innenværendeår - 1}",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -121,35 +126,38 @@ class SykefraværstatistikkIntegrationTest {
             altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
         ).thenReturn(listOf(Organisasjon(organizationNumber = "321", name = "Coo & Fo")))
         processMetadataVirksomhet(
+            """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """
                 {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "arstall": "2023",
+                    "arstall": "$innenværendeår",
                     "kvartal": "1"
                 }
             """
         )
         processMetadataVirksomhet(
+            """{ "orgnr": "123", "arstall": "${innenværendeår - 1}", "kvartal": "1" }""",
             """
                 {
                     "orgnr": "123",
                     "bransje": "Testing Gammel",
                     "naring": "IT Gammel",
-                    "arstall": "2022",
+                    "arstall": "${innenværendeår - 1}",
                     "kvartal": "1"
                 }
             """
         )
         processStatistikkkategori(
+            """{ "kategori": "BRANSJE", "kode": "Testing", "årstall": "$innenværendeår", "kvartal": "1" }""",
             """
                 {
                     "kode": "Testing",
                     "kategori": "BRANSJE",
                     "sistePubliserteKvartal": {
                         "prosent": 3.15,
-                        "årstall": "2023",
+                        "årstall": "$innenværendeår",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -159,13 +167,14 @@ class SykefraværstatistikkIntegrationTest {
             """
         )
         processStatistikkkategori(
+            """{ "kategori": "BRANSJE", "kode": "Testing Gammel", "årstall": "${innenværendeår - 1}", "kvartal": "1" }""",
             """
                 {
                     "kode": "Testing Gammel",
                     "kategori": "BRANSJE",
                     "sistePubliserteKvartal": {
                         "prosent": 2.15,
-                        "årstall": "2022",
+                        "årstall": "${innenværendeår - 1}",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -175,13 +184,14 @@ class SykefraværstatistikkIntegrationTest {
             """
         )
         processStatistikkkategori(
+            """{ "kategori": "NÆRING", "kode": "IT", "årstall": "$innenværendeår", "kvartal": "1" }""",
             """
                 {
                     "kode": "IT",
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 3.16,
-                        "årstall": "2023",
+                        "årstall": "$innenværendeår",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -191,13 +201,14 @@ class SykefraværstatistikkIntegrationTest {
             """
         )
         processStatistikkkategori(
+            """{ "kategori": "NÆRING", "kode": "IT Gammel", "årstall": "${innenværendeår - 1}", "kvartal": "1" }""",
             """
                 {
                     "kode": "IT Gammel",
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 2.16,
-                        "årstall": "2022",
+                        "årstall": "${innenværendeår - 1}",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -233,24 +244,26 @@ class SykefraværstatistikkIntegrationTest {
             altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
         ).thenReturn(listOf(Organisasjon(organizationNumber = "321", name = "Coo & Fo")))
         processMetadataVirksomhet(
+            """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """
                 {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "arstall": "2023",
+                    "arstall": "$innenværendeår",
                     "kvartal": "1"
                 }
             """
         )
         processStatistikkkategori(
+            """{ "kategori": "NÆRING", "kode": "IT", "årstall": "$innenværendeår", "kvartal": "1" }""",
             """
                 {
                     "kode": "IT",
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 3.15,
-                        "årstall": "2023",
+                        "årstall": "$innenværendeår",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -260,13 +273,14 @@ class SykefraværstatistikkIntegrationTest {
             """
         )
         processStatistikkkategori(
+            """{ "kategori": "NÆRING", "kode": "IT", "årstall": "${innenværendeår - 1}", "kvartal": "1" }""",
             """
                 {
                     "kode": "IT",
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 2.15,
-                        "årstall": "2022",
+                        "årstall": "${innenværendeår - 1}",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
@@ -304,94 +318,100 @@ class SykefraværstatistikkIntegrationTest {
             altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
         ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co")))
         processMetadataVirksomhet(
+            """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """
                 {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "arstall": "2023",
+                    "arstall": "$innenværendeår",
                     "kvartal": "1"
                 }
             """
         )
         processMetadataVirksomhet(
+            """{ "orgnr": "123", "arstall": "${innenværendeår - 1}", "kvartal": "1" }""",
             """
                 {
                     "orgnr": "123",
                     "bransje": "Testing Gammel",
                     "naring": "IT",
-                    "arstall": "2022",
+                    "arstall": "${innenværendeår - 1}",
                     "kvartal": "1"
                 }
             """
         )
         processStatistikkkategori(
+            """{ "kategori": "BRANSJE", "kode": "Testing", "årstall": "$innenværendeår", "kvartal": "1" }""",
             """
                 {
                     "kode": "Testing",
                     "kategori": "BRANSJE",
                     "sistePubliserteKvartal": {
                         "prosent": 3.15,
-                        "årstall": "2023",
+                        "årstall": "$innenværendeår",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
                         "prosent": 3.14,
-                        "årstall": "2023",
+                        "årstall": "$innenværendeår",
                         "kvartal": "1"
                     }
                 }
             """
         )
         processStatistikkkategori(
+            """{ "kategori": "BRANSJE", "kode": "Testing Gammel", "årstall": "${innenværendeår - 1}", "kvartal": "1" }""",
             """
                 {
                     "kode": "Testing Gammel",
                     "kategori": "BRANSJE",
                     "sistePubliserteKvartal": {
                         "prosent": 2.15,
-                        "årstall": "2022",
+                        "årstall": "${innenværendeår - 1}",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
                         "prosent": 2.14,
-                        "årstall": "2022",
+                        "årstall": "${innenværendeår - 1}",
                         "kvartal": "1"
                     }
                 }
             """
         )
         processStatistikkkategori(
+            """{ "kategori": "NÆRING", "kode": "IT", "årstall": "$innenværendeår", "kvartal": "1" }""",
             """
                 {
                     "kode": "IT",
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 3.16,
-                        "årstall": "2023",
+                        "årstall": "$innenværendeår",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
                         "prosent": 3.17,
-                        "årstall": "2023",
+                        "årstall": "$innenværendeår",
                         "kvartal": "1"
                     }
                 }
             """
         )
         processStatistikkkategori(
+            """{ "kategori": "NÆRING", "kode": "IT Gammel", "årstall": "${innenværendeår - 1}", "kvartal": "1" }""",
             """
                 {
                     "kode": "IT Gammel",
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
                         "prosent": 2.16,
-                        "årstall": "2022",
+                        "årstall": "${innenværendeår - 1}",
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
                         "prosent": 2.17,
-                        "årstall": "2022",
+                        "årstall": "${innenværendeår - 1}",
                         "kvartal": "1"
                     }
                 }
@@ -424,12 +444,13 @@ class SykefraværstatistikkIntegrationTest {
             altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
         ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co")))
         processMetadataVirksomhet(
+            """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """
                 {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "arstall": "2023",
+                    "arstall": "$innenværendeår",
                     "kvartal": "1"
                 }
             """
@@ -444,17 +465,17 @@ class SykefraværstatistikkIntegrationTest {
             .andExpect(status().isNoContent)
     }
 
-    private fun processStatistikkkategori(value: String) {
+    private fun processStatistikkkategori(key: String, value: String) {
         sykefraværstatistikkKafkaListener.processStatistikkategori(
             ConsumerRecord(
-                "", 0, 0, "", value
+                "", 0, 0, key, value
             )
         )
     }
-    private fun processMetadataVirksomhet(value: String) {
+    private fun processMetadataVirksomhet(key: String, value: String) {
         sykefraværstatistikkKafkaListener.processMetadataVirksomhet(
             ConsumerRecord(
-                "", 0, 0, "", value
+                "", 0, 0, key, value
             )
         )
     }

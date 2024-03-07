@@ -11,6 +11,7 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.time.LocalDateTime
 
 data class Statistikk(
     val kategori: String,
@@ -152,10 +153,18 @@ class SykefraværstatistikkKafkaListener(
         topics = ["arbeidsgiver.sykefravarsstatistikk-metadata-virksomhet-v1"],
         containerFactory = "errorLoggingKafkaListenerContainerFactory"
     )
-    fun processMetadataVirksomhet(record: ConsumerRecord<String?, String?>) =
-        sykefraværstatistikkRepository.processMetadataVirksomhet(
-            objectMapper.readValue(record.value(), MetadataVirksomhetDto::class.java)
-        )
+    fun processMetadataVirksomhet(record: ConsumerRecord<String?, String?>) {
+        val key = record.key().let {
+            objectMapper.readValue(it, MetadataVirksomhetKafkaKeyDto::class.java)
+        }
+
+        if (key.arstall.toInt() >= LocalDateTime.now().year - 1) {
+            sykefraværstatistikkRepository.processMetadataVirksomhet(
+                objectMapper.readValue(record.value(), MetadataVirksomhetDto::class.java)
+            )
+        }
+
+    }
 
     @Profile("dev-gcp", "prod-gcp")
     @KafkaListener(
@@ -167,10 +176,17 @@ class SykefraværstatistikkKafkaListener(
         ],
         containerFactory = "errorLoggingKafkaListenerContainerFactory"
     )
-    fun processStatistikkategori(record: ConsumerRecord<String?, String?>) =
-        sykefraværstatistikkRepository.processStatistikkategori(
-            objectMapper.readValue(record.value(), StatistikkategoriDto::class.java)
-        )
+    fun processStatistikkategori(record: ConsumerRecord<String?, String?>) {
+        val key = record.key().let {
+            objectMapper.readValue(it, StatistikkategoriKafkaKeyDto::class.java)
+        }
+
+        if (key.arstall.toInt() >= LocalDateTime.now().year - 1) {
+            sykefraværstatistikkRepository.processStatistikkategori(
+                objectMapper.readValue(record.value(), StatistikkategoriDto::class.java)
+            )
+        }
+    }
 }
 
 /**
@@ -182,6 +198,13 @@ data class MetadataVirksomhetDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES
     @param:JsonProperty("orgnr") val virksomhetsnummer: String,
     @param:JsonProperty("naring") val næring: String,
     @param:JsonProperty("bransje") val bransje: String?,
+    @param:JsonProperty("arstall") val arstall: Number,
+    @param:JsonProperty("kvartal") val kvartal: Number,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class MetadataVirksomhetKafkaKeyDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
+    @param:JsonProperty("orgnr") val virksomhetsnummer: String,
     @param:JsonProperty("arstall") val arstall: Number,
     @param:JsonProperty("kvartal") val kvartal: Number,
 )
@@ -217,3 +240,11 @@ data class StatistikkategoriDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
         @param:JsonProperty("kvartal") val kvartal: Number,
     )
 }
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class StatistikkategoriKafkaKeyDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
+    @param:JsonProperty("kategori") val kategori: String,
+    @param:JsonProperty("kode") val kode: String,
+    @param:JsonProperty("årstall") val arstall: Number,
+    @param:JsonProperty("kvartal") val kvartal: Number,
+)
