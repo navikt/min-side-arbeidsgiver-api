@@ -6,13 +6,11 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.context.annotation.Profile
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.sql.PreparedStatement
 
 data class Statistikk(
     val kategori: String,
@@ -22,82 +20,122 @@ data class Statistikk(
 
 @Repository
 class SykefraværstatistikkRepository(
-    private val jdbcTemplate: JdbcTemplate,
     private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
-    fun virksomhetstatistikk(virksomhetsnummer: String): Statistikk? {
-        return namedParameterJdbcTemplate.queryForList(
-            """
-            select kategori, kode, prosent
-                from sykefraværstatistikk
-                where kategori = 'VIRKSOMHET' and kode = :virksomhetsnummer
-            """.trimIndent(),
-            mapOf("virksomhetsnummer" to virksomhetsnummer)
-        ).firstOrNull()?.let {
-            Statistikk(
-                kategori = it["kategori"] as String,
-                kode = it["kode"] as String,
-                prosent = (it["prosent"] as BigDecimal).toDouble(),
-            )
-        }
+    // TODO: fjern når "v2" er ajour
+    fun virksomhetstatistikk_v1(virksomhetsnummer: String) = namedParameterJdbcTemplate.queryForList(
+        """
+        select kategori, kode, prosent
+            from sykefraværstatistikk
+            where kategori = 'VIRKSOMHET' and kode = :virksomhetsnummer
+        """.trimIndent(),
+        mapOf("virksomhetsnummer" to virksomhetsnummer)
+    ).firstOrNull()?.let {
+        Statistikk(
+            kategori = it["kategori"] as String,
+            kode = it["kode"] as String,
+            prosent = (it["prosent"] as BigDecimal).toDouble(),
+        )
     }
 
-    fun statistikk(virksomhetsnummer: String): Statistikk? {
-        return namedParameterJdbcTemplate.queryForList(
-            """ -- TODO: vurder eksplisitte felt i stedet for coalesce her, kan by på problemer 
-            select coalesce(sb.kategori, sn.kategori) as kategori, coalesce(sb.kode, sn.kode) as kode, coalesce(sb.prosent, sn.prosent) as prosent
-                from sykefraværstatistikk_metadata meta
-                left join sykefraværstatistikk sb on sb.kategori = 'BRANSJE' and sb.kode = meta.bransje
-                left join sykefraværstatistikk sn on sn.kategori = 'NÆRING' and sn.kode = meta.næring
-                where meta.virksomhetsnummer = :virksomhetsnummer
-                and coalesce(sb.prosent, sn.prosent) is not null
-                order by coalesce(sb.kategori, sn.kategori) 
-            """.trimIndent(),
-            mapOf("virksomhetsnummer" to virksomhetsnummer)
-        ).firstOrNull()?.let {
-            Statistikk(
-                kategori = it["kategori"] as String,
-                kode = it["kode"] as String,
-                prosent = (it["prosent"] as BigDecimal).toDouble(),
-            )
-        }
+    // TODO: fjern når "v2" er ajour
+    fun statistikk_v1(virksomhetsnummer: String) = namedParameterJdbcTemplate.queryForList(
+        """ -- TODO: vurder eksplisitte felt i stedet for coalesce her, kan by på problemer 
+        select coalesce(sb.kategori, sn.kategori) as kategori, coalesce(sb.kode, sn.kode) as kode, coalesce(sb.prosent, sn.prosent) as prosent
+            from sykefraværstatistikk_metadata meta
+            left join sykefraværstatistikk sb on sb.kategori = 'BRANSJE' and sb.kode = meta.bransje
+            left join sykefraværstatistikk sn on sn.kategori = 'NÆRING' and sn.kode = meta.næring
+            where meta.virksomhetsnummer = :virksomhetsnummer
+            and coalesce(sb.prosent, sn.prosent) is not null
+            order by coalesce(sb.kategori, sn.kategori) 
+        """.trimIndent(),
+        mapOf("virksomhetsnummer" to virksomhetsnummer)
+    ).firstOrNull()?.let {
+        Statistikk(
+            kategori = it["kategori"] as String,
+            kode = it["kode"] as String,
+            prosent = (it["prosent"] as BigDecimal).toDouble(),
+        )
+    }
 
+    fun virksomhetstatistikk(virksomhetsnummer: String) = namedParameterJdbcTemplate.queryForList(
+        """
+        select kategori, kode, prosent
+            from sykefraværstatistikk_v2
+            where kategori = 'VIRKSOMHET' and kode = :virksomhetsnummer
+            order by arstall desc, kvartal desc
+        """.trimIndent(),
+        mapOf("virksomhetsnummer" to virksomhetsnummer)
+    ).firstOrNull()?.let {
+        Statistikk(
+            kategori = it["kategori"] as String,
+            kode = it["kode"] as String,
+            prosent = (it["prosent"] as BigDecimal).toDouble(),
+        )
+    }
+
+    fun statistikk(virksomhetsnummer: String) = namedParameterJdbcTemplate.queryForList(
+        """ -- TODO: vurder eksplisitte felt i stedet for coalesce her, kan by på problemer 
+        select 
+          coalesce(sb.kategori, sn.kategori) as kategori, 
+          coalesce(sb.kode, sn.kode) as kode, 
+          coalesce(sb.prosent, sn.prosent) as prosent
+        from sykefraværstatistikk_metadata_v2 meta
+          left join sykefraværstatistikk_v2 sb on (sb.kode = meta.bransje and sb.arstall = meta.arstall and sb.kvartal = meta.kvartal)
+          left join sykefraværstatistikk_v2 sn on (sn.kode = meta.næring and sn.arstall = meta.arstall and sn.kvartal = meta.kvartal)
+        where meta.virksomhetsnummer = :virksomhetsnummer
+          and coalesce(sb.prosent, sn.prosent) is not null
+        order by meta.arstall desc, meta.kvartal desc, kategori
+        """.trimIndent(),
+        mapOf("virksomhetsnummer" to virksomhetsnummer)
+    ).firstOrNull()?.let {
+        Statistikk(
+            kategori = it["kategori"] as String,
+            kode = it["kode"] as String,
+            prosent = (it["prosent"] as BigDecimal).toDouble(),
+        )
     }
 
     fun processMetadataVirksomhet(metadata: MetadataVirksomhetDto) {
-        jdbcTemplate.update(
+        namedParameterJdbcTemplate.update(
             """
-            insert into sykefraværstatistikk_metadata(virksomhetsnummer, bransje, næring) 
-                values(?, ?, ?) 
-            on conflict (virksomhetsnummer) 
+            insert into sykefraværstatistikk_metadata_v2(virksomhetsnummer, bransje, næring, arstall, kvartal) 
+                values(:virksomhetsnummer, :bransje, :næring, :arstall, :kvartal)
+            on conflict (virksomhetsnummer, arstall, kvartal) 
                 do update set 
                     virksomhetsnummer = EXCLUDED.virksomhetsnummer,        
                     bransje = EXCLUDED.bransje,        
                     næring = EXCLUDED.næring;
-            """.trimIndent()
-        ) { ps: PreparedStatement ->
-            ps.setString(1, metadata.virksomhetsnummer)
-            ps.setString(2, metadata.bransje)
-            ps.setString(3, metadata.næring)
-        }
+            """.trimIndent(),
+            mapOf(
+                "virksomhetsnummer" to metadata.virksomhetsnummer,
+                "bransje" to metadata.bransje,
+                "næring" to metadata.næring,
+                "arstall" to metadata.arstall,
+                "kvartal" to metadata.kvartal,
+            )
+        )
     }
 
     fun processStatistikkategori(statistikkategori: StatistikkategoriDto) {
-        jdbcTemplate.update(
+        namedParameterJdbcTemplate.update(
             """
-            insert into sykefraværstatistikk(kode, kategori, prosent) 
-                values(?, ?, ?) 
-            on conflict (kode) 
+            insert into sykefraværstatistikk_v2(kode, kategori, prosent, arstall, kvartal) 
+                values(:kode, :kategori, :prosent, :arstall, :kvartal)
+            on conflict (kode, arstall, kvartal) 
                 do update set 
                     kode = EXCLUDED.kode,        
                     kategori = EXCLUDED.kategori,        
                     prosent = EXCLUDED.prosent;
-            """.trimIndent()
-        ) { ps: PreparedStatement ->
-            ps.setString(1, statistikkategori.kode)
-            ps.setString(2, statistikkategori.kategori)
-            ps.setDouble(3, statistikkategori.prosent)
-        }
+            """.trimIndent(),
+            mapOf(
+                "kode" to statistikkategori.kode,
+                "kategori" to statistikkategori.kategori,
+                "prosent" to statistikkategori.prosent,
+                "arstall" to statistikkategori.siste4Kvartal?.arstall,
+                "kvartal" to statistikkategori.siste4Kvartal?.kvartal,
+            )
+        )
     }
 
 }
@@ -110,7 +148,7 @@ class SykefraværstatistikkKafkaListener(
 ) {
     @Profile("dev-gcp", "prod-gcp")
     @KafkaListener(
-        id = "min-side-arbeidsgiver-sfmeta-1",
+        id = "min-side-arbeidsgiver-sfmeta-2",
         topics = ["arbeidsgiver.sykefravarsstatistikk-metadata-virksomhet-v1"],
         containerFactory = "errorLoggingKafkaListenerContainerFactory"
     )
@@ -121,7 +159,7 @@ class SykefraværstatistikkKafkaListener(
 
     @Profile("dev-gcp", "prod-gcp")
     @KafkaListener(
-        id = "min-side-arbeidsgiver-sfstats-1",
+        id = "min-side-arbeidsgiver-sfstats-2",
         topics = [
             "arbeidsgiver.sykefravarsstatistikk-virksomhet-v1",
             "arbeidsgiver.sykefravarsstatistikk-naring-v1",
@@ -144,6 +182,8 @@ data class MetadataVirksomhetDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES
     @param:JsonProperty("orgnr") val virksomhetsnummer: String,
     @param:JsonProperty("naring") val næring: String,
     @param:JsonProperty("bransje") val bransje: String?,
+    @param:JsonProperty("arstall") val arstall: Number,
+    @param:JsonProperty("kvartal") val kvartal: Number,
 )
 
 /**
@@ -162,5 +202,7 @@ data class StatistikkategoriDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class ProsentWrapper @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
         @param:JsonProperty("prosent") val prosent: Double,
+        @param:JsonProperty("arstall") val arstall: Number,
+        @param:JsonProperty("kvartal") val kvartal: Number,
     )
 }

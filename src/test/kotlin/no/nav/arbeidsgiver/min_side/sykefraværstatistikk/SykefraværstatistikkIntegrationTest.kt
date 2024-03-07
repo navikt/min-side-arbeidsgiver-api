@@ -68,10 +68,32 @@ class SykefraværstatistikkIntegrationTest {
                     "kode": "123",
                     "kategori": "VIRKSOMHET",
                     "sistePubliserteKvartal": {
-                        "prosent": 3.15
+                        "prosent": 3.15,
+                        "arstall": "2023",
+                        "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.14
+                        "prosent": 3.14,
+                        "arstall": "2023",
+                        "kvartal": "1"
+                    }
+                }
+            """
+        )
+        processStatistikkkategori(
+            """
+                {
+                    "kode": "123",
+                    "kategori": "VIRKSOMHET",
+                    "sistePubliserteKvartal": {
+                        "prosent": 2.15,
+                        "arstall": "2022",
+                        "kvartal": "1"
+                    },
+                    "siste4Kvartal": {
+                        "prosent": 2.14,
+                        "arstall": "2022",
+                        "kvartal": "1"
                     }
                 }
             """
@@ -80,7 +102,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefravaerstatistikk/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk_v2/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isOk)
@@ -107,7 +129,20 @@ class SykefraværstatistikkIntegrationTest {
                 {
                     "orgnr": "123",
                     "bransje": "Testing",
-                    "naring": "IT"
+                    "naring": "IT",
+                    "arstall": "2023",
+                    "kvartal": "1"
+                }
+            """
+        )
+        processMetadataVirksomhet(
+            """
+                {
+                    "orgnr": "123",
+                    "bransje": "Testing Gammel",
+                    "naring": "IT Gammel",
+                    "arstall": "2022",
+                    "kvartal": "1"
                 }
             """
         )
@@ -117,10 +152,32 @@ class SykefraværstatistikkIntegrationTest {
                     "kode": "Testing",
                     "kategori": "BRANSJE",
                     "sistePubliserteKvartal": {
-                        "prosent": 3.15
+                        "prosent": 3.15,
+                        "arstall": "2023",
+                        "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.14
+                        "prosent": 3.14,
+                        "arstall": "2023",
+                        "kvartal": "1"
+                    }
+                }
+            """
+        )
+        processStatistikkkategori(
+            """
+                {
+                    "kode": "Testing Gammel",
+                    "kategori": "BRANSJE",
+                    "sistePubliserteKvartal": {
+                        "prosent": 2.15,
+                        "arstall": "2022",
+                        "kvartal": "1"
+                    },
+                    "siste4Kvartal": {
+                        "prosent": 2.14,
+                        "arstall": "2022",
+                        "kvartal": "1"
                     }
                 }
             """
@@ -131,10 +188,32 @@ class SykefraværstatistikkIntegrationTest {
                     "kode": "IT",
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
-                        "prosent": 3.16
+                        "prosent": 3.16,
+                        "arstall": "2023",
+                        "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.17
+                        "prosent": 3.17,
+                        "arstall": "2023",
+                        "kvartal": "1"
+                    }
+                }
+            """
+        )
+        processStatistikkkategori(
+            """
+                {
+                    "kode": "IT Gammel",
+                    "kategori": "NÆRING",
+                    "sistePubliserteKvartal": {
+                        "prosent": 2.16,
+                        "arstall": "2022",
+                        "kvartal": "1"
+                    },
+                    "siste4Kvartal": {
+                        "prosent": 2.17,
+                        "arstall": "2022",
+                        "kvartal": "1"
                     }
                 }
             """
@@ -143,7 +222,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefravaerstatistikk/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk_v2/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isOk)
@@ -170,7 +249,9 @@ class SykefraværstatistikkIntegrationTest {
                 {
                     "orgnr": "123",
                     "bransje": "Testing",
-                    "naring": "IT"
+                    "naring": "IT",
+                    "arstall": "2023",
+                    "kvartal": "1"
                 }
             """
         )
@@ -180,10 +261,32 @@ class SykefraværstatistikkIntegrationTest {
                     "kode": "IT",
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
-                        "prosent": 3.15
+                        "prosent": 3.15,
+                        "arstall": "2023",
+                        "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.14
+                        "prosent": 3.14,
+                        "arstall": "2023",
+                        "kvartal": "1"
+                    }
+                }
+            """
+        )
+        processStatistikkkategori(
+            """
+                {
+                    "kode": "IT",
+                    "kategori": "NÆRING",
+                    "sistePubliserteKvartal": {
+                        "prosent": 2.15,
+                        "arstall": "2022",
+                        "kvartal": "1"
+                    },
+                    "siste4Kvartal": {
+                        "prosent": 2.14,
+                        "arstall": "2022",
+                        "kvartal": "1"
                     }
                 }
             """
@@ -192,7 +295,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefravaerstatistikk/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk_v2/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isOk)
@@ -221,7 +324,20 @@ class SykefraværstatistikkIntegrationTest {
                 {
                     "orgnr": "123",
                     "bransje": "Testing",
-                    "naring": "IT"
+                    "naring": "IT",
+                    "arstall": "2023",
+                    "kvartal": "1"
+                }
+            """
+        )
+        processMetadataVirksomhet(
+            """
+                {
+                    "orgnr": "123",
+                    "bransje": "Testing Gammel",
+                    "naring": "IT",
+                    "arstall": "2022",
+                    "kvartal": "1"
                 }
             """
         )
@@ -231,10 +347,32 @@ class SykefraværstatistikkIntegrationTest {
                     "kode": "Testing",
                     "kategori": "BRANSJE",
                     "sistePubliserteKvartal": {
-                        "prosent": 3.15
+                        "prosent": 3.15,
+                        "arstall": "2023",
+                        "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.14
+                        "prosent": 3.14,
+                        "arstall": "2023",
+                        "kvartal": "1"
+                    }
+                }
+            """
+        )
+        processStatistikkkategori(
+            """
+                {
+                    "kode": "Testing Gammel",
+                    "kategori": "BRANSJE",
+                    "sistePubliserteKvartal": {
+                        "prosent": 2.15,
+                        "arstall": "2022",
+                        "kvartal": "1"
+                    },
+                    "siste4Kvartal": {
+                        "prosent": 2.14,
+                        "arstall": "2022",
+                        "kvartal": "1"
                     }
                 }
             """
@@ -245,10 +383,32 @@ class SykefraværstatistikkIntegrationTest {
                     "kode": "IT",
                     "kategori": "NÆRING",
                     "sistePubliserteKvartal": {
-                        "prosent": 3.16
+                        "prosent": 3.16,
+                        "arstall": "2023",
+                        "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.17
+                        "prosent": 3.17,
+                        "arstall": "2023",
+                        "kvartal": "1"
+                    }
+                }
+            """
+        )
+        processStatistikkkategori(
+            """
+                {
+                    "kode": "IT Gammel",
+                    "kategori": "NÆRING",
+                    "sistePubliserteKvartal": {
+                        "prosent": 2.16,
+                        "arstall": "2022",
+                        "kvartal": "1"
+                    },
+                    "siste4Kvartal": {
+                        "prosent": 2.17,
+                        "arstall": "2022",
+                        "kvartal": "1"
                     }
                 }
             """
@@ -257,7 +417,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefravaerstatistikk/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk_v2/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isOk)
@@ -284,7 +444,9 @@ class SykefraværstatistikkIntegrationTest {
                 {
                     "orgnr": "123",
                     "bransje": "Testing",
-                    "naring": "IT"
+                    "naring": "IT",
+                    "arstall": "2023",
+                    "kvartal": "1"
                 }
             """
         )
@@ -292,7 +454,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefravaerstatistikk/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk_v2/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isNoContent)
