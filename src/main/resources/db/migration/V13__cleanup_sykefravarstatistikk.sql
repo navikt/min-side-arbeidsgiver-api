@@ -1,0 +1,2 @@
+drop table sykefraværstatistikk;
+drop table sykefraværstatistikk_metadata;
