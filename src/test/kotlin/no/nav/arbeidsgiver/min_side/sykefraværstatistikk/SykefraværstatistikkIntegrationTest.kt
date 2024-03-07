@@ -126,7 +126,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "årstall": "2023",
+                    "arstall": "2023",
                     "kvartal": "1"
                 }
             """
@@ -137,7 +137,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing Gammel",
                     "naring": "IT Gammel",
-                    "årstall": "2022",
+                    "arstall": "2022",
                     "kvartal": "1"
                 }
             """
@@ -238,7 +238,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "årstall": "2023",
+                    "arstall": "2023",
                     "kvartal": "1"
                 }
             """
@@ -309,7 +309,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "årstall": "2023",
+                    "arstall": "2023",
                     "kvartal": "1"
                 }
             """
@@ -320,7 +320,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing Gammel",
                     "naring": "IT",
-                    "årstall": "2022",
+                    "arstall": "2022",
                     "kvartal": "1"
                 }
             """
@@ -429,7 +429,7 @@ class SykefraværstatistikkIntegrationTest {
                     "orgnr": "123",
                     "bransje": "Testing",
                     "naring": "IT",
-                    "årstall": "2023",
+                    "arstall": "2023",
                     "kvartal": "1"
                 }
             """
