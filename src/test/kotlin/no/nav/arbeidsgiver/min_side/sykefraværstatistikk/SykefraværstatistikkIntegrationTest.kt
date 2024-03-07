@@ -73,9 +73,7 @@ class SykefraværstatistikkIntegrationTest {
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.14,
-                        "arstall": "2023",
-                        "kvartal": "1"
+                        "prosent": 3.14
                     }
                 }
             """
@@ -91,9 +89,7 @@ class SykefraværstatistikkIntegrationTest {
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 2.14,
-                        "arstall": "2022",
-                        "kvartal": "1"
+                        "prosent": 2.14
                     }
                 }
             """
@@ -157,9 +153,7 @@ class SykefraværstatistikkIntegrationTest {
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.14,
-                        "arstall": "2023",
-                        "kvartal": "1"
+                        "prosent": 3.14
                     }
                 }
             """
@@ -175,9 +169,7 @@ class SykefraværstatistikkIntegrationTest {
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 2.14,
-                        "arstall": "2022",
-                        "kvartal": "1"
+                        "prosent": 2.14
                     }
                 }
             """
@@ -193,9 +185,7 @@ class SykefraværstatistikkIntegrationTest {
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.17,
-                        "arstall": "2023",
-                        "kvartal": "1"
+                        "prosent": 3.17
                     }
                 }
             """
@@ -211,9 +201,7 @@ class SykefraværstatistikkIntegrationTest {
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 2.17,
-                        "arstall": "2022",
-                        "kvartal": "1"
+                        "prosent": 2.17
                     }
                 }
             """
@@ -266,9 +254,7 @@ class SykefraværstatistikkIntegrationTest {
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 3.14,
-                        "arstall": "2023",
-                        "kvartal": "1"
+                        "prosent": 3.14
                     }
                 }
             """
@@ -284,9 +270,7 @@ class SykefraværstatistikkIntegrationTest {
                         "kvartal": "1"
                     },
                     "siste4Kvartal": {
-                        "prosent": 2.14,
-                        "arstall": "2022",
-                        "kvartal": "1"
+                        "prosent": 2.14
                     }
                 }
             """
