@@ -22,8 +22,43 @@ class SykefraværstatistikkController(
         other = { "1" },
     )
 
+    // TODO: gjør v2 om til default når ajour
     @GetMapping("/api/sykefravaerstatistikk/{orgnr}")
     fun getStatistikk(
+        @PathVariable orgnr: String,
+    ): ResponseEntity<StatistikkRespons> {
+        val org = altinnService
+            .hentOrganisasjonerBasertPaRettigheter(authenticatedUserHolder.fnr, tjenestekode, tjenesteversjon)
+            .firstOrNull { it.organizationNumber == orgnr }
+
+        return if (org != null) {
+            val statistikk = sykefraværstatistikkRepository.virksomhetstatistikk_v1(orgnr)?.let {
+                StatistikkRespons(
+                    type = it.kategori,
+                    label = org.name ?: it.kode,
+                    prosent = it.prosent,
+                )
+            } ?: sykefraværstatistikkRepository.statistikk_v1(orgnr)?.let {
+                StatistikkRespons(
+                    type = it.kategori,
+                    label = it.kode,
+                    prosent = it.prosent,
+                )
+            }
+            statistikk.asResponseEntity()
+        } else {
+            sykefraværstatistikkRepository.statistikk_v1(orgnr)?.let {
+                StatistikkRespons(
+                    type = it.kategori,
+                    label = it.kode,
+                    prosent = it.prosent,
+                )
+            }.asResponseEntity()
+        }
+    }
+
+    @GetMapping("/api/sykefravaerstatistikk_v2/{orgnr}")
+    fun getStatistikkV2(
         @PathVariable orgnr: String,
     ): ResponseEntity<StatistikkRespons> {
         val org = altinnService
