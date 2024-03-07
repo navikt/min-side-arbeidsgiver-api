@@ -182,7 +182,7 @@ data class MetadataVirksomhetDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES
     @param:JsonProperty("orgnr") val virksomhetsnummer: String,
     @param:JsonProperty("naring") val næring: String,
     @param:JsonProperty("bransje") val bransje: String?,
-    @param:JsonProperty("årstall") val arstall: Number,
+    @param:JsonProperty("arstall") val arstall: Number,
     @param:JsonProperty("kvartal") val kvartal: Number,
 )
 
