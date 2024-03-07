@@ -102,7 +102,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefravaerstatistikk_v2/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isOk)
@@ -222,7 +222,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefravaerstatistikk_v2/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isOk)
@@ -295,7 +295,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefravaerstatistikk_v2/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isOk)
@@ -417,7 +417,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefravaerstatistikk_v2/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isOk)
@@ -454,7 +454,7 @@ class SykefraværstatistikkIntegrationTest {
 
         mockMvc
             .perform(
-                get("/api/sykefravaerstatistikk_v2/{orgnr}", "123")
+                get("/api/sykefravaerstatistikk/{orgnr}", "123")
                     .with(jwtWithPid("42"))
             )
             .andExpect(status().isNoContent)

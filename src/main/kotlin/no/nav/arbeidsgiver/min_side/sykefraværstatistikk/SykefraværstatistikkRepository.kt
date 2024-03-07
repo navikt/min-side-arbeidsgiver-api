@@ -22,41 +22,6 @@ data class Statistikk(
 class SykefraværstatistikkRepository(
     private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
-    // TODO: fjern når "v2" er ajour
-    fun virksomhetstatistikk_v1(virksomhetsnummer: String) = namedParameterJdbcTemplate.queryForList(
-        """
-        select kategori, kode, prosent
-            from sykefraværstatistikk
-            where kategori = 'VIRKSOMHET' and kode = :virksomhetsnummer
-        """.trimIndent(),
-        mapOf("virksomhetsnummer" to virksomhetsnummer)
-    ).firstOrNull()?.let {
-        Statistikk(
-            kategori = it["kategori"] as String,
-            kode = it["kode"] as String,
-            prosent = (it["prosent"] as BigDecimal).toDouble(),
-        )
-    }
-
-    // TODO: fjern når "v2" er ajour
-    fun statistikk_v1(virksomhetsnummer: String) = namedParameterJdbcTemplate.queryForList(
-        """ -- TODO: vurder eksplisitte felt i stedet for coalesce her, kan by på problemer 
-        select coalesce(sb.kategori, sn.kategori) as kategori, coalesce(sb.kode, sn.kode) as kode, coalesce(sb.prosent, sn.prosent) as prosent
-            from sykefraværstatistikk_metadata meta
-            left join sykefraværstatistikk sb on sb.kategori = 'BRANSJE' and sb.kode = meta.bransje
-            left join sykefraværstatistikk sn on sn.kategori = 'NÆRING' and sn.kode = meta.næring
-            where meta.virksomhetsnummer = :virksomhetsnummer
-            and coalesce(sb.prosent, sn.prosent) is not null
-            order by coalesce(sb.kategori, sn.kategori) 
-        """.trimIndent(),
-        mapOf("virksomhetsnummer" to virksomhetsnummer)
-    ).firstOrNull()?.let {
-        Statistikk(
-            kategori = it["kategori"] as String,
-            kode = it["kode"] as String,
-            prosent = (it["prosent"] as BigDecimal).toDouble(),
-        )
-    }
 
     fun virksomhetstatistikk(virksomhetsnummer: String) = namedParameterJdbcTemplate.queryForList(
         """
