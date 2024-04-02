@@ -1,13 +1,16 @@
 <configuration scan="true">
-    <appender name="stdout_json_masked" class="no.nav.arbeidsgiver.min_side.logging.MaskingAppender">
-        <appender-ref ref="consoleAppender" />
-    </appender>
-
     <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <jsonGeneratorDecorator class="net.logstash.logback.mask.MaskingJsonGeneratorDecorator">
+                <valueMask>
+                    <value>(^|\D)\d{11}(?=$|\D)</value>
+                    <mask>$1***********</mask>
+                </valueMask>
+            </jsonGeneratorDecorator>
+        </encoder>
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="stdout_json_masked" />
+        <appender-ref ref="consoleAppender" />
     </root>
 </configuration>

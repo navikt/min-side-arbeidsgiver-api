@@ -7,7 +7,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
-import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.boot.web.client.RestTemplateCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -29,9 +28,6 @@ const val CALL_ID = "callId"
 class AppConfig {
 
     private val log = logger()
-
-    @Bean
-    fun restTemplate(builder: RestTemplateBuilder): RestTemplate = builder.build()
 
     /**
      * propagerer callid fra MDC til request header
