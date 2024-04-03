@@ -3,6 +3,8 @@ package no.nav.arbeidsgiver.min_side.services.ereg
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.benmanes.caffeine.cache.Caffeine
 import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
+import no.nav.arbeidsgiver.min_side.config.callIdIntercetor
+import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -20,9 +22,12 @@ class EregService(
     @Value("\${ereg-services.baseUrl}") eregBaseUrl: String?,
     restTemplateBuilder: RestTemplateBuilder
 ) {
+    private val log = logger()
+
     private val restTemplate = restTemplateBuilder
         .rootUri(eregBaseUrl)
         .additionalInterceptors(
+            callIdIntercetor("Nav-Call-Id"),
             retryInterceptor(
                 3,
                 250L,
@@ -46,6 +51,7 @@ class EregService(
             if (e.statusCode == HttpStatus.NOT_FOUND) {
                 return null
             }
+            log.info("Error while fetching underenhet '{}' from EREG", virksomhetsnummer, e)
             throw e
         }
     }
@@ -63,6 +69,7 @@ class EregService(
             if (e.statusCode == HttpStatus.NOT_FOUND) {
                 return null
             }
+            log.info("Error while fetching overenhet '{}' from EREG", orgnummer, e)
             throw e
         }
     }

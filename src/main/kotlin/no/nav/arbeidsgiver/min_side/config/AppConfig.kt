@@ -35,11 +35,7 @@ class AppConfig {
     @Bean
     fun callIdRestTemplateCustomizer(): RestTemplateCustomizer {
         return RestTemplateCustomizer { restTemplate: RestTemplate ->
-            restTemplate.interceptors.add(
-                ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
-                    request.headers.addIfAbsent(CALL_ID, MDC.get(CALL_ID))
-                    execution.execute(request, body!!)
-                })
+            restTemplate.interceptors.add(callIdIntercetor())
         }
     }
 
@@ -121,5 +117,13 @@ class AppConfig {
     @Bean
     fun characterEncodingFilter() = CharacterEncodingFilter("UTF-8", true)
 }
+
+
+
+fun callIdIntercetor(headerName: String = CALL_ID) =
+    ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
+        request.headers.addIfAbsent(headerName, MDC.get(headerName))
+        execution.execute(request, body!!)
+    }
 
 inline fun <reified T : Any> T.logger(): Logger = LoggerFactory.getLogger(this::class.java)
