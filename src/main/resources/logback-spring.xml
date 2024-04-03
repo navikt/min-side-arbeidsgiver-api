@@ -6,6 +6,12 @@
                     <value>(^|\D)\d{11}(?=$|\D)</value>
                     <mask>$1***********</mask>
                 </valueMask>
+                <valueMask>
+                    <value>\d{9}</value>
+                    <value>\d{11}</value>
+                    <value>\d{6}\s\d{5}</value>
+                    <mask>***********</mask>
+                </valueMask>
             </jsonGeneratorDecorator>
         </encoder>
     </appender>
