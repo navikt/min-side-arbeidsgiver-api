@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.github.benmanes.caffeine.cache.Caffeine
 import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
 import no.nav.arbeidsgiver.min_side.config.callIdIntercetor
-import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -22,8 +21,6 @@ class EregService(
     @Value("\${ereg-services.baseUrl}") eregBaseUrl: String?,
     restTemplateBuilder: RestTemplateBuilder
 ) {
-    private val log = logger()
-
     private val restTemplate = restTemplateBuilder
         .rootUri(eregBaseUrl)
         .additionalInterceptors(
@@ -51,7 +48,6 @@ class EregService(
             if (e.statusCode == HttpStatus.NOT_FOUND) {
                 return null
             }
-            log.info("Error while fetching underenhet '{}' from EREG", virksomhetsnummer, e)
             throw e
         }
     }
@@ -69,7 +65,6 @@ class EregService(
             if (e.statusCode == HttpStatus.NOT_FOUND) {
                 return null
             }
-            log.info("Error while fetching overenhet '{}' from EREG", orgnummer, e)
             throw e
         }
     }
@@ -107,9 +102,9 @@ class EregService(
         if ("JuridiskEnhet" == json.at("/type").asText()) {
             null
         } else {
-            val juridiskOrgnummer = json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText()
-            val orgleddOrgnummer = json.at("/bestaarAvOrganisasjonsledd/0/organisasjonsledd/organisasjonsnummer").asText()
-            orgleddOrgnummer.ifBlank { juridiskOrgnummer }
+            val juridiskOrgnummer = json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText(null)?.ifBlank { null }
+            val orgleddOrgnummer = json.at("/bestaarAvOrganisasjonsledd/0/organisasjonsledd/organisasjonsnummer").asText(null)?.ifBlank { null }
+            orgleddOrgnummer ?: juridiskOrgnummer
         }
 
     companion object {
@@ -118,7 +113,7 @@ class EregService(
             json.at("/navn/navnelinje2").asText(null),
             json.at("/navn/navnelinje3").asText(null),
             json.at("/navn/navnelinje4").asText(null),
-            json.at("/navn/navnelinje5").asText(null)
+            json.at("/navn/navnelinje5").asText(null),
         )
             .filter(Objects::nonNull)
             .joinToString(" ")
