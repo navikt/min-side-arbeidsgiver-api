@@ -3,6 +3,7 @@ package no.nav.arbeidsgiver.min_side.services.ereg
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.benmanes.caffeine.cache.Caffeine
 import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
+import no.nav.arbeidsgiver.min_side.config.callIdIntercetor
 import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import org.springframework.beans.factory.annotation.Value
@@ -26,6 +27,7 @@ class EregService(
     private val restTemplate = restTemplateBuilder
         .rootUri(eregBaseUrl)
         .additionalInterceptors(
+            callIdIntercetor("Nav-Call-Id"),
             retryInterceptor(
                 3,
                 250L,
