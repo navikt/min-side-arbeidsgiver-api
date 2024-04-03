@@ -122,7 +122,7 @@ class AppConfig {
 
 fun callIdIntercetor(headerName: String = CALL_ID) =
     ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
-        request.headers.addIfAbsent(headerName, MDC.get(headerName))
+        request.headers.addIfAbsent(headerName, MDC.get(CALL_ID))
         execution.execute(request, body!!)
     }
 
