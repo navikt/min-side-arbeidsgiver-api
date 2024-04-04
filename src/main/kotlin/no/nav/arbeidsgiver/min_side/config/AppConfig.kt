@@ -6,12 +6,15 @@ import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import org.slf4j.event.Level
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.web.client.RestTemplateCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpRequest
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.*
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -48,7 +51,28 @@ class AppConfig {
             ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
                 log.info("RestTemplate.request: {} {}{}", request.method, request.uri.host, request.uri.path)
                 val response = execution.execute(request, body!!)
-                log.info("RestTemplate.response: {} {}", response.statusCode, response.headers.contentLength)
+                log.atLevel(
+                    when {
+                        response.statusCode in setOf(
+                            NOT_FOUND,
+
+                            BAD_GATEWAY,
+                            SERVICE_UNAVAILABLE,
+                            GATEWAY_TIMEOUT,
+                        ) ->
+                            Level.INFO
+
+                        response.statusCode.isError ->
+                            Level.ERROR
+
+                        else ->
+                            Level.INFO
+                    }
+                ).log(
+                    "RestTemplate.response: {} {}",
+                    response.statusCode,
+                    response.headers.contentLength
+                )
                 response
             })
     }
@@ -119,7 +143,6 @@ class AppConfig {
 }
 
 
-
 fun callIdIntercetor(headerName: String = CALL_ID) =
     ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
         request.headers.addIfAbsent(headerName, MDC.get(CALL_ID))
@@ -127,3 +150,11 @@ fun callIdIntercetor(headerName: String = CALL_ID) =
     }
 
 inline fun <reified T : Any> T.logger(): Logger = LoggerFactory.getLogger(this::class.java)
+
+private fun HttpStatusCode.erDriftsforstyrrelse() = when (this) {
+    BAD_GATEWAY,
+    SERVICE_UNAVAILABLE,
+    GATEWAY_TIMEOUT -> true
+
+    else -> false
+}
