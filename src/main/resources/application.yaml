@@ -85,6 +85,7 @@ altinn:
   apiBaseUrl: "http://altinn.example.org"
 
 ereg-services.baseUrl: "https://localhost"
+sokos-kontoregister.baseUrl: "https://localhost"
 
 token.x:
   privateJwk: fake
@@ -113,6 +114,7 @@ altinn:
   apiBaseUrl: "https://tt02.altinn.no"
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
+sokos-kontoregister.baseUrl: "https://sokos-kontoregister.dev-fss-pub.nais.io"
 
 token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}}
@@ -140,6 +142,7 @@ altinn:
   apiBaseUrl: "https://www.altinn.no"
 
 ereg-services.baseUrl: "https://ereg-services.prod-fss-pub.nais.io"
+sokos-kontoregister.baseUrl: "https://sokos-kontoregister.prod-fss-pub.nais.io"
 
 token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}}
