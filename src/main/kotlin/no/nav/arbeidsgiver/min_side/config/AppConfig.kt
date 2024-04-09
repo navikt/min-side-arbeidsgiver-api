@@ -12,9 +12,7 @@ import org.springframework.boot.web.client.RestTemplateCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpRequest
-import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.*
-import org.springframework.http.HttpStatusCode
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -128,7 +126,7 @@ class AppConfig {
             } finally {
                 log.info(
                     "servlet.response {} {} => {}",
-                    request.method, request.requestURI, HttpStatus.resolve(response.status)
+                    request.method, request.requestURI, resolve(response.status)
                 )
             }
         }
@@ -150,11 +148,3 @@ fun callIdIntercetor(headerName: String = CALL_ID) =
     }
 
 inline fun <reified T : Any> T.logger(): Logger = LoggerFactory.getLogger(this::class.java)
-
-private fun HttpStatusCode.erDriftsforstyrrelse() = when (this) {
-    BAD_GATEWAY,
-    SERVICE_UNAVAILABLE,
-    GATEWAY_TIMEOUT -> true
-
-    else -> false
-}
