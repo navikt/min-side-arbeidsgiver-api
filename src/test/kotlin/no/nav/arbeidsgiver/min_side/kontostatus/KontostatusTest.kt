@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.kontostatus
 
+import no.nav.arbeidsgiver.min_side.clients.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -31,6 +32,9 @@ class KontostatusTest {
 
     @MockBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
     lateinit var jwtDecoder: JwtDecoder
+
+    @MockBean
+    lateinit var azureService: AzureService
 
     @Autowired
     lateinit var kontoregisterClient: KontoregisterClient

@@ -1,7 +1,9 @@
 package no.nav.arbeidsgiver.min_side.kontostatus
 
 import com.github.benmanes.caffeine.cache.Caffeine
+import no.nav.arbeidsgiver.min_side.clients.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
+import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.config.callIdIntercetor
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -10,6 +12,7 @@ import org.springframework.cache.caffeine.CaffeineCache
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
+import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClientResponseException
 import java.util.concurrent.TimeUnit
@@ -17,12 +20,24 @@ import java.util.concurrent.TimeUnit
 @Component
 class KontoregisterClient(
     @Value("\${sokos-kontoregister.baseUrl}") sokosKontoregisterBaseUrl: String?,
-    restTemplateBuilder: RestTemplateBuilder
+    restTemplateBuilder: RestTemplateBuilder,
+    azureService: AzureService,
+    gittMiljø: GittMiljø,
 ) {
     internal val restTemplate = restTemplateBuilder
         .rootUri(sokosKontoregisterBaseUrl)
         .additionalInterceptors(
             callIdIntercetor("nav-call-id"),
+            ClientHttpRequestInterceptor { request, body, execution ->
+                request.headers.setBearerAuth(
+                    azureService.getAccessToken(gittMiljø.resolve(
+                        prod = { "prod-fss.okonomi.sokos-kontoregister" },
+                        dev = { "dev-fss.okonomi.sokos-kontoregister" },
+                        other = { " " }
+                    ))
+                )
+                execution.execute(request, body)
+            },
             retryInterceptor(
                 3,
                 250L,
