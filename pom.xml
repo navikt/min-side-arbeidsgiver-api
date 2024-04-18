@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.3</version>
+        <version>3.2.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -22,8 +22,6 @@
         <java.version>17</java.version>
         <kotlin.version>1.9.10</kotlin.version>
         <kotlin-coroutines.version>1.7.3</kotlin-coroutines.version>
-
-        <logback.version>1.4.14</logback.version>
     </properties>
 
     <dependencies>
@@ -55,7 +53,6 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
-            <version>3.0.12</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -64,12 +61,10 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.2</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>9.22.3</version>
         </dependency>
 
         <dependency>
@@ -84,7 +79,7 @@
         <dependency>
             <groupId>no.nav.arbeidsgiver</groupId>
             <artifactId>altinn-rettigheter-proxy-klient</artifactId>
-            <version>3.1.0</version>
+            <version>4.0.0</version>
         </dependency>
 
         <!-- JSON-logging -->
@@ -119,7 +114,6 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
-            <version>${spring-security.version}</version>
         </dependency>
     </dependencies>
 
