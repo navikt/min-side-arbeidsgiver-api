@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.kontostatus
 
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController
 class KontostatusController(
     val kontoregisterClient: KontoregisterClient,
 ) {
-    @GetMapping("/api/kontonummerStatus/v1")
+    @PostMapping("/api/kontonummerStatus/v1")
     fun get(
         @RequestBody body: Request,
     ) = when (kontoregisterClient.hentKontonummer(body.virksomhetsnummer)) {

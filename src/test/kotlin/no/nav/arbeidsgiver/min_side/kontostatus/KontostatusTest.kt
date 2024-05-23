@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.http.HttpMethod.GET
+import org.springframework.http.HttpMethod.POST
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -19,7 +19,7 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.request
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 
 @SpringBootTest(
     properties = [
@@ -55,7 +55,7 @@ class KontostatusTest {
         val virksomhetsnummer = "42"
         server.expect {
             requestTo("/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer")
-            method(GET)
+            method(POST)
         }.andRespond(
             withSuccess(
                 """
@@ -73,7 +73,7 @@ class KontostatusTest {
             Assertions.assertEquals("12345678901", it?.kontonr)
         }
 
-        mockMvc.get("/api/kontonummerStatus/v1") {
+        mockMvc.post("/api/kontonummerStatus/v1") {
             content = """{"virksomhetsnummer": "$virksomhetsnummer"}"""
             contentType = APPLICATION_JSON
             accept = APPLICATION_JSON
@@ -89,14 +89,14 @@ class KontostatusTest {
         val virksomhetsnummer = "123"
         server.expect {
             requestTo("/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer")
-            method(GET)
+            method(POST)
         }.andRespond(withStatus(NOT_FOUND))
 
         kontoregisterClient.hentKontonummer(virksomhetsnummer).let {
             Assertions.assertNull(it)
         }
 
-        mockMvc.get("/api/kontonummerStatus/v1") {
+        mockMvc.post("/api/kontonummerStatus/v1") {
             content = """{"virksomhetsnummer": "$virksomhetsnummer"}"""
             contentType = APPLICATION_JSON
             accept = APPLICATION_JSON
