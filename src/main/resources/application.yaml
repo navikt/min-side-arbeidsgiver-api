@@ -54,6 +54,12 @@ springdoc:
     enabled: true
   packagesToScan: no.nav.arbeidsgiver.min_side
 
+azuread:
+  tenantId: ${AZURE_APP_TENANT_ID:}
+  openidTokenEndpoint: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT:}
+  clientId: ${AZURE_APP_CLIENT_ID:}
+  openidIssuer: ${AZURE_OPENID_CONFIG_ISSUER:}
+  jwk: ${AZURE_APP_JWK:}
 
 ---
 
@@ -92,13 +98,6 @@ token.x:
   clientId: fake
   issuer: http://fake
   tokenEndpoint: http://fake/token
-
-azuread:
-  tenantId: ${AZURE_APP_TENANT_ID:}
-  openidTokenEndpoint: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT:}
-  clientId: ${AZURE_APP_CLIENT_ID:}
-  openidIssuer: ${AZURE_OPENID_CONFIG_ISSUER:}
-  jwk: ${AZURE_APP_JWK:}
 
 ---
 spring:

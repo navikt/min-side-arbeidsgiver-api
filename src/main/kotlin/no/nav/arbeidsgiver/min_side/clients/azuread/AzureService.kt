@@ -18,14 +18,14 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 
-private const val maxCachedEntries = 1000L
-private const val cacheExpiryMarginSeconds = 5
 
 @Service
 class AzureService(
     private val azureClient: AzureClient,
     private val azureADProperties: AzureADProperties,
 ) {
+    private val maxCachedEntries = 1000L
+    private val cacheExpiryMarginSeconds = 5
 
     private val cache: Cache<String, AccessTokenEntry> = Caffeine.newBuilder()
         .expireAfter(object : Expiry<String, AccessTokenEntry> {
