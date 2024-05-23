@@ -60,3 +60,4 @@ spec:
         - host: tt02.altinn.no
         - host: api-gw-q1.oera.no
         - host: ereg-services.dev-fss-pub.nais.io
+        - host: sokos-kontoregister-q1.dev-fss-pub.nais.io
