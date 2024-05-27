@@ -119,7 +119,7 @@ altinn:
   apiBaseUrl: "https://tt02.altinn.no"
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
-sokos-kontoregister.baseUrl: "https://sokos-kontoregister-q1.dev-fss-pub.nais.io"
+sokos-kontoregister.baseUrl: "https://sokos-kontoregister-q2.dev-fss-pub.nais.io"
 
 token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}}
