@@ -32,7 +32,7 @@ class KontoregisterClient(
                 request.headers.setBearerAuth(
                     azureService.getAccessToken(gittMiljø.resolve(
                         prod = { "prod-fss.okonomi.sokos-kontoregister" },
-                        dev = { "dev-fss.okonomi.sokos-kontoregister" },
+                        dev = { "dev-fss.okonomi.sokos-kontoregister-q2" },
                         other = { " " }
                     ))
                 )
