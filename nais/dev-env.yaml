@@ -9,16 +9,8 @@ spec:
   image: {{{ image }}}
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
-    initialDelay: 90
-    timeout: 15
-    periodSeconds: 10
-    failureThreshold: 3
   readiness:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
-    initialDelay: 90
-    timeout: 15
-    periodSeconds: 10
-    failureThreshold: 3
   maskinporten:
     enabled: true
     scopes:
