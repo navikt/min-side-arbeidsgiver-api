@@ -54,6 +54,12 @@ springdoc:
     enabled: true
   packagesToScan: no.nav.arbeidsgiver.min_side
 
+azuread:
+  tenantId: ${AZURE_APP_TENANT_ID:}
+  openidTokenEndpoint: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT:}
+  clientId: ${AZURE_APP_CLIENT_ID:}
+  openidIssuer: ${AZURE_OPENID_CONFIG_ISSUER:}
+  jwk: ${AZURE_APP_JWK:}
 
 ---
 
@@ -85,13 +91,13 @@ altinn:
   apiBaseUrl: "http://altinn.example.org"
 
 ereg-services.baseUrl: "https://localhost"
+sokos-kontoregister.baseUrl: "https://localhost"
 
 token.x:
   privateJwk: fake
   clientId: fake
   issuer: http://fake
   tokenEndpoint: http://fake/token
-
 
 ---
 spring:
@@ -113,6 +119,7 @@ altinn:
   apiBaseUrl: "https://tt02.altinn.no"
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
+sokos-kontoregister.baseUrl: "https://sokos-kontoregister-q2.dev-fss-pub.nais.io"
 
 token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}}
@@ -140,6 +147,7 @@ altinn:
   apiBaseUrl: "https://www.altinn.no"
 
 ereg-services.baseUrl: "https://ereg-services.prod-fss-pub.nais.io"
+sokos-kontoregister.baseUrl: "https://sokos-kontoregister.prod-fss-pub.nais.io"
 
 token.x:
   privateJwk: ${TOKEN_X_PRIVATE_JWK}}

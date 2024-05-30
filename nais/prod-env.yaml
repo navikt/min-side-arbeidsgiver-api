@@ -53,6 +53,9 @@ spec:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
   tokenx:
     enabled: true
+  azure:
+    application:
+      enabled: true
   accessPolicy:
     inbound:
       rules:
@@ -65,3 +68,4 @@ spec:
         - host: www.altinn.no
         - host: api-gw.oera.no
         - host: ereg-services.prod-fss-pub.nais.io
+        - host: sokos-kontoregister.prod-fss-pub.nais.io
