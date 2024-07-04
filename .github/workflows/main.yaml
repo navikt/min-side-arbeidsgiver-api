@@ -110,7 +110,7 @@ jobs:
       contents: "read"
       id-token: "write"
     name: Deploy prod (prod-gcp)
-    needs: deploy-dev-gcp
+    #needs: deploy-dev-gcp
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
