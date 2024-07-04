@@ -24,7 +24,7 @@ spec:
     pool: nav-dev
   gcp:
     sqlInstances:
-      - type: POSTGRES_13
+      - type: POSTGRES_14
         databases:
           - name: min-side-arbeidsgiver-api
             envVarPrefix: DB
