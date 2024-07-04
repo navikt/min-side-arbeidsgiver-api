@@ -14,9 +14,6 @@ spec:
     limits:
       cpu: 5000m # https://home.robusta.dev/blog/stop-using-cpu-limits/
       memory: 1024Mi
-  replicas:
-    max: 0
-    min: 0
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
     initialDelay: 90
