@@ -6,7 +6,7 @@ metadata:
   labels:
     team: fager
 spec:
-  image: europe-north1-docker.pkg.dev/nais-management-233d/fager/min-side-arbeidsgiver-api:687b1a24ace97af7eb667a694bf3056332c5b4af
+  image: {{{image}}}
   resources:
     requests:
       cpu: 400m
