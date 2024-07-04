@@ -7,9 +7,9 @@ metadata:
     team: fager
 spec:
   image: {{{ image }}}
-  replicas:
-    min: 0
-    max: 0
+  #replicas:
+  #  min: 0
+  #  max: 0
   liveness:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
   readiness:
