@@ -88,7 +88,7 @@ jobs:
     name: Deploy dev (dev-gcp)
     needs: bygg
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -111,7 +111,7 @@ jobs:
       id-token: "write"
     name: Deploy prod (prod-gcp)
     needs: deploy-dev-gcp
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
