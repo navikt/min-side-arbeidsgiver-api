@@ -80,7 +80,11 @@ class UserInfoControllerTest {
             } else if (it.arguments[1] == "5516") {
                 throw RuntimeException("Kan ikke hente organisasjoner")
             } else {
-                emptyList()
+                /* Selv om det ikke burde være nødvendig å spesifisere typen (intellij gråer den ut), så får vi følgende
+                 * feilmelding uten det:
+                 * New inference error [NewConstraintError at Incorporate TypeVariable(K) == kotlin/Nothing from Fix variable K from position Fix variable K: kotlin/collections/List<TypeVariable(T)> <!: kotlin/Nothing].
+                 */
+                emptyList<Organisasjon>()
             }
         }
         `when`(digisyfoService.hentVirksomheterOgSykmeldte("42")).thenReturn(
