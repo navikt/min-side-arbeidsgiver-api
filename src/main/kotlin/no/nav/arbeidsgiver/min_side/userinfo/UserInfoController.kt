@@ -36,6 +36,10 @@ class UserInfoController(
             tjenestekode = "4826",
             tjenesteversjon = "1",
         ),
+        "endreBankkontonummerForRefusjoner" to Altinnskjema(
+            tjenestekode = "2896",
+            tjenesteversjon = "87",
+        ),
         "arbeidstrening" to NAVTjeneste(
             tjenestekode = "5332",
             tjenesteversjon = gittMiljø.resolve(
