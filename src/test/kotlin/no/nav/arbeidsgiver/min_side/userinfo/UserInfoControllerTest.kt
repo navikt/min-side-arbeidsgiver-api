@@ -234,6 +234,12 @@ class UserInfoControllerTest {
                           "organisasjoner": []
                         },
                         {
+                          "id": "endreBankkontonummerForRefusjoner",
+                          "tjenestekode": "2896",
+                          "tjenesteversjon": "87",
+                          "organisasjoner": []
+                        },
+                        {
                           "id": "arbeidstrening",
                           "tjenestekode": "5332",
                           "tjenesteversjon": "1",
