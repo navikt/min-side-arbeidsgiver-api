@@ -75,11 +75,9 @@ class EregService(
         }
         return Organisasjon(
             name = samletNavn(json),
-            type = "Business",
             parentOrganizationNumber = orgnummerTilOverenhet(json),
             organizationNumber = json.at("/organisasjonsnummer").asText(),
             organizationForm = json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
-            status = "Active"
         )
     }
 
@@ -90,11 +88,9 @@ class EregService(
         }
         return Organisasjon(
             name = samletNavn(json),
-            type = "Enterprise",
             parentOrganizationNumber = orgnummerTilOverenhet(json),
             organizationNumber = json.at("/organisasjonsnummer").asText(),
             organizationForm = json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
-            status = "Active"
         )
     }
 

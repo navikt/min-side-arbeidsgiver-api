@@ -133,11 +133,6 @@ class UserInfoController(
             val organisasjoner = async {
                 runCatching {
                     altinnService.hentOrganisasjoner(authenticatedUserHolder.fnr)
-                        .filter {
-                            it.organizationForm == "BEDR"
-                                    || it.organizationForm == "AAFY"
-                                    || it.type == "Enterprise"
-                        }
                 }
             }
 

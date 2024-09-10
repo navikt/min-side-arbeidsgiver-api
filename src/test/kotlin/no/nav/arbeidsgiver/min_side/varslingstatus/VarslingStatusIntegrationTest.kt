@@ -98,7 +98,7 @@ class VarslingStatusIntegrationTest {
     fun `bruker med tilgang men ingen status i databasen får OK som default`() {
         `when`(
             altinnService.hentOrganisasjoner("42")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co")))
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
 
         processVarslingStatus(
             """
@@ -128,7 +128,7 @@ class VarslingStatusIntegrationTest {
     fun `returnerer siste status for virksomhet`() {
         `when`(
             altinnService.hentOrganisasjoner("42")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co")))
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
 
         listOf(
             "MANGLER_KOFUVI" to "2021-01-02T00:00:00Z",
@@ -174,7 +174,7 @@ class VarslingStatusIntegrationTest {
     fun `returnerer siste status for virksomhet OK`() {
         `when`(
             altinnService.hentOrganisasjoner("42")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co")))
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
 
         listOf(
             "MANGLER_KOFUVI" to "2021-01-01T00:00:00Z",
@@ -220,7 +220,7 @@ class VarslingStatusIntegrationTest {
     fun `får ok dersom kontaktinfo er pollet og funnet`() {
         `when`(
             altinnService.hentOrganisasjoner("42")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co")))
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
 
         processVarslingStatus(
             """

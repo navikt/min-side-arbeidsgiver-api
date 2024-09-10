@@ -100,7 +100,7 @@ class AltinnTilgangControllerTest {
 
         `when`(altinnService.hentOrganisasjoner("42")).thenReturn(
             listOf(
-                Organisasjon(organizationNumber = "314")
+                Organisasjon(organizationNumber = "314", name = "organisasjon", organizationForm = "BEDR")
             )
         )
         `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenReturn(søknad)
@@ -150,7 +150,7 @@ class AltinnTilgangControllerTest {
 
         `when`(altinnService.hentOrganisasjoner("42")).thenReturn(
             listOf(
-                Organisasjon(organizationNumber = "314")
+                Organisasjon(organizationNumber = "314", name = "Organisasjon", organizationForm = "BEDR")
             )
         )
         `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenThrow(

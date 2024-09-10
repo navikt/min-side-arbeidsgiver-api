@@ -1,7 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.altinn
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.databind.JsonNode
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlient
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxyKlientConfig
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.ProxyConfig
@@ -27,6 +26,7 @@ interface AltinnService {
         serviceKode: String,
         serviceEdition: String
     ): List<Organisasjon>
+
 }
 
 
@@ -88,7 +88,12 @@ class AltinnServiceImpl(
             token,
             Subject(fnr),
             true
-        ).toOrganisasjoner()
+        ).filter {
+                it.organizationForm == "BEDR"
+                        || it.organizationForm == "AAFY"
+                        || it.type == "Enterprise"
+            }
+            .toOrganisasjoner()
 
     @Cacheable(AltinnCacheConfig.ALTINN_TJENESTE_CACHE)
     override fun hentOrganisasjonerBasertPaRettigheter(
@@ -101,7 +106,12 @@ class AltinnServiceImpl(
         ServiceCode(serviceKode),
         ServiceEdition(serviceEdition),
         true
-    ).toOrganisasjoner()
+    ).filter {
+        it.organizationForm == "BEDR"
+                || it.organizationForm == "AAFY"
+                || it.type == "Enterprise"
+    }
+        .toOrganisasjoner()
 
     private val token: Token
         get() = TokenXToken(
@@ -111,16 +121,20 @@ class AltinnServiceImpl(
             ).access_token!!
         )
 
-    private fun List<AltinnReportee>.toOrganisasjoner() = map {
-        Organisasjon(
-            name = it.name,
-            type = it.type,
-            parentOrganizationNumber = it.parentOrganizationNumber,
-            organizationNumber = it.organizationNumber,
-            organizationForm = it.organizationForm,
-            status = it.status,
-        )
-    }
+    private fun List<AltinnReportee>.toOrganisasjoner() =
+        mapNotNull {
+            val organizationNumber = it.organizationNumber
+            val organizationForm = it.organizationForm
+            if (organizationNumber == null || organizationForm == null)
+                null
+            else
+                Organisasjon(
+                    name = it.name,
+                    parentOrganizationNumber = it.parentOrganizationNumber,
+                    organizationNumber = organizationNumber,
+                    organizationForm = organizationForm,
+                )
+        }
 }
 
 

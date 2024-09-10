@@ -4,6 +4,7 @@ import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
+import no.nav.arbeidsgiver.min_side.models.Altinn2Organisasjon
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
@@ -62,15 +63,13 @@ class UserInfoControllerTest {
                     name = "overenhet",
                     organizationNumber = "1",
                     organizationForm = "AS",
-                    type = "Enterprise"
-
                 ),
             )
         )
         `when`(altinnService.hentOrganisasjonerBasertPaRettigheter(anyString(), anyString(), anyString())).then {
             if (it.arguments[1] == "3403" && it.arguments[2] == "1") {
                 listOf(
-                    Organisasjon(
+                    Altinn2Organisasjon(
                         name = "underenhet",
                         parentOrganizationNumber = "1",
                         organizationNumber = "10",
@@ -84,7 +83,7 @@ class UserInfoControllerTest {
                  * feilmelding uten det:
                  * New inference error [NewConstraintError at Incorporate TypeVariable(K) == kotlin/Nothing from Fix variable K from position Fix variable K: kotlin/collections/List<TypeVariable(T)> <!: kotlin/Nothing].
                  */
-                emptyList<Organisasjon>()
+                emptyList<Altinn2Organisasjon>()
             }
         }
         `when`(digisyfoService.hentVirksomheterOgSykmeldte("42")).thenReturn(

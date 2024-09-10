@@ -64,7 +64,7 @@ class SykefraværstatistikkIntegrationTest {
     fun `bruker som representerer virksomhet med tilgang får virksomhetstatistikk`() {
         `when`(
             altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co")))
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co", organizationForm = "BEDR")))
         processStatistikkkategori(
             """{ "kategori": "VIRKSOMHET", "kode": "123", "årstall": "$innenværendeår", "kvartal": "1" }""",
             """
@@ -124,7 +124,7 @@ class SykefraværstatistikkIntegrationTest {
     fun `bruker uten tilgang får statistikk for bransje`() {
         `when`(
             altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "321", name = "Coo & Fo")))
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "321", name = "Coo & Fo", organizationForm = "BEDR")))
         processMetadataVirksomhet(
             """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """
@@ -242,7 +242,7 @@ class SykefraværstatistikkIntegrationTest {
     fun `bruker uten tilgang får statistikk for næring`() {
         `when`(
             altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "321", name = "Coo & Fo")))
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "321", name = "Coo & Fo", organizationForm = "BEDR")))
         processMetadataVirksomhet(
             """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """
@@ -316,7 +316,7 @@ class SykefraværstatistikkIntegrationTest {
     fun `bruker med tilgang får statistikk for bransje når virksomhet mangler`() {
         `when`(
             altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co")))
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co", organizationForm = "BEDR")))
         processMetadataVirksomhet(
             """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """
@@ -442,7 +442,7 @@ class SykefraværstatistikkIntegrationTest {
     fun `no content dersom statistikk mangler`() {
         `when`(
             altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co")))
+        ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co", organizationForm = "BEDR")))
         processMetadataVirksomhet(
             """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """
