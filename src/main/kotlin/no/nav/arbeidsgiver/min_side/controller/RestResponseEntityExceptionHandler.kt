@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.client.HttpClientErrorException.Forbidden
 import org.springframework.web.client.HttpClientErrorException.Unauthorized
+import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import java.net.SocketTimeoutException
@@ -55,6 +56,18 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
     @ResponseBody
     fun handleUnauthorized(e: RuntimeException, ignored: WebRequest?) =
         getResponseEntity(e, "ingen tilgang", HttpStatus.UNAUTHORIZED)
+
+    /**
+     * Dersom en underliggende driftsforstyrrelse bobler opp til Top Level
+     * så vil denne hindre logging. Ved å propagere underliggende status så vil
+     * frontend forstå at det er driftsforstyrrelse og ikke varsle det som feil.
+     */
+    @ExceptionHandler(
+        HttpServerErrorException.ServiceUnavailable::class,
+        HttpServerErrorException.BadGateway::class,
+        HttpServerErrorException.GatewayTimeout::class,
+    )
+    fun handleDriftsforstyrrelse(ex: HttpServerErrorException) = ResponseEntity.status(ex.statusCode)
 
 
     private fun hentDriftsforstyrrelse(e: AltinnrettigheterProxyKlientFallbackException): HttpStatus? {
