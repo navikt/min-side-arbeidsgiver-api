@@ -4,7 +4,6 @@ import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-import no.nav.arbeidsgiver.min_side.models.Altinn2Organisasjon
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
@@ -69,7 +68,7 @@ class UserInfoControllerTest {
         `when`(altinnService.hentOrganisasjonerBasertPaRettigheter(anyString(), anyString(), anyString())).then {
             if (it.arguments[1] == "3403" && it.arguments[2] == "1") {
                 listOf(
-                    Altinn2Organisasjon(
+                    Organisasjon(
                         name = "underenhet",
                         parentOrganizationNumber = "1",
                         organizationNumber = "10",
@@ -83,7 +82,7 @@ class UserInfoControllerTest {
                  * feilmelding uten det:
                  * New inference error [NewConstraintError at Incorporate TypeVariable(K) == kotlin/Nothing from Fix variable K from position Fix variable K: kotlin/collections/List<TypeVariable(T)> <!: kotlin/Nothing].
                  */
-                emptyList<Altinn2Organisasjon>()
+                emptyList<Organisasjon>()
             }
         }
         `when`(digisyfoService.hentVirksomheterOgSykmeldte("42")).thenReturn(
@@ -152,65 +151,53 @@ class UserInfoControllerTest {
                       "digisyfoOrganisasjoner": [
                         {
                           "organisasjon": {
-                            "Name": "underenhet",
-                            "Type": null,
+                            "Name": "underenhet", 
                             "ParentOrganizationNumber": "1",
                             "OrganizationNumber": "10",
-                            "OrganizationForm": "BEDR",
-                            "Status": null
+                            "OrganizationForm": "BEDR"
                           },
                           "antallSykmeldte": 0
                         },
                         {
                           "organisasjon": {
-                            "Name": "overenhet",
-                            "Type": null,
+                            "Name": "overenhet", 
                             "ParentOrganizationNumber": null,
                             "OrganizationNumber": "1",
-                            "OrganizationForm": "AS",
-                            "Status": null
+                            "OrganizationForm": "AS"
                           },
                           "antallSykmeldte": 0
                         },
                         {
                           "organisasjon": {
-                            "Name": "underenhet",
-                            "Type": null,
+                            "Name": "underenhet", 
                             "ParentOrganizationNumber": "2",
                             "OrganizationNumber": "20",
-                            "OrganizationForm": "BEDR",
-                            "Status": null
+                            "OrganizationForm": "BEDR"
                           },
                           "antallSykmeldte": 1
                         },
                         {
                           "organisasjon": {
-                            "Name": "overenhet",
-                            "Type": null,
+                            "Name": "overenhet", 
                             "ParentOrganizationNumber": null,
                             "OrganizationNumber": "2",
-                            "OrganizationForm": "AS",
-                            "Status": null
+                            "OrganizationForm": "AS"
                           },
                           "antallSykmeldte": 0
                         }
                       ],
                       "organisasjoner": [
                         {
-                          "Name": "underenhet",
-                          "Type": null,
+                          "Name": "underenhet", 
                           "ParentOrganizationNumber": "1",
                           "OrganizationNumber": "10",
-                          "OrganizationForm": "BEDR",
-                          "Status": null
+                          "OrganizationForm": "BEDR"
                         },
                         {
-                          "Name": "overenhet",
-                          "Type": "Enterprise",
+                          "Name": "overenhet", 
                           "ParentOrganizationNumber": null,
                           "OrganizationNumber": "1",
-                          "OrganizationForm": "AS",
-                          "Status": null
+                          "OrganizationForm": "AS"
                         }
                       ],
                       "tilganger": [
