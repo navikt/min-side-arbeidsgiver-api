@@ -10,9 +10,13 @@ import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
 import org.apache.http.NoHttpResponseException
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.context.annotation.Profile
+import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
+import org.springframework.http.RequestEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.client.ResourceAccessException
 import java.net.SocketException
@@ -34,6 +38,9 @@ interface AltinnService {
 @Profile("dev-gcp", "local")
 class AltinnTilgangerService(
     restTemplateBuilder: RestTemplateBuilder,
+    private val tokenExchangeClient: TokenExchangeClient,
+    private val authenticatedUserHolder: AuthenticatedUserHolder,
+    @Value("\${nais.cluster.name}") private val naisCluster: String,
 ) : AltinnService {
 
     private val restTemplate = restTemplateBuilder
@@ -47,19 +54,44 @@ class AltinnTilgangerService(
                 ResourceAccessException::class.java,
             )
         )
+        .rootUri("http://arbeidsgiver-altinn-tilganger")
         .build()
 
+
     override fun hentOrganisasjoner(fnr: String): List<Organisasjon> {
-        val response = restTemplate.postForEntity("/altinn-tilganger", "", AltinnTilgangerResponse::class.java)
+        val token = TokenXToken(
+            tokenExchangeClient.exchange(
+                authenticatedUserHolder.token,
+                "$naisCluster:fager:arbeidsgiver-altinn-tilganger"
+            ).access_token!!
+        )
+
+        val response = restTemplate.exchange(RequestEntity
+            .method(HttpMethod.POST, "altinn/tilganger")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header("Authorization", "Bearer $token")
+            .build(),
+            AltinnTilgangerResponse::class.java
+        )
+
         val altinnTilganger = response.body?.hierarki ?: return emptyList()
 
         val organisasjoner = altinnTilganger.flatMap { flattenUnderOrganisasjoner(it) }
         return organisasjoner
     }
 
-    private fun flattenUnderOrganisasjoner(altinnTilgang: AltinnTilgangerResponse.AltinnTilgang, parentOrgNr: String? = null): List<Organisasjon> {
-        val parent = Organisasjon(name = altinnTilgang.name, parentOrganizationNumber = parentOrgNr, organizationForm = altinnTilgang.organizationForm, organizationNumber = altinnTilgang.orgNr)
-        val children = altinnTilgang.underenheter.flatMap { flattenUnderOrganisasjoner(it, parent.organizationNumber)}
+    private fun flattenUnderOrganisasjoner(
+        altinnTilgang: AltinnTilgangerResponse.AltinnTilgang,
+        parentOrgNr: String? = null
+    ): List<Organisasjon> {
+        val parent = Organisasjon(
+            name = altinnTilgang.name,
+            parentOrganizationNumber = parentOrgNr,
+            organizationForm = altinnTilgang.organizationForm,
+            organizationNumber = altinnTilgang.orgNr
+        )
+        val children = altinnTilgang.underenheter.flatMap { flattenUnderOrganisasjoner(it, parent.organizationNumber) }
         return listOf(parent) + children
     }
 

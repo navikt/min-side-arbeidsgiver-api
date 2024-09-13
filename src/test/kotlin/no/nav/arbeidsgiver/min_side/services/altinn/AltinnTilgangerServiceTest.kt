@@ -7,8 +7,7 @@ import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
 import org.springframework.http.HttpMethod.POST
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.web.client.MockRestServiceServer
-import org.springframework.test.web.client.match.MockRestRequestMatchers.method
-import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.match.MockRestRequestMatchers.*
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
 
