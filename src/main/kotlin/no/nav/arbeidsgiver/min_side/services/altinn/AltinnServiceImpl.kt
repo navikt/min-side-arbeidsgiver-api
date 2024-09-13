@@ -50,9 +50,17 @@ class AltinnTilgangerService(
         .build()
 
     override fun hentOrganisasjoner(fnr: String): List<Organisasjon> {
-        var response = restTemplate.postForEntity("/altinn-tilganger", "", AltinnTilgangerClientResponse::class.java)
+        val response = restTemplate.postForEntity("/altinn-tilganger", "", AltinnTilgangerResponse::class.java)
+        val altinnTilganger = response.body?.hierarki ?: return emptyList()
 
-        return listOf()
+        val organisasjoner = altinnTilganger.flatMap { flattenUnderOrganisasjoner(it) }
+        return organisasjoner
+    }
+
+    private fun flattenUnderOrganisasjoner(altinnTilgang: AltinnTilgangerResponse.AltinnTilgang, parentOrgNr: String? = null): List<Organisasjon> {
+        val parent = Organisasjon(name = altinnTilgang.name, parentOrganizationNumber = parentOrgNr, organizationForm = altinnTilgang.organizationForm, organizationNumber = altinnTilgang.orgNr)
+        val children = altinnTilgang.underenheter.flatMap { flattenUnderOrganisasjoner(it, parent.organizationNumber)}
+        return listOf(parent) + children
     }
 
     override fun hentOrganisasjonerBasertPaRettigheter(
@@ -89,10 +97,10 @@ class AltinnServiceImpl(
             Subject(fnr),
             true
         ).filter {
-                it.organizationForm == "BEDR"
-                        || it.organizationForm == "AAFY"
-                        || it.type == "Enterprise"
-            }
+            it.organizationForm == "BEDR"
+                    || it.organizationForm == "AAFY"
+                    || it.type == "Enterprise"
+        }
             .toOrganisasjoner()
 
     @Cacheable(AltinnCacheConfig.ALTINN_TJENESTE_CACHE)
@@ -139,7 +147,19 @@ class AltinnServiceImpl(
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-private data class AltinnTilgangerClientResponse(
+private data class AltinnTilgangerResponse(
     val isError: Boolean,
-    val orgNrTilTilganger: Map<String, List<String>>,
-)
+    val hierarki: List<AltinnTilgang>,
+    val orgNrTilTilganger: Map<String, Set<String>>,
+    val tilgangTilOrgNr: Map<String, Set<String>>,
+) {
+    data class AltinnTilgang(
+        val orgNr: String,
+        val altinn3Tilganger: Set<String>,
+        val altinn2Tilganger: Set<String>,
+        val underenheter: List<AltinnTilgang>,
+        val name: String,
+        val organizationForm: String,
+    )
+}
+

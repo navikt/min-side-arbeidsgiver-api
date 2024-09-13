@@ -1,10 +1,9 @@
 package no.nav.arbeidsgiver.min_side.services.altinn
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
-import org.springframework.http.HttpMethod
 import org.springframework.http.HttpMethod.POST
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.web.client.MockRestServiceServer
@@ -24,22 +23,30 @@ class AltinnTilgangerServiceTest {
     lateinit var altinnTilgangerService: AltinnTilgangerService
 
     @Test
-    fun food(){
+    fun `henter organisasjoner fra altinn tilganger proxy` (){
         altinnServer.expect(requestTo("/altinn-tilganger"))
             .andExpect(method(POST))
             .andRespond(
                 withSuccess(altinnTilgangerResponse, APPLICATION_JSON)
             )
 
-        var organisasjoner = altinnTilgangerService.hentOrganisasjoner("123")
+        val organisasjoner = altinnTilgangerService.hentOrganisasjoner("123")
 
-        assertTrue(organisasjoner.size == 4)
+        assertTrue(organisasjoner.size == 2)
+
+        val parent = organisasjoner.first( {it.organizationNumber == "810825472"} )
+        val underenhet = organisasjoner.first( {it.organizationNumber == "910825496"} )
+
+        assertTrue(parent.name == "Arbeids- og Velferdsetaten")
+        assertTrue(underenhet.name == "SLEMMESTAD OG STAVERN REGNSKAP")
+        assertTrue(parent.organizationForm == "ORGL")
+        assertTrue(underenhet.organizationForm == "BEDR")
     }
 }
 
 private val altinnTilgangerResponse = """
     {
-      "isError": true,
+      "isError": false,
       "hierarki": [
         {
           "orgNr": "810825472",
@@ -54,9 +61,13 @@ private val altinnTilgangerResponse = """
               "altinn2Tilganger": [
                 "4936:1"
               ],
-              "underenheter": []
+              "underenheter": [],
+              "name": "SLEMMESTAD OG STAVERN REGNSKAP",
+              "organizationForm": "BEDR"
             }
-          ]
+          ],
+          "name": "Arbeids- og Velferdsetaten",
+          "organizationForm": "ORGL"
         }
       ],
       "orgNrTilTilganger": {
