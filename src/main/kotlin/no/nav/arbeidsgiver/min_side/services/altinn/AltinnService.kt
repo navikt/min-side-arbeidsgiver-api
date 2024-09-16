@@ -54,7 +54,6 @@ class AltinnTilgangerService(
                 ResourceAccessException::class.java,
             )
         )
-        .rootUri("http://arbeidsgiver-altinn-tilganger")
         .build()
 
 
@@ -67,10 +66,10 @@ class AltinnTilgangerService(
         )
 
         val response = restTemplate.exchange(RequestEntity
-            .method(HttpMethod.POST, "altinn/tilganger")
+            .method(HttpMethod.POST, "http://arbeidsgiver-altinn-tilganger/altinn-tilganger")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .header("Authorization", "Bearer $token")
+            .header("Authorization", "Bearer ${token.value}")
             .build(),
             AltinnTilgangerResponse::class.java
         )
