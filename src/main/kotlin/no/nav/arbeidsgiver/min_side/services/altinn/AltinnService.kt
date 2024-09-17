@@ -62,18 +62,17 @@ class AltinnTilgangerService(
     }
 
     private fun hentAltinnTilganger(): AltinnTilgangerResponse {
-        val token = TokenXToken(
-            tokenExchangeClient.exchange(
+        val token = tokenExchangeClient.exchange(
                 authenticatedUserHolder.token,
                 "$naisCluster:fager:arbeidsgiver-altinn-tilganger"
             ).access_token!!
-        )
+
         val response = restTemplate.exchange(
             RequestEntity
                 .method(HttpMethod.POST, "http://arbeidsgiver-altinn-tilganger/altinn-tilganger")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer ${token.value}")
+                .header("Authorization", "Bearer ${token}")
                 .build(),
             AltinnTilgangerResponse::class.java
         )
