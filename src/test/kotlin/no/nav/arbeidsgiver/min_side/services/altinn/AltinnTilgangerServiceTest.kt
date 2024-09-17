@@ -5,6 +5,9 @@ import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenXToken
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
@@ -59,7 +62,38 @@ class AltinnTilgangerServiceTest {
         assertTrue(parent.organizationForm == "ORGL")
         assertTrue(underenhet.organizationForm == "BEDR")
     }
+
+    @ParameterizedTest()
+    @MethodSource("basert på tilgagner testdata")
+    fun `henter organisasjoner fra altinn tilganger proxy basert på rettigheter` (serviceKode: String, serviceEdition: String, expectedOrgCount: Int){
+        `when`(tokenXClient.exchange(anyString(), anyString()))
+            .thenReturn(TokenXToken(access_token = "access_token2"))
+
+        `when`(authenticatedUserHolder.token).thenReturn("access_token1")
+
+        altinnServer.expect(requestTo("http://arbeidsgiver-altinn-tilganger/altinn-tilganger"))
+            .andExpect(method(POST))
+            .andExpect(header("Authorization", "Bearer access_token2"))
+            .andRespond(
+                withSuccess(altinnTilgangerResponse, APPLICATION_JSON)
+            )
+
+        val organisasjoner = altinnTilgangerService.hentOrganisasjonerBasertPaRettigheter("123", serviceKode, serviceEdition)
+        assertTrue(organisasjoner.size == expectedOrgCount)
+    }
+
+    companion object {
+        @JvmStatic
+        fun `basert på tilgagner testdata`(): List<Arguments> {
+            return listOf<Arguments>(
+                Arguments.of("4936", "1", 1),
+                Arguments.of("4936", "2", 0),
+            )
+        }
+    }
 }
+
+
 
 private val altinnTilgangerResponse = """
     {

@@ -30,7 +30,6 @@ interface AltinnService {
         serviceKode: String,
         serviceEdition: String
     ): List<Organisasjon>
-
 }
 
 
@@ -56,28 +55,30 @@ class AltinnTilgangerService(
         )
         .build()
 
-
     override fun hentOrganisasjoner(fnr: String): List<Organisasjon> {
+        val altinnTilganger = hentAltinnTilganger()
+        val organisasjoner =  altinnTilganger.hierarki.flatMap { flattenUnderOrganisasjoner(it) }
+        return organisasjoner
+    }
+
+    private fun hentAltinnTilganger(): AltinnTilgangerResponse {
         val token = TokenXToken(
             tokenExchangeClient.exchange(
                 authenticatedUserHolder.token,
                 "$naisCluster:fager:arbeidsgiver-altinn-tilganger"
             ).access_token!!
         )
-
-        val response = restTemplate.exchange(RequestEntity
-            .method(HttpMethod.POST, "http://arbeidsgiver-altinn-tilganger/altinn-tilganger")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .header("Authorization", "Bearer ${token.value}")
-            .build(),
+        val response = restTemplate.exchange(
+            RequestEntity
+                .method(HttpMethod.POST, "http://arbeidsgiver-altinn-tilganger/altinn-tilganger")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer ${token.value}")
+                .build(),
             AltinnTilgangerResponse::class.java
         )
 
-        val altinnTilganger = response.body?.hierarki ?: return emptyList()
-
-        val organisasjoner = altinnTilganger.flatMap { flattenUnderOrganisasjoner(it) }
-        return organisasjoner
+        return response.body!! // response != 200 => throws
     }
 
     private fun flattenUnderOrganisasjoner(
@@ -99,7 +100,13 @@ class AltinnTilgangerService(
         serviceKode: String,
         serviceEdition: String
     ): List<Organisasjon> {
-        TODO("Not yet implemented")
+
+        val altinnTilganger = hentAltinnTilganger()
+        val orgnrTilOrg = altinnTilganger.hierarki.flatMap{ flattenUnderOrganisasjoner(it) }.associateBy { it.organizationNumber }
+
+        return altinnTilganger.tilgangTilOrgNr["${serviceKode}:${serviceEdition}"]?.let { orgnumre ->
+            orgnumre.mapNotNull { orgNr -> orgnrTilOrg[orgNr] }
+        } ?: emptyList()
     }
 }
 
