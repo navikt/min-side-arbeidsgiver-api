@@ -40,8 +40,6 @@ class EregServiceTest {
         assertEquals("GAMLE FREDRIKSTAD OG RAMNES REGNSKA P", result.name)
         assertEquals("810825472", result.parentOrganizationNumber)
         assertEquals("BEDR", result.organizationForm)
-        assertEquals("Business", result.type)
-        assertEquals("Active", result.status)
     }
 
     @Test
@@ -57,8 +55,6 @@ class EregServiceTest {
         assertEquals("ARBEIDS- OG VELFERDSDIREKTORATET AVD FYRSTIKKALLÉEN", result.name)
         assertEquals("889640782", result.parentOrganizationNumber)
         assertEquals("BEDR", result.organizationForm)
-        assertEquals("Business", result.type)
-        assertEquals("Active", result.status)
     }
 
     @Test
@@ -86,8 +82,6 @@ class EregServiceTest {
         assertEquals("MALMEFJORD OG RIDABU REGNSKAP", result.name)
         assertEquals(null, result.parentOrganizationNumber)
         assertEquals("AS", result.organizationForm)
-        assertEquals("Enterprise", result.type)
-        assertEquals("Active", result.status)
     }
 
     @Test
@@ -103,8 +97,6 @@ class EregServiceTest {
         assertEquals("ARBEIDS- OG VELFERDSETATEN", result.name)
         assertEquals("983887457", result.parentOrganizationNumber)
         assertEquals("ORGL", result.organizationForm)
-        assertEquals("Enterprise", result.type)
-        assertEquals("Active", result.status)
     }
 
     @Test
@@ -120,8 +112,6 @@ class EregServiceTest {
         assertEquals("ARBEIDS- OG SOSIALDEPARTEMENTET", result.name)
         assertEquals(null, result.parentOrganizationNumber)
         assertEquals("STAT", result.organizationForm)
-        assertEquals("Enterprise", result.type)
-        assertEquals("Active", result.status)
     }
 
     @Test

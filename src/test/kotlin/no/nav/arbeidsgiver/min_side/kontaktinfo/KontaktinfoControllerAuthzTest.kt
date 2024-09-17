@@ -1,8 +1,8 @@
 package no.nav.arbeidsgiver.min_side.kontaktinfo
 
-import no.nav.arbeidsgiver.min_side.kotlinAny
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoController.KontaktinfoRequest
+import no.nav.arbeidsgiver.min_side.kotlinAny
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
@@ -82,11 +82,15 @@ class KontaktinfoControllerAuthzTest {
                 Organisasjon(
                     parentOrganizationNumber = orgnrHovedenhet,
                     organizationNumber = orgnrUnderenhet,
+                    organizationForm = "BEDR",
+                    name = "organisasjon"
                 )
             } else {
                 Organisasjon(
                     parentOrganizationNumber = orgnrAnnet,
                     organizationNumber = it.arguments[0] as String,
+                    organizationForm = "BEDR",
+                    name = "organisasjon"
                 )
             }
         }

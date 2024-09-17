@@ -49,6 +49,8 @@ spec:
       rules:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
+        - application: arbeidsgiver-altinn-tilganger
+          namespace: fager
       external:
         - host: tt02.altinn.no
         - host: api-gw-q1.oera.no

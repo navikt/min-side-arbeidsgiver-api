@@ -62,8 +62,6 @@ class UserInfoControllerTest {
                     name = "overenhet",
                     organizationNumber = "1",
                     organizationForm = "AS",
-                    type = "Enterprise"
-
                 ),
             )
         )
@@ -153,65 +151,53 @@ class UserInfoControllerTest {
                       "digisyfoOrganisasjoner": [
                         {
                           "organisasjon": {
-                            "Name": "underenhet",
-                            "Type": null,
+                            "Name": "underenhet", 
                             "ParentOrganizationNumber": "1",
                             "OrganizationNumber": "10",
-                            "OrganizationForm": "BEDR",
-                            "Status": null
+                            "OrganizationForm": "BEDR"
                           },
                           "antallSykmeldte": 0
                         },
                         {
                           "organisasjon": {
-                            "Name": "overenhet",
-                            "Type": null,
+                            "Name": "overenhet", 
                             "ParentOrganizationNumber": null,
                             "OrganizationNumber": "1",
-                            "OrganizationForm": "AS",
-                            "Status": null
+                            "OrganizationForm": "AS"
                           },
                           "antallSykmeldte": 0
                         },
                         {
                           "organisasjon": {
-                            "Name": "underenhet",
-                            "Type": null,
+                            "Name": "underenhet", 
                             "ParentOrganizationNumber": "2",
                             "OrganizationNumber": "20",
-                            "OrganizationForm": "BEDR",
-                            "Status": null
+                            "OrganizationForm": "BEDR"
                           },
                           "antallSykmeldte": 1
                         },
                         {
                           "organisasjon": {
-                            "Name": "overenhet",
-                            "Type": null,
+                            "Name": "overenhet", 
                             "ParentOrganizationNumber": null,
                             "OrganizationNumber": "2",
-                            "OrganizationForm": "AS",
-                            "Status": null
+                            "OrganizationForm": "AS"
                           },
                           "antallSykmeldte": 0
                         }
                       ],
                       "organisasjoner": [
                         {
-                          "Name": "underenhet",
-                          "Type": null,
+                          "Name": "underenhet", 
                           "ParentOrganizationNumber": "1",
                           "OrganizationNumber": "10",
-                          "OrganizationForm": "BEDR",
-                          "Status": null
+                          "OrganizationForm": "BEDR"
                         },
                         {
-                          "Name": "overenhet",
-                          "Type": "Enterprise",
+                          "Name": "overenhet", 
                           "ParentOrganizationNumber": null,
                           "OrganizationNumber": "1",
-                          "OrganizationForm": "AS",
-                          "Status": null
+                          "OrganizationForm": "AS"
                         }
                       ],
                       "tilganger": [

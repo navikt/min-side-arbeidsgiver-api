@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusKafkaListener
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService.Companion.TJENESTEKODE
@@ -68,8 +67,8 @@ class RefusjonStatusIntegrationTest {
             altinnService.hentOrganisasjonerBasertPaRettigheter("42", TJENESTEKODE, TJENESTEVERSJON)
         ).thenReturn(
             listOf(
-                Organisasjon(organizationNumber = "314", name = "Foo & Co"),
-                Organisasjon(organizationNumber = "315", name = "Bar ltd.")
+                Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR"),
+                Organisasjon(organizationNumber = "315", name = "Bar ltd.", organizationForm = "BEDR")
             )
         )
         processRefusjonStatus("314", "ny")
