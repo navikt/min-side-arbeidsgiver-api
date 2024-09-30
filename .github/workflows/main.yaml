@@ -78,7 +78,7 @@ jobs:
       - uses: nais/docker-build-push@v0
         id: gar-push
         env:
-          TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/v2/aquasecurity/trivy-java-db
+          TRIVY_JAVA_DB_REPOSITORY: "public.ecr.aws/v2/aquasecurity/trivy-java-db:1"
         with:
           team: fager
           tag: ${{ github.sha }}
