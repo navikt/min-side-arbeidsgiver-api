@@ -19,6 +19,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.RequestEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.client.ResourceAccessException
+import java.lang.RuntimeException
 import java.net.SocketException
 import javax.net.ssl.SSLHandshakeException
 
@@ -72,7 +73,7 @@ class AltinnTilgangerService(
                 .method(HttpMethod.POST, "http://arbeidsgiver-altinn-tilganger/altinn-tilganger")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer ${token}")
+                .header("Authorization", "Bearer $token")
                 .build(),
             AltinnTilgangerResponse::class.java
         )
@@ -112,10 +113,20 @@ class AltinnTilgangerService(
 @Component
 @Profile("prod-gcp")
 class AltinnServiceImpl(
+    restTemplateBuilder: RestTemplateBuilder,
     private val tokenExchangeClient: TokenExchangeClient,
     private val altinnConfig: AltinnConfig,
     private val authenticatedUserHolder: AuthenticatedUserHolder,
+    @Value("\${nais.cluster.name}") private val naisCluster: String,
 ) : AltinnService {
+
+    private val altinnTilgangerService = AltinnTilgangerService(
+        restTemplateBuilder,
+        tokenExchangeClient,
+        authenticatedUserHolder,
+        naisCluster
+    )
+
     private val klient: AltinnrettigheterProxyKlient = AltinnrettigheterProxyKlient(
         AltinnrettigheterProxyKlientConfig(
             ProxyConfig("min-side-arbeidsgiver-api", altinnConfig.proxyUrl),
@@ -128,7 +139,9 @@ class AltinnServiceImpl(
     )
 
     @Cacheable(AltinnCacheConfig.ALTINN_CACHE)
-    override fun hentOrganisasjoner(fnr: String) =
+    override fun hentOrganisasjoner(fnr: String) = try {
+        altinnTilgangerService.hentOrganisasjoner(fnr)
+    } catch (e: RuntimeException) {
         klient.hentOrganisasjoner(
             token,
             Subject(fnr),
@@ -137,26 +150,29 @@ class AltinnServiceImpl(
             it.organizationForm == "BEDR"
                     || it.organizationForm == "AAFY"
                     || it.type == "Enterprise"
-        }
-            .toOrganisasjoner()
+        }.toOrganisasjoner()
+    }
 
     @Cacheable(AltinnCacheConfig.ALTINN_TJENESTE_CACHE)
     override fun hentOrganisasjonerBasertPaRettigheter(
         fnr: String,
         serviceKode: String,
         serviceEdition: String
-    ) = klient.hentOrganisasjoner(
-        token,
-        Subject(fnr),
-        ServiceCode(serviceKode),
-        ServiceEdition(serviceEdition),
-        true
-    ).filter {
-        it.organizationForm == "BEDR"
-                || it.organizationForm == "AAFY"
-                || it.type == "Enterprise"
+    ) = try {
+        altinnTilgangerService.hentOrganisasjonerBasertPaRettigheter(fnr, serviceKode, serviceEdition)
+    } catch (e: RuntimeException) {
+        klient.hentOrganisasjoner(
+            token,
+            Subject(fnr),
+            ServiceCode(serviceKode),
+            ServiceEdition(serviceEdition),
+            true
+        ).filter {
+            it.organizationForm == "BEDR"
+                    || it.organizationForm == "AAFY"
+                    || it.type == "Enterprise"
+        }.toOrganisasjoner()
     }
-        .toOrganisasjoner()
 
     private val token: Token
         get() = TokenXToken(
