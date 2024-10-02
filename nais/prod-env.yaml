@@ -38,8 +38,6 @@ spec:
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: prod-gcp
-    - name: JAVA_OPTS
-      value: "-XX:+UseParallelGC -XX:MaxRAMPercentage=75.0 -XX:ActiveProcessorCount=2"
   prometheus:
     enabled: true
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
@@ -56,6 +54,7 @@ spec:
       rules:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
+        - application: arbeidsgiver-altinn-tilganger
       external:
         - host: www.altinn.no
         - host: api-gw.oera.no
