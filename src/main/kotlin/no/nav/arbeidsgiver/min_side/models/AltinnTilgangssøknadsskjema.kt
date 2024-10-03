@@ -1,8 +1,8 @@
 package no.nav.arbeidsgiver.min_side.models
 
 data class AltinnTilgangssøknadsskjema(
-    var orgnr: String? = null,
-    var redirectUrl: String? = null,
-    var serviceCode: String? = null,
-    var serviceEdition: Int? = null,
+    val orgnr: String,
+    val redirectUrl: String,
+    val serviceCode: String,
+    val serviceEdition: Int,
 )

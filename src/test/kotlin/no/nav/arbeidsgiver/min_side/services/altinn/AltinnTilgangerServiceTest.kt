@@ -21,14 +21,14 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 
 
 @RestClientTest(
-    AltinnTilgangerService::class,
+    AltinnService::class,
 )
 class AltinnTilgangerServiceTest {
     @Autowired
     lateinit var altinnServer: MockRestServiceServer
 
     @Autowired
-    lateinit var altinnTilgangerService: AltinnTilgangerService
+    lateinit var altinnTilgangerService: AltinnService
 
     @MockBean
     lateinit var tokenXClient: TokenExchangeClient
@@ -37,7 +37,7 @@ class AltinnTilgangerServiceTest {
     lateinit var authenticatedUserHolder: AuthenticatedUserHolder
 
     @Test
-    fun `henter organisasjoner fra altinn tilganger proxy` (){
+    fun `henter organisasjoner fra altinn tilganger proxy`() {
         `when`(tokenXClient.exchange(anyString(), anyString()))
             .thenReturn(TokenXToken(access_token = "access_token2"))
 
@@ -50,12 +50,12 @@ class AltinnTilgangerServiceTest {
                 withSuccess(altinnTilgangerResponse, APPLICATION_JSON)
             )
 
-        val organisasjoner = altinnTilgangerService.hentOrganisasjoner("123")
+        val organisasjoner = altinnTilgangerService.hentOrganisasjoner()
 
         assertTrue(organisasjoner.size == 2)
 
-        val parent = organisasjoner.first( {it.organizationNumber == "810825472"} )
-        val underenhet = organisasjoner.first( {it.organizationNumber == "910825496"} )
+        val parent = organisasjoner.first({ it.organizationNumber == "810825472" })
+        val underenhet = organisasjoner.first({ it.organizationNumber == "910825496" })
 
         assertTrue(parent.name == "Arbeids- og Velferdsetaten")
         assertTrue(underenhet.name == "SLEMMESTAD OG STAVERN REGNSKAP")
@@ -63,9 +63,8 @@ class AltinnTilgangerServiceTest {
         assertTrue(underenhet.organizationForm == "BEDR")
     }
 
-    @ParameterizedTest()
-    @MethodSource("basert på tilgagner testdata")
-    fun `henter organisasjoner fra altinn tilganger proxy basert på rettigheter` (serviceKode: String, serviceEdition: String, expectedOrgCount: Int){
+    @Test
+    fun `henter altinn tilganger basert på rettigheter`() {
         `when`(tokenXClient.exchange(anyString(), anyString()))
             .thenReturn(TokenXToken(access_token = "access_token2"))
 
@@ -78,8 +77,8 @@ class AltinnTilgangerServiceTest {
                 withSuccess(altinnTilgangerResponse, APPLICATION_JSON)
             )
 
-        val organisasjoner = altinnTilgangerService.hentOrganisasjonerBasertPaRettigheter("123", serviceKode, serviceEdition)
-        assertTrue(organisasjoner.size == expectedOrgCount)
+        val organisasjoner = altinnTilgangerService.hentAltinnTilganger()
+        assertTrue(organisasjoner.tilgangTilOrgNr.containsKey("4936:1"))
     }
 
     companion object {
@@ -92,7 +91,6 @@ class AltinnTilgangerServiceTest {
         }
     }
 }
-
 
 
 private val altinnTilgangerResponse = """

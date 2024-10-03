@@ -28,7 +28,6 @@ class EregService(
             retryInterceptor(
                 3,
                 250L,
-                org.apache.http.NoHttpResponseException::class.java,
                 java.net.SocketException::class.java,
                 javax.net.ssl.SSLHandshakeException::class.java,
             )

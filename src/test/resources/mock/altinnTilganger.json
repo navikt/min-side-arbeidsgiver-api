@@ -1,0 +1,40 @@
+{
+  "isError": false,
+  "hierarki": [
+    {
+      "orgNr": "810825472",
+      "altinn3Tilganger": [],
+      "altinn2Tilganger": [],
+      "underenheter": [
+        {
+          "orgNr": "910825496",
+          "altinn3Tilganger": [
+            "test-fager"
+          ],
+          "altinn2Tilganger": [
+            "4936:1"
+          ],
+          "underenheter": [],
+          "name": "SLEMMESTAD OG STAVERN REGNSKAP",
+          "organizationForm": "BEDR"
+        }
+      ],
+      "name": "Arbeids- og Velferdsetaten",
+      "organizationForm": "ORGL"
+    }
+  ],
+  "orgNrTilTilganger": {
+    "910825496": [
+      "test-fager",
+      "4936:1"
+    ]
+  },
+  "tilgangTilOrgNr": {
+    "test-fager": [
+      "910825496"
+    ],
+    "4936:1": [
+      "910825496"
+    ]
+  }
+}

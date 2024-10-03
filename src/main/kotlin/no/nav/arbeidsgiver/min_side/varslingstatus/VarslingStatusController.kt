@@ -11,7 +11,6 @@ import java.time.LocalDateTime
 
 @RestController
 class VarslingStatusController(
-    private val authenticatedUserHolder: AuthenticatedUserHolder,
     private val altinnService: AltinnService,
     private val repository: VarslingStatusRepository,
 ) {
@@ -19,7 +18,7 @@ class VarslingStatusController(
     @PostMapping("/api/varslingStatus/v1")
     fun getVarslingStatus(@RequestBody requestBody: VarslingStatusRequest): VarslingStatus {
         val virksomhetsnummer = requestBody.virksomhetsnummer
-        val harTilgang = altinnService.hentOrganisasjoner(authenticatedUserHolder.fnr)
+        val harTilgang = altinnService.hentOrganisasjoner()
             .any { it.organizationNumber == virksomhetsnummer }
 
         if (!harTilgang) {

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class SykefraværstatistikkController(
     private val altinnService: AltinnService,
-    private val authenticatedUserHolder: AuthenticatedUserHolder,
     private val sykefraværstatistikkRepository: SykefraværstatistikkRepository,
     gittMiljø: GittMiljø,
 ) {
@@ -26,15 +25,13 @@ class SykefraværstatistikkController(
     fun getStatistikk(
         @PathVariable orgnr: String,
     ): ResponseEntity<StatistikkRespons> {
-        val org = altinnService
-            .hentOrganisasjonerBasertPaRettigheter(authenticatedUserHolder.fnr, tjenestekode, tjenesteversjon)
-            .firstOrNull { it.organizationNumber == orgnr }
+        val harTilgang = altinnService.harTilgang(orgnr, "$tjenestekode:$tjenesteversjon")
 
-        return if (org != null) {
+        return if (harTilgang) {
             val statistikk = sykefraværstatistikkRepository.virksomhetstatistikk(orgnr)?.let {
                 StatistikkRespons(
                     type = it.kategori,
-                    label = org.name ?: it.kode,
+                    label = it.kode,
                     prosent = it.prosent,
                 )
             } ?: sykefraværstatistikkRepository.statistikk(orgnr)?.let {

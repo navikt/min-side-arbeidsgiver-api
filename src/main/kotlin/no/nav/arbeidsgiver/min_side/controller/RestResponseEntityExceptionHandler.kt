@@ -1,10 +1,5 @@
 package no.nav.arbeidsgiver.min_side.controller
 
-import io.ktor.client.plugins.*
-import io.ktor.http.HttpStatusCode.Companion.BadGateway
-import io.ktor.http.HttpStatusCode.Companion.GatewayTimeout
-import io.ktor.http.HttpStatusCode.Companion.ServiceUnavailable
-import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.error.exceptions.AltinnrettigheterProxyKlientFallbackException
 import no.nav.arbeidsgiver.min_side.config.logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -17,7 +12,6 @@ import org.springframework.web.client.HttpClientErrorException.Unauthorized
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
-import java.net.SocketTimeoutException
 
 @ControllerAdvice
 class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
@@ -28,23 +22,6 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
     fun handleInternalError(e: RuntimeException, ignored: WebRequest?): ResponseEntity<Any> {
         log.error("Uhåndtert feil: {}", e.message, e)
         return getResponseEntity(e, "Internal error", HttpStatus.INTERNAL_SERVER_ERROR)
-    }
-
-    @ExceptionHandler(AltinnrettigheterProxyKlientFallbackException::class)
-    @ResponseBody
-    fun handleAltinnFallbackFeil(
-        e: AltinnrettigheterProxyKlientFallbackException,
-        ignored: WebRequest?
-    ): ResponseEntity<Any> {
-        if (e.cause is SocketTimeoutException) {
-            return getResponseEntity(e, "Fallback til Altinn feilet pga timeout", HttpStatus.GATEWAY_TIMEOUT)
-        }
-        val httpStatus = hentDriftsforstyrrelse(e)
-        return if (httpStatus != null) {
-            getResponseEntity(e, "Fallback til Altinn feilet pga driftsforstyrrelse", httpStatus)
-        } else {
-            handleInternalError(e, ignored)
-        }
     }
 
     @ExceptionHandler(Forbidden::class)
@@ -68,24 +45,6 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
         HttpServerErrorException.GatewayTimeout::class,
     )
     fun handleDriftsforstyrrelse(ex: HttpServerErrorException) = ResponseEntity.status(ex.statusCode)
-
-
-    private fun hentDriftsforstyrrelse(e: AltinnrettigheterProxyKlientFallbackException): HttpStatus? {
-        return when (e.cause) {
-            is ServerResponseException -> {
-                val serverResponseException = e.cause as ServerResponseException
-                val status = serverResponseException.response.status
-                val erDriftsforstyrrelse = listOf(
-                    BadGateway,
-                    ServiceUnavailable,
-                    GatewayTimeout
-                ).contains(status)
-                if (erDriftsforstyrrelse) HttpStatus.valueOf(status.value) else null
-            }
-
-            else -> null
-        }
-    }
 
     private fun getResponseEntity(
         t: Throwable,

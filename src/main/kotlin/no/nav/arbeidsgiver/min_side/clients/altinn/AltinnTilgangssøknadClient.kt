@@ -30,7 +30,6 @@ class AltinnTilgangssøknadClient(
             retryInterceptor(
                 maxAttempts = 3,
                 backoffPeriod = 250L,
-                org.apache.http.NoHttpResponseException::class.java,
                 java.net.SocketException::class.java,
                 javax.net.ssl.SSLHandshakeException::class.java,
                 org.springframework.web.client.ResourceAccessException::class.java,
@@ -39,7 +38,7 @@ class AltinnTilgangssøknadClient(
         .build()
 
     private val delegationRequestApiPath = UriComponentsBuilder
-        .fromUriString(altinnConfig.proxyFallbackUrl)
+        .fromUriString(altinnConfig.APIGwUrl)
         .path("/ekstern/altinn/api/serviceowner/delegationRequests")
         .build()
         .toUriString()

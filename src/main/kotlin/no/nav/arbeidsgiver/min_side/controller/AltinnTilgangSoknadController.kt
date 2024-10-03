@@ -12,7 +12,7 @@ import org.springframework.web.client.HttpClientErrorException
 
 @RestController
 @RequestMapping("/api/altinn-tilgangssoknad")
-class AltinnTilgangController(
+class AltinnTilgangSoknadController(
     private val altinnTilgangssøknadClient: AltinnTilgangssøknadClient,
     private val altinnService: AltinnService,
     private val authenticatedUserHolder: AuthenticatedUserHolder
@@ -27,17 +27,15 @@ class AltinnTilgangController(
 
     @PostMapping
     fun sendSøknadOmTilgang(@RequestBody søknadsskjema: AltinnTilgangssøknadsskjema): ResponseEntity<AltinnTilgangssøknad> {
-        val fødselsnummer = authenticatedUserHolder.fnr
-        val brukerErIOrg = altinnService.hentOrganisasjoner(fødselsnummer)
-            .any { it.organizationNumber == søknadsskjema.orgnr }
+        val brukerErIOrg = altinnService.harOrganisasjon(søknadsskjema.orgnr)
 
         if (!brukerErIOrg) {
-            log.warn("Bruker forsøker å be om tilgang til org de ikke er med i.")
+            log.error("Bruker forsøker å be om tilgang til org de ikke er med i.")
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
         }
 
-        if (!våreTjenester.contains(søknadsskjema.serviceCode to søknadsskjema.serviceEdition)) {
-            log.warn(
+        if (!tjenester.contains(søknadsskjema.serviceCode to søknadsskjema.serviceEdition)) {
+            log.error(
                 "Bruker forsøker å be om tilgang til tjeneste ({}, {})) vi ikke støtter.",
                 søknadsskjema.serviceCode,
                 søknadsskjema.serviceEdition
@@ -45,7 +43,7 @@ class AltinnTilgangController(
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
         }
         val body = try {
-            altinnTilgangssøknadClient.sendSøknad(fødselsnummer, søknadsskjema)
+            altinnTilgangssøknadClient.sendSøknad(authenticatedUserHolder.fnr, søknadsskjema)
         } catch (e: HttpClientErrorException) {
             if (e.responseBodyAsString.contains("40318")) {
                 // Bruker forsøker å sende en søknad som allerede er sendt.
@@ -58,7 +56,7 @@ class AltinnTilgangController(
     }
 
     companion object {
-        val våreTjenester = setOf(
+        val tjenester = setOf(
             "3403" to 2,
             "4936" to 1,
             "5078" to 1,
@@ -76,6 +74,7 @@ class AltinnTilgangController(
             "5516" to 4,
             "5516" to 5,
             "5902" to 1,
+            "5934" to 1,
         )
     }
 }

@@ -67,7 +67,7 @@ class VarslingStatusIntegrationTest {
     @Test
     fun `bruker som ikke har tilgang får status ok som default`() {
         `when`(
-            altinnService.hentOrganisasjoner("42")
+            altinnService.hentOrganisasjoner()
         ).thenReturn(emptyList())
 
         processVarslingStatus(
@@ -97,7 +97,7 @@ class VarslingStatusIntegrationTest {
     @Test
     fun `bruker med tilgang men ingen status i databasen får OK som default`() {
         `when`(
-            altinnService.hentOrganisasjoner("42")
+            altinnService.hentOrganisasjoner()
         ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
 
         processVarslingStatus(
@@ -127,7 +127,7 @@ class VarslingStatusIntegrationTest {
     @Test
     fun `returnerer siste status for virksomhet`() {
         `when`(
-            altinnService.hentOrganisasjoner("42")
+            altinnService.hentOrganisasjoner()
         ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
 
         listOf(
@@ -173,7 +173,7 @@ class VarslingStatusIntegrationTest {
     @Test
     fun `returnerer siste status for virksomhet OK`() {
         `when`(
-            altinnService.hentOrganisasjoner("42")
+            altinnService.hentOrganisasjoner()
         ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
 
         listOf(
@@ -219,7 +219,7 @@ class VarslingStatusIntegrationTest {
     @Test
     fun `får ok dersom kontaktinfo er pollet og funnet`() {
         `when`(
-            altinnService.hentOrganisasjoner("42")
+            altinnService.hentOrganisasjoner()
         ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
 
         processVarslingStatus(
@@ -234,7 +234,7 @@ class VarslingStatusIntegrationTest {
                 }
             """
         )
-        kontaktInfoPollerRepository.updateKontaktInfo("314", true, true)
+        kontaktInfoPollerRepository.updateKontaktInfo(virksomhetsnummer = "314", harEpost = true, harTlf = true)
 
         mockMvc.post("/api/varslingStatus/v1") {
             content = """{"virksomhetsnummer": "314"}"""

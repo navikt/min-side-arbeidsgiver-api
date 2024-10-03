@@ -7,7 +7,5 @@ data class AltinnConfig(
     var altinnHeader: String = "",
     var altinnurl: String = "",
     var APIGwHeader: String = "",
-    var proxyUrl: String = "",
-    var proxyFallbackUrl: String = "",
-    var proxyAudience: String = "",
+    var APIGwUrl: String = "",
 )
