@@ -24,7 +24,7 @@ import java.nio.charset.Charset
 @MockBean(JwtDecoder::class)
 @WebMvcTest(
     value = [
-        AltinnTilgangController::class,
+        AltinnTilgangSoknadController::class,
         SecurityConfig::class,
         AuthenticatedUserHolder::class,
     ],
@@ -32,7 +32,7 @@ import java.nio.charset.Charset
         "server.servlet.context-path=/"
     ]
 )
-class AltinnTilgangControllerTest {
+class AltinnTilgangSoknadControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -85,8 +85,8 @@ class AltinnTilgangControllerTest {
         val skjema = AltinnTilgangssøknadsskjema(
             orgnr = "314",
             redirectUrl = "https://yolo.it",
-            serviceCode = AltinnTilgangController.våreTjenester.first().first,
-            serviceEdition = AltinnTilgangController.våreTjenester.first().second,
+            serviceCode = AltinnTilgangSoknadController.tjenester.first().first,
+            serviceEdition = AltinnTilgangSoknadController.tjenester.first().second,
         )
         val søknad = AltinnTilgangssøknad(
             orgnr = "314",
@@ -98,11 +98,7 @@ class AltinnTilgangControllerTest {
             submitUrl = "https://yolo.com",
         )
 
-        `when`(altinnService.hentOrganisasjoner("42")).thenReturn(
-            listOf(
-                Organisasjon(organizationNumber = "314", name = "organisasjon", organizationForm = "BEDR")
-            )
-        )
+        `when`(altinnService.harOrganisasjon(skjema.orgnr)).thenReturn(true)
         `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenReturn(søknad)
 
         val jsonResponse = mockMvc
@@ -144,11 +140,11 @@ class AltinnTilgangControllerTest {
         val skjema = AltinnTilgangssøknadsskjema(
             orgnr = "314",
             redirectUrl = "https://yolo.it",
-            serviceCode = AltinnTilgangController.våreTjenester.first().first,
-            serviceEdition = AltinnTilgangController.våreTjenester.first().second,
+            serviceCode = AltinnTilgangSoknadController.tjenester.first().first,
+            serviceEdition = AltinnTilgangSoknadController.tjenester.first().second,
         )
 
-        `when`(altinnService.hentOrganisasjoner("42")).thenReturn(
+        `when`(altinnService.hentOrganisasjoner()).thenReturn(
             listOf(
                 Organisasjon(organizationNumber = "314", name = "Organisasjon", organizationForm = "BEDR")
             )

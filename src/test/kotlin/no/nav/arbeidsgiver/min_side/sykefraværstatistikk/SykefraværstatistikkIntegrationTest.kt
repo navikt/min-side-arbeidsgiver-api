@@ -2,7 +2,6 @@ package no.nav.arbeidsgiver.min_side.sykefraværstatistikk
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.flywaydb.core.Flyway
@@ -62,9 +61,7 @@ class SykefraværstatistikkIntegrationTest {
 
     @Test
     fun `bruker som representerer virksomhet med tilgang får virksomhetstatistikk`() {
-        `when`(
-            altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co", organizationForm = "BEDR")))
+        `when`(altinnService.harTilgang("123", "3403:1")).thenReturn(true)
         processStatistikkkategori(
             """{ "kategori": "VIRKSOMHET", "kode": "123", "årstall": "$innenværendeår", "kvartal": "1" }""",
             """
@@ -112,7 +109,7 @@ class SykefraværstatistikkIntegrationTest {
                     """
                     {
                         "type": "VIRKSOMHET",
-                        "label": "Foo & Co",
+                        "label": "123",
                         "prosent": 3.14
                     }
                 """, it, true
@@ -122,9 +119,7 @@ class SykefraværstatistikkIntegrationTest {
 
     @Test
     fun `bruker uten tilgang får statistikk for bransje`() {
-        `when`(
-            altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "321", name = "Coo & Fo", organizationForm = "BEDR")))
+        `when`(altinnService.harTilgang("321", "3403:1")).thenReturn(true)
         processMetadataVirksomhet(
             """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """
@@ -240,9 +235,7 @@ class SykefraværstatistikkIntegrationTest {
 
     @Test
     fun `bruker uten tilgang får statistikk for næring`() {
-        `when`(
-            altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "321", name = "Coo & Fo", organizationForm = "BEDR")))
+        `when`(altinnService.harTilgang("321", "3403:1")).thenReturn(true)
         processMetadataVirksomhet(
             """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """
@@ -314,9 +307,7 @@ class SykefraværstatistikkIntegrationTest {
 
     @Test
     fun `bruker med tilgang får statistikk for bransje når virksomhet mangler`() {
-        `when`(
-            altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co", organizationForm = "BEDR")))
+        `when`(altinnService.harTilgang("123", "3403:1")).thenReturn(true)
         processMetadataVirksomhet(
             """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """
@@ -440,9 +431,7 @@ class SykefraværstatistikkIntegrationTest {
 
     @Test
     fun `no content dersom statistikk mangler`() {
-        `when`(
-            altinnService.hentOrganisasjonerBasertPaRettigheter("42", "3403", "1")
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "123", name = "Foo & Co", organizationForm = "BEDR")))
+        `when`(altinnService.harTilgang("123", "3403:1")).thenReturn(true)
         processMetadataVirksomhet(
             """{ "orgnr": "123", "arstall": "$innenværendeår", "kvartal": "1" }""",
             """

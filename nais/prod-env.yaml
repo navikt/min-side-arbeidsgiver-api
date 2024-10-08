@@ -52,8 +52,6 @@ spec:
         - application: min-side-arbeidsgiver
     outbound:
       rules:
-        - application: altinn-rettigheter-proxy
-          namespace: arbeidsgiver
         - application: arbeidsgiver-altinn-tilganger
       external:
         - host: www.altinn.no

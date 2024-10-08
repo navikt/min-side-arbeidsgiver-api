@@ -48,11 +48,12 @@ class AltinnTilgangssøknadClientTest {
     @Test
     fun sendSøknad() {
         val fnr = "42"
-        val skjema = AltinnTilgangssøknadsskjema()
-        skjema.orgnr = "314"
-        skjema.redirectUrl = "https://yolo.com"
-        skjema.serviceCode = "1337"
-        skjema.serviceEdition = 7
+        val skjema = AltinnTilgangssøknadsskjema(
+            orgnr = "314",
+            redirectUrl = "https://yolo.com",
+            serviceCode = "1337",
+            serviceEdition = 7,
+        )
 
         server.expect(requestToUriTemplate("http://altinn/altinn/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication"))
             .andExpect(method(HttpMethod.POST))

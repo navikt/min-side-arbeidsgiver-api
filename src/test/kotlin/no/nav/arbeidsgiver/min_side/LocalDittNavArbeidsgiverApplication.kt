@@ -30,25 +30,19 @@ class LocalDittNavArbeidsgiverApplication : DittNavArbeidsgiverApplication() {
         fun altinnService(
             objectMapper: ObjectMapper,
             @Value("classpath:mock/organisasjoner.json") organisasjonerJson: Resource,
-            @Value("classpath:mock/rettigheterTilSkjema.json") rettigheterTilSkjemaJson: Resource,
+            @Value("classpath:mock/altinntilganger.json") altinntilganger: Resource,
         ): AltinnService {
             return mock(AltinnService::class.java).also {
-                `when`(it.hentOrganisasjoner(anyString()))
+                `when`(it.hentOrganisasjoner())
                     .thenReturn(
                         objectMapper.readValue<List<Organisasjon>>(
                             organisasjonerJson.inputStream.readAllBytes()
                         )
                     )
                 `when`(
-                    it.hentOrganisasjonerBasertPaRettigheter(
-                        anyString(),
-                        anyString(), //eq("4936"), wont work in kotlin https://derekwilson.net/blog/2018/08/23/mokito-kotlin
-                        anyString(), //eq("1")
-                    )
+                    it.hentAltinnTilganger()
                 ).thenReturn(
-                    objectMapper.readValue<List<Organisasjon>>(
-                        rettigheterTilSkjemaJson.inputStream.readAllBytes()
-                    )
+                    objectMapper.readValue(altinntilganger.inputStream.readAllBytes())
                 )
             }
         }

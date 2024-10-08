@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
-import org.apache.http.NoHttpResponseException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.core.ParameterizedTypeReference
@@ -29,7 +28,6 @@ class KontaktinfoClient(
             retryInterceptor(
                 3,
                 250L,
-                NoHttpResponseException::class.java,
                 SocketException::class.java,
                 SSLHandshakeException::class.java,
             )

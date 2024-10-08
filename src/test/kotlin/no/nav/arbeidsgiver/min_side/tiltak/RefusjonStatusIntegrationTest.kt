@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerResponse
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusKafkaListener
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService.Companion.TJENESTEKODE
@@ -64,11 +65,44 @@ class RefusjonStatusIntegrationTest {
     @Test
     fun `statusoversikt returnerer riktig innhold`() {
         `when`(
-            altinnService.hentOrganisasjonerBasertPaRettigheter("42", TJENESTEKODE, TJENESTEVERSJON)
+            altinnService.hentAltinnTilganger()
         ).thenReturn(
-            listOf(
-                Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR"),
-                Organisasjon(organizationNumber = "315", name = "Bar ltd.", organizationForm = "BEDR")
+            AltinnTilgangerResponse(
+                isError = false,
+                hierarki = listOf(
+                    AltinnTilgangerResponse.AltinnTilgang(
+                        orgNr = "1",
+                        altinn3Tilganger = setOf(),
+                        altinn2Tilganger = setOf(),
+                        underenheter = listOf(
+                            AltinnTilgangerResponse.AltinnTilgang(
+                                orgNr = "314",
+                                altinn3Tilganger = setOf(),
+                                altinn2Tilganger = setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
+                                underenheter = listOf(),
+                                name = "Foo & Co",
+                                organizationForm = "BEDR"
+                            ),
+                            AltinnTilgangerResponse.AltinnTilgang(
+                                orgNr = "315",
+                                altinn3Tilganger = setOf(),
+                                altinn2Tilganger = setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
+                                underenheter = listOf(),
+                                name = "Bar ltd.",
+                                organizationForm = "BEDR"
+                            ),
+                        ),
+                        name = "overenhet",
+                        organizationForm = "AS"
+                    ),
+                ),
+                orgNrTilTilganger = mapOf(
+                    "314" to setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
+                    "315" to setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
+                ),
+                tilgangTilOrgNr = mapOf(
+                    "$TJENESTEKODE:$TJENESTEVERSJON" to setOf("314", "315"),
+                )
             )
         )
         processRefusjonStatus("314", "ny")

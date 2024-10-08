@@ -12,9 +12,8 @@ class RefusjonStatusService(
 ) {
 
     fun statusoversikt(fnr: String): List<Statusoversikt> {
-        val orgnr = altinnService
-            .hentOrganisasjonerBasertPaRettigheter(fnr, TJENESTEKODE, TJENESTEVERSJON)
-            .mapNotNull(Organisasjon::organizationNumber)
+        val orgnr = altinnService.hentAltinnTilganger()
+            .tilgangTilOrgNr["$TJENESTEKODE:$TJENESTEVERSJON"] ?: emptySet()
 
         return refusjonStatusRepository
             .statusoversikt(orgnr)

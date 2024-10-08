@@ -6,6 +6,7 @@ import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerResponse
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
 import org.junit.jupiter.api.Test
@@ -50,7 +51,7 @@ class UserInfoControllerTest {
 
     @Test
     fun `returnerer organisasjoner og rettigheter for innlogget bruker`() {
-        `when`(altinnService.hentOrganisasjoner("42")).thenReturn(
+        `when`(altinnService.hentOrganisasjoner()).thenReturn(
             listOf(
                 Organisasjon(
                     name = "underenhet",
@@ -65,26 +66,32 @@ class UserInfoControllerTest {
                 ),
             )
         )
-        `when`(altinnService.hentOrganisasjonerBasertPaRettigheter(anyString(), anyString(), anyString())).then {
-            if (it.arguments[1] == "3403" && it.arguments[2] == "1") {
-                listOf(
-                    Organisasjon(
-                        name = "underenhet",
-                        parentOrganizationNumber = "1",
-                        organizationNumber = "10",
-                        organizationForm = "BEDR"
+        `when`(altinnService.hentAltinnTilganger()).thenReturn(
+            AltinnTilgangerResponse(
+                isError = false,
+                hierarki = listOf(
+                    AltinnTilgangerResponse.AltinnTilgang(
+                        orgNr = "1",
+                        altinn3Tilganger = setOf(),
+                        altinn2Tilganger = setOf(),
+                        underenheter = listOf(
+                            AltinnTilgangerResponse.AltinnTilgang(
+                                orgNr = "10",
+                                altinn3Tilganger = setOf(),
+                                altinn2Tilganger = setOf("3403:1"),
+                                underenheter = listOf(),
+                                name = "underenhet",
+                                organizationForm = "BEDR"
+                            )
+                        ),
+                        name = "overenhet",
+                        organizationForm = "AS"
                     ),
-                )
-            } else if (it.arguments[1] == "5516") {
-                throw RuntimeException("Kan ikke hente organisasjoner")
-            } else {
-                /* Selv om det ikke burde være nødvendig å spesifisere typen (intellij gråer den ut), så får vi følgende
-                 * feilmelding uten det:
-                 * New inference error [NewConstraintError at Incorporate TypeVariable(K) == kotlin/Nothing from Fix variable K from position Fix variable K: kotlin/collections/List<TypeVariable(T)> <!: kotlin/Nothing].
-                 */
-                emptyList<Organisasjon>()
-            }
-        }
+                ),
+                orgNrTilTilganger = mapOf("10" to setOf("3403:1")),
+                tilgangTilOrgNr = mapOf("3403:1" to setOf("10"))
+            )
+        )
         `when`(digisyfoService.hentVirksomheterOgSykmeldte("42")).thenReturn(
             listOf(
                 DigisyfoService.VirksomhetOgAntallSykmeldte(
@@ -146,7 +153,7 @@ class UserInfoControllerTest {
                 json(
                     """
                     {
-                      "altinnError": true,
+                      "altinnError": false,
                       "digisyfoError": false,
                       "digisyfoOrganisasjoner": [
                         {
@@ -202,102 +209,12 @@ class UserInfoControllerTest {
                       ],
                       "tilganger": [
                         {
-                          "id": "ekspertbistand",
-                          "tjenestekode": "5384",
-                          "tjenesteversjon": "1",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "inntektsmelding",
-                          "tjenestekode": "4936",
-                          "tjenesteversjon": "1",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "utsendtArbeidstakerEØS",
-                          "tjenestekode": "4826",
-                          "tjenesteversjon": "1",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "endreBankkontonummerForRefusjoner",
-                          "tjenestekode": "2896",
-                          "tjenesteversjon": "87",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "arbeidstrening",
-                          "tjenestekode": "5332",
-                          "tjenesteversjon": "1",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "arbeidsforhold",
-                          "tjenestekode": "5441",
-                          "tjenesteversjon": "1",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "midlertidigLønnstilskudd",
-                          "tjenestekode": "5516",
-                          "tjenesteversjon": "1",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "varigLønnstilskudd",
-                          "tjenestekode": "5516",
-                          "tjenesteversjon": "2",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "sommerjobb",
-                          "tjenestekode": "5516",
-                          "tjenesteversjon": "3",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "mentortilskudd",
-                          "tjenestekode": "5516",
-                          "tjenesteversjon": "4",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "inkluderingstilskudd",
-                          "tjenestekode": "5516",
-                          "tjenesteversjon": "5",
-                          "organisasjoner": []
-                        },
-                        {
                           "id": "sykefravarstatistikk",
                           "tjenestekode": "3403",
                           "tjenesteversjon": "1",
                           "organisasjoner": [
                             "10"
                           ]
-                        },
-                        {
-                          "id": "forebyggefravar",
-                          "tjenestekode": "5934",
-                          "tjenesteversjon": "1",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "rekruttering",
-                          "tjenestekode": "5078",
-                          "tjenesteversjon": "1",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "tilskuddsbrev",
-                          "tjenestekode": "5278",
-                          "tjenesteversjon": "1",
-                          "organisasjoner": []
-                        },
-                        {
-                          "id": "yrkesskade",
-                          "tjenestekode": "5902",
-                          "tjenesteversjon": "1",
-                          "organisasjoner": []
                         }
                       ],
                       refusjoner: [

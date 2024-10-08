@@ -2,7 +2,6 @@ package no.nav.arbeidsgiver.min_side.clients.azuread
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
-import org.apache.http.NoHttpResponseException
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -24,7 +23,6 @@ class AzureClient(
             retryInterceptor(
                 maxAttempts = 3,
                 backoffPeriod = 250L,
-                NoHttpResponseException::class.java,
                 SocketException::class.java,
                 SSLHandshakeException::class.java,
                 ResourceAccessException::class.java,

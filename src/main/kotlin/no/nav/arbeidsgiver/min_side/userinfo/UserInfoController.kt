@@ -2,9 +2,7 @@ package no.nav.arbeidsgiver.min_side.userinfo
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.supervisorScope
-import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
@@ -20,119 +18,77 @@ class UserInfoController(
     private val digisyfoService: DigisyfoService,
     private val refusjonStatusService: RefusjonStatusService,
     private val authenticatedUserHolder: AuthenticatedUserHolder,
-    gittMiljø: GittMiljø,
 ) {
 
-    val tjenester = mapOf(
-        "ekspertbistand" to Altinnskjema(
-            tjenestekode = "5384",
-            tjenesteversjon = "1",
-        ),
-        "inntektsmelding" to Altinnskjema(
-            tjenestekode = "4936",
-            tjenesteversjon = "1",
-        ),
-        "utsendtArbeidstakerEØS" to Altinnskjema(
-            tjenestekode = "4826",
-            tjenesteversjon = "1",
-        ),
-        "endreBankkontonummerForRefusjoner" to Altinnskjema(
-            tjenestekode = "2896",
-            tjenesteversjon = "87",
-        ),
-        "arbeidstrening" to NAVTjeneste(
-            tjenestekode = "5332",
-            tjenesteversjon = gittMiljø.resolve(
-                prod = { "2" },
-                other = { "1" },
-            ),
-        ),
-        "arbeidsforhold" to NAVTjeneste(
-            tjenestekode = "5441",
-            tjenesteversjon = "1",
-        ),
-        "midlertidigLønnstilskudd" to NAVTjeneste(
-            tjenestekode = "5516",
-            tjenesteversjon = "1",
-        ),
-        "varigLønnstilskudd" to NAVTjeneste(
-            tjenestekode = "5516",
-            tjenesteversjon = "2",
-        ),
-        "sommerjobb" to NAVTjeneste(
-            tjenestekode = "5516",
-            tjenesteversjon = "3",
-        ),
-        "mentortilskudd" to NAVTjeneste(
-            tjenestekode = "5516",
-            tjenesteversjon = "4",
-        ),
-        "inkluderingstilskudd" to NAVTjeneste(
-            tjenestekode = "5516",
-            tjenesteversjon = "5",
-        ),
-        "sykefravarstatistikk" to NAVTjeneste(
-            tjenestekode = "3403",
-            tjenesteversjon = gittMiljø.resolve(
-                prod = { "2" },
-                other = { "1" },
-            ),
-        ),
-        "forebyggefravar" to NAVTjeneste(
-            tjenestekode = "5934",
-            tjenesteversjon = "1",
-        ),
-        "rekruttering" to NAVTjeneste(
-            tjenestekode = "5078",
-            tjenesteversjon = "1",
-        ),
-        "tilskuddsbrev" to NAVTjeneste(
-            tjenestekode = "5278",
-            tjenesteversjon = "1",
-        ),
-        "yrkesskade" to NAVTjeneste(
-            tjenestekode = "5902",
-            tjenesteversjon = "1",
-        ),
+    /**
+     * konseptet tjeneste id er noe som finnes i frontend.
+     * på sikt bør oversetting/oppslag flyttes dit og denne koden slettes
+     */
+    val idLookup = mapOf(
+        "5384:1" to "ekspertbistand",
+        "4936:1" to "inntektsmelding",
+        "4826:1" to "utsendtArbeidstakerEØS",
+        "2896:87" to "endreBankkontonummerForRefusjoner",
+        "5332:1" to "arbeidstrening",
+        "5332:2" to "arbeidstrening",
+        "5441:1" to "arbeidsforhold",
+        "5516:1" to "midlertidigLønnstilskudd",
+        "5516:2" to "varigLønnstilskudd",
+        "5516:3" to "sommerjobb",
+        "5516:4" to "mentortilskudd",
+        "5516:5" to "inkluderingstilskudd",
+        "3403:1" to "sykefravarstatistikk",
+        "3403:2" to "sykefravarstatistikk",
+        "5934:1" to "forebyggefravar",
+        "5078:1" to "rekruttering",
+        "5278:1" to "tilskuddsbrev",
+        "5902:1" to "yrkesskade",
     )
+
 
     @GetMapping("/api/userInfo/v1")
     suspend fun getUserInfo(): UserInfoRespons {
         val (tilganger, organisasjoner, syfoVirksomheter, refusjoner) = supervisorScope {
-            val tilganger = tjenester.map { (id, tjeneste) ->
-                async {
-                    runCatching {
-                        altinnService.hentOrganisasjonerBasertPaRettigheter(
-                            authenticatedUserHolder.fnr,
-                            tjeneste.tjenestekode,
-                            tjeneste.tjenesteversjon
-                        )
-                    }.fold(
-                        onSuccess = {
+            val tilganger = async {
+                altinnService.hentAltinnTilganger().let {
+                    it.tilgangTilOrgNr.map { (tilgang, value) ->
+                        if (tilgang.contains(":")) {
+                            /**
+                             * I frontend mappes tilganger til en record fra tjeneste "id" til et set med orgnr
+                             * dette blir dobbeltarbeid. Endre frontend til å motta map direkte på form:
+                             * {
+                             *    "tjenestekode:tjenesteversjon": ["orgnr1", "orgnr2"]
+                             * }
+                             */
+                            val (tjenestekode, tjenesteversjon) = tilgang.split(":")
                             UserInfoRespons.Tilgang(
-                                id = id,
-                                tjenestekode = tjeneste.tjenestekode,
-                                tjenesteversjon = tjeneste.tjenesteversjon,
-                                organisasjoner = it.mapNotNull { it.organizationNumber },
-                                altinnError = false,
+                                id = idLookup[tilgang] ?: tilgang,
+                                tjenestekode = tjenestekode,
+                                tjenesteversjon = tjenesteversjon,
+                                organisasjoner = value.toList(),
+                                altinnError = it.isError,
                             )
-                        },
-                        onFailure = {
+                        } else {
+                            /**
+                             * altinn3 ressurser har ingen tjenesteversjon
+                             * her burde vi på sikt ha en bedre måte å skille på
+                             * altinn2 tjeneste tilgang vs altinn3 ressurs tilgang
+                             */
                             UserInfoRespons.Tilgang(
-                                id = id,
-                                tjenestekode = tjeneste.tjenestekode,
-                                tjenesteversjon = tjeneste.tjenesteversjon,
-                                organisasjoner = emptyList(),
-                                altinnError = true,
+                                id = tilgang,
+                                tjenestekode = tilgang,
+                                tjenesteversjon = "",
+                                organisasjoner = value.toList(),
+                                altinnError = it.isError,
                             )
                         }
-                    )
+                    }
                 }
             }
 
             val organisasjoner = async {
                 runCatching {
-                    altinnService.hentOrganisasjoner(authenticatedUserHolder.fnr)
+                    altinnService.hentOrganisasjoner()
                 }
             }
 
@@ -149,7 +105,7 @@ class UserInfoController(
             }
 
 
-            UserInfoData(tilganger.awaitAll(), organisasjoner.await(), syfoVirksomheter.await(), refusjoner.await())
+            UserInfoData(tilganger.await(), organisasjoner.await(), syfoVirksomheter.await(), refusjoner.await())
         }
 
         return UserInfoRespons(

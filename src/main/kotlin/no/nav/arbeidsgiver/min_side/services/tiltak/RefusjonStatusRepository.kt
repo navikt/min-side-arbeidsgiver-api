@@ -48,7 +48,7 @@ class RefusjonStatusRepository(
         }
     }
 
-    fun statusoversikt(virksomhetsnummer: List<String>): List<Statusoversikt> {
+    fun statusoversikt(virksomhetsnummer: Collection<String>): List<Statusoversikt> {
         if (virksomhetsnummer.isEmpty()) {
             return listOf()
         }

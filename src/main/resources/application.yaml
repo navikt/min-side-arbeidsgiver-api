@@ -85,9 +85,7 @@ nais.cluster.name: local
 altinn:
   altinnHeader: "test"
   APIGwHeader: "test"
-  proxyUrl: http://altinn-proxy/altinn-rettigheter-proxy
-  proxyFallbackUrl: http://altinn/altinn
-  proxyAudience: fake:fake:fake
+  APIGwUrl: http://altinn/altinn
   apiBaseUrl: "http://altinn.example.org"
 
 ereg-services.baseUrl: "https://localhost"
@@ -113,9 +111,7 @@ spring:
 altinn:
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
-  proxyUrl: http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy
-  proxyFallbackUrl: https://api-gw-q1.oera.no
-  proxyAudience: dev-gcp:arbeidsgiver:altinn-rettigheter-proxy
+  APIGwUrl: https://api-gw-q1.oera.no
   apiBaseUrl: "https://tt02.altinn.no"
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
@@ -141,9 +137,7 @@ spring:
 altinn:
   altinnHeader: ${ALTINN_HEADER}
   APIGwHeader: ${APIGW_HEADER}
-  proxyUrl: http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy
-  proxyFallbackUrl: https://api-gw.oera.no
-  proxyAudience: prod-gcp:arbeidsgiver:altinn-rettigheter-proxy
+  APIGwUrl: https://api-gw.oera.no
   apiBaseUrl: "https://www.altinn.no"
 
 ereg-services.baseUrl: "https://ereg-services.prod-fss-pub.nais.io"
