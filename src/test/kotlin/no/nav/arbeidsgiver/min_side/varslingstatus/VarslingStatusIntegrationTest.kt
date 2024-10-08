@@ -66,9 +66,7 @@ class VarslingStatusIntegrationTest {
 
     @Test
     fun `bruker som ikke har tilgang får status ok som default`() {
-        `when`(
-            altinnService.hentOrganisasjoner()
-        ).thenReturn(emptyList())
+        `when`(altinnService.harOrganisasjon("314")).thenReturn(false)
 
         processVarslingStatus(
             """
@@ -96,9 +94,7 @@ class VarslingStatusIntegrationTest {
 
     @Test
     fun `bruker med tilgang men ingen status i databasen får OK som default`() {
-        `when`(
-            altinnService.hentOrganisasjoner()
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
+        `when`(altinnService.harOrganisasjon("314")).thenReturn(true)
 
         processVarslingStatus(
             """
@@ -126,9 +122,7 @@ class VarslingStatusIntegrationTest {
 
     @Test
     fun `returnerer siste status for virksomhet`() {
-        `when`(
-            altinnService.hentOrganisasjoner()
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
+        `when`(altinnService.harOrganisasjon("314")).thenReturn(true)
 
         listOf(
             "MANGLER_KOFUVI" to "2021-01-02T00:00:00Z",
@@ -172,9 +166,7 @@ class VarslingStatusIntegrationTest {
 
     @Test
     fun `returnerer siste status for virksomhet OK`() {
-        `when`(
-            altinnService.hentOrganisasjoner()
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
+        `when`(altinnService.harOrganisasjon("314")).thenReturn(true)
 
         listOf(
             "MANGLER_KOFUVI" to "2021-01-01T00:00:00Z",
@@ -218,9 +210,7 @@ class VarslingStatusIntegrationTest {
 
     @Test
     fun `får ok dersom kontaktinfo er pollet og funnet`() {
-        `when`(
-            altinnService.hentOrganisasjoner()
-        ).thenReturn(listOf(Organisasjon(organizationNumber = "314", name = "Foo & Co", organizationForm = "BEDR")))
+        `when`(altinnService.harOrganisasjon("314")).thenReturn(true)
 
         processVarslingStatus(
             """

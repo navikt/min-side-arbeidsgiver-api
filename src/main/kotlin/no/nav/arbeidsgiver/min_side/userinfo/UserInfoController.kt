@@ -50,38 +50,39 @@ class UserInfoController(
     suspend fun getUserInfo(): UserInfoRespons {
         val (tilganger, organisasjoner, syfoVirksomheter, refusjoner) = supervisorScope {
             val tilganger = async {
-                altinnService.hentAltinnTilganger().tilgangTilOrgNr.map { (tilgang, value) ->
-                    if (tilgang.contains(":")) {
-                        /**
-                         * I frontend mappes tilganger til en record fra tjeneste "id" til et set med orgnr
-                         * dette blir dobbeltarbeid. Endre frontend til å motta map direkte på form:
-                         * {
-                         *    "tjenestekode:tjenesteversjon": ["orgnr1", "orgnr2"]
-                         * }
-                         */
-                        val (tjenestekode, tjenesteversjon) = tilgang.split(":")
-                        UserInfoRespons.Tilgang(
-                            id = idLookup[tilgang] ?: tilgang,
-                            tjenestekode = tjenestekode,
-                            tjenesteversjon = tjenesteversjon,
-                            organisasjoner = value.toList(),
-                            altinnError = false,
-                        )
-                    } else {
-                        /**
-                         * altinn3 ressurser har ingen tjenesteversjon
-                         * her burde vi på sikt ha en bedre måte å skille på
-                         * altinn2 tjeneste tilgang vs altinn3 ressurs tilgang
-                         */
-                        UserInfoRespons.Tilgang(
-                            id = tilgang,
-                            tjenestekode = tilgang,
-                            tjenesteversjon = "",
-                            organisasjoner = value.toList(),
-                            altinnError = false,
-                        )
+                altinnService.hentAltinnTilganger().let {
+                    it.tilgangTilOrgNr.map { (tilgang, value) ->
+                        if (tilgang.contains(":")) {
+                            /**
+                             * I frontend mappes tilganger til en record fra tjeneste "id" til et set med orgnr
+                             * dette blir dobbeltarbeid. Endre frontend til å motta map direkte på form:
+                             * {
+                             *    "tjenestekode:tjenesteversjon": ["orgnr1", "orgnr2"]
+                             * }
+                             */
+                            val (tjenestekode, tjenesteversjon) = tilgang.split(":")
+                            UserInfoRespons.Tilgang(
+                                id = idLookup[tilgang] ?: tilgang,
+                                tjenestekode = tjenestekode,
+                                tjenesteversjon = tjenesteversjon,
+                                organisasjoner = value.toList(),
+                                altinnError = it.isError,
+                            )
+                        } else {
+                            /**
+                             * altinn3 ressurser har ingen tjenesteversjon
+                             * her burde vi på sikt ha en bedre måte å skille på
+                             * altinn2 tjeneste tilgang vs altinn3 ressurs tilgang
+                             */
+                            UserInfoRespons.Tilgang(
+                                id = tilgang,
+                                tjenestekode = tilgang,
+                                tjenesteversjon = "",
+                                organisasjoner = value.toList(),
+                                altinnError = it.isError,
+                            )
+                        }
                     }
-
                 }
             }
 

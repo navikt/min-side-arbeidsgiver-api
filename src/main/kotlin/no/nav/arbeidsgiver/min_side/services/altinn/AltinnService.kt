@@ -9,7 +9,6 @@ import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.RequestEntity
@@ -29,7 +28,7 @@ class AltinnService(
 
     private val cache: Cache<String, AltinnTilgangerResponse> = Caffeine.newBuilder()
         .maximumSize(10000)
-        .expireAfterWrite(30, TimeUnit.MINUTES)
+        .expireAfterWrite(10, TimeUnit.MINUTES)
         .recordStats()
         .build()
 
