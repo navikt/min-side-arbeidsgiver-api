@@ -209,7 +209,6 @@ class UserInfoControllerTest {
                       ],
                       "tilganger": [
                         {
-                          "id": "sykefravarstatistikk",
                           "tjenestekode": "3403",
                           "tjenesteversjon": "1",
                           "organisasjoner": [

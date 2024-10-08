@@ -20,32 +20,6 @@ class UserInfoController(
     private val authenticatedUserHolder: AuthenticatedUserHolder,
 ) {
 
-    /**
-     * konseptet tjeneste id er noe som finnes i frontend.
-     * på sikt bør oversetting/oppslag flyttes dit og denne koden slettes
-     */
-    val idLookup = mapOf(
-        "5384:1" to "ekspertbistand",
-        "4936:1" to "inntektsmelding",
-        "4826:1" to "utsendtArbeidstakerEØS",
-        "2896:87" to "endreBankkontonummerForRefusjoner",
-        "5332:1" to "arbeidstrening",
-        "5332:2" to "arbeidstrening",
-        "5441:1" to "arbeidsforhold",
-        "5516:1" to "midlertidigLønnstilskudd",
-        "5516:2" to "varigLønnstilskudd",
-        "5516:3" to "sommerjobb",
-        "5516:4" to "mentortilskudd",
-        "5516:5" to "inkluderingstilskudd",
-        "3403:1" to "sykefravarstatistikk",
-        "3403:2" to "sykefravarstatistikk",
-        "5934:1" to "forebyggefravar",
-        "5078:1" to "rekruttering",
-        "5278:1" to "tilskuddsbrev",
-        "5902:1" to "yrkesskade",
-    )
-
-
     @GetMapping("/api/userInfo/v1")
     suspend fun getUserInfo(): UserInfoRespons {
         val (tilganger, organisasjoner, syfoVirksomheter, refusjoner) = supervisorScope {
@@ -62,7 +36,6 @@ class UserInfoController(
                              */
                             val (tjenestekode, tjenesteversjon) = tilgang.split(":")
                             UserInfoRespons.Tilgang(
-                                id = idLookup[tilgang] ?: tilgang,
                                 tjenestekode = tjenestekode,
                                 tjenesteversjon = tjenesteversjon,
                                 organisasjoner = value.toList(),
@@ -75,7 +48,6 @@ class UserInfoController(
                              * altinn2 tjeneste tilgang vs altinn3 ressurs tilgang
                              */
                             UserInfoRespons.Tilgang(
-                                id = tilgang,
                                 tjenestekode = tilgang,
                                 tjenesteversjon = "",
                                 organisasjoner = value.toList(),
@@ -134,7 +106,6 @@ class UserInfoController(
         val refusjoner: List<RefusjonStatusService.Statusoversikt>,
     ) {
         data class Tilgang(
-            val id: String,
             val tjenestekode: String,
             val tjenesteversjon: String,
             val organisasjoner: List<String>,
