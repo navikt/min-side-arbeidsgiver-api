@@ -6,11 +6,10 @@ import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerResponse
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.anyString
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -51,31 +50,16 @@ class UserInfoControllerTest {
 
     @Test
     fun `returnerer organisasjoner og rettigheter for innlogget bruker`() {
-        `when`(altinnService.hentOrganisasjoner()).thenReturn(
-            listOf(
-                Organisasjon(
-                    name = "underenhet",
-                    parentOrganizationNumber = "1",
-                    organizationNumber = "10",
-                    organizationForm = "BEDR"
-                ),
-                Organisasjon(
-                    name = "overenhet",
-                    organizationNumber = "1",
-                    organizationForm = "AS",
-                ),
-            )
-        )
         `when`(altinnService.hentAltinnTilganger()).thenReturn(
-            AltinnTilgangerResponse(
+            AltinnTilganger(
                 isError = false,
                 hierarki = listOf(
-                    AltinnTilgangerResponse.AltinnTilgang(
+                    AltinnTilganger.AltinnTilgang(
                         orgNr = "1",
                         altinn3Tilganger = setOf(),
                         altinn2Tilganger = setOf(),
                         underenheter = listOf(
-                            AltinnTilgangerResponse.AltinnTilgang(
+                            AltinnTilganger.AltinnTilgang(
                                 orgNr = "10",
                                 altinn3Tilganger = setOf(),
                                 altinn2Tilganger = setOf("3403:1"),
@@ -195,21 +179,20 @@ class UserInfoControllerTest {
                       ],
                       "organisasjoner": [
                         {
-                          "Name": "underenhet", 
-                          "ParentOrganizationNumber": "1",
-                          "OrganizationNumber": "10",
-                          "OrganizationForm": "BEDR"
-                        },
-                        {
                           "Name": "overenhet", 
                           "ParentOrganizationNumber": null,
                           "OrganizationNumber": "1",
                           "OrganizationForm": "AS"
+                        },
+                        {
+                          "Name": "underenhet", 
+                          "ParentOrganizationNumber": "1",
+                          "OrganizationNumber": "10",
+                          "OrganizationForm": "BEDR"
                         }
                       ],
                       "tilganger": [
                         {
-                          "id": "sykefravarstatistikk",
                           "tjenestekode": "3403",
                           "tjenesteversjon": "1",
                           "organisasjoner": [
@@ -236,6 +219,105 @@ class UserInfoControllerTest {
                         }
                       ]
                     }    
+                    """,
+                    true
+                )
+            }
+        }
+
+        mockMvc.get("/api/userInfo/v2") {
+            with(jwtWithPid("42"))
+        }.asyncDispatch().andExpect {
+            status { isOk() }
+            content {
+                json(
+                    """
+                    {
+                      "altinnError": false,
+                      "digisyfoError": false,
+                      "organisasjoner": [
+                        {
+                          "orgNr": "1",
+                          "altinn3Tilganger": [],
+                          "altinn2Tilganger": [],
+                          "underenheter": [
+                            {
+                              "orgNr": "10",
+                              "altinn3Tilganger": [],
+                              "altinn2Tilganger": [
+                                "3403:1"
+                              ],
+                              "underenheter": [],
+                              "name": "underenhet",
+                              "organizationForm": "BEDR"
+                            }
+                          ],
+                          "name": "overenhet",
+                          "organizationForm": "AS"
+                        }
+                      ],
+                      "tilganger": {
+                        "3403:1": [
+                          "10"
+                        ]
+                      },
+                      "digisyfoOrganisasjoner": [
+                        {
+                          "organisasjon": {
+                            "Name": "underenhet",
+                            "ParentOrganizationNumber": "1",
+                            "OrganizationNumber": "10",
+                            "OrganizationForm": "BEDR"
+                          },
+                          "antallSykmeldte": 0
+                        },
+                        {
+                          "organisasjon": {
+                            "Name": "overenhet",
+                            "ParentOrganizationNumber": null,
+                            "OrganizationNumber": "1",
+                            "OrganizationForm": "AS"
+                          },
+                          "antallSykmeldte": 0
+                        },
+                        {
+                          "organisasjon": {
+                            "Name": "underenhet",
+                            "ParentOrganizationNumber": "2",
+                            "OrganizationNumber": "20",
+                            "OrganizationForm": "BEDR"
+                          },
+                          "antallSykmeldte": 1
+                        },
+                        {
+                          "organisasjon": {
+                            "Name": "overenhet",
+                            "ParentOrganizationNumber": null,
+                            "OrganizationNumber": "2",
+                            "OrganizationForm": "AS"
+                          },
+                          "antallSykmeldte": 0
+                        }
+                      ],
+                      "refusjoner": [
+                        {
+                          "virksomhetsnummer": "314",
+                          "statusoversikt": {
+                            "ny": 1,
+                            "gammel": 2
+                          },
+                          "tilgang": true
+                        },
+                        {
+                          "virksomhetsnummer": "315",
+                          "statusoversikt": {
+                            "ny": 2,
+                            "gammel": 1
+                          },
+                          "tilgang": true
+                        }
+                      ]
+                    }  
                     """,
                     true
                 )

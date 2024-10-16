@@ -2,9 +2,8 @@ package no.nav.arbeidsgiver.min_side.tiltak
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerResponse
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusKafkaListener
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService.Companion.TJENESTEKODE
@@ -67,15 +66,15 @@ class RefusjonStatusIntegrationTest {
         `when`(
             altinnService.hentAltinnTilganger()
         ).thenReturn(
-            AltinnTilgangerResponse(
+            AltinnTilganger(
                 isError = false,
                 hierarki = listOf(
-                    AltinnTilgangerResponse.AltinnTilgang(
+                    AltinnTilganger.AltinnTilgang(
                         orgNr = "1",
                         altinn3Tilganger = setOf(),
                         altinn2Tilganger = setOf(),
                         underenheter = listOf(
-                            AltinnTilgangerResponse.AltinnTilgang(
+                            AltinnTilganger.AltinnTilgang(
                                 orgNr = "314",
                                 altinn3Tilganger = setOf(),
                                 altinn2Tilganger = setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
@@ -83,7 +82,7 @@ class RefusjonStatusIntegrationTest {
                                 name = "Foo & Co",
                                 organizationForm = "BEDR"
                             ),
-                            AltinnTilgangerResponse.AltinnTilgang(
+                            AltinnTilganger.AltinnTilgang(
                                 orgNr = "315",
                                 altinn3Tilganger = setOf(),
                                 altinn2Tilganger = setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
