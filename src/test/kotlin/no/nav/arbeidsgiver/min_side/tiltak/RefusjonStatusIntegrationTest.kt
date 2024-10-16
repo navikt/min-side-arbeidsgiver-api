@@ -143,7 +143,7 @@ class RefusjonStatusIntegrationTest {
             }
         }
 
-        mockMvc.get("/api/userInfo/v1") {
+        mockMvc.get("/api/userInfo/v2") {
             with(jwtWithPid("42"))
         }.asyncDispatch().andExpect {
             status { isOk() }

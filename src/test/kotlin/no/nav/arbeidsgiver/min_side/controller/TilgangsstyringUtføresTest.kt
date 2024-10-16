@@ -30,7 +30,7 @@ class TilgangsstyringUtføresTest {
 
     @Test
     fun tilgangsstyringUtføres() {
-        mockMvc.get("/api/userInfo/v1")
+        mockMvc.get("/api/userInfo/v2")
             .andExpect {
                 status { isUnauthorized() }
             }
@@ -39,7 +39,7 @@ class TilgangsstyringUtføresTest {
     @Test
     fun tilgangsstyringErOkForAcrLevel4() {
         val token = token(ACR.LEVEL4)
-        mockMvc.get("/api/userInfo/v1") {
+        mockMvc.get("/api/userInfo/v2") {
             header(AUTHORIZATION, "Bearer $token")
         }.andExpect {
             status { isOk() }
@@ -49,7 +49,7 @@ class TilgangsstyringUtføresTest {
     @Test
     fun tilgangsstyringErOkForAcridportenLoaHigh() {
         val token = token(ACR.IDPORTEN_LOA_HIGH)
-        mockMvc.get("/api/userInfo/v1") {
+        mockMvc.get("/api/userInfo/v2") {
             header(AUTHORIZATION, "Bearer $token")
         }.andExpect {
             status { isOk() }
