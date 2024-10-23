@@ -67,8 +67,13 @@ class AppConfig {
                             Level.INFO
                     }
                 ).log(
-                    "RestTemplate.response: {} {}",
-                    response.statusCode,
+                    "RestTemplate.response: {} Content-Length: {}",
+                    when {
+                        response.statusCode.isError ->
+                            "${response.statusCode} ${response.statusText}"
+                        else ->
+                            response.statusCode
+                    },
                     response.headers.contentLength
                 )
                 response
