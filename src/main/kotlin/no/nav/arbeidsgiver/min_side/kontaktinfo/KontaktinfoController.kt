@@ -34,7 +34,7 @@ class KontaktinfoController(
         )
 
         return if (tilgangHovedenhet) {
-            kontaktinfoClient.hentKontaktinfo(orgnr)?.let {
+            kontaktinfoClient.hentKontaktinfo(orgnr).let {
                 Kontaktinfo(
                     eposter = it.eposter.toList(),
                     telefonnumre = it.telefonnumre.toList(),
