@@ -11,6 +11,7 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod.GET
 import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpClientErrorException.BadRequest
 import java.net.SocketException
 import javax.net.ssl.SSLHandshakeException
 
@@ -62,17 +63,25 @@ class AltinnRollerClient(
         val eregRolleFilter = roleDefintionFilter(externalRoller)
         val filter = "(RoleType+eq+'Altinn'+and+($altinnRolleFilter))+or+(RoleType+eq+'External'+and+($eregRolleFilter))"
 
-        val roller = restTemplate.exchange(
-            "/api/serviceowner/authorization/roles?subject={subject}&reportee={reportee}&${'$'}filter={filter}&ForceEIAuthentication",
-            GET,
-            HttpEntity<Nothing>(headers),
-            roleListType,
-            mapOf<String, Any>(
-                "subject" to fnr,
-                "reportee" to orgnr,
-                "filter" to filter,
-            )
-        ).body ?: throw RuntimeException("serviceowner/authorization/roles missing body")
+        val roller = try {
+            restTemplate.exchange(
+                "/api/serviceowner/authorization/roles?subject={subject}&reportee={reportee}&${'$'}filter={filter}&ForceEIAuthentication",
+                GET,
+                HttpEntity<Nothing>(headers),
+                roleListType,
+                mapOf<String, Any>(
+                    "subject" to fnr,
+                    "reportee" to orgnr,
+                    "filter" to filter,
+                )
+            ).body ?: throw RuntimeException("serviceowner/authorization/roles missing body")
+        } catch (e: BadRequest) {
+            if (e.message!!.contains("User profile")) { // Altinn returns 400 if user does not exist
+                emptyList()
+            } else {
+                throw e
+            }
+        }
 
         /* Kanskje litt paranoid, men da er vi korrekte uavhengig av om $filter er implementert
          * som forventet hos altinn eller om vi gjør noe feil med filteret. */
