@@ -93,30 +93,31 @@ class AltinnTilgangerServiceTest {
 }
 
 
+//language=JSON
 private val altinnTilgangerResponse = """
     {
       "isError": false,
       "hierarki": [
         {
-          "orgNr": "810825472",
+          "orgnr": "810825472",
+          "navn": "Arbeids- og Velferdsetaten",
+          "organisasjonsform": "ORGL",
           "altinn3Tilganger": [],
           "altinn2Tilganger": [],
           "underenheter": [
             {
-              "orgNr": "910825496",
+              "orgnr": "910825496",
+              "navn": "SLEMMESTAD OG STAVERN REGNSKAP",
+              "organisasjonsform": "BEDR",
               "altinn3Tilganger": [
                 "test-fager"
               ],
               "altinn2Tilganger": [
                 "4936:1"
               ],
-              "underenheter": [],
-              "name": "SLEMMESTAD OG STAVERN REGNSKAP",
-              "organizationForm": "BEDR"
+              "underenheter": []
             }
-          ],
-          "name": "Arbeids- og Velferdsetaten",
-          "organizationForm": "ORGL"
+          ]
         }
       ],
       "orgNrTilTilganger": {

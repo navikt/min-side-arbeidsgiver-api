@@ -55,21 +55,21 @@ class UserInfoControllerTest {
                 isError = false,
                 hierarki = listOf(
                     AltinnTilganger.AltinnTilgang(
-                        orgNr = "1",
+                        orgnr = "1",
                         altinn3Tilganger = setOf(),
                         altinn2Tilganger = setOf(),
                         underenheter = listOf(
                             AltinnTilganger.AltinnTilgang(
-                                orgNr = "10",
+                                orgnr = "10",
                                 altinn3Tilganger = setOf(),
                                 altinn2Tilganger = setOf("3403:1"),
                                 underenheter = listOf(),
-                                name = "underenhet",
-                                organizationForm = "BEDR"
+                                navn = "underenhet",
+                                organisasjonsform = "BEDR"
                             )
                         ),
-                        name = "overenhet",
-                        organizationForm = "AS"
+                        navn = "overenhet",
+                        organisasjonsform = "AS"
                     ),
                 ),
                 orgNrTilTilganger = mapOf("10" to setOf("3403:1")),
@@ -141,21 +141,27 @@ class UserInfoControllerTest {
                       "digisyfoError": false,
                       "organisasjoner": [
                         {
-                          "orgNr": "1",
+                          "orgnr": "1",
+                          "navn": "overenhet",
+                          "organisasjonsform": "AS",
                           "altinn3Tilganger": [],
                           "altinn2Tilganger": [],
                           "underenheter": [
                             {
-                              "orgNr": "10",
+                              "orgnr": "10",
+                              "navn": "underenhet",
+                              "organisasjonsform": "BEDR",
                               "altinn3Tilganger": [],
                               "altinn2Tilganger": [
                                 "3403:1"
                               ],
                               "underenheter": [],
+                              "orgNr": "10",
                               "name": "underenhet",
                               "organizationForm": "BEDR"
                             }
                           ],
+                          "orgNr": "1",
                           "name": "overenhet",
                           "organizationForm": "AS"
                         }
