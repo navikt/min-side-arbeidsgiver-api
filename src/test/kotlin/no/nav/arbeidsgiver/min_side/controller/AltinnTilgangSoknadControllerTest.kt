@@ -5,7 +5,6 @@ import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknad
 import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknadsskjema
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -144,11 +143,7 @@ class AltinnTilgangSoknadControllerTest {
             serviceEdition = AltinnTilgangSoknadController.tjenester.first().second,
         )
 
-        `when`(altinnService.hentOrganisasjoner()).thenReturn(
-            listOf(
-                Organisasjon(organizationNumber = "314", name = "Organisasjon", organizationForm = "BEDR")
-            )
-        )
+        `when`(altinnService.harOrganisasjon("314")).thenReturn(true)
         `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenThrow(
             HttpClientErrorException(
                 org.springframework.http.HttpStatus.BAD_REQUEST,

@@ -1,9 +1,10 @@
 package no.nav.arbeidsgiver.min_side.services.altinn
 
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenXToken
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -50,17 +51,42 @@ class AltinnTilgangerServiceTest {
                 withSuccess(altinnTilgangerResponse, APPLICATION_JSON)
             )
 
-        val organisasjoner = altinnTilgangerService.hentOrganisasjoner()
+        val tilganger = altinnTilgangerService.hentAltinnTilganger()
 
-        assertTrue(organisasjoner.size == 2)
-
-        val parent = organisasjoner.first({ it.organizationNumber == "810825472" })
-        val underenhet = organisasjoner.first({ it.organizationNumber == "910825496" })
-
-        assertTrue(parent.name == "Arbeids- og Velferdsetaten")
-        assertTrue(underenhet.name == "SLEMMESTAD OG STAVERN REGNSKAP")
-        assertTrue(parent.organizationForm == "ORGL")
-        assertTrue(underenhet.organizationForm == "BEDR")
+        assertFalse(tilganger.isError)
+        assertTrue(tilganger.hierarki.size == 1)
+        assertEquals(
+            AltinnTilganger(
+                isError = false,
+                hierarki = listOf(
+                    AltinnTilgang(
+                        orgnr = "810825472",
+                        navn = "Arbeids- og Velferdsetaten",
+                        organisasjonsform = "ORGL",
+                        altinn3Tilganger = emptySet(),
+                        altinn2Tilganger = emptySet(),
+                        underenheter = listOf(
+                            AltinnTilgang(
+                                orgnr = "910825496",
+                                navn = "SLEMMESTAD OG STAVERN REGNSKAP",
+                                organisasjonsform = "BEDR",
+                                altinn3Tilganger = setOf("test-fager"),
+                                altinn2Tilganger = setOf("4936:1"),
+                                underenheter = emptyList(),
+                            )
+                        )
+                    )
+                ),
+                orgNrTilTilganger = mapOf(
+                    "910825496" to setOf("test-fager", "4936:1")
+                ),
+                tilgangTilOrgNr = mapOf(
+                    "test-fager" to setOf("910825496"),
+                    "4936:1" to setOf("910825496")
+                )
+            ),
+            tilganger,
+        )
     }
 
     @Test
@@ -79,16 +105,6 @@ class AltinnTilgangerServiceTest {
 
         val organisasjoner = altinnTilgangerService.hentAltinnTilganger()
         assertTrue(organisasjoner.tilgangTilOrgNr.containsKey("4936:1"))
-    }
-
-    companion object {
-        @JvmStatic
-        fun `basert på tilgagner testdata`(): List<Arguments> {
-            return listOf<Arguments>(
-                Arguments.of("4936", "1", 1),
-                Arguments.of("4936", "2", 0),
-            )
-        }
     }
 }
 

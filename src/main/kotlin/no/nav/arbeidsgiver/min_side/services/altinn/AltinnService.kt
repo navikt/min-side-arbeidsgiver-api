@@ -7,6 +7,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -51,8 +52,6 @@ class AltinnService(
             }
         }
 
-    fun hentOrganisasjoner() = hentAltinnTilganger().organisasjonerFlattened
-
     fun harTilgang(orgnr: String, tjeneste: String) = hentAltinnTilganger().harTilgang(orgnr, tjeneste)
 
     fun harOrganisasjon(orgnr: String) = hentAltinnTilganger().harOrganisasjon(orgnr)
@@ -87,38 +86,24 @@ data class AltinnTilganger(
 ) {
     data class AltinnTilgang(
         val orgnr: String,
+        val navn: String,
+        val organisasjonsform: String,
         val altinn3Tilganger: Set<String>,
         val altinn2Tilganger: Set<String>,
         val underenheter: List<AltinnTilgang>,
-        val navn: String,
-        val organisasjonsform: String,
-    ) {
-        val orgNr = orgnr
-        val name = navn
-        val organizationForm = organisasjonsform
-    }
+    )
 
     @get:JsonIgnore
-    val organisasjonerFlattened : List<Organisasjon>
-        get() = hierarki.flatMap { flattenUnderOrganisasjoner(it) }
+    val orgnrFlattened = hierarki.flatMap { flatten(it) { e -> e.orgnr } }
 
-    fun harOrganisasjon(orgnr: String) =
-        organisasjonerFlattened.any { it.organizationNumber == orgnr }
+    fun harOrganisasjon(orgnr: String) = orgnrFlattened.any { it == orgnr }
 
     fun harTilgang(orgnr: String, tjeneste: String) = orgNrTilTilganger[orgnr]?.contains(tjeneste) ?: false
-
-    private fun flattenUnderOrganisasjoner(
-        altinnTilgang: AltinnTilgang,
-        parentOrgNr: String? = null
-    ): List<Organisasjon> {
-        val parent = Organisasjon(
-            name = altinnTilgang.name,
-            parentOrganizationNumber = parentOrgNr,
-            organizationForm = altinnTilgang.organizationForm,
-            organizationNumber = altinnTilgang.orgNr
-        )
-        val children = altinnTilgang.underenheter.flatMap { flattenUnderOrganisasjoner(it, parent.organizationNumber) }
-        return listOf(parent) + children
-    }
 }
 
+private fun <T> flatten(
+    e: AltinnTilgang,
+    mapFn: (AltinnTilgang) -> T?
+): List<T> = listOfNotNull(
+    mapFn(e)
+) + e.underenheter.flatMap { flatten(it, mapFn) }
