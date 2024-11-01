@@ -86,13 +86,17 @@ data class AltinnTilganger(
     val tilgangTilOrgNr: Map<String, Set<String>>,
 ) {
     data class AltinnTilgang(
-        val orgNr: String,
+        val orgnr: String,
         val altinn3Tilganger: Set<String>,
         val altinn2Tilganger: Set<String>,
         val underenheter: List<AltinnTilgang>,
-        val name: String,
-        val organizationForm: String,
-    )
+        val navn: String,
+        val organisasjonsform: String,
+    ) {
+        val orgNr = orgnr
+        val name = navn
+        val organizationForm = organisasjonsform
+    }
 
     @get:JsonIgnore
     val organisasjonerFlattened : List<Organisasjon>

@@ -70,29 +70,29 @@ class RefusjonStatusIntegrationTest {
                 isError = false,
                 hierarki = listOf(
                     AltinnTilganger.AltinnTilgang(
-                        orgNr = "1",
+                        orgnr = "1",
                         altinn3Tilganger = setOf(),
                         altinn2Tilganger = setOf(),
                         underenheter = listOf(
                             AltinnTilganger.AltinnTilgang(
-                                orgNr = "314",
+                                orgnr = "314",
                                 altinn3Tilganger = setOf(),
                                 altinn2Tilganger = setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
                                 underenheter = listOf(),
-                                name = "Foo & Co",
-                                organizationForm = "BEDR"
+                                navn = "Foo & Co",
+                                organisasjonsform = "BEDR"
                             ),
                             AltinnTilganger.AltinnTilgang(
-                                orgNr = "315",
+                                orgnr = "315",
                                 altinn3Tilganger = setOf(),
                                 altinn2Tilganger = setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
                                 underenheter = listOf(),
-                                name = "Bar ltd.",
-                                organizationForm = "BEDR"
+                                navn = "Bar ltd.",
+                                organisasjonsform = "BEDR"
                             ),
                         ),
-                        name = "overenhet",
-                        organizationForm = "AS"
+                        navn = "overenhet",
+                        organisasjonsform = "AS"
                     ),
                 ),
                 orgNrTilTilganger = mapOf(
