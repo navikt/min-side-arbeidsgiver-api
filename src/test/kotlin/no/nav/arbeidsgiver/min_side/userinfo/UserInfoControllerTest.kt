@@ -155,15 +155,9 @@ class UserInfoControllerTest {
                               "altinn2Tilganger": [
                                 "3403:1"
                               ],
-                              "underenheter": [],
-                              "orgNr": "10",
-                              "name": "underenhet",
-                              "organizationForm": "BEDR"
+                              "underenheter": []
                             }
-                          ],
-                          "orgNr": "1",
-                          "name": "overenhet",
-                          "organizationForm": "AS"
+                          ]
                         }
                       ],
                       "tilganger": {

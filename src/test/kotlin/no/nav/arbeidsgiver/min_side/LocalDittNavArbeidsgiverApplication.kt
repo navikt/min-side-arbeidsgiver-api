@@ -33,12 +33,6 @@ class LocalDittNavArbeidsgiverApplication : DittNavArbeidsgiverApplication() {
             @Value("classpath:mock/altinntilganger.json") altinntilganger: Resource,
         ): AltinnService {
             return mock(AltinnService::class.java).also {
-                `when`(it.hentOrganisasjoner())
-                    .thenReturn(
-                        objectMapper.readValue<List<Organisasjon>>(
-                            organisasjonerJson.inputStream.readAllBytes()
-                        )
-                    )
                 `when`(
                     it.hentAltinnTilganger()
                 ).thenReturn(
