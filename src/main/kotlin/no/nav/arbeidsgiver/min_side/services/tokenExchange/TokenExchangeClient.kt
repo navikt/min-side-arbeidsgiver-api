@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.tokenExchange
 
-import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
+import no.nav.arbeidsgiver.min_side.config.retryInterceptor
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpEntity
@@ -9,6 +9,9 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
+import org.springframework.web.client.HttpServerErrorException
+import java.net.SocketException
+import javax.net.ssl.SSLHandshakeException
 
 interface TokenExchangeClient {
     fun exchange(subjectToken: String, audience: String): TokenXToken
@@ -26,10 +29,10 @@ class TokenExchangeClientImpl(
         retryInterceptor(
             3,
             250L,
-            java.net.SocketException::class.java,
-            javax.net.ssl.SSLHandshakeException::class.java,
-            org.springframework.web.client.HttpServerErrorException.GatewayTimeout::class.java,
-            org.springframework.web.client.HttpServerErrorException.ServiceUnavailable::class.java,
+            SocketException::class.java,
+            SSLHandshakeException::class.java,
+            HttpServerErrorException.GatewayTimeout::class.java,
+            HttpServerErrorException.ServiceUnavailable::class.java,
         )
     ).build()
 
