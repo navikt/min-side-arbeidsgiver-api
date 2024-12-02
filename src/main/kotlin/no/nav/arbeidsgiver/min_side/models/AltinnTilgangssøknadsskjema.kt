@@ -1,4 +1,4 @@
-package no.nav.arbeidsgiver.min_side.tilgangssoknad
+package no.nav.arbeidsgiver.min_side.models
 
 data class AltinnTilgangssøknadsskjema(
     val orgnr: String,

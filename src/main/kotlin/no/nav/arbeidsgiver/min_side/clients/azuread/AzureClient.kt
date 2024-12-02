@@ -1,7 +1,7 @@
-package no.nav.arbeidsgiver.min_side.azuread
+package no.nav.arbeidsgiver.min_side.clients.azuread
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.arbeidsgiver.min_side.config.retryInterceptor
+import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders

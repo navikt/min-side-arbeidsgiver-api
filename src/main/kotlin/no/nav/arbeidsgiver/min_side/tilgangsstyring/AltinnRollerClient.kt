@@ -2,7 +2,7 @@ package no.nav.arbeidsgiver.min_side.tilgangsstyring
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.arbeidsgiver.min_side.config.retryInterceptor
+import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder

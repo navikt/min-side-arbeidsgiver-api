@@ -1,10 +1,12 @@
-package no.nav.arbeidsgiver.min_side.tilgangssoknad
+package no.nav.arbeidsgiver.min_side.clients.altinn
 
-import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
+import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknadsskjema
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnConfig
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.ClientAssertionTokenFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpMethod
@@ -13,11 +15,9 @@ import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.*
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
-@MockBean(
-    ClientAssertionTokenFactory::class,
-    MaskinportenTokenServiceStub::class,
-)
-@RestClientTest(AltinnTilgangssøknadClient::class,)
+@MockBean(ClientAssertionTokenFactory::class)
+@RestClientTest(AltinnTilgangssøknadClient::class)
+@EnableConfigurationProperties(AltinnConfig::class)
 class AltinnTilgangssøknadClientTest {
     @Autowired
     lateinit var server: MockRestServiceServer
@@ -31,21 +31,10 @@ class AltinnTilgangssøknadClientTest {
     @Test
     fun hentSøknader() {
         val fnr = "42"
-        server.expect(
-            requestToUriTemplate(
-                "/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter={filter}",
-                "CoveredBy eq '$fnr'"
-            )
-        )
+        server.expect(requestToUriTemplate("http://altinn/altinn/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter={filter}", "CoveredBy eq '$fnr'"))
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(altinnHentSøknadResponse, MediaType.APPLICATION_JSON))
-        server.expect(
-            requestToUriTemplate(
-                "/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter={filter}&continuation={continuation}",
-                "CoveredBy eq '$fnr'",
-                continuationtoken
-            )
-        )
+        server.expect(requestToUriTemplate("http://altinn/altinn/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter={filter}&continuation={continuation}", "CoveredBy eq '$fnr'", continuationtoken))
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(altinnHentSøknadTomResponse, MediaType.APPLICATION_JSON))
 
@@ -66,7 +55,7 @@ class AltinnTilgangssøknadClientTest {
             serviceEdition = 7,
         )
 
-        server.expect(requestToUriTemplate("/api/serviceowner/delegationRequests?ForceEIAuthentication"))
+        server.expect(requestToUriTemplate("http://altinn/altinn/ekstern/altinn/api/serviceowner/delegationRequests?ForceEIAuthentication"))
             .andExpect(method(HttpMethod.POST))
             .andExpect(content().json(altinnSendSøknadRequest, true))
             .andRespond(withSuccess(altinnSendSøknadResponse, MediaType.APPLICATION_JSON))
