@@ -1,10 +1,8 @@
-package no.nav.arbeidsgiver.min_side.controller
+package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
-import no.nav.arbeidsgiver.min_side.clients.altinn.AltinnTilgangssøknadClient
 import no.nav.arbeidsgiver.min_side.config.SecurityConfig
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknad
-import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknadsskjema
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -43,14 +41,15 @@ class AltinnTilgangSoknadControllerTest {
 
     @Test
     fun mineSøknaderOmTilgang() {
-        val altinnTilgangssøknad = AltinnTilgangssøknad()
-        altinnTilgangssøknad.orgnr = "314"
-        altinnTilgangssøknad.serviceCode = "13337"
-        altinnTilgangssøknad.serviceEdition = 3
-        altinnTilgangssøknad.status = "Created"
-        altinnTilgangssøknad.createdDateTime = "now"
-        altinnTilgangssøknad.lastChangedDateTime = "whenever"
-        altinnTilgangssøknad.submitUrl = "https://yolo.com"
+        val altinnTilgangssøknad = AltinnTilgangssøknad(
+            orgnr = "314",
+            serviceCode = "13337",
+            serviceEdition = 3,
+            status = "Created",
+            createdDateTime = "now",
+            lastChangedDateTime = "whenever",
+            submitUrl = "https://yolo.com",
+        )
         `when`(altinnTilgangssøknadClient.hentSøknader("42")).thenReturn(listOf(altinnTilgangssøknad))
 
         val jsonResponse = mockMvc.get("/api/altinn-tilgangssoknad") {
