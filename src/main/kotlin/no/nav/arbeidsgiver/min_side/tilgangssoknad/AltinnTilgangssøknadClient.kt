@@ -12,6 +12,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.HttpHeaders
 import org.springframework.http.RequestEntity
 import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpClientErrorException.BadRequest
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.exchange
@@ -66,22 +67,33 @@ class AltinnTilgangssøknadClient(
                     }
                 }"
 
-            val body = restTemplate.exchange<Søknadsstatus?>(
-                RequestEntity.get(uri, filter, continuationtoken)
-                    .headers(HttpHeaders().apply {
-                        set("accept", "application/hal+json")
-                        set("apikey", altinnApiKey)
-                        setBearerAuth(maskinportenTokenService.currentAccessToken())
-                    }).build()
-            ).body
+            val body = try {
+                restTemplate.exchange<Søknadsstatus?>(
+                    RequestEntity.get(uri, filter, continuationtoken)
+                        .headers(HttpHeaders().apply {
+                            set("accept", "application/hal+json")
+                            set("apikey", altinnApiKey)
+                            setBearerAuth(maskinportenTokenService.currentAccessToken())
+                        }).build()
+                ).body
+            } catch (e: BadRequest) {
+                if (e.message!!.contains("User profile")) { // Altinn returns 400 if user does not exist
+                    null
+                } else {
+                    throw e
+                }
+            }
 
             if (body == null) {
                 log.error("Altinn delegation requests: body missing")
                 break
             }
 
-            continuationtoken = body.continuationtoken
-            shouldContinue = body.embedded!!.delegationRequests!!.isEmpty()
+            if (body.embedded!!.delegationRequests!!.isEmpty()) {
+                shouldContinue = false
+            } else {
+                continuationtoken = body.continuationtoken
+            }
 
             body.embedded.delegationRequests!!.mapTo(resultat) { søknadDTO: DelegationRequest ->
                 AltinnTilgangssøknad(
@@ -169,3 +181,22 @@ data class Søknadsstatus(
         val delegationRequests: List<DelegationRequest>? = null
     )
 }
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class AltinnTilgangssøknad(
+    val orgnr: String? = null,
+    val serviceCode: String? = null,
+    val serviceEdition: Int? = null,
+    val status: String? = null,
+    val createdDateTime: String? = null,
+    val lastChangedDateTime: String? = null,
+    val submitUrl: String? = null
+)
+
+data class AltinnTilgangssøknadsskjema(
+    val orgnr: String,
+    val redirectUrl: String,
+    val serviceCode: String,
+    val serviceEdition: Int,
+)
