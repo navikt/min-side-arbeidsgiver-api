@@ -24,8 +24,6 @@ spec:
       consumes:
         - name: "altinn:serviceowner/rolesandrights"
         - name: "altinn:serviceowner/organizations"
-        - name: "altinn:serviceowner/delegationrequests.read"
-        - name: "altinn:serviceowner/delegationrequests.write"
   kafka:
     pool: nav-prod
   gcp:
