@@ -84,8 +84,6 @@ nais.cluster.name: local
 
 altinn:
   altinnHeader: "test"
-  APIGwHeader: "test"
-  APIGwUrl: http://altinn/altinn
   apiBaseUrl: "http://altinn.example.org"
 
 ereg-services.baseUrl: "https://localhost"
@@ -110,8 +108,6 @@ spring:
 
 altinn:
   altinnHeader: ${ALTINN_HEADER}
-  APIGwHeader: ${APIGW_HEADER}
-  APIGwUrl: https://api-gw-q1.oera.no
   apiBaseUrl: "https://tt02.altinn.no"
 
 ereg-services.baseUrl: "https://ereg-services.dev-fss-pub.nais.io"
@@ -136,8 +132,6 @@ spring:
 
 altinn:
   altinnHeader: ${ALTINN_HEADER}
-  APIGwHeader: ${APIGW_HEADER}
-  APIGwUrl: https://api-gw.oera.no
   apiBaseUrl: "https://www.altinn.no"
 
 ereg-services.baseUrl: "https://ereg-services.prod-fss-pub.nais.io"
