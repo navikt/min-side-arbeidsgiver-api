@@ -1,8 +1,8 @@
 package no.nav.arbeidsgiver.min_side.kontostatus
 
 import com.github.benmanes.caffeine.cache.Caffeine
-import no.nav.arbeidsgiver.min_side.azuread.AzureService
-import no.nav.arbeidsgiver.min_side.config.retryInterceptor
+import no.nav.arbeidsgiver.min_side.clients.azuread.AzureService
+import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
 import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.config.callIdIntercetor
 import org.springframework.beans.factory.annotation.Value
@@ -15,9 +15,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClientResponseException
-import java.net.SocketException
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLHandshakeException
 
 @Component
 class KontoregisterClient(
@@ -43,8 +41,8 @@ class KontoregisterClient(
             retryInterceptor(
                 3,
                 250L,
-                SocketException::class.java,
-                SSLHandshakeException::class.java,
+                java.net.SocketException::class.java,
+                javax.net.ssl.SSLHandshakeException::class.java,
             )
         )
         .build()

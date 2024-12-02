@@ -2,6 +2,7 @@ package no.nav.arbeidsgiver.min_side.varslingstatus
 
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient.Kontaktinfo
+import no.nav.arbeidsgiver.min_side.models.Altinn2Organisasjon
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import org.junit.jupiter.api.Test
