@@ -90,7 +90,7 @@ jobs:
     name: Deploy dev (dev-gcp)
     needs: bygg
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/altinn_tilgangsoknader_take2'
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
