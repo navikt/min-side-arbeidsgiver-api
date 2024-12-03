@@ -1,4 +1,4 @@
-package no.nav.arbeidsgiver.min_side.clients
+package no.nav.arbeidsgiver.min_side.config
 
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.retry.RetryCallback

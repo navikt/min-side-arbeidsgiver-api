@@ -1,9 +1,7 @@
-package no.nav.arbeidsgiver.min_side.controller
+package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
-import no.nav.arbeidsgiver.min_side.clients.altinn.AltinnTilgangssøknadClient
 import no.nav.arbeidsgiver.min_side.config.logger
-import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknad
-import no.nav.arbeidsgiver.min_side.models.AltinnTilgangssøknadsskjema
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

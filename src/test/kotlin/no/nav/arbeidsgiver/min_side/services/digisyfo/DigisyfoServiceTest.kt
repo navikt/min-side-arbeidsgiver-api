@@ -2,7 +2,6 @@ package no.nav.arbeidsgiver.min_side.services.digisyfo
 
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.arbeidsgiver.min_side.kotlinCapture
-import no.nav.arbeidsgiver.min_side.models.Altinn2Organisasjon
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService

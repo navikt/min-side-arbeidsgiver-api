@@ -1,4 +1,4 @@
-package no.nav.arbeidsgiver.min_side.clients.azuread
+package no.nav.arbeidsgiver.min_side.azuread
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
