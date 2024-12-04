@@ -55,11 +55,9 @@ springdoc:
   packagesToScan: no.nav.arbeidsgiver.min_side
 
 azuread:
-  tenantId: ${AZURE_APP_TENANT_ID:}
   openidTokenEndpoint: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT:}
   clientId: ${AZURE_APP_CLIENT_ID:}
-  openidIssuer: ${AZURE_OPENID_CONFIG_ISSUER:}
-  jwk: ${AZURE_APP_JWK:}
+  clientSecret: ${AZURE_APP_CLIENT_SECRET:}
 
 ---
 
