@@ -2,9 +2,9 @@ package no.nav.arbeidsgiver.min_side.kontostatus
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
-import no.nav.arbeidsgiver.min_side.config.retryInterceptor
 import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.config.callIdIntercetor
+import no.nav.arbeidsgiver.min_side.config.retryInterceptor
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.cache.annotation.Cacheable
@@ -33,9 +33,9 @@ class KontoregisterClient(
             ClientHttpRequestInterceptor { request, body, execution ->
                 request.headers.setBearerAuth(
                     azureService.getAccessToken(gittMiljø.resolve(
-                        prod = { "prod-fss.okonomi.sokos-kontoregister" },
-                        dev = { "dev-fss.okonomi.sokos-kontoregister-q2" },
-                        other = { " " }
+                        prod = { "api://prod-fss.okonomi.sokos-kontoregister/.default" },
+                        dev = { "api://dev-fss.okonomi.sokos-kontoregister-q2/.default" },
+                        other = { "" }
                     ))
                 )
                 execution.execute(request, body)

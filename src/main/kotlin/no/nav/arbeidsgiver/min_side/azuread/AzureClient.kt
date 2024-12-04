@@ -30,22 +30,16 @@ class AzureClient(
         )
         .build()
 
-    fun fetchToken(targetApp: String, clientAssertion: String): TokenResponse {
-        val request = HttpEntity<MultiValueMap<String, String>>(
-            LinkedMultiValueMap(
-                mapOf(
-                    "tenant" to listOf(azureADProperties.tenantId),
-                    "client_id" to listOf(azureADProperties.clientId),
-                    "scope" to listOf("api://$targetApp/.default"),
-                    "client_assertion_type" to listOf("urn:ietf:params:oauth:client-assertion-type:jwt-bearer"),
-                    "client_assertion" to listOf(clientAssertion),
-                    "grant_type" to listOf("client_credentials"),
-                )
-            ),
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_FORM_URLENCODED
-            }
-        )
+    fun fetchToken(scope: String): TokenResponse {
+        val request = HttpEntity(
+                multiValueMapOf(
+                    "grant_type" to "client_credentials",
+                    "client_id" to azureADProperties.clientId,
+                    "client_secret" to azureADProperties.clientSecret,
+                    "scope" to scope,
+                ),
+                HttpHeaders().apply { contentType = MediaType.APPLICATION_FORM_URLENCODED }
+            )
 
         return restTemplate.postForEntity(
             azureADProperties.openidTokenEndpoint,
@@ -61,3 +55,10 @@ data class TokenResponse(
     @JsonProperty("expires_in") val expiresIn: Int,
     @JsonProperty("ext_expires_in") val extExpiresIn: Int
 )
+
+fun <K : Any, V>multiValueMapOf(vararg bindings: Pair<K, V>): MultiValueMap<K, V> =
+    LinkedMultiValueMap<K, V>().apply {
+        bindings.forEach { (key, value) ->
+            add(key, value)
+        }
+    }
