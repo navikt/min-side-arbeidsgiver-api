@@ -17,7 +17,6 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.web.filter.CharacterEncodingFilter
@@ -108,6 +107,40 @@ class UserInfoControllerTest {
                         organizationForm = "AS",
                     ), 0
                 ),
+            )
+        )
+        `when`(digisyfoService.hentVirksomheterOgSykmeldteV3("42")).thenReturn(
+            listOf(
+                DigisyfoService.VirksomhetOgAntallSykmeldteV3(
+                    navn = "overenhet",
+                    orgnr = "1",
+                    organisasjonsform = "AS",
+                    antallSykmeldte = 0,
+                    underenheter = listOf(
+                        DigisyfoService.VirksomhetOgAntallSykmeldteV3(
+                            navn = "underenhet",
+                            orgnr = "10",
+                            organisasjonsform = "BEDR",
+                            antallSykmeldte = 0,
+                            underenheter = listOf(),
+                        ),
+                    )
+                ),
+                DigisyfoService.VirksomhetOgAntallSykmeldteV3(
+                    navn = "overenhet",
+                    orgnr = "2",
+                    organisasjonsform = "AS",
+                    antallSykmeldte = 0,
+                    underenheter = listOf(
+                        DigisyfoService.VirksomhetOgAntallSykmeldteV3(
+                            navn = "underenhet",
+                            orgnr = "20",
+                            organisasjonsform = "BEDR",
+                            antallSykmeldte = 1,
+                            underenheter = listOf(),
+                        ),
+                    )
+                )
             )
         )
         `when`(refusjonStatusService.statusoversikt("42")).thenReturn(
@@ -227,14 +260,23 @@ class UserInfoControllerTest {
                 )
             }
         }
-    }
 
-    @Test
-    fun `returnerer http 401 for ikke innlogget bruker`() {
-        mockMvc.get("/api/userInfo/v1") {
-            with(anonymous())
-        }.andExpect {
-            status { isUnauthorized() }
+        mockMvc.get("/api/userInfo/v3") {
+            with(jwtWithPid("42"))
+        }.asyncDispatch().andExpect {
+            status { isOk() }
+            content {
+                jsonPath("$.organisasjoner.length()") { value(1) }
+            }
+        }
+
+        mockMvc.get("/api/userInfo/v3") {
+            with(jwtWithPid("42"))
+        }.asyncDispatch().andExpect {
+            status { isOk() }
+            content {
+                jsonPath("$.digisyfoOrganisasjoner.length()") { value(2) }
+            }
         }
     }
 
