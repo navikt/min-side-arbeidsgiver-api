@@ -115,6 +115,7 @@ class DigisyfoServiceTest {
                 DigisyfoRepository.Virksomhetsinfo("3000", 2),
                 DigisyfoRepository.Virksomhetsinfo("301", 1),
                 DigisyfoRepository.Virksomhetsinfo("20", 1),
+                DigisyfoRepository.Virksomhetsinfo("10", 1),
                 DigisyfoRepository.Virksomhetsinfo("11", 1),
             )
         )
