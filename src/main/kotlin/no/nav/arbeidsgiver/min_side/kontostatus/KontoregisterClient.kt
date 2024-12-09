@@ -1,10 +1,10 @@
 package no.nav.arbeidsgiver.min_side.kontostatus
 
 import com.github.benmanes.caffeine.cache.Caffeine
-import no.nav.arbeidsgiver.min_side.clients.azuread.AzureService
-import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
+import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.config.callIdIntercetor
+import no.nav.arbeidsgiver.min_side.config.retryInterceptor
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.cache.annotation.Cacheable
@@ -15,7 +15,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClientResponseException
+import java.net.SocketException
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLHandshakeException
 
 @Component
 class KontoregisterClient(
@@ -31,9 +33,9 @@ class KontoregisterClient(
             ClientHttpRequestInterceptor { request, body, execution ->
                 request.headers.setBearerAuth(
                     azureService.getAccessToken(gittMiljø.resolve(
-                        prod = { "prod-fss.okonomi.sokos-kontoregister" },
-                        dev = { "dev-fss.okonomi.sokos-kontoregister-q2" },
-                        other = { " " }
+                        prod = { "api://prod-fss.okonomi.sokos-kontoregister/.default" },
+                        dev = { "api://dev-fss.okonomi.sokos-kontoregister-q2/.default" },
+                        other = { "" }
                     ))
                 )
                 execution.execute(request, body)
@@ -41,8 +43,8 @@ class KontoregisterClient(
             retryInterceptor(
                 3,
                 250L,
-                java.net.SocketException::class.java,
-                javax.net.ssl.SSLHandshakeException::class.java,
+                SocketException::class.java,
+                SSLHandshakeException::class.java,
             )
         )
         .build()
