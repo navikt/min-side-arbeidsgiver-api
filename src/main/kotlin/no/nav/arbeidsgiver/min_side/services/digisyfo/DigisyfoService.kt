@@ -18,6 +18,14 @@ class DigisyfoService(
         val antallSykmeldte: Int,
     )
 
+    data class VirksomhetOgAntallSykmeldteV3(
+        val orgnr: String,
+        val navn: String,
+        val organisasjonsform: String,
+        val antallSykmeldte: Int,
+        val underenheter: List<VirksomhetOgAntallSykmeldteV3>?
+    )
+
     fun hentVirksomheterOgSykmeldte(fnr: String): Collection<VirksomhetOgAntallSykmeldte> {
         val underenheter = digisyfoRepository.virksomheterOgSykmeldte(fnr)
             .flatMap { hentUnderenhet(it) }
@@ -34,6 +42,42 @@ class DigisyfoService(
         ).increment()
 
         return resultat.distinctBy { it.organisasjon.organizationNumber }
+    }
+
+    fun hentVirksomheterOgSykmeldteV3(fnr: String): List<VirksomhetOgAntallSykmeldteV3> {
+        val underenheter = digisyfoRepository.virksomheterOgSykmeldte(fnr)
+            .flatMap { hentUnderenhet(it) }
+
+        val alleOverenheter = underenheter
+            .mapNotNull { it.organisasjon.parentOrganizationNumber }
+            .toSet()
+            .flatMap { hentOverenhet(it) }
+            .distinctBy { it.organisasjon.organizationNumber }
+
+        val alleOrganisasjoner = underenheter + alleOverenheter
+
+        fun byggHierarki(org: VirksomhetOgAntallSykmeldte): VirksomhetOgAntallSykmeldteV3 {
+            val direkteUnderenheter = alleOrganisasjoner.filter {
+                it.organisasjon.parentOrganizationNumber == org.organisasjon.organizationNumber
+            }
+            return VirksomhetOgAntallSykmeldteV3(
+                orgnr = org.organisasjon.organizationNumber,
+                navn = org.organisasjon.name,
+                organisasjonsform = org.organisasjon.organizationForm,
+                antallSykmeldte = org.antallSykmeldte,
+                underenheter = direkteUnderenheter.map(::byggHierarki).ifEmpty { null }
+            )
+        }
+
+        meterRegistry.counter(
+            "msa.digisyfo.tilgang",
+            "virksomheter",
+            underenheter.size.toString()
+        ).increment()
+
+        return  alleOverenheter
+            .filter { it.organisasjon.parentOrganizationNumber == null }
+            .map(::byggHierarki)
     }
 
     private fun hentForfedre(org: Organisasjon, orgs: MutableList<Organisasjon> = mutableListOf()): List<Organisasjon> {

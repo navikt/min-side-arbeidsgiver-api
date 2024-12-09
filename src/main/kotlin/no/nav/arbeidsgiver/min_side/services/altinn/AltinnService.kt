@@ -6,7 +6,6 @@ import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import no.nav.arbeidsgiver.min_side.clients.retryInterceptor
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
 import org.springframework.beans.factory.annotation.Value
