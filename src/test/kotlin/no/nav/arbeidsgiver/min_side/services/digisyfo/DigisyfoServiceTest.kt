@@ -159,7 +159,7 @@ val digisyfoVirksomheterHieraki = listOf(
                         navn = "underenhet",
                         organisasjonsform = "BEDR",
                         antallSykmeldte = 1,
-                        underenheter = null
+                        underenheter = listOf()
                     ),
                     DigisyfoService.VirksomhetOgAntallSykmeldteV3(
                         orgnr = "300",
@@ -172,7 +172,7 @@ val digisyfoVirksomheterHieraki = listOf(
                                 navn = "underenhet",
                                 organisasjonsform = "BEDR",
                                 antallSykmeldte = 2,
-                                underenheter = null
+                                underenheter = listOf()
                             )
                         )
                     )
@@ -191,7 +191,7 @@ val digisyfoVirksomheterHieraki = listOf(
                 navn = "underenhet",
                 organisasjonsform = "BEDR",
                 antallSykmeldte = 1,
-                underenheter = null
+                underenheter = listOf()
             )
         )
     ),
@@ -206,14 +206,14 @@ val digisyfoVirksomheterHieraki = listOf(
                 navn = "underenhet",
                 organisasjonsform = "BEDR",
                 antallSykmeldte = 1,
-                underenheter = null
+                underenheter = listOf()
             ),
             DigisyfoService.VirksomhetOgAntallSykmeldteV3(
                 orgnr = "11",
                 navn = "underenhet",
                 organisasjonsform = "BEDR",
                 antallSykmeldte = 1,
-                underenheter = null
+                underenheter = listOf()
             )
         )
     )

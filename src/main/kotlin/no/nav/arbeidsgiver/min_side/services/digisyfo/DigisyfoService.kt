@@ -54,6 +54,8 @@ class DigisyfoService(
             .flatMap { hentOverenhet(it) }
             .distinctBy { it.organisasjon.organizationNumber }
 
+        //TODO når v2 er borte kan vi kanskje bygge treet mens vi henter overenheter?
+
         val alleOrganisasjoner = underenheter + alleOverenheter
 
         fun byggHierarki(org: VirksomhetOgAntallSykmeldte): VirksomhetOgAntallSykmeldteV3 {
