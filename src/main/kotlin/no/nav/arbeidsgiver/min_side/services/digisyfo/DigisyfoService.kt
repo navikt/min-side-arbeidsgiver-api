@@ -23,7 +23,7 @@ class DigisyfoService(
         val navn: String,
         val organisasjonsform: String,
         val antallSykmeldte: Int,
-        val underenheter: List<VirksomhetOgAntallSykmeldteV3>?
+        val underenheter: List<VirksomhetOgAntallSykmeldteV3>
     )
 
     fun hentVirksomheterOgSykmeldte(fnr: String): Collection<VirksomhetOgAntallSykmeldte> {
@@ -65,7 +65,7 @@ class DigisyfoService(
                 navn = org.organisasjon.name,
                 organisasjonsform = org.organisasjon.organizationForm,
                 antallSykmeldte = org.antallSykmeldte,
-                underenheter = direkteUnderenheter.map(::byggHierarki).ifEmpty { null }
+                underenheter = direkteUnderenheter.map(::byggHierarki)
             )
         }
 
