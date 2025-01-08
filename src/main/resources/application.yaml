@@ -49,7 +49,6 @@ spring:
           type: PKCS12
           location: ${KAFKA_TRUSTSTORE_PATH}
           password: ${KAFKA_CREDSTORE_PASSWORD}
-  http.client.factory: simple
 springdoc:
   swagger-ui:
     enabled: true
