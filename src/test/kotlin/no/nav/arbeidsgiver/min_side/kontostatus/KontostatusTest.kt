@@ -175,7 +175,8 @@ class KontostatusTest {
             accept = APPLICATION_JSON
             with(jwtWithPid("42"))
         }.andExpect {
-            status { isUnauthorized() }
+            status { isOk() }
+            content { null }
         }
     }
 

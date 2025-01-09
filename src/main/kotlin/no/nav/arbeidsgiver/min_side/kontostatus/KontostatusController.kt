@@ -1,11 +1,9 @@
 package no.nav.arbeidsgiver.min_side.kontostatus
 
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.client.HttpClientErrorException
 
 const val kontonummerTilgangTjenesetekode = "2896:87"
 
@@ -26,16 +24,10 @@ class KontostatusController(
     @PostMapping("/api/kontonummer/v1")
     fun getKontoNummer(
         @RequestBody body: Request,
-    ): Response {
+    ): Response? {
         val harTilgang = altinnService.harTilgang(body.virksomhetsnummer, kontonummerTilgangTjenesetekode)
         if (!harTilgang) {
-            throw HttpClientErrorException.Unauthorized.create(
-                HttpStatus.UNAUTHORIZED,
-                "Unauthorized",
-                org.springframework.http.HttpHeaders.EMPTY,
-                byteArrayOf(),
-                null
-            )
+            return null
         }
         return when (val oppslag = kontoregisterClient.hentKontonummer(body.virksomhetsnummer)) {
             null -> Response(KontonummerStatus.MANGLER_KONTONUMMER)
