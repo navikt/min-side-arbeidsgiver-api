@@ -15,29 +15,39 @@ class KontostatusController(
 
     @PostMapping("/api/kontonummerStatus/v1")
     fun getKontonummerStatus(
-        @RequestBody body: Request,
+        @RequestBody body: StatusRequest,
     ) = when (kontoregisterClient.hentKontonummer(body.virksomhetsnummer)) {
-        null -> Response(KontonummerStatus.MANGLER_KONTONUMMER)
-        else -> Response(KontonummerStatus.OK)
+        null -> StatusResponse(KontonummerStatus.MANGLER_KONTONUMMER)
+        else -> StatusResponse(KontonummerStatus.OK)
     }
 
+
+    /**
+    * Henter kontonummer for en gitt organisasjon.
+    * Kontonummer tilgangstyres på overordnet enhet, ikke på underenhet.
+    * Dersom bruker har tilgang på overordnet enhet, har hen også tilgang på underenhet (https://nav-it.slack.com/archives/CKZADNFBP/p1736263494923189)
+     */
     @PostMapping("/api/kontonummer/v1")
     fun getKontoNummer(
-        @RequestBody body: Request,
-    ): Response? {
-        val harTilgang = altinnService.harTilgang(body.virksomhetsnummer, kontonummerTilgangTjenesetekode)
+        @RequestBody body: OppslagRequest,
+    ): OppslagResponse? {
+        val harTilgang = altinnService.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgangTjenesetekode)
         if (!harTilgang) {
             return null
         }
-        return when (val oppslag = kontoregisterClient.hentKontonummer(body.virksomhetsnummer)) {
-            null -> Response(KontonummerStatus.MANGLER_KONTONUMMER)
-            else -> Response(status = KontonummerStatus.OK, kontonummer = oppslag.kontonr, orgnr = oppslag.mottaker)
+        return when (val oppslag = kontoregisterClient.hentKontonummer(body.orgnrForOppslag)) {
+            null -> OppslagResponse(KontonummerStatus.MANGLER_KONTONUMMER)
+            else -> OppslagResponse(status = KontonummerStatus.OK, kontonummer = oppslag.kontonr, orgnr = oppslag.mottaker)
         }
     }
 
-    data class Request(val virksomhetsnummer: String)
+    data class StatusRequest(val virksomhetsnummer: String)
+    data class StatusResponse(val status: KontonummerStatus)
 
-    data class Response(
+
+    data class OppslagRequest(val orgnrForTilgangstyring: String, val orgnrForOppslag: String)
+
+    data class OppslagResponse(
         val status: KontonummerStatus,
         val kontonummer: String? = null,
         val orgnr: String? = null
