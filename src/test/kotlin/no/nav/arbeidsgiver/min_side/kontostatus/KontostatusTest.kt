@@ -136,7 +136,12 @@ class KontostatusTest {
         }
         `when`(altinnService.harTilgang(virksomhetsnummer, "2896:87")).thenReturn(true)
         mockMvc.post("/api/kontonummer/v1") {
-            content = """{"virksomhetsnummer": "$virksomhetsnummer"}"""
+            content = """
+                {
+                    "orgnrForOppslag": "$virksomhetsnummer",
+                    "orgnrForTilgangstyring": "$virksomhetsnummer"
+                }
+                """.trimIndent()
             contentType = APPLICATION_JSON
             accept = APPLICATION_JSON
             with(jwtWithPid("42"))
@@ -170,7 +175,12 @@ class KontostatusTest {
         }
         `when`(altinnService.harTilgang(virksomhetsnummer, "2896:87")).thenReturn(false)
         mockMvc.post("/api/kontonummer/v1") {
-            content = """{"virksomhetsnummer": "$virksomhetsnummer"}"""
+            content = """
+                {
+                    "orgnrForOppslag": "$virksomhetsnummer",
+                    "orgnrForTilgangstyring": "$virksomhetsnummer"
+                }
+                """.trimIndent()
             contentType = APPLICATION_JSON
             accept = APPLICATION_JSON
             with(jwtWithPid("42"))
@@ -194,8 +204,13 @@ class KontostatusTest {
 
         `when`(altinnService.harTilgang(virksomhetsnummer, "2896:87")).thenReturn(true)
 
-        mockMvc.post("/api/kontonummerStatus/v1") {
-            content = """{"virksomhetsnummer": "$virksomhetsnummer"}"""
+        mockMvc.post("/api/kontonummer/v1") {
+            content = """
+                {
+                    "orgnrForOppslag": "$virksomhetsnummer",
+                    "orgnrForTilgangstyring": "$virksomhetsnummer"
+                }
+                """.trimIndent()
             contentType = APPLICATION_JSON
             accept = APPLICATION_JSON
             with(jwtWithPid("123"))
