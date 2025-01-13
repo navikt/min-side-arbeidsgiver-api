@@ -119,19 +119,6 @@ class EregService(
         )
     }
 
-
-//    fun overenhet(json: JsonNode?): EregOrganisasjon? {
-//        if (json == null || json.isEmpty) {
-//            return null
-//        }
-//        return Organisasjon(
-//            navn = samletNavn(json),
-//            over = orgnummerTilOverenhet(json),
-//            organizationNumber = json.at("/organisasjonsnummer").asText(),
-//            organizationForm = json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText(),
-//        )
-//    }
-
     private fun orgnummerTilOverenhet(json: JsonNode): String? =
         if ("JuridiskEnhet" == json.at("/type").asText()) {
             null
