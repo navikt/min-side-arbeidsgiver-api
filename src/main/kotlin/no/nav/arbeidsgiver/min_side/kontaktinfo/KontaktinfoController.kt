@@ -17,7 +17,7 @@ class KontaktinfoController(
     fun getKontaktinfo(@RequestBody requestBody: KontaktinfoRequest): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
         val orgnrHovedenhet = eregService.hentUnderenhet(orgnrUnderenhet)
-            ?.parentOrganizationNumber
+            ?.overordnetEnhet
 
         return KontaktinfoResponse(
             underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet),

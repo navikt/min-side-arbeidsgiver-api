@@ -2,7 +2,7 @@ package no.nav.arbeidsgiver.min_side.varslingstatus
 
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient.Kontaktinfo
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
@@ -80,11 +80,17 @@ class KontaktInfoPollingServiceTest {
 
         val hovedenhetOrgnr = "2".repeat(9)
 
-        val underenhet = Organisasjon(
-            name = "organisasjon",
-            organizationForm = "BEDR",
-            organizationNumber = underenhetOrgnr,
-            parentOrganizationNumber = hovedenhetOrgnr,
+        val underenhet = EregOrganisasjon(
+            navn = "organisasjon",
+            organisasjonsform = "BEDR",
+            organisasjonsnummer = underenhetOrgnr,
+            overordnetEnhet = hovedenhetOrgnr,
+            harRegistrertAntallAnsatte = false,
+            naeringskoder = null,
+            hjemmeside = null,
+            postadresse = null,
+            antallAnsatte = null,
+            forretningsadresse = null,
         )
 
         val ingenKontaktinfo =  Kontaktinfo(

@@ -36,10 +36,38 @@ class EregServiceTest {
 
         val result = eregService.hentUnderenhet(virksomhetsnummer)!!
 
-        assertEquals("910825526", result.organizationNumber)
-        assertEquals("GAMLE FREDRIKSTAD OG RAMNES REGNSKA P", result.name)
-        assertEquals("810825472", result.parentOrganizationNumber)
-        assertEquals("BEDR", result.organizationForm)
+        assertEquals("910825526", result.organisasjonsnummer)
+        assertEquals("GAMLE FREDRIKSTAD OG RAMNES REGNSKA P", result.navn)
+        assertEquals("810825472", result.overordnetEnhet)
+        assertEquals("BEDR", result.organisasjonsform)
+        assertEquals(123, result.antallAnsatte)
+        assertEquals(
+            Adresse(
+                type = "Postadresse",
+                adresse = "PERSONALKONTORET, PHILIP LUNDQUIST,POSTBOKS 144",
+                kommune = "",
+                kommunenummer = "1120",
+                land = "",
+                landkode = "NO",
+                poststed = "KLEPPE",
+                postnummer = "4358"
+            ), result.postadresse
+        )
+        assertEquals(
+            Adresse(
+                type = "Forretningsadresse",
+                adresse = "AVDELING HORTEN, VED PHILIP LUNDQUIST, APOTEKERGATA 16",
+                kommune = "",
+                kommunenummer = "3801",
+                land = "",
+                landkode = "NO",
+                poststed = "HORTEN",
+                postnummer = "3187"
+            ), result.forretningsadresse
+        )
+        assertEquals("", result.hjemmeside)
+        assertEquals(emptyList<Kode>(), result.naeringskoder)
+        assertEquals(true, result.harRegistrertAntallAnsatte)
     }
 
     @Test
@@ -51,10 +79,16 @@ class EregServiceTest {
 
         val result = eregService.hentUnderenhet(virksomhetsnummer)!!
 
-        assertEquals("912998827", result.organizationNumber)
-        assertEquals("ARBEIDS- OG VELFERDSDIREKTORATET AVD FYRSTIKKALLÉEN", result.name)
-        assertEquals("889640782", result.parentOrganizationNumber)
-        assertEquals("BEDR", result.organizationForm)
+        assertEquals("912998827", result.organisasjonsnummer)
+        assertEquals("ARBEIDS- OG VELFERDSDIREKTORATET AVD FYRSTIKKALLÉEN", result.navn)
+        assertEquals("889640782", result.overordnetEnhet)
+        assertEquals("BEDR", result.organisasjonsform)
+        assertEquals(null, result.antallAnsatte)
+        assertEquals(null, result.postadresse)
+        assertEquals(null, result.forretningsadresse)
+        assertEquals("", result.hjemmeside)
+        assertEquals(emptyList<Kode>(), result.naeringskoder)
+        assertEquals(false, result.harRegistrertAntallAnsatte)
     }
 
     @Test
@@ -62,7 +96,9 @@ class EregServiceTest {
         val virksomhetsnummer = "42"
         server.expect(requestTo("/v1/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
             .andExpect(method(HttpMethod.GET))
-            .andRespond(withStatus(HttpStatus.NOT_FOUND).body(underenhetIkkeFunnetRespons).contentType(APPLICATION_JSON))
+            .andRespond(
+                withStatus(HttpStatus.NOT_FOUND).body(underenhetIkkeFunnetRespons).contentType(APPLICATION_JSON)
+            )
 
         val result = eregService.hentUnderenhet(virksomhetsnummer)
 
@@ -78,10 +114,38 @@ class EregServiceTest {
 
         val result = eregService.hentOverenhet(orgnr)!!
 
-        assertEquals("810825472", result.organizationNumber)
-        assertEquals("MALMEFJORD OG RIDABU REGNSKAP", result.name)
-        assertEquals(null, result.parentOrganizationNumber)
-        assertEquals("AS", result.organizationForm)
+        assertEquals("810825472", result.organisasjonsnummer)
+        assertEquals("MALMEFJORD OG RIDABU REGNSKAP", result.navn)
+        assertEquals(null, result.overordnetEnhet)
+        assertEquals("AS", result.organisasjonsform)
+        assertEquals(null, result.antallAnsatte)
+        assertEquals(
+            Adresse(
+                type = "Postadresse",
+                adresse = "POSTBOKS 4120",
+                kommune = "",
+                kommunenummer = "3403",
+                land = "",
+                landkode = "NO",
+                poststed = "HAMAR",
+                postnummer = "2307"
+            ), result.postadresse
+        )
+        assertEquals(
+            Adresse(
+                type = "Forretningsadresse",
+                adresse = "RÅDHUSET",
+                kommune = "",
+                kommunenummer = "1579",
+                land = "",
+                landkode = "NO",
+                poststed = "ELNESVÅGEN",
+                postnummer = "6440"
+            ), result.forretningsadresse
+        )
+        assertEquals("", result.hjemmeside)
+        assertEquals(emptyList<Kode>(), result.naeringskoder)
+        assertEquals(false, result.harRegistrertAntallAnsatte)
     }
 
     @Test
@@ -93,14 +157,42 @@ class EregServiceTest {
 
         val result = eregService.hentOverenhet(orgnr)!!
 
-        assertEquals("889640782", result.organizationNumber)
-        assertEquals("ARBEIDS- OG VELFERDSETATEN", result.name)
-        assertEquals("983887457", result.parentOrganizationNumber)
-        assertEquals("ORGL", result.organizationForm)
+        assertEquals("889640782", result.organisasjonsnummer)
+        assertEquals("ARBEIDS- OG VELFERDSETATEN", result.navn)
+        assertEquals("983887457", result.overordnetEnhet)
+        assertEquals("ORGL", result.organisasjonsform)
+        assertEquals(null, result.antallAnsatte)
+        assertEquals(
+            Adresse(
+                type = "Postadresse",
+                adresse = "Postboks 5 St Olavs Plass",
+                kommune = "",
+                kommunenummer = "0301",
+                land = "",
+                landkode = "NO",
+                poststed = "",
+                postnummer = "0130"
+            ), result.postadresse
+        )
+        assertEquals(
+            Adresse(
+                type = "Forretningsadresse",
+                adresse = "Økernveien 94",
+                kommune = "",
+                kommunenummer = "0301",
+                land = "",
+                landkode = "NO",
+                poststed = "",
+                postnummer = "0579"
+            ), result.forretningsadresse
+        )
+        assertEquals("www.nav.no", result.hjemmeside)
+        assertEquals(listOf(Kode("84.120", "")), result.naeringskoder)
+        assertEquals(false, result.harRegistrertAntallAnsatte)
     }
 
     @Test
-    fun `henter jurudisk enhet for orgledd 889640782`(){
+    fun `henter jurudisk enhet for orgledd 889640782`() {
         val orgnr = "314"
         server.expect(requestTo("/v1/organisasjon/$orgnr"))
             .andExpect(method(HttpMethod.GET))
@@ -108,10 +200,37 @@ class EregServiceTest {
 
         val result = eregService.hentOverenhet(orgnr)!!
 
-        assertEquals("983887457", result.organizationNumber)
-        assertEquals("ARBEIDS- OG SOSIALDEPARTEMENTET", result.name)
-        assertEquals(null, result.parentOrganizationNumber)
-        assertEquals("STAT", result.organizationForm)
+        assertEquals("983887457", result.organisasjonsnummer)
+        assertEquals("ARBEIDS- OG SOSIALDEPARTEMENTET", result.navn)
+        assertEquals(null, result.overordnetEnhet)
+        assertEquals("STAT", result.organisasjonsform)
+        assertEquals(
+            Adresse(
+                type = "Postadresse",
+                adresse = "Postboks 8019 Dep",
+                kommune = "",
+                kommunenummer = "0301",
+                land = "",
+                landkode = "NO",
+                poststed = "",
+                postnummer = "0030"
+            ), result.postadresse
+        )
+        assertEquals(
+            Adresse(
+                type = "Forretningsadresse",
+                adresse = "Akersgata 64",
+                kommune = "",
+                kommunenummer = "0301",
+                land = "",
+                landkode = "NO",
+                poststed = "",
+                postnummer = "0180"
+            ), result.forretningsadresse
+        )
+        assertEquals("regjeringen.no/asd", result.hjemmeside)
+        assertEquals(listOf(Kode("84.110", "")), result.naeringskoder)
+        assertEquals(false, result.harRegistrertAntallAnsatte)
     }
 
     @Test
@@ -144,6 +263,19 @@ private const val underenhetRespons = """
     }
   },
   "organisasjonDetaljer": {
+    "ansatte": [
+      {
+        "antall": 123,
+        "bruksperiode": {
+          "fom": "2015-01-06T21:44:04.748",
+          "tom": "2015-12-06T19:45:04"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-07-01",
+          "tom": "2015-12-31"
+        }
+      }
+    ],
     "registreringsdato": "2019-07-11T00:00:00",
     "enhetstyper": [
       {
@@ -744,7 +876,7 @@ private const val orgleddRespons = """
 """
 
 private const val juridiskEnhetForOrgleddRespons = """
-    {
+ {
   "organisasjonsnummer": "983887457",
   "type": "JuridiskEnhet",
   "navn": {

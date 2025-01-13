@@ -3,7 +3,7 @@ package no.nav.arbeidsgiver.min_side.kontaktinfo
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoController.KontaktinfoRequest
 import no.nav.arbeidsgiver.min_side.kotlinAny
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -79,18 +79,28 @@ class KontaktinfoControllerAuthzTest {
          * skjult manglende tilgangssjekker. */
         `when`(eregService.hentUnderenhet(kotlinAny())).thenAnswer {
             if (it.arguments[0] == orgnrUnderenhet) {
-                Organisasjon(
-                    parentOrganizationNumber = orgnrHovedenhet,
-                    organizationNumber = orgnrUnderenhet,
-                    organizationForm = "BEDR",
-                    name = "organisasjon"
+                EregOrganisasjon(
+                    overordnetEnhet = orgnrHovedenhet,
+                    organisasjonsnummer = orgnrUnderenhet,
+                    organisasjonsform = "BEDR",
+                    navn = "organisasjon",
+                    postadresse = null,
+                    naeringskoder = null,
+                    hjemmeside = null,
+                    forretningsadresse = null,
+                    antallAnsatte = null,
                 )
             } else {
-                Organisasjon(
-                    parentOrganizationNumber = orgnrAnnet,
-                    organizationNumber = it.arguments[0] as String,
-                    organizationForm = "BEDR",
-                    name = "organisasjon"
+                EregOrganisasjon(
+                    overordnetEnhet = orgnrAnnet,
+                    organisasjonsnummer = it.arguments[0] as String,
+                    organisasjonsform = "BEDR",
+                    navn = "organisasjon",
+                    postadresse = null,
+                    naeringskoder = null,
+                    hjemmeside = null,
+                    forretningsadresse = null,
+                    antallAnsatte = null,
                 )
             }
         }

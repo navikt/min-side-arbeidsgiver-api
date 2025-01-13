@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import no.nav.arbeidsgiver.min_side.kotlinCapture
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -81,11 +82,11 @@ class DigisyfoServiceTest {
 
         val result = digisyfoService.hentVirksomheterOgSykmeldte("42")
         assertThat(result).containsExactly(
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("10", "1"), 0),
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("11", "1"), 1),
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("20", "2"), 2),
-            VirksomhetOgAntallSykmeldte(mkOverenhet("1"), 0),
-            VirksomhetOgAntallSykmeldte(mkOverenhet("2"), 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("10", "1")), 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("11", "1")), 1),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("20", "2")), 2),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("1")), 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("2")), 0),
         )
     }
 
@@ -100,11 +101,11 @@ class DigisyfoServiceTest {
 
         val result = digisyfoService.hentVirksomheterOgSykmeldte("42")
         assertThat(result).containsExactly(
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("3000", "300"), 2),
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("301", "30"), 1),
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("300", "30"), 0),
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("30", "3"), 0),
-            VirksomhetOgAntallSykmeldte(mkOverenhet("3"), 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("3000", "300")), 2),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("301", "30")), 1),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("300", "30")), 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("30", "3")), 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("3")), 0),
         )
     }
 
@@ -126,18 +127,29 @@ class DigisyfoServiceTest {
 
 
     private fun mkUnderenhet(orgnr: String, parentOrgnr: String) =
-        Organisasjon(
-            name = "underenhet",
-            organizationNumber = orgnr,
-            parentOrganizationNumber = parentOrgnr,
-            organizationForm = "BEDR",
+        EregOrganisasjon(
+            navn = "underenhet",
+            organisasjonsnummer = orgnr,
+            overordnetEnhet = parentOrgnr,
+            organisasjonsform = "BEDR",
+            antallAnsatte = null,
+            naeringskoder = null,
+            postadresse = null,
+            forretningsadresse = null,
+            hjemmeside = null,
         )
 
     private fun mkOverenhet(orgnr: String) =
-        Organisasjon(
-            name = "overenhet",
-            organizationNumber = orgnr,
-            organizationForm = "AS",
+        EregOrganisasjon(
+            navn = "overenhet",
+            organisasjonsnummer = orgnr,
+            organisasjonsform = "AS",
+            antallAnsatte = null,
+            naeringskoder = null,
+            postadresse = null,
+            overordnetEnhet = null,
+            forretningsadresse = null,
+            hjemmeside = null,
         )
 }
 
