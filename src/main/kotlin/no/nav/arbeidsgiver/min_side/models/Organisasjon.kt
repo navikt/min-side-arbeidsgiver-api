@@ -9,7 +9,10 @@ data class Organisasjon(
     var organizationForm: String,
     ) {
     companion object {
-        fun fromEregOrganisasjon(eregOrganisasjon: EregOrganisasjon): Organisasjon {
+        fun fromEregOrganisasjon(eregOrganisasjon: EregOrganisasjon?): Organisasjon? {
+            if (eregOrganisasjon == null) {
+                return null
+            }
             return Organisasjon(
                 name = eregOrganisasjon.navn,
                 parentOrganizationNumber = eregOrganisasjon.overordnetEnhet,

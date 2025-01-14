@@ -86,7 +86,7 @@ class DigisyfoService(
         if (org.parentOrganizationNumber == null) return orgs
 
         val overenhet = eregService.hentOverenhet(org.parentOrganizationNumber!!).let {
-            Organisasjon.fromEregOrganisasjon(it!!)
+            Organisasjon.fromEregOrganisasjon(it)
         } ?: return orgs
 
         orgs.add(overenhet)
@@ -97,7 +97,7 @@ class DigisyfoService(
 
     private fun hentOverenhet(orgnr: String): List<VirksomhetOgAntallSykmeldte> {
         val hovedenhet = eregService.hentOverenhet(orgnr).let {
-            Organisasjon.fromEregOrganisasjon(it!!)
+            Organisasjon.fromEregOrganisasjon(it)
         } ?: return listOf()
         val forfedre = hentForfedre(hovedenhet)
         val result = mutableListOf<VirksomhetOgAntallSykmeldte>()
@@ -108,7 +108,7 @@ class DigisyfoService(
 
     private fun hentUnderenhet(virksomhetsinfo: Virksomhetsinfo): List<VirksomhetOgAntallSykmeldte> {
         val underenhet = eregService.hentUnderenhet(virksomhetsinfo.virksomhetsnummer).let {
-            Organisasjon.fromEregOrganisasjon(it!!)
+            Organisasjon.fromEregOrganisasjon(it)
         }
             ?: return listOf()
         return listOf(

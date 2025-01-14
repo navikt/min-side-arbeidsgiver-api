@@ -82,11 +82,11 @@ class DigisyfoServiceTest {
 
         val result = digisyfoService.hentVirksomheterOgSykmeldte("42")
         assertThat(result).containsExactly(
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("10", "1")), 0),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("11", "1")), 1),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("20", "2")), 2),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("1")), 0),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("2")), 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("10", "1"))!!, 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("11", "1"))!!, 1),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("20", "2"))!!, 2),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("1"))!!, 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("2"))!!, 0),
         )
     }
 
@@ -101,11 +101,11 @@ class DigisyfoServiceTest {
 
         val result = digisyfoService.hentVirksomheterOgSykmeldte("42")
         assertThat(result).containsExactly(
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("3000", "300")), 2),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("301", "30")), 1),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("300", "30")), 0),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("30", "3")), 0),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("3")), 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("3000", "300"))!!, 2),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("301", "30"))!!, 1),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("300", "30"))!!, 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("30", "3"))!!, 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("3"))!!, 0),
         )
     }
 
