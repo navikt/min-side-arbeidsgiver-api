@@ -89,7 +89,7 @@ class KontaktinfoControllerAuthzTest {
             if (it.arguments[0] == orgnrUnderenhet) {
                 EregOrganisasjon(
                     organisasjonsnummer = orgnrUnderenhet,
-                    organisasjonsDetaljer = EregOrganisasjonDetaljer(
+                    organisasjonDetaljer = EregOrganisasjonDetaljer(
                         ansatte = null,
                         naeringer = null,
                         enhetstyper = listOf(EregEnhetstype("BEDR", null)),
@@ -97,7 +97,7 @@ class KontaktinfoControllerAuthzTest {
                         forretningsadresser = null,
                         internettadresser = null
                     ),
-                    ingaarIJuridiskEnheter = listOf(
+                    inngaarIJuridiskEnheter = listOf(
                         EregEnhetsRelasjon(
                             orgnrHovedenhet, null
                         )
@@ -109,7 +109,7 @@ class KontaktinfoControllerAuthzTest {
             } else {
                 EregOrganisasjon(
                     organisasjonsnummer = orgnrAnnet,
-                    organisasjonsDetaljer = EregOrganisasjonDetaljer(
+                    organisasjonDetaljer = EregOrganisasjonDetaljer(
                         ansatte = null,
                         naeringer = null,
                         enhetstyper = listOf(EregEnhetstype("BEDR", null)),
@@ -117,7 +117,7 @@ class KontaktinfoControllerAuthzTest {
                         forretningsadresser = null,
                         internettadresser = null
                     ),
-                    ingaarIJuridiskEnheter = null,
+                    inngaarIJuridiskEnheter = null,
                     bestaarAvOrganisasjonsledd = null,
                     type = "organisasjonsledd",
                     navn = EregNavn("organisasjon", null)

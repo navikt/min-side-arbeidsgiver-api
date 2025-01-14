@@ -23,7 +23,7 @@ class EregService(
     @Value("\${ereg-services.baseUrl}") eregBaseUrl: String?,
     restTemplateBuilder: RestTemplateBuilder
 ) {
-    private val restTemplate = restTemplateBuilder
+    internal val restTemplate = restTemplateBuilder
         .rootUri(eregBaseUrl)
         .additionalInterceptors(
             callIdIntercetor("Nav-Call-Id"),
@@ -39,11 +39,12 @@ class EregService(
     @Cacheable(EREG_CACHE_NAME)
     fun hentUnderenhet(virksomhetsnummer: String): EregOrganisasjon? {
         return try {
-            restTemplate.getForEntity(
-                "/v1/organisasjon/{virksomhetsnummer}?inkluderHierarki=true",
+            val request = restTemplate.getForEntity(
+                "/v2/organisasjon/{virksomhetsnummer}?inkluderHierarki=true",
                 EregOrganisasjon::class.java,
                 mapOf("virksomhetsnummer" to virksomhetsnummer)
-            ).body
+            )
+            return request.body
         } catch (e: RestClientResponseException) {
             if (e.statusCode == HttpStatus.NOT_FOUND) {
                 return null
@@ -56,7 +57,7 @@ class EregService(
     fun hentOverenhet(orgnummer: String): EregOrganisasjon? {
         return try {
             restTemplate.getForEntity(
-                "/v1/organisasjon/{orgnummer}", //TODO: endre til v2
+                "/v2/organisasjon/{orgnummer}",
                 EregOrganisasjon::class.java,
                 mapOf("orgnummer" to orgnummer)
             ).body
@@ -87,7 +88,8 @@ class EregCacheConfig {
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EregAdresse(
     val type: String,
-    val adresse: String?,
+    val adresselinje1: String?,
+    val adresselinje2: String?,
     val kommune: String?,
     val kommunenummer: String?,
     val landkode: String?,
@@ -134,18 +136,18 @@ data class EregAnsatte(
 data class EregOrganisasjon(
     val organisasjonsnummer: String,
     val navn: EregNavn,
-    val organisasjonsDetaljer: EregOrganisasjonDetaljer,
+    val organisasjonDetaljer: EregOrganisasjonDetaljer,
     val type: String,
-    val ingaarIJuridiskEnheter: List<EregEnhetsRelasjon>?,
-    val bestaarAvOrganisasjonsledd: List<EregEnhetsRelasjon>?
+    val inngaarIJuridiskEnheter: List<EregEnhetsRelasjon>?,
+    val bestaarAvOrganisasjonsledd: List<OrganisasjonsLedd>?
 ) {
     companion object {
         fun EregOrganisasjon.orgnummerTilOverenhet(): String? =
             if (type == "JuridiskEnhet") {
                 null
             } else {
-                val juridiskOrgnummer = ingaarIJuridiskEnheter?.firstOrNull()?.organisasjonsnummer
-                val orgleddOrgnummer = bestaarAvOrganisasjonsledd?.firstOrNull()?.organisasjonsnummer
+                val juridiskOrgnummer = inngaarIJuridiskEnheter?.firstOrNull()?.organisasjonsnummer
+                val orgleddOrgnummer = bestaarAvOrganisasjonsledd?.firstOrNull()?.organisasjonsledd?.organisasjonsnummer
                 orgleddOrgnummer ?: juridiskOrgnummer
             }
     }
@@ -154,6 +156,12 @@ data class EregOrganisasjon(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EregEnhetsRelasjon (
     val organisasjonsnummer: String,
+    val gyldighetsPeriode: GyldighetsPeriode?
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class OrganisasjonsLedd (
+    val organisasjonsledd: EregEnhetsRelasjon?,
     val gyldighetsPeriode: GyldighetsPeriode?
 )
 

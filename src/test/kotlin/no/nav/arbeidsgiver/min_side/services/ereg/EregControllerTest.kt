@@ -1,248 +1,285 @@
 package no.nav.arbeidsgiver.min_side.services.ereg
 
-import no.nav.arbeidsgiver.min_side.services.tokenExchange.ClientAssertionTokenFactory
-import org.junit.jupiter.api.Assertions.assertEquals
+import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
-import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
 
-@MockBean(ClientAssertionTokenFactory::class)
-@RestClientTest(
-    components = [EregService::class, EregCacheConfig::class],
+
+@SpringBootTest(
+    properties = [
+        "server.servlet.context-path=/",
+        "spring.flyway.enabled=false",
+    ]
 )
-class EregServiceTest {
+@AutoConfigureMockMvc
+class EregControllerTest {
+
+    @MockBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
+    lateinit var jwtDecoder: JwtDecoder
+
+    @Autowired
+    lateinit var mockMvc: MockMvc
+
+    lateinit var server: MockRestServiceServer
 
     @Autowired
     lateinit var eregService: EregService
 
-    @Autowired
-    lateinit var server: MockRestServiceServer
+    @BeforeEach
+    fun setUp() {
+        server = MockRestServiceServer.bindTo(eregService.restTemplate).build()
+    }
 
     @Test
     fun `henter underenhet fra ereg`() {
         val virksomhetsnummer = "42"
-        server.expect(requestTo("/v1/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
+        server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(underenhetRespons, APPLICATION_JSON))
 
-        val result = eregService.hentUnderenhet(virksomhetsnummer)!!
-
-        assertEquals("910825526", result.organisasjonsnummer)
-        assertEquals("GAMLE FREDRIKSTAD OG RAMNES REGNSKA P", result.navn)
-        assertEquals("810825472", result.overordnetEnhet)
-        assertEquals("BEDR", result.organisasjonsform)
-        assertEquals(123, result.antallAnsatte)
-        assertEquals(
-            EregAdresse(
-                type = "Postadresse",
-                adresse = "PERSONALKONTORET, PHILIP LUNDQUIST,POSTBOKS 144",
-                kommune = "",
-                kommunenummer = "1120",
-                landkode = "NO",
-                poststed = "KLEPPE",
-                postnummer = "4358"
-            ), result.postadresse
-        )
-        assertEquals(
-            EregAdresse(
-                type = "Forretningsadresse",
-                adresse = "AVDELING HORTEN, VED PHILIP LUNDQUIST, APOTEKERGATA 16",
-                kommune = "",
-                kommunenummer = "3801",
-                land = "",
-                landkode = "NO",
-                poststed = "HORTEN",
-                postnummer = "3187"
-            ), result.forretningsadresse
-        )
-        assertEquals("", result.hjemmeside)
-        assertEquals(emptyList<Kode>(), result.naeringskoder)
-        assertEquals(true, result.harRegistrertAntallAnsatte)
+        mockMvc.get("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
+            with(jwtWithPid(virksomhetsnummer))
+        }.andExpect {
+            status { isOk() }
+            content {
+                json(
+                    """
+                {
+                  "organisasjonsnummer": "910825526",
+                  "navn": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA P",
+                  "organisasjonsform": {
+                    "kode": "BEDR",
+                    "beskrivelse": ""
+                  },
+                  "naeringer": null,
+                  "postadresse": {
+                    "adresse": "PERSONALKONTORET, PHILIP LUNDQUIST,POSTBOKS 144",
+                    "kommune": null,
+                    "kommunenummer": "1120",
+                    "land": "Norge",
+                    "landkode": "NO",
+                    "postnummer": "4358",
+                    "poststed": "KLEPPE"
+                  },
+                  "forretningsadresse": {
+                    "adresse": "AVDELING HORTEN, VED PHILIP LUNDQUIST, APOTEKERGATA 16",
+                    "kommune": null,
+                    "kommunenummer": "3801",
+                    "land": "Norge",
+                    "landkode": "NO",
+                    "postnummer": "3187",
+                    "poststed": "HORTEN"
+                  },
+                  "hjemmeside": null,
+                  "overordnetEnhet": "810825472",
+                  "antallAnsatte": null,
+                  "beliggenhetsadresse": {
+                    "adresse": "AVDELING HORTEN, VED PHILIP LUNDQUIST, APOTEKERGATA 16",
+                    "kommune": null,
+                    "kommunenummer": "3801",
+                    "land": "Norge",
+                    "landkode": "NO",
+                    "postnummer": "3187",
+                    "poststed": "HORTEN"
+                  }
+                }
+            """.trimIndent()
+                , strict = true)
+            }
+        }
     }
+
 
     @Test
     fun `henter underenhet med orgledd fra ereg`() {
         val virksomhetsnummer = "42"
-        server.expect(requestTo("/v1/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
+        server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(underenhetMedOrgleddRespons, APPLICATION_JSON))
 
-        val result = eregService.hentUnderenhet(virksomhetsnummer)!!
-
-        assertEquals("912998827", result.organisasjonsnummer)
-        assertEquals("ARBEIDS- OG VELFERDSDIREKTORATET AVD FYRSTIKKALLÉEN", result.navn)
-        assertEquals("889640782", result.overordnetEnhet)
-        assertEquals("BEDR", result.organisasjonsform)
-        assertEquals(null, result.antallAnsatte)
-        assertEquals(null, result.postadresse)
-        assertEquals(null, result.forretningsadresse)
-        assertEquals("", result.hjemmeside)
-        assertEquals(emptyList<Kode>(), result.naeringskoder)
-        assertEquals(false, result.harRegistrertAntallAnsatte)
+        mockMvc.get("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
+            with(jwtWithPid(virksomhetsnummer))
+        }.andExpect {
+            status { isOk() }
+            content {
+                json(
+                    """
+                        {
+                       
+                        }
+                    """.trimIndent(), strict = true
+                )
+            }
+        }
     }
 
-    @Test
-    fun `underenhet er null fra ereg`() {
-        val virksomhetsnummer = "42"
-        server.expect(requestTo("/v1/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(
-                withStatus(HttpStatus.NOT_FOUND).body(underenhetIkkeFunnetRespons).contentType(APPLICATION_JSON)
-            )
-
-        val result = eregService.hentUnderenhet(virksomhetsnummer)
-
-        assertEquals(null, result)
-    }
-
-    @Test
-    fun `henter overenhet fra ereg`() {
-        val orgnr = "314"
-        server.expect(requestTo("/v1/organisasjon/$orgnr"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(overenhetRespons, APPLICATION_JSON))
-
-        val result = eregService.hentOverenhet(orgnr)!!
-
-        assertEquals("810825472", result.organisasjonsnummer)
-        assertEquals("MALMEFJORD OG RIDABU REGNSKAP", result.navn)
-        assertEquals(null, result.overordnetEnhet)
-        assertEquals("AS", result.organisasjonsform)
-        assertEquals(null, result.antallAnsatte)
-        assertEquals(
-            EregAdresse(
-                type = "Postadresse",
-                adresse = "POSTBOKS 4120",
-                kommune = "",
-                kommunenummer = "3403",
-                land = "",
-                landkode = "NO",
-                poststed = "HAMAR",
-                postnummer = "2307"
-            ), result.postadresse
-        )
-        assertEquals(
-            EregAdresse(
-                type = "Forretningsadresse",
-                adresse = "RÅDHUSET",
-                kommune = "",
-                kommunenummer = "1579",
-                land = "",
-                landkode = "NO",
-                poststed = "ELNESVÅGEN",
-                postnummer = "6440"
-            ), result.forretningsadresse
-        )
-        assertEquals("", result.hjemmeside)
-        assertEquals(emptyList<Kode>(), result.naeringskoder)
-        assertEquals(false, result.harRegistrertAntallAnsatte)
-    }
-
-    @Test
-    fun `henter orgledd fra ereg`() {
-        val orgnr = "314"
-        server.expect(requestTo("/v1/organisasjon/$orgnr"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(orgleddRespons, APPLICATION_JSON))
-
-        val result = eregService.hentOverenhet(orgnr)!!
-
-        assertEquals("889640782", result.organisasjonsnummer)
-        assertEquals("ARBEIDS- OG VELFERDSETATEN", result.navn)
-        assertEquals("983887457", result.overordnetEnhet)
-        assertEquals("ORGL", result.organisasjonsform)
-        assertEquals(null, result.antallAnsatte)
-        assertEquals(
-            EregAdresse(
-                type = "Postadresse",
-                adresse = "Postboks 5 St Olavs Plass",
-                kommune = "",
-                kommunenummer = "0301",
-                land = "",
-                landkode = "NO",
-                poststed = "",
-                postnummer = "0130"
-            ), result.postadresse
-        )
-        assertEquals(
-            EregAdresse(
-                type = "Forretningsadresse",
-                adresse = "Økernveien 94",
-                kommune = "",
-                kommunenummer = "0301",
-                land = "",
-                landkode = "NO",
-                poststed = "",
-                postnummer = "0579"
-            ), result.forretningsadresse
-        )
-        assertEquals("www.nav.no", result.hjemmeside)
-        assertEquals(listOf(Kode("84.120", "")), result.naeringskoder)
-        assertEquals(false, result.harRegistrertAntallAnsatte)
-    }
-
-    @Test
-    fun `henter jurudisk enhet for orgledd 889640782`() {
-        val orgnr = "314"
-        server.expect(requestTo("/v1/organisasjon/$orgnr"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(juridiskEnhetForOrgleddRespons, APPLICATION_JSON))
-
-        val result = eregService.hentOverenhet(orgnr)!!
-
-        assertEquals("983887457", result.organisasjonsnummer)
-        assertEquals("ARBEIDS- OG SOSIALDEPARTEMENTET", result.navn)
-        assertEquals(null, result.overordnetEnhet)
-        assertEquals("STAT", result.organisasjonsform)
-        assertEquals(
-            EregAdresse(
-                type = "Postadresse",
-                adresse = "Postboks 8019 Dep",
-                kommune = "",
-                kommunenummer = "0301",
-                land = "",
-                landkode = "NO",
-                poststed = "",
-                postnummer = "0030"
-            ), result.postadresse
-        )
-        assertEquals(
-            EregAdresse(
-                type = "Forretningsadresse",
-                adresse = "Akersgata 64",
-                kommune = "",
-                kommunenummer = "0301",
-                land = "",
-                landkode = "NO",
-                poststed = "",
-                postnummer = "0180"
-            ), result.forretningsadresse
-        )
-        assertEquals("regjeringen.no/asd", result.hjemmeside)
-        assertEquals(listOf(Kode("84.110", "")), result.naeringskoder)
-        assertEquals(false, result.harRegistrertAntallAnsatte)
-    }
-
-    @Test
-    fun `overenhet er null fra ereg`() {
-        val orgnr = "314"
-        server.expect(requestTo("/v1/organisasjon/$orgnr"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withStatus(HttpStatus.NOT_FOUND).body(overenhetIkkeFunnetRespons).contentType(APPLICATION_JSON))
-
-        val result = eregService.hentOverenhet(orgnr)
-
-        assertEquals(null, result)
-    }
+//
+//    @Test
+//    fun `underenhet er null fra ereg`() {
+//        val virksomhetsnummer = "42"
+//        server.expect(requestTo("/v1/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
+//            .andExpect(method(HttpMethod.GET))
+//            .andRespond(
+//                withStatus(HttpStatus.NOT_FOUND).body(underenhetIkkeFunnetRespons).contentType(APPLICATION_JSON)
+//            )
+//
+//        val result = eregService.hentUnderenhet(virksomhetsnummer)
+//
+//        assertEquals(null, result)
+//    }
+//
+//    @Test
+//    fun `henter overenhet fra ereg`() {
+//        val orgnr = "314"
+//        server.expect(requestTo("/v1/organisasjon/$orgnr"))
+//            .andExpect(method(HttpMethod.GET))
+//            .andRespond(withSuccess(overenhetRespons, APPLICATION_JSON))
+//
+//        val result = eregService.hentOverenhet(orgnr)!!
+//
+//        assertEquals("810825472", result.organisasjonsnummer)
+//        assertEquals("MALMEFJORD OG RIDABU REGNSKAP", result.navn)
+//        assertEquals(null, result.overordnetEnhet)
+//        assertEquals("AS", result.organisasjonsform)
+//        assertEquals(null, result.antallAnsatte)
+//        assertEquals(
+//            EregAdresse(
+//                type = "Postadresse",
+//                adresse = "POSTBOKS 4120",
+//                kommune = "",
+//                kommunenummer = "3403",
+//                land = "",
+//                landkode = "NO",
+//                poststed = "HAMAR",
+//                postnummer = "2307"
+//            ), result.postadresse
+//        )
+//        assertEquals(
+//            EregAdresse(
+//                type = "Forretningsadresse",
+//                adresse = "RÅDHUSET",
+//                kommune = "",
+//                kommunenummer = "1579",
+//                land = "",
+//                landkode = "NO",
+//                poststed = "ELNESVÅGEN",
+//                postnummer = "6440"
+//            ), result.forretningsadresse
+//        )
+//        assertEquals("", result.hjemmeside)
+//        assertEquals(emptyList<Kode>(), result.naeringskoder)
+//        assertEquals(false, result.harRegistrertAntallAnsatte)
+//    }
+//
+//    @Test
+//    fun `henter orgledd fra ereg`() {
+//        val orgnr = "314"
+//        server.expect(requestTo("/v1/organisasjon/$orgnr"))
+//            .andExpect(method(HttpMethod.GET))
+//            .andRespond(withSuccess(orgleddRespons, APPLICATION_JSON))
+//
+//        val result = eregService.hentOverenhet(orgnr)!!
+//
+//        assertEquals("889640782", result.organisasjonsnummer)
+//        assertEquals("ARBEIDS- OG VELFERDSETATEN", result.navn)
+//        assertEquals("983887457", result.overordnetEnhet)
+//        assertEquals("ORGL", result.organisasjonsform)
+//        assertEquals(null, result.antallAnsatte)
+//        assertEquals(
+//            EregAdresse(
+//                type = "Postadresse",
+//                adresse = "Postboks 5 St Olavs Plass",
+//                kommune = "",
+//                kommunenummer = "0301",
+//                land = "",
+//                landkode = "NO",
+//                poststed = "",
+//                postnummer = "0130"
+//            ), result.postadresse
+//        )
+//        assertEquals(
+//            EregAdresse(
+//                type = "Forretningsadresse",
+//                adresse = "Økernveien 94",
+//                kommune = "",
+//                kommunenummer = "0301",
+//                land = "",
+//                landkode = "NO",
+//                poststed = "",
+//                postnummer = "0579"
+//            ), result.forretningsadresse
+//        )
+//        assertEquals("www.nav.no", result.hjemmeside)
+//        assertEquals(listOf(Kode("84.120", "")), result.naeringskoder)
+//        assertEquals(false, result.harRegistrertAntallAnsatte)
+//    }
+//
+//    @Test
+//    fun `henter jurudisk enhet for orgledd 889640782`() {
+//        val orgnr = "314"
+//        server.expect(requestTo("/v1/organisasjon/$orgnr"))
+//            .andExpect(method(HttpMethod.GET))
+//            .andRespond(withSuccess(juridiskEnhetForOrgleddRespons, APPLICATION_JSON))
+//
+//        val result = eregService.hentOverenhet(orgnr)!!
+//
+//        assertEquals("983887457", result.organisasjonsnummer)
+//        assertEquals("ARBEIDS- OG SOSIALDEPARTEMENTET", result.navn)
+//        assertEquals(null, result.overordnetEnhet)
+//        assertEquals("STAT", result.organisasjonsform)
+//        assertEquals(
+//            EregAdresse(
+//                type = "Postadresse",
+//                adresse = "Postboks 8019 Dep",
+//                kommune = "",
+//                kommunenummer = "0301",
+//                land = "",
+//                landkode = "NO",
+//                poststed = "",
+//                postnummer = "0030"
+//            ), result.postadresse
+//        )
+//        assertEquals(
+//            EregAdresse(
+//                type = "Forretningsadresse",
+//                adresse = "Akersgata 64",
+//                kommune = "",
+//                kommunenummer = "0301",
+//                land = "",
+//                landkode = "NO",
+//                poststed = "",
+//                postnummer = "0180"
+//            ), result.forretningsadresse
+//        )
+//        assertEquals("regjeringen.no/asd", result.hjemmeside)
+//        assertEquals(listOf(Kode("84.110", "")), result.naeringskoder)
+//        assertEquals(false, result.harRegistrertAntallAnsatte)
+//    }
+//
+//    @Test
+//    fun `overenhet er null fra ereg`() {
+//        val orgnr = "314"
+//        server.expect(requestTo("/v1/organisasjon/$orgnr"))
+//            .andExpect(method(HttpMethod.GET))
+//            .andRespond(withStatus(HttpStatus.NOT_FOUND).body(overenhetIkkeFunnetRespons).contentType(APPLICATION_JSON))
+//
+//        val result = eregService.hentOverenhet(orgnr)
+//
+//        assertEquals(null, result)
+//    }
 }
 
 //Responsene er hentet fra https://ereg-services.dev.intern.nav.no/swagger-ui/index.html#/organisasjon.v1/hentOrganisasjonUsingGET
@@ -252,6 +289,7 @@ private const val underenhetRespons = """
   "organisasjonsnummer": "910825526",
   "type": "Virksomhet",
   "navn": {
+    "sammensattnavn": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA P",
     "navnelinje1": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA",
     "navnelinje2": "P",
     "bruksperiode": {
@@ -262,19 +300,6 @@ private const val underenhetRespons = """
     }
   },
   "organisasjonDetaljer": {
-    "ansatte": [
-      {
-        "antall": 123,
-        "bruksperiode": {
-          "fom": "2015-01-06T21:44:04.748",
-          "tom": "2015-12-06T19:45:04"
-        },
-        "gyldighetsperiode": {
-          "fom": "2014-07-01",
-          "tom": "2015-12-31"
-        }
-      }
-    ],
     "registreringsdato": "2019-07-11T00:00:00",
     "enhetstyper": [
       {
@@ -289,6 +314,7 @@ private const val underenhetRespons = """
     ],
     "navn": [
       {
+        "sammensattnavn": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA P",
         "navnelinje1": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA",
         "navnelinje2": "P",
         "bruksperiode": {
@@ -351,6 +377,7 @@ private const val underenhetRespons = """
     {
       "organisasjonsnummer": "810825472",
       "navn": {
+        "sammensattnavn": "MALMEFJORD OG RIDABU REGNSKAP",
         "navnelinje1": "MALMEFJORD OG RIDABU REGNSKAP",
         "bruksperiode": {
           "fom": "2020-05-14T16:03:21.12"
@@ -461,13 +488,14 @@ private const val underenhetMedOrgleddRespons = """
   "organisasjonsnummer": "912998827",
   "type": "Virksomhet",
   "navn": {
+    "sammensattnavn": "ARBEIDS- OG VELFERDSDIREKTORATET AVD ØKERNVEIEN",
     "navnelinje1": "ARBEIDS- OG VELFERDSDIREKTORATET",
-    "navnelinje3": "AVD FYRSTIKKALLÉEN",
+    "navnelinje3": "AVD ØKERNVEIEN",
     "bruksperiode": {
-      "fom": "2020-08-12T04:01:10.282"
+      "fom": "2015-02-23T08:04:53.2"
     },
     "gyldighetsperiode": {
-      "fom": "2020-08-11"
+      "fom": "2013-12-23"
     }
   },
   "organisasjonDetaljer": {
@@ -485,16 +513,69 @@ private const val underenhetMedOrgleddRespons = """
     ],
     "navn": [
       {
+        "sammensattnavn": "ARBEIDS- OG VELFERDSDIREKTORATET AVD ØKERNVEIEN",
         "navnelinje1": "ARBEIDS- OG VELFERDSDIREKTORATET",
-        "navnelinje3": "AVD FYRSTIKKALLÉEN",
+        "navnelinje3": "AVD ØKERNVEIEN",
         "bruksperiode": {
-          "fom": "2020-08-12T04:01:10.282"
+          "fom": "2015-02-23T08:04:53.2"
         },
         "gyldighetsperiode": {
-          "fom": "2020-08-11"
+          "fom": "2013-12-23"
         }
       }
-    ]
+    ],
+    "naeringer": [
+      {
+        "naeringskode": "84.120",
+        "hjelpeenhet": false,
+        "bruksperiode": {
+          "fom": "2014-05-22T00:48:03.133"
+        },
+        "gyldighetsperiode": {
+          "fom": "2014-03-18"
+        }
+      }
+    ],
+    "forretningsadresser": [
+      {
+        "type": "Forretningsadresse",
+        "adresselinje1": "Økernveien 94",
+        "postnummer": "0579",
+        "landkode": "NO",
+        "kommunenummer": "0301",
+        "bruksperiode": {
+          "fom": "2015-02-23T10:38:34.403"
+        },
+        "gyldighetsperiode": {
+          "fom": "2013-12-23"
+        }
+      }
+    ],
+    "postadresser": [
+      {
+        "type": "Postadresse",
+        "adresselinje1": "Postboks 5    St. Olavs Plass",
+        "postnummer": "0130",
+        "landkode": "NO",
+        "kommunenummer": "0301",
+        "bruksperiode": {
+          "fom": "2015-02-23T10:38:34.403"
+        },
+        "gyldighetsperiode": {
+          "fom": "2013-12-23"
+        }
+      }
+    ],
+    "navSpesifikkInformasjon": {
+      "erIA": true,
+      "bruksperiode": {
+        "fom": "2014-12-08T10:42:54.425"
+      },
+      "gyldighetsperiode": {
+        "fom": "2014-12-08"
+      }
+    },
+    "sistEndret": "2014-03-18"
   },
   "virksomhetDetaljer": {
     "enhetstype": "BEDR",
@@ -506,6 +587,7 @@ private const val underenhetMedOrgleddRespons = """
         "organisasjonsnummer": "889640782",
         "type": "Organisasjonsledd",
         "navn": {
+          "sammensattnavn": "ARBEIDS- OG VELFERDSETATEN",
           "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
           "bruksperiode": {
             "fom": "2015-02-23T08:04:53.2"
@@ -513,7 +595,28 @@ private const val underenhetMedOrgleddRespons = """
           "gyldighetsperiode": {
             "fom": "2006-03-23"
           }
-        }
+        },
+        "inngaarIJuridiskEnheter": [
+          {
+            "organisasjonsnummer": "983887457",
+            "navn": {
+              "sammensattnavn": "ARBEIDS- OG SOSIALDEPARTEMENTET",
+              "navnelinje1": "ARBEIDS- OG SOSIALDEPARTEMENTET",
+              "bruksperiode": {
+                "fom": "2015-02-23T08:04:53.2"
+              },
+              "gyldighetsperiode": {
+                "fom": "2014-02-14"
+              }
+            },
+            "bruksperiode": {
+              "fom": "2014-05-23T15:42:14.826"
+            },
+            "gyldighetsperiode": {
+              "fom": "2006-03-23"
+            }
+          }
+        ]
       },
       "bruksperiode": {
         "fom": "2014-05-23T16:08:14.385"

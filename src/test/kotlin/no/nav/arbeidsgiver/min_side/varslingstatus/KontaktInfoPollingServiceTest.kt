@@ -86,7 +86,7 @@ class KontaktInfoPollingServiceTest {
 
         val underenhet = EregOrganisasjon(
             organisasjonsnummer = underenhetOrgnr,
-            organisasjonsDetaljer = EregOrganisasjonDetaljer(
+            organisasjonDetaljer = EregOrganisasjonDetaljer(
                 ansatte = null,
                 naeringer = null,
                 enhetstyper = listOf(EregEnhetstype("BEDR", null)),
@@ -94,7 +94,7 @@ class KontaktInfoPollingServiceTest {
                 forretningsadresser = null,
                 internettadresser = null
             ),
-            ingaarIJuridiskEnheter = listOf(
+            inngaarIJuridiskEnheter = listOf(
                 EregEnhetsRelasjon(
                     hovedenhetOrgnr, null
                 )

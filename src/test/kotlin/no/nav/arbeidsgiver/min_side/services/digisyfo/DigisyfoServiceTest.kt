@@ -133,7 +133,7 @@ class DigisyfoServiceTest {
     private fun mkUnderenhet(orgnr: String, parentOrgnr: String) =
         EregOrganisasjon(
             organisasjonsnummer = orgnr,
-            organisasjonsDetaljer = EregOrganisasjonDetaljer(
+            organisasjonDetaljer = EregOrganisasjonDetaljer(
                 ansatte = null,
                 naeringer = null,
                 enhetstyper = listOf(EregEnhetstype("BEDR", null)),
@@ -141,7 +141,7 @@ class DigisyfoServiceTest {
                 forretningsadresser = null,
                 internettadresser = null
             ),
-            ingaarIJuridiskEnheter = listOf(
+            inngaarIJuridiskEnheter = listOf(
                 EregEnhetsRelasjon(
                     parentOrgnr, null
                 )
@@ -154,7 +154,7 @@ class DigisyfoServiceTest {
     private fun mkOverenhet(orgnr: String) =
         EregOrganisasjon(
             organisasjonsnummer = orgnr,
-            organisasjonsDetaljer = EregOrganisasjonDetaljer(
+            organisasjonDetaljer = EregOrganisasjonDetaljer(
                 ansatte = null,
                 naeringer = null,
                 enhetstyper = listOf(EregEnhetstype("AS", null)),
@@ -162,7 +162,7 @@ class DigisyfoServiceTest {
                 forretningsadresser = null,
                 internettadresser = null
             ),
-            ingaarIJuridiskEnheter = null,
+            inngaarIJuridiskEnheter = null,
             bestaarAvOrganisasjonsledd = null,
             type = "organisasjonsledd",
             navn = EregNavn("overenhet", null)
