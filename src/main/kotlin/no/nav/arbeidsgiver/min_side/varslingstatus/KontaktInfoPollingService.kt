@@ -1,6 +1,7 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -63,7 +64,7 @@ class KontaktInfoPollingService(
             return kontaktinfoUnderenhet
         }
 
-        return eregService.hentUnderenhet(virksomhetsnummer)?.overordnetEnhet
+        return eregService.hentUnderenhet(virksomhetsnummer)?.orgnummerTilOverenhet()
             ?.let { kontaktinfoClient.hentKontaktinfo(it) }
     }
 

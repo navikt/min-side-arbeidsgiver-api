@@ -42,19 +42,18 @@ class EregServiceTest {
         assertEquals("BEDR", result.organisasjonsform)
         assertEquals(123, result.antallAnsatte)
         assertEquals(
-            Adresse(
+            EregAdresse(
                 type = "Postadresse",
                 adresse = "PERSONALKONTORET, PHILIP LUNDQUIST,POSTBOKS 144",
                 kommune = "",
                 kommunenummer = "1120",
-                land = "",
                 landkode = "NO",
                 poststed = "KLEPPE",
                 postnummer = "4358"
             ), result.postadresse
         )
         assertEquals(
-            Adresse(
+            EregAdresse(
                 type = "Forretningsadresse",
                 adresse = "AVDELING HORTEN, VED PHILIP LUNDQUIST, APOTEKERGATA 16",
                 kommune = "",
@@ -120,7 +119,7 @@ class EregServiceTest {
         assertEquals("AS", result.organisasjonsform)
         assertEquals(null, result.antallAnsatte)
         assertEquals(
-            Adresse(
+            EregAdresse(
                 type = "Postadresse",
                 adresse = "POSTBOKS 4120",
                 kommune = "",
@@ -132,7 +131,7 @@ class EregServiceTest {
             ), result.postadresse
         )
         assertEquals(
-            Adresse(
+            EregAdresse(
                 type = "Forretningsadresse",
                 adresse = "RÅDHUSET",
                 kommune = "",
@@ -163,7 +162,7 @@ class EregServiceTest {
         assertEquals("ORGL", result.organisasjonsform)
         assertEquals(null, result.antallAnsatte)
         assertEquals(
-            Adresse(
+            EregAdresse(
                 type = "Postadresse",
                 adresse = "Postboks 5 St Olavs Plass",
                 kommune = "",
@@ -175,7 +174,7 @@ class EregServiceTest {
             ), result.postadresse
         )
         assertEquals(
-            Adresse(
+            EregAdresse(
                 type = "Forretningsadresse",
                 adresse = "Økernveien 94",
                 kommune = "",
@@ -205,7 +204,7 @@ class EregServiceTest {
         assertEquals(null, result.overordnetEnhet)
         assertEquals("STAT", result.organisasjonsform)
         assertEquals(
-            Adresse(
+            EregAdresse(
                 type = "Postadresse",
                 adresse = "Postboks 8019 Dep",
                 kommune = "",
@@ -217,7 +216,7 @@ class EregServiceTest {
             ), result.postadresse
         )
         assertEquals(
-            Adresse(
+            EregAdresse(
                 type = "Forretningsadresse",
                 adresse = "Akersgata 64",
                 kommune = "",

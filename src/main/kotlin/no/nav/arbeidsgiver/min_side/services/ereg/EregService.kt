@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.ereg
 
-import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.github.benmanes.caffeine.cache.Caffeine
 import no.nav.arbeidsgiver.min_side.config.callIdIntercetor
 import no.nav.arbeidsgiver.min_side.config.retryInterceptor
@@ -14,8 +14,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClientResponseException
 import java.net.SocketException
-import java.util.*
+import java.time.LocalDate
 import javax.net.ssl.SSLHandshakeException
+
 
 @Component
 class EregService(
@@ -38,12 +39,11 @@ class EregService(
     @Cacheable(EREG_CACHE_NAME)
     fun hentUnderenhet(virksomhetsnummer: String): EregOrganisasjon? {
         return try {
-            val json = restTemplate.getForEntity(
+            restTemplate.getForEntity(
                 "/v1/organisasjon/{virksomhetsnummer}?inkluderHierarki=true",
-                JsonNode::class.java,
+                EregOrganisasjon::class.java,
                 mapOf("virksomhetsnummer" to virksomhetsnummer)
             ).body
-            eregOrganisasjon(json)
         } catch (e: RestClientResponseException) {
             if (e.statusCode == HttpStatus.NOT_FOUND) {
                 return null
@@ -55,12 +55,11 @@ class EregService(
     @Cacheable(EREG_CACHE_NAME)
     fun hentOverenhet(orgnummer: String): EregOrganisasjon? {
         return try {
-            val json = restTemplate.getForEntity(
-                "/v1/organisasjon/{orgnummer}",
-                JsonNode::class.java,
+            restTemplate.getForEntity(
+                "/v1/organisasjon/{orgnummer}", //TODO: endre til v2
+                EregOrganisasjon::class.java,
                 mapOf("orgnummer" to orgnummer)
             ).body
-            eregOrganisasjon(json)
         } catch (e: RestClientResponseException) {
             if (e.statusCode == HttpStatus.NOT_FOUND) {
                 return null
@@ -68,84 +67,9 @@ class EregService(
             throw e
         }
     }
-
-    private fun naeringsKoder(json: JsonNode): List<Kode> {
-        return json.at("/organisasjonDetaljer/naeringer").map { //TODO: gyldighet?
-            Kode(it.at("/naeringskode").asText(), it.at("/description").asText())
-        }
-    }
-
-    private fun adresse(json: JsonNode): Adresse? {
-        if (!json.isMissingNode)
-            return Adresse(
-                adresse = json.at("/adresselinje1").asText() + json.at("/adresselinje2").asText() + json.at("/adresselinje3").asText(),
-                kommune = json.at("/kommune").asText(),
-                kommunenummer = json.at("/kommunenummer").asText(),
-                land = json.at("/land").asText(), //TODO: denne mangler fra responsen
-                landkode = json.at("/landkode").asText(),
-                postnummer = json.at("/postnummer").asText(),
-                poststed = json.at("/poststed").asText(),
-                type = json.at("/type").asText()
-            )
-        return null
-    }
-
-    private fun organisasjonsform(json: JsonNode): String {
-        return json.at("/organisasjonDetaljer/enhetstyper/0/enhetstype").asText()
-    }
-
-    private fun internettAdresse(json: JsonNode): String {
-        return json.at("/organisasjonDetaljer/internettadresser/0/adresse").asText()
-    }
-
-    private fun ansatte(json: JsonNode): Int? {
-        return json.at("/organisasjonDetaljer/ansatte/0/antall").asText("").toIntOrNull()
-    }
-
-    fun eregOrganisasjon(json: JsonNode?): EregOrganisasjon? {
-        if (json == null || json.isEmpty) {
-            return null
-        }
-        return EregOrganisasjon(
-            organisasjonsnummer = json.at("/organisasjonsnummer").asText(),
-            navn = samletNavn(json),
-            organisasjonsform = organisasjonsform(json),
-            overordnetEnhet = orgnummerTilOverenhet(json),
-            naeringskoder = naeringsKoder(json),
-            postadresse = adresse(json.at("/organisasjonDetaljer/postadresser/0")),
-            forretningsadresse = adresse(json.at("/organisasjonDetaljer/forretningsadresser/0")),
-            hjemmeside = internettAdresse(json),
-            antallAnsatte = ansatte(json)
-        )
-    }
-
-    private fun orgnummerTilOverenhet(json: JsonNode): String? =
-        if ("JuridiskEnhet" == json.at("/type").asText()) {
-            null
-        } else {
-            val juridiskOrgnummer =
-                json.at("/inngaarIJuridiskEnheter/0/organisasjonsnummer").asText(null)?.ifBlank { null }
-            val orgleddOrgnummer =
-                json.at("/bestaarAvOrganisasjonsledd/0/organisasjonsledd/organisasjonsnummer").asText(null)
-                    ?.ifBlank { null }
-            orgleddOrgnummer ?: juridiskOrgnummer
-        }
-
-    companion object {
-        private fun samletNavn(json: JsonNode) = listOf(
-            json.at("/navn/navnelinje1").asText(null),
-            json.at("/navn/navnelinje2").asText(null),
-            json.at("/navn/navnelinje3").asText(null),
-            json.at("/navn/navnelinje4").asText(null),
-            json.at("/navn/navnelinje5").asText(null),
-        )
-            .filter(Objects::nonNull)
-            .joinToString(" ")
-    }
 }
 
 const val EREG_CACHE_NAME = "ereg_cache"
-
 
 @Configuration
 class EregCacheConfig {
@@ -158,4 +82,102 @@ class EregCacheConfig {
             .recordStats()
             .build()
     )
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class EregAdresse(
+    val type: String,
+    val adresse: String?,
+    val kommune: String?,
+    val kommunenummer: String?,
+    val landkode: String?,
+    val postnummer: String?,
+    val poststed: String?,
+    val gyldighetsPeriode: GyldighetsPeriode?
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class EregOrganisasjonDetaljer(
+    val enhetstyper: List<EregEnhetstype>?,
+    val naeringer: List<EregNaering>?,
+    val ansatte: List<EregAnsatte>?,
+    val forretningsadresser: List<EregAdresse>?,
+    val postadresser: List<EregAdresse>?,
+    val internettadresser: List<EregNettAdresse>?,
+)
+
+class EregEnhetstype (
+    val enhetstype: String?,
+    val gyldighetsPeriode: GyldighetsPeriode?
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+class EregNettAdresse (
+    val adresse: String?,
+    val gyldighetsPeriode: GyldighetsPeriode?
+)
+
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class EregNaering(
+    val naeringskode: String?,
+    val gyldighetsPeriode: GyldighetsPeriode?
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class EregAnsatte(
+    val antall: Int?,
+    val gyldighetsPeriode: GyldighetsPeriode?
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class EregOrganisasjon(
+    val organisasjonsnummer: String,
+    val navn: EregNavn,
+    val organisasjonsDetaljer: EregOrganisasjonDetaljer,
+    val type: String,
+    val ingaarIJuridiskEnheter: List<EregEnhetsRelasjon>?,
+    val bestaarAvOrganisasjonsledd: List<EregEnhetsRelasjon>?
+) {
+    companion object {
+        fun EregOrganisasjon.orgnummerTilOverenhet(): String? =
+            if (type == "JuridiskEnhet") {
+                null
+            } else {
+                val juridiskOrgnummer = ingaarIJuridiskEnheter?.firstOrNull()?.organisasjonsnummer
+                val orgleddOrgnummer = bestaarAvOrganisasjonsledd?.firstOrNull()?.organisasjonsnummer
+                orgleddOrgnummer ?: juridiskOrgnummer
+            }
+    }
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class EregEnhetsRelasjon (
+    val organisasjonsnummer: String,
+    val gyldighetsPeriode: GyldighetsPeriode?
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class EregNavn(
+    val sammensattnavn: String,
+    val gyldighetsPeriode: GyldighetsPeriode?
+)
+
+data class Kode(
+    val kode: String?,
+    val beskrivelse: String?
+)
+
+data class GyldighetsPeriode(
+    val fom: LocalDate?,
+    val tom: LocalDate?
+) {
+    companion object {
+        fun GyldighetsPeriode?.erGyldig(): Boolean {
+            if (this == null) return true
+            val now = LocalDate.now()
+            return (this.fom == null || fom.isBefore(now) && (this.tom == null || this.tom.isAfter(now)))
+
+        }
+    }
 }

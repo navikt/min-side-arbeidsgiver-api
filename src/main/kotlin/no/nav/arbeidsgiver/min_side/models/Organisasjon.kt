@@ -1,6 +1,8 @@
 package no.nav.arbeidsgiver.min_side.models
 
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
+import no.nav.arbeidsgiver.min_side.services.ereg.GyldighetsPeriode.Companion.erGyldig
 
 data class Organisasjon(
     var name: String,
@@ -14,10 +16,10 @@ data class Organisasjon(
                 return null
             }
             return Organisasjon(
-                name = eregOrganisasjon.navn,
-                parentOrganizationNumber = eregOrganisasjon.overordnetEnhet,
+                name = eregOrganisasjon.navn.sammensattnavn,
+                parentOrganizationNumber = eregOrganisasjon.orgnummerTilOverenhet(),
                 organizationNumber = eregOrganisasjon.organisasjonsnummer,
-                organizationForm = eregOrganisasjon.organisasjonsform
+                organizationForm = eregOrganisasjon.organisasjonsDetaljer.enhetstyper?.first { it.gyldighetsPeriode.erGyldig() }?.enhetstype ?: ""
             )
         }
     }

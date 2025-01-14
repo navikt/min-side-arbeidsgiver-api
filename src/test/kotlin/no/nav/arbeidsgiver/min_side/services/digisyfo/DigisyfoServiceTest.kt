@@ -4,7 +4,11 @@ import io.micrometer.core.instrument.MeterRegistry
 import no.nav.arbeidsgiver.min_side.kotlinCapture
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
+import no.nav.arbeidsgiver.min_side.services.ereg.EregEnhetsRelasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregEnhetstype
+import no.nav.arbeidsgiver.min_side.services.ereg.EregNavn
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjonDetaljer
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -128,28 +132,40 @@ class DigisyfoServiceTest {
 
     private fun mkUnderenhet(orgnr: String, parentOrgnr: String) =
         EregOrganisasjon(
-            navn = "underenhet",
             organisasjonsnummer = orgnr,
-            overordnetEnhet = parentOrgnr,
-            organisasjonsform = "BEDR",
-            antallAnsatte = null,
-            naeringskoder = null,
-            postadresse = null,
-            forretningsadresse = null,
-            hjemmeside = null,
+            organisasjonsDetaljer = EregOrganisasjonDetaljer(
+                ansatte = null,
+                naeringer = null,
+                enhetstyper = listOf(EregEnhetstype("BEDR", null)),
+                postadresser = null,
+                forretningsadresser = null,
+                internettadresser = null
+            ),
+            ingaarIJuridiskEnheter = listOf(
+                EregEnhetsRelasjon(
+                    parentOrgnr, null
+                )
+            ),
+            bestaarAvOrganisasjonsledd = null,
+            type = "virksomhet",
+            navn = EregNavn("underenhet", null)
         )
 
     private fun mkOverenhet(orgnr: String) =
         EregOrganisasjon(
-            navn = "overenhet",
             organisasjonsnummer = orgnr,
-            organisasjonsform = "AS",
-            antallAnsatte = null,
-            naeringskoder = null,
-            postadresse = null,
-            overordnetEnhet = null,
-            forretningsadresse = null,
-            hjemmeside = null,
+            organisasjonsDetaljer = EregOrganisasjonDetaljer(
+                ansatte = null,
+                naeringer = null,
+                enhetstyper = listOf(EregEnhetstype("AS", null)),
+                postadresser = null,
+                forretningsadresser = null,
+                internettadresser = null
+            ),
+            ingaarIJuridiskEnheter = null,
+            bestaarAvOrganisasjonsledd = null,
+            type = "organisasjonsledd",
+            navn = EregNavn("overenhet", null)
         )
 }
 

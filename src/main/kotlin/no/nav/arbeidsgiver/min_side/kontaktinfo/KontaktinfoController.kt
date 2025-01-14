@@ -1,6 +1,7 @@
 package no.nav.arbeidsgiver.min_side.kontaktinfo
 
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import org.springframework.web.bind.annotation.*
@@ -17,7 +18,7 @@ class KontaktinfoController(
     fun getKontaktinfo(@RequestBody requestBody: KontaktinfoRequest): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
         val orgnrHovedenhet = eregService.hentUnderenhet(orgnrUnderenhet)
-            ?.overordnetEnhet
+            ?.orgnummerTilOverenhet()
 
         return KontaktinfoResponse(
             underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet),
