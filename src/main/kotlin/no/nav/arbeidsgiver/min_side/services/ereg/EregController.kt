@@ -20,7 +20,7 @@ class EregController(
     data class EregOrganisasjonDto(
         val organisasjonsnummer: String,
         val navn: String,
-        val organisasjonsform: String? = null,
+        val organisasjonsform: OrganisasjonsformDto? = null,
         val naeringskoder: List<String>? = null,
         val postadresse: EregAdresseDto? = null,
         val forretningsadresse: EregAdresseDto? = null,
@@ -37,15 +37,19 @@ class EregController(
                 return EregOrganisasjonDto(
                     organisasjonsnummer = org.organisasjonsnummer,
                     navn = org.navn.sammensattnavn,
-                    organisasjonsform = org.organisasjonDetaljer.enhetstyper?.first { it.gyldighetsPeriode.erGyldig() }?.enhetstype,
+                    organisasjonsform = org.organisasjonDetaljer.enhetstyper?.first { it.gyldighetsPeriode.erGyldig() }
+                        .let { OrganisasjonsformDto.fraOrganisasjonsform(it?.enhetstype) },
                     naeringskoder = org.organisasjonDetaljer.naeringer?.filter { it.gyldighetsPeriode.erGyldig() }
                         ?.mapNotNull { it.naeringskode },
-                    postadresse = EregAdresseDto.fraEregAdresse(org.organisasjonDetaljer.postadresser?.first { it.gyldighetsPeriode.erGyldig() }),
-                    forretningsadresse = EregAdresseDto.fraEregAdresse(org.organisasjonDetaljer.forretningsadresser?.first { it.gyldighetsPeriode.erGyldig() }),
+                    postadresse = org.organisasjonDetaljer.postadresser?.first { it.gyldighetsPeriode.erGyldig() }
+                        .let { EregAdresseDto.fraEregAdresse(it) },
+                    forretningsadresse = org.organisasjonDetaljer.forretningsadresser?.first { it.gyldighetsPeriode.erGyldig() }
+                        .let { EregAdresseDto.fraEregAdresse(it) },
                     hjemmeside = org.organisasjonDetaljer.internettadresser?.firstOrNull { it.gyldighetsPeriode.erGyldig() }?.adresse,
                     overordnetEnhet = org.orgnummerTilOverenhet(),
                     antallAnsatte = org.organisasjonDetaljer.ansatte?.firstOrNull { it.gyldighetsPeriode.erGyldig() }?.antall,
-                    beliggenhetsadresse = EregAdresseDto.fraEregAdresse(org.organisasjonDetaljer.forretningsadresser?.first { it.gyldighetsPeriode.erGyldig() })
+                    beliggenhetsadresse = org.organisasjonDetaljer.forretningsadresser?.first { it.gyldighetsPeriode.erGyldig() }
+                        .let { EregAdresseDto.fraEregAdresse(it) }
                 )
             }
         }
@@ -74,7 +78,7 @@ class EregController(
                 )
             }
 
-            private fun concatinateAddresse(adresse: EregAdresse) : String {
+            private fun concatinateAddresse(adresse: EregAdresse): String {
                 var res = ""
                 if (adresse.adresselinje1 != null) {
                     res += adresse.adresselinje1
@@ -87,3 +91,64 @@ class EregController(
         }
     }
 }
+
+data class OrganisasjonsformDto(
+    val kode: String,
+    val beskrivelse: String
+) {
+    companion object {
+        fun fraOrganisasjonsform(organisasjonsForm: String?): OrganisasjonsformDto? {
+            return OrganisasjonsformDto(
+                kode = organisasjonsForm ?: "",
+                beskrivelse = organisasjonsFormTilBeskrivelse[organisasjonsForm] ?: ""
+            )
+        }
+    }
+}
+
+val organisasjonsFormTilBeskrivelse: Map<String, String> = mapOf(
+    "AAFY" to "Underenhet til ikke-næringsdrivende",
+    "ADOS" to "Administrativ enhet -offentlig sektor",
+    "ANNA" to "Annen juridisk person",
+    "ANS" to "Ansvarlig selskap med solidarisk ansvar",
+    "AS" to "Aksjeselskap",
+    "ASA" to "Allmennaksjeselskap",
+    "BA" to "Selskap med begrenset ansvar",
+    "BBL" to "Boligbyggelag",
+    "BEDR" to "Underenhet til næringsdrivende og offentlig forvaltning",
+    "BO" to "Andre bo",
+    "BRL" to "Borettslag",
+    "DA" to "Ansvarlig selskap med delt ansvar",
+    "ENK" to "Enkeltpersonforetak",
+    "EOFG" to "Europeisk økonomisk foretaksgruppe",
+    "ESEK" to "Eierseksjonssameie",
+    "FKF" to "Fylkeskommunalt foretak",
+    "FLI" to "Forening/lag/innretning",
+    "FYLK" to "Fylkeskommune",
+    "GFS" to "Gjensidig forsikringsselskap",
+    "IKJP" to "Andre ikke-juridiske personer",
+    "IKS" to "Interkommunalt selskap",
+    "KBO" to "Konkursbo",
+    "KF" to "Kommunalt foretak",
+    "KIRK" to "Den norske kirke",
+    "KOMM" to "Kommune",
+    "KS" to "Kommandittselskap",
+    "KTRF" to "Kontorfellesskap",
+    "NUF" to "Norskregistrert utenlandsk foretak",
+    "OPMV" to "Særskilt oppdelt enhet, jf. mval. § 2-2",
+    "ORGL" to "Organisasjonsledd",
+    "PERS" to "Andre enkeltpersoner som registreres i tilknyttet register",
+    "PK" to "Pensjonskasse",
+    "PRE" to "Partrederi",
+    "SA" to "Samvirkeforetak",
+    "SAM" to "Tingsrettslig sameie",
+    "SE" to "Europeisk selskap",
+    "SF" to "Statsforetak",
+    "SPA" to "Sparebank",
+    "STAT" to "Staten",
+    "STI" to "Stiftelse",
+    "SÆR" to "Annet foretak iflg. særskilt lov",
+    "TVAM" to "Tvangsregistrert for MVA",
+    "UTLA" to "Utenlandsk enhet",
+    "VPFO" to "Verdipapirfond",
+)

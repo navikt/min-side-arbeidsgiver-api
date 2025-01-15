@@ -61,7 +61,10 @@ class EregControllerTest {
                 {
                   "organisasjonsnummer": "910825526",
                   "navn": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA P",
-                  "organisasjonsform": "BEDR",
+                  "organisasjonsform": {
+                    "kode": "BEDR",
+                    "beskrivelse": "Underenhet til næringsdrivende og offentlig forvaltning"
+                  },
                   "naeringskoder": null,
                   "postadresse": {
                     "adresse": "PERSONALKONTORET, PHILIP LUNDQUIST,POSTBOKS 144",                    
@@ -114,7 +117,10 @@ class EregControllerTest {
                     {
                       "organisasjonsnummer": "912998827",
                       "navn": "ARBEIDS- OG VELFERDSDIREKTORATET AVD ØKERNVEIEN",
-                      "organisasjonsform": "BEDR",
+                      "organisasjonsform": {
+                        "kode": "BEDR",
+                        "beskrivelse": "Underenhet til næringsdrivende og offentlig forvaltning"
+                      },
                       "naeringskoder": [
                         "84.120"
                       ],
@@ -186,7 +192,10 @@ class EregControllerTest {
                    {
                       "organisasjonsnummer": "810825472",
                       "navn": "MALMEFJORD OG RIDABU REGNSKAP",
-                      "organisasjonsform": "AS",
+                      "organisasjonsform": {
+                        "kode": "AS",
+                        "beskrivelse": "Aksjeselskap"
+                      },
                       "naeringskoder": null,
                       "postadresse": {
                         "adresse": "POSTBOKS 4120",
@@ -238,7 +247,10 @@ class EregControllerTest {
                     {
                       "organisasjonsnummer": "889640782",
                       "navn": "ARBEIDS- OG VELFERDSETATEN",
-                      "organisasjonsform": "ORGL",
+                      "organisasjonsform": {
+                        "kode": "ORGL",
+                        "beskrivelse": "Organisasjonsledd"
+                      },
                       "naeringskoder": [
                         "84.120"
                       ],
@@ -293,7 +305,10 @@ class EregControllerTest {
                     {
                       "organisasjonsnummer": "983887457",
                       "navn": "ARBEIDS- OG SOSIALDEPARTEMENTET",
-                      "organisasjonsform": "STAT",
+                      "organisasjonsform": {
+                        "kode": "STAT",
+                        "beskrivelse": "Staten"
+                      },
                       "naeringskoder": [
                           "84.110"
                       ],
