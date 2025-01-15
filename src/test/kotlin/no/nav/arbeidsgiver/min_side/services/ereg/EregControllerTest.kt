@@ -8,11 +8,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
@@ -45,10 +47,9 @@ class EregControllerTest {
 
     @Test
     fun `henter underenhet fra ereg`() {
-        val virksomhetsnummer = "42"
+        val virksomhetsnummer = "910825526"
         server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(underenhetRespons, APPLICATION_JSON))
+            .andExpect(method(HttpMethod.GET)).andRespond(withSuccess(underenhetRespons, APPLICATION_JSON))
 
         mockMvc.get("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
             with(jwtWithPid(virksomhetsnummer))
@@ -60,14 +61,10 @@ class EregControllerTest {
                 {
                   "organisasjonsnummer": "910825526",
                   "navn": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA P",
-                  "organisasjonsform": {
-                    "kode": "BEDR",
-                    "beskrivelse": ""
-                  },
-                  "naeringer": null,
+                  "organisasjonsform": "BEDR",
+                  "naeringskoder": null,
                   "postadresse": {
-                    "adresse": "PERSONALKONTORET, PHILIP LUNDQUIST,POSTBOKS 144",
-                    "kommune": null,
+                    "adresse": "PERSONALKONTORET, PHILIP LUNDQUIST,POSTBOKS 144",                    
                     "kommunenummer": "1120",
                     "land": "Norge",
                     "landkode": "NO",
@@ -76,7 +73,6 @@ class EregControllerTest {
                   },
                   "forretningsadresse": {
                     "adresse": "AVDELING HORTEN, VED PHILIP LUNDQUIST, APOTEKERGATA 16",
-                    "kommune": null,
                     "kommunenummer": "3801",
                     "land": "Norge",
                     "landkode": "NO",
@@ -85,10 +81,9 @@ class EregControllerTest {
                   },
                   "hjemmeside": null,
                   "overordnetEnhet": "810825472",
-                  "antallAnsatte": null,
+                  "antallAnsatte": 10,
                   "beliggenhetsadresse": {
                     "adresse": "AVDELING HORTEN, VED PHILIP LUNDQUIST, APOTEKERGATA 16",
-                    "kommune": null,
                     "kommunenummer": "3801",
                     "land": "Norge",
                     "landkode": "NO",
@@ -96,8 +91,8 @@ class EregControllerTest {
                     "poststed": "HORTEN"
                   }
                 }
-            """.trimIndent()
-                , strict = true)
+            """.trimIndent(), strict = true
+                )
             }
         }
     }
@@ -105,10 +100,9 @@ class EregControllerTest {
 
     @Test
     fun `henter underenhet med orgledd fra ereg`() {
-        val virksomhetsnummer = "42"
+        val virksomhetsnummer = "912998827"
         server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(underenhetMedOrgleddRespons, APPLICATION_JSON))
+            .andExpect(method(HttpMethod.GET)).andRespond(withSuccess(underenhetMedOrgleddRespons, APPLICATION_JSON))
 
         mockMvc.get("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
             with(jwtWithPid(virksomhetsnummer))
@@ -117,173 +111,246 @@ class EregControllerTest {
             content {
                 json(
                     """
-                        {
-                       
-                        }
+                    {
+                      "organisasjonsnummer": "912998827",
+                      "navn": "ARBEIDS- OG VELFERDSDIREKTORATET AVD ØKERNVEIEN",
+                      "organisasjonsform": "BEDR",
+                      "naeringskoder": [
+                        "84.120"
+                      ],
+                      "postadresse": {
+                        "adresse": "Postboks 5    St. Olavs Plass",
+                        "kommunenummer": "0301",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "0130",
+                        "poststed": null
+                      },
+                      "forretningsadresse": {
+                        "adresse": "Økernveien 94",
+                        "kommunenummer": "0301",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "0579",
+                        "poststed": null
+                      },
+                      "hjemmeside": null,
+                      "overordnetEnhet": "889640782",
+                      "antallAnsatte": null,
+                      "beliggenhetsadresse": {
+                        "adresse": "Økernveien 94",
+                        "kommunenummer": "0301",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "0579",
+                        "poststed": null
+                      }
+                    }
                     """.trimIndent(), strict = true
                 )
             }
         }
     }
 
-//
-//    @Test
-//    fun `underenhet er null fra ereg`() {
-//        val virksomhetsnummer = "42"
-//        server.expect(requestTo("/v1/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
-//            .andExpect(method(HttpMethod.GET))
-//            .andRespond(
-//                withStatus(HttpStatus.NOT_FOUND).body(underenhetIkkeFunnetRespons).contentType(APPLICATION_JSON)
-//            )
-//
-//        val result = eregService.hentUnderenhet(virksomhetsnummer)
-//
-//        assertEquals(null, result)
-//    }
-//
-//    @Test
-//    fun `henter overenhet fra ereg`() {
-//        val orgnr = "314"
-//        server.expect(requestTo("/v1/organisasjon/$orgnr"))
-//            .andExpect(method(HttpMethod.GET))
-//            .andRespond(withSuccess(overenhetRespons, APPLICATION_JSON))
-//
-//        val result = eregService.hentOverenhet(orgnr)!!
-//
-//        assertEquals("810825472", result.organisasjonsnummer)
-//        assertEquals("MALMEFJORD OG RIDABU REGNSKAP", result.navn)
-//        assertEquals(null, result.overordnetEnhet)
-//        assertEquals("AS", result.organisasjonsform)
-//        assertEquals(null, result.antallAnsatte)
-//        assertEquals(
-//            EregAdresse(
-//                type = "Postadresse",
-//                adresse = "POSTBOKS 4120",
-//                kommune = "",
-//                kommunenummer = "3403",
-//                land = "",
-//                landkode = "NO",
-//                poststed = "HAMAR",
-//                postnummer = "2307"
-//            ), result.postadresse
-//        )
-//        assertEquals(
-//            EregAdresse(
-//                type = "Forretningsadresse",
-//                adresse = "RÅDHUSET",
-//                kommune = "",
-//                kommunenummer = "1579",
-//                land = "",
-//                landkode = "NO",
-//                poststed = "ELNESVÅGEN",
-//                postnummer = "6440"
-//            ), result.forretningsadresse
-//        )
-//        assertEquals("", result.hjemmeside)
-//        assertEquals(emptyList<Kode>(), result.naeringskoder)
-//        assertEquals(false, result.harRegistrertAntallAnsatte)
-//    }
-//
-//    @Test
-//    fun `henter orgledd fra ereg`() {
-//        val orgnr = "314"
-//        server.expect(requestTo("/v1/organisasjon/$orgnr"))
-//            .andExpect(method(HttpMethod.GET))
-//            .andRespond(withSuccess(orgleddRespons, APPLICATION_JSON))
-//
-//        val result = eregService.hentOverenhet(orgnr)!!
-//
-//        assertEquals("889640782", result.organisasjonsnummer)
-//        assertEquals("ARBEIDS- OG VELFERDSETATEN", result.navn)
-//        assertEquals("983887457", result.overordnetEnhet)
-//        assertEquals("ORGL", result.organisasjonsform)
-//        assertEquals(null, result.antallAnsatte)
-//        assertEquals(
-//            EregAdresse(
-//                type = "Postadresse",
-//                adresse = "Postboks 5 St Olavs Plass",
-//                kommune = "",
-//                kommunenummer = "0301",
-//                land = "",
-//                landkode = "NO",
-//                poststed = "",
-//                postnummer = "0130"
-//            ), result.postadresse
-//        )
-//        assertEquals(
-//            EregAdresse(
-//                type = "Forretningsadresse",
-//                adresse = "Økernveien 94",
-//                kommune = "",
-//                kommunenummer = "0301",
-//                land = "",
-//                landkode = "NO",
-//                poststed = "",
-//                postnummer = "0579"
-//            ), result.forretningsadresse
-//        )
-//        assertEquals("www.nav.no", result.hjemmeside)
-//        assertEquals(listOf(Kode("84.120", "")), result.naeringskoder)
-//        assertEquals(false, result.harRegistrertAntallAnsatte)
-//    }
-//
-//    @Test
-//    fun `henter jurudisk enhet for orgledd 889640782`() {
-//        val orgnr = "314"
-//        server.expect(requestTo("/v1/organisasjon/$orgnr"))
-//            .andExpect(method(HttpMethod.GET))
-//            .andRespond(withSuccess(juridiskEnhetForOrgleddRespons, APPLICATION_JSON))
-//
-//        val result = eregService.hentOverenhet(orgnr)!!
-//
-//        assertEquals("983887457", result.organisasjonsnummer)
-//        assertEquals("ARBEIDS- OG SOSIALDEPARTEMENTET", result.navn)
-//        assertEquals(null, result.overordnetEnhet)
-//        assertEquals("STAT", result.organisasjonsform)
-//        assertEquals(
-//            EregAdresse(
-//                type = "Postadresse",
-//                adresse = "Postboks 8019 Dep",
-//                kommune = "",
-//                kommunenummer = "0301",
-//                land = "",
-//                landkode = "NO",
-//                poststed = "",
-//                postnummer = "0030"
-//            ), result.postadresse
-//        )
-//        assertEquals(
-//            EregAdresse(
-//                type = "Forretningsadresse",
-//                adresse = "Akersgata 64",
-//                kommune = "",
-//                kommunenummer = "0301",
-//                land = "",
-//                landkode = "NO",
-//                poststed = "",
-//                postnummer = "0180"
-//            ), result.forretningsadresse
-//        )
-//        assertEquals("regjeringen.no/asd", result.hjemmeside)
-//        assertEquals(listOf(Kode("84.110", "")), result.naeringskoder)
-//        assertEquals(false, result.harRegistrertAntallAnsatte)
-//    }
-//
-//    @Test
-//    fun `overenhet er null fra ereg`() {
-//        val orgnr = "314"
-//        server.expect(requestTo("/v1/organisasjon/$orgnr"))
-//            .andExpect(method(HttpMethod.GET))
-//            .andRespond(withStatus(HttpStatus.NOT_FOUND).body(overenhetIkkeFunnetRespons).contentType(APPLICATION_JSON))
-//
-//        val result = eregService.hentOverenhet(orgnr)
-//
-//        assertEquals(null, result)
-//    }
+    @Test
+    fun `underenhet er null fra ereg`() {
+        val virksomhetsnummer = "12345678"
+        server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
+            .andExpect(method(HttpMethod.GET)).andRespond(
+                withStatus(HttpStatus.NOT_FOUND).body(underenhetIkkeFunnetRespons).contentType(APPLICATION_JSON)
+            )
+
+        mockMvc.get("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
+            with(jwtWithPid(virksomhetsnummer))
+        }.andExpect {
+            status { isOk() }
+            content {
+                null
+            }
+        }
+    }
+
+    @Test
+    fun `henter overenhet fra ereg`() {
+        val orgnr = "810825472"
+        server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess(overenhetRespons, APPLICATION_JSON))
+
+        mockMvc.get("/api/ereg/overenhet?orgnr=${orgnr}") {
+            with(jwtWithPid(orgnr))
+        }.andExpect {
+            status { isOk() }
+            content {
+                json(
+                    """
+                   {
+                      "organisasjonsnummer": "810825472",
+                      "navn": "MALMEFJORD OG RIDABU REGNSKAP",
+                      "organisasjonsform": "AS",
+                      "naeringskoder": null,
+                      "postadresse": {
+                        "adresse": "POSTBOKS 4120",
+                        "kommunenummer": "3403",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "2307",
+                        "poststed": "HAMAR"
+                      },
+                      "forretningsadresse": {
+                        "adresse": "RÅDHUSET",
+                        "kommunenummer": "1579",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "6440",
+                        "poststed": "ELNESVÅGEN"
+                      },
+                      "hjemmeside": null,
+                      "overordnetEnhet": null,
+                      "antallAnsatte": null,
+                      "beliggenhetsadresse": {
+                        "adresse": "RÅDHUSET",
+                        "kommunenummer": "1579",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "6440",
+                        "poststed": "ELNESVÅGEN"
+                      }
+                    }
+                    """.trimIndent(), strict = true
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `henter orgledd fra ereg`() {
+        val orgnr = "889640782"
+        server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess(orgleddRespons, APPLICATION_JSON))
+
+        mockMvc.get("/api/ereg/overenhet?orgnr=${orgnr}") {
+            with(jwtWithPid(orgnr))
+        }.andExpect {
+            status { isOk() }
+            content {
+                json(
+                    """
+                    {
+                      "organisasjonsnummer": "889640782",
+                      "navn": "ARBEIDS- OG VELFERDSETATEN",
+                      "organisasjonsform": "ORGL",
+                      "naeringskoder": [
+                        "84.120"
+                      ],
+                      "postadresse": {
+                        "adresse": "Postboks 5 St Olavs Plass",
+                        "kommunenummer": "0301",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "0130",
+                        "poststed": null
+                      },
+                      "forretningsadresse": {
+                        "adresse": "Økernveien 94",
+                        "kommunenummer": "0301",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "0579",
+                        "poststed": null
+                      },
+                      "hjemmeside": "www.nav.no",
+                      "overordnetEnhet": null,
+                      "antallAnsatte": null,
+                      "beliggenhetsadresse": {
+                        "adresse": "Økernveien 94",
+                        "kommunenummer": "0301",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "0579",
+                        "poststed": null
+                      }
+                    }
+                """.trimIndent(), strict = true
+                )
+            }
+        }
+    }
+
+
+    @Test
+    fun `henter jurudisk enhet for orgledd 889640782`() {
+        val orgnr = "983887457"
+        server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess(juridiskEnhetForOrgleddRespons, APPLICATION_JSON))
+
+        mockMvc.get("/api/ereg/overenhet?orgnr=${orgnr}") {
+            with(jwtWithPid(orgnr))
+        }.andExpect {
+            status { isOk() }
+            content {
+                json(
+                    """
+                    {
+                      "organisasjonsnummer": "983887457",
+                      "navn": "ARBEIDS- OG SOSIALDEPARTEMENTET",
+                      "organisasjonsform": "STAT",
+                      "naeringskoder": [
+                          "84.110"
+                      ],
+                      "postadresse": {
+                        "adresse": "Postboks 8019 Dep",
+                        "kommunenummer": "0301",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "0030",
+                        "poststed": null
+                      },
+                      "forretningsadresse": {
+                        "adresse": "Akersgata 64",
+                        "kommunenummer": "0301",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "0180",
+                        "poststed": null
+                      },
+                      "hjemmeside": "regjeringen.no/asd",
+                      "overordnetEnhet": null,
+                      "antallAnsatte": null,
+                      "beliggenhetsadresse": {
+                        "adresse": "Akersgata 64",
+                        "kommunenummer": "0301",
+                        "land": "Norge",
+                        "landkode": "NO",
+                        "postnummer": "0180",
+                        "poststed": null
+                      }
+                    }
+                """.trimIndent(), strict = true
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `overenhet er null fra ereg`() {
+        val orgnr = "314"
+        server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
+            .andRespond(withStatus(HttpStatus.NOT_FOUND).body(overenhetIkkeFunnetRespons).contentType(APPLICATION_JSON))
+
+        mockMvc.get("/api/ereg/overenhet?orgnr=${orgnr}") {
+            with(jwtWithPid(orgnr))
+        }.andExpect {
+            status { isOk() }
+            content {
+                null
+            }
+        }
+    }
 }
 
 //Responsene er hentet fra https://ereg-services.dev.intern.nav.no/swagger-ui/index.html#/organisasjon.v1/hentOrganisasjonUsingGET
 
+//language=JSON
 private const val underenhetRespons = """
 {
   "organisasjonsnummer": "910825526",
@@ -300,6 +367,17 @@ private const val underenhetRespons = """
     }
   },
   "organisasjonDetaljer": {
+    "ansatte": [
+        {
+            "antall": 10,
+            "bruksperiode": {
+              "fom": "2020-09-03T09:00:32.693"
+            },
+            "gyldighetsperiode": {
+              "fom": "2020-09-03"
+            } 
+        }
+    ],
     "registreringsdato": "2019-07-11T00:00:00",
     "enhetstyper": [
       {
@@ -396,12 +474,13 @@ private const val underenhetRespons = """
   ]
 }
 """
-
+//language=JSON
 private const val overenhetRespons = """
 {
   "organisasjonsnummer": "810825472",
   "type": "JuridiskEnhet",
   "navn": {
+    "sammensattnavn": "MALMEFJORD OG RIDABU REGNSKAP",
     "navnelinje1": "MALMEFJORD OG RIDABU REGNSKAP",
     "bruksperiode": {
       "fom": "2020-05-14T16:03:21.12"
@@ -425,6 +504,7 @@ private const val overenhetRespons = """
     ],
     "navn": [
       {
+        "sammensattnavn": "MALMEFJORD OG RIDABU REGNSKAP",
         "navnelinje1": "MALMEFJORD OG RIDABU REGNSKAP",
         "bruksperiode": {
           "fom": "2020-05-14T16:03:21.12"
@@ -482,7 +562,7 @@ private const val overenhetRespons = """
   }
 }
 """
-
+//language=JSON
 private const val underenhetMedOrgleddRespons = """
 {
   "organisasjonsnummer": "912998827",
@@ -628,12 +708,13 @@ private const val underenhetMedOrgleddRespons = """
   ]
 }
 """
-
+//language=JSON
 private const val orgleddRespons = """
 {
   "organisasjonsnummer": "889640782",
   "type": "Organisasjonsledd",
   "navn": {
+    "sammensattnavn": "ARBEIDS- OG VELFERDSETATEN",
     "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
     "bruksperiode": {
       "fom": "2015-02-23T08:04:53.2"
@@ -658,6 +739,7 @@ private const val orgleddRespons = """
     ],
     "navn": [
       {
+        "sammensattnavn": "ARBEIDS- OG VELFERDSETATEN",
         "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
         "bruksperiode": {
           "fom": "2015-02-23T08:04:53.2"
@@ -781,207 +863,16 @@ private const val orgleddRespons = """
   "organisasjonsleddDetaljer": {
     "enhetstype": "ORGL",
     "sektorkode": "6100"
-  },
-  "driverVirksomheter": [
-    {
-      "organisasjonsnummer": "991003525",
-      "navn": {
-        "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
-        "navnelinje3": "IKT DRIFT STEINKJER",
-        "bruksperiode": {
-          "fom": "2018-01-11T04:00:43.413"
-        },
-        "gyldighetsperiode": {
-          "fom": "2018-01-10"
-        }
-      },
-      "bruksperiode": {
-        "fom": "2018-01-11T04:00:53.145"
-      },
-      "gyldighetsperiode": {
-        "fom": "2018-01-10"
-      }
-    },
-    {
-      "organisasjonsnummer": "912998827",
-      "navn": {
-        "navnelinje1": "ARBEIDS- OG VELFERDSDIREKTORATET",
-        "navnelinje3": "AVD ØKERNVEIEN",
-        "bruksperiode": {
-          "fom": "2015-02-23T08:04:53.2"
-        },
-        "gyldighetsperiode": {
-          "fom": "2013-12-23"
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T16:08:14.385"
-      },
-      "gyldighetsperiode": {
-        "fom": "2013-12-23"
-      }
-    },
-    {
-      "organisasjonsnummer": "986001344",
-      "navn": {
-        "navnelinje1": "NAV ABETAL",
-        "bruksperiode": {
-          "fom": "2015-02-23T08:04:53.2"
-        },
-        "gyldighetsperiode": {
-          "fom": "2010-04-09"
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T19:26:04.911"
-      },
-      "gyldighetsperiode": {
-        "fom": "2010-04-12"
-      }
-    },
-    {
-      "organisasjonsnummer": "995298775",
-      "navn": {
-        "navnelinje1": "ARBEIDS- OG VELFERDSDIREKTORATET",
-        "navnelinje3": "AVD SANNERGATA",
-        "bruksperiode": {
-          "fom": "2015-02-23T08:04:53.2"
-        },
-        "gyldighetsperiode": {
-          "fom": "2010-03-16"
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T21:01:47.564"
-      },
-      "gyldighetsperiode": {
-        "fom": "2010-03-16"
-      }
-    }
-  ],
-  "inngaarIJuridiskEnheter": [
-    {
-      "organisasjonsnummer": "983887457",
-      "navn": {
-        "navnelinje1": "ARBEIDS- OG SOSIALDEPARTEMENTET",
-        "bruksperiode": {
-          "fom": "2015-02-23T08:04:53.2"
-        },
-        "gyldighetsperiode": {
-          "fom": "2014-02-14"
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T15:42:14.826"
-      },
-      "gyldighetsperiode": {
-        "fom": "2006-03-23"
-      }
-    }
-  ],
-  "organisasjonsleddUnder": [
-    {
-      "organisasjonsledd": {
-        "type": "Organisasjonsledd",
-        "organisasjonsleddUnder": [
-          {
-            "organisasjonsledd": {
-              "organisasjonsnummer": "995277670",
-              "type": "Organisasjonsledd",
-              "navn": {
-                "navnelinje1": "NAV ØKONOMILINJEN",
-                "bruksperiode": {
-                  "fom": "2015-02-23T08:04:53.2"
-                },
-                "gyldighetsperiode": {
-                  "fom": "2013-12-24"
-                }
-              }
-            },
-            "bruksperiode": {
-              "fom": "2014-05-23T21:01:30.126"
-            },
-            "gyldighetsperiode": {
-              "fom": "2010-03-11"
-            }
-          },
-          {
-            "organisasjonsledd": {
-              "organisasjonsnummer": "991012206",
-              "type": "Organisasjonsledd",
-              "navn": {
-                "navnelinje1": "NAV YTELSESLINJEN",
-                "bruksperiode": {
-                  "fom": "2014-05-21T16:53:56.633"
-                },
-                "gyldighetsperiode": {
-                  "fom": "2014-01-07"
-                }
-              }
-            },
-            "bruksperiode": {
-              "fom": "2014-05-23T20:17:58.91"
-            },
-            "gyldighetsperiode": {
-              "fom": "2007-03-12"
-            }
-          },
-          {
-            "organisasjonsledd": {
-              "organisasjonsnummer": "991012133",
-              "type": "Organisasjonsledd",
-              "navn": {
-                "navnelinje1": "NAV ARBEIDS- OG TJENESTELINJEN",
-                "bruksperiode": {
-                  "fom": "2016-02-02T04:02:14.967"
-                },
-                "gyldighetsperiode": {
-                  "fom": "2016-02-01"
-                }
-              }
-            },
-            "bruksperiode": {
-              "fom": "2014-05-23T20:17:58.879"
-            },
-            "gyldighetsperiode": {
-              "fom": "2007-03-12"
-            }
-          },
-          {
-            "organisasjonsledd": {
-              "organisasjonsnummer": "990983291",
-              "type": "Organisasjonsledd",
-              "navn": {
-                "navnelinje1": "NAV IKT",
-                "bruksperiode": {
-                  "fom": "2015-02-23T08:04:53.2"
-                },
-                "gyldighetsperiode": {
-                  "fom": "2010-04-09"
-                }
-              }
-            },
-            "bruksperiode": {
-              "fom": "2014-05-23T20:17:42.452"
-            },
-            "gyldighetsperiode": {
-              "fom": "2007-03-05"
-            }
-          }
-        ]
-      },
-      "bruksperiode": {},
-      "gyldighetsperiode": {}
-    }
-  ]
+  }
 }
 """
-
+//language=JSON
 private const val juridiskEnhetForOrgleddRespons = """
  {
   "organisasjonsnummer": "983887457",
   "type": "JuridiskEnhet",
   "navn": {
+    "sammensattnavn": "ARBEIDS- OG SOSIALDEPARTEMENTET",
     "navnelinje1": "ARBEIDS- OG SOSIALDEPARTEMENTET",
     "bruksperiode": {
       "fom": "2015-02-23T08:04:53.2"
@@ -1005,6 +896,7 @@ private const val juridiskEnhetForOrgleddRespons = """
     ],
     "navn": [
       {
+        "sammensattnavn": "ARBEIDS- OG SOSIALDEPARTEMENTET",
         "navnelinje1": "ARBEIDS- OG SOSIALDEPARTEMENTET",
         "bruksperiode": {
           "fom": "2015-02-23T08:04:53.2"
@@ -1128,200 +1020,8 @@ private const val juridiskEnhetForOrgleddRespons = """
   "juridiskEnhetDetaljer": {
     "enhetstype": "STAT",
     "sektorkode": "6100"
-  },
-  "driverVirksomheter": [
-    {
-      "organisasjonsnummer": "983893449",
-      "navn": {
-        "navnelinje1": "ARBEIDS- OG SOSIALDEPARTEMENTET",
-        "bruksperiode": {
-          "fom": "2015-02-23T08:04:53.2"
-        },
-        "gyldighetsperiode": {
-          "fom": "2014-02-14"
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T19:04:32.777"
-      },
-      "gyldighetsperiode": {
-        "fom": "2001-11-08"
-      }
-    }
-  ],
-  "bestaarAvOrganisasjonsledd": [
-    {
-      "organisasjonsledd": {
-        "organisasjonsnummer": "982583462",
-        "type": "Organisasjonsledd",
-        "navn": {
-          "navnelinje1": "STATENS PENSJONSKASSE",
-          "navnelinje2": "FORVALTNINGSBEDRIFT",
-          "bruksperiode": {
-            "fom": "2015-02-23T08:04:53.2"
-          },
-          "gyldighetsperiode": {
-            "fom": "2001-04-27"
-          }
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T18:50:12.687"
-      },
-      "gyldighetsperiode": {
-        "fom": "2010-04-27"
-      }
-    },
-    {
-      "organisasjonsledd": {
-        "organisasjonsnummer": "974761084",
-        "type": "Organisasjonsledd",
-        "navn": {
-          "navnelinje1": "TRYGDERETTEN",
-          "bruksperiode": {
-            "fom": "2015-02-23T08:04:53.2"
-          },
-          "gyldighetsperiode": {
-            "fom": "1995-08-09"
-          }
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T17:27:41.742"
-      },
-      "gyldighetsperiode": {
-        "fom": "2007-03-08"
-      }
-    },
-    {
-      "organisasjonsledd": {
-        "organisasjonsnummer": "889640782",
-        "type": "Organisasjonsledd",
-        "navn": {
-          "navnelinje1": "ARBEIDS- OG VELFERDSETATEN",
-          "bruksperiode": {
-            "fom": "2015-02-23T08:04:53.2"
-          },
-          "gyldighetsperiode": {
-            "fom": "2006-03-23"
-          }
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T15:42:14.826"
-      },
-      "gyldighetsperiode": {
-        "fom": "2006-03-23"
-      }
-    },
-    {
-      "organisasjonsledd": {
-        "organisasjonsnummer": "971525681",
-        "type": "Organisasjonsledd",
-        "navn": {
-          "navnelinje1": "ARBEIDSRETTEN",
-          "bruksperiode": {
-            "fom": "2015-02-23T08:04:53.2"
-          },
-          "gyldighetsperiode": {
-            "fom": "1995-08-09"
-          }
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T16:19:26.171"
-      },
-      "gyldighetsperiode": {
-        "fom": "2004-11-16"
-      }
-    },
-    {
-      "organisasjonsledd": {
-        "organisasjonsnummer": "971524626",
-        "type": "Organisasjonsledd",
-        "navn": {
-          "navnelinje1": "RIKSMEKLEREN",
-          "bruksperiode": {
-            "fom": "2015-02-23T08:04:53.2"
-          },
-          "gyldighetsperiode": {
-            "fom": "2012-03-02"
-          }
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T16:19:26.04"
-      },
-      "gyldighetsperiode": {
-        "fom": "2004-11-16"
-      }
-    },
-    {
-      "organisasjonsledd": {
-        "organisasjonsnummer": "986174613",
-        "type": "Organisasjonsledd",
-        "navn": {
-          "navnelinje1": "PETROLEUMSTILSYNET",
-          "bruksperiode": {
-            "fom": "2015-02-23T08:04:53.2"
-          },
-          "gyldighetsperiode": {
-            "fom": "2003-10-22"
-          }
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T19:27:51.325"
-      },
-      "gyldighetsperiode": {
-        "fom": "2004-11-10"
-      }
-    },
-    {
-      "organisasjonsledd": {
-        "organisasjonsnummer": "974761211",
-        "type": "Organisasjonsledd",
-        "navn": {
-          "navnelinje1": "ARBEIDSTILSYNET",
-          "bruksperiode": {
-            "fom": "2014-05-25T15:57:59.354"
-          },
-          "gyldighetsperiode": {
-            "fom": "2014-04-24"
-          }
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T17:27:41.865"
-      },
-      "gyldighetsperiode": {
-        "fom": "2004-11-10"
-      }
-    },
-    {
-      "organisasjonsledd": {
-        "organisasjonsnummer": "940415683",
-        "type": "Organisasjonsledd",
-        "navn": {
-          "navnelinje1": "PENSJONSTRYGDEN FOR SJØMENN",
-          "bruksperiode": {
-            "fom": "2015-02-23T08:04:53.2"
-          },
-          "gyldighetsperiode": {
-            "fom": "1995-08-09"
-          }
-        }
-      },
-      "bruksperiode": {
-        "fom": "2014-05-23T16:16:06.686"
-      },
-      "gyldighetsperiode": {
-        "fom": "2002-07-25"
-      }
-    }
-  ]
+  }
 }
-
 """
 
 private const val underenhetIkkeFunnetRespons = """
