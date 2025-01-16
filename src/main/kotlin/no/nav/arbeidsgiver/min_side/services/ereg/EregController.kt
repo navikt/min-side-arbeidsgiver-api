@@ -2,20 +2,26 @@ package no.nav.arbeidsgiver.min_side.services.ereg
 
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.ereg.GyldighetsPeriode.Companion.erGyldig
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class EregController(
     private val eregService: EregService
 ) {
-    @GetMapping("/api/ereg/underenhet")
-    fun underenhet(orgnr: String): EregOrganisasjonDto? =
-        EregOrganisasjonDto.fraEregOrganisasjon(eregService.hentUnderenhet(orgnr))
 
-    @GetMapping("/api/ereg/overenhet")
-    fun overenhet(orgnr: String): EregOrganisasjonDto? =
-        EregOrganisasjonDto.fraEregOrganisasjon(eregService.hentOverenhet(orgnr))
+    data class Request(
+        val orgnr: String
+    )
+
+    @PostMapping("/api/ereg/underenhet")
+    fun underenhet(@RequestBody request: Request): EregOrganisasjonDto? =
+        EregOrganisasjonDto.fraEregOrganisasjon(eregService.hentUnderenhet(request.orgnr))
+
+    @PostMapping("/api/ereg/overenhet")
+    fun overenhet(@RequestBody request: Request): EregOrganisasjonDto? =
+        EregOrganisasjonDto.fraEregOrganisasjon(eregService.hentOverenhet(request.orgnr))
 
     data class EregOrganisasjonDto(
         val organisasjonsnummer: String,

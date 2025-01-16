@@ -17,7 +17,7 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.request
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 
 
 @SpringBootTest(
@@ -51,7 +51,11 @@ class EregControllerTest {
         server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
             .andExpect(method(HttpMethod.GET)).andRespond(withSuccess(underenhetRespons, APPLICATION_JSON))
 
-        mockMvc.get("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
+        mockMvc.post("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
+            content = """{"orgnr": "${virksomhetsnummer}"}"""
+            contentType = APPLICATION_JSON
+            content = """{"orgnr": "${virksomhetsnummer}"}"""
+            contentType = APPLICATION_JSON
             with(jwtWithPid(virksomhetsnummer))
         }.andExpect {
             status { isOk() }
@@ -107,7 +111,9 @@ class EregControllerTest {
         server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
             .andExpect(method(HttpMethod.GET)).andRespond(withSuccess(underenhetMedOrgleddRespons, APPLICATION_JSON))
 
-        mockMvc.get("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
+        mockMvc.post("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
+            content = """{"orgnr": "${virksomhetsnummer}"}"""
+            contentType = APPLICATION_JSON
             with(jwtWithPid(virksomhetsnummer))
         }.andExpect {
             status { isOk() }
@@ -166,7 +172,9 @@ class EregControllerTest {
                 withStatus(HttpStatus.NOT_FOUND).body(underenhetIkkeFunnetRespons).contentType(APPLICATION_JSON)
             )
 
-        mockMvc.get("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
+        mockMvc.post("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
+            content = """{"orgnr": "${virksomhetsnummer}"}"""
+            contentType = APPLICATION_JSON
             with(jwtWithPid(virksomhetsnummer))
         }.andExpect {
             status { isOk() }
@@ -182,7 +190,9 @@ class EregControllerTest {
         server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(overenhetRespons, APPLICATION_JSON))
 
-        mockMvc.get("/api/ereg/overenhet?orgnr=${orgnr}") {
+        mockMvc.post("/api/ereg/overenhet?orgnr=${orgnr}") {
+            content = """{"orgnr": "${orgnr}"}"""
+            contentType = APPLICATION_JSON
             with(jwtWithPid(orgnr))
         }.andExpect {
             status { isOk() }
@@ -237,7 +247,9 @@ class EregControllerTest {
         server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(orgleddRespons, APPLICATION_JSON))
 
-        mockMvc.get("/api/ereg/overenhet?orgnr=${orgnr}") {
+        mockMvc.post("/api/ereg/overenhet?orgnr=${orgnr}") {
+            content = """{"orgnr": "${orgnr}"}"""
+            contentType = APPLICATION_JSON
             with(jwtWithPid(orgnr))
         }.andExpect {
             status { isOk() }
@@ -295,7 +307,9 @@ class EregControllerTest {
         server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(juridiskEnhetForOrgleddRespons, APPLICATION_JSON))
 
-        mockMvc.get("/api/ereg/overenhet?orgnr=${orgnr}") {
+        mockMvc.post("/api/ereg/overenhet?orgnr=${orgnr}") {
+            content = """{"orgnr": "${orgnr}"}"""
+            contentType = APPLICATION_JSON
             with(jwtWithPid(orgnr))
         }.andExpect {
             status { isOk() }
@@ -352,7 +366,9 @@ class EregControllerTest {
         server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
             .andRespond(withStatus(HttpStatus.NOT_FOUND).body(overenhetIkkeFunnetRespons).contentType(APPLICATION_JSON))
 
-        mockMvc.get("/api/ereg/overenhet?orgnr=${orgnr}") {
+        mockMvc.post("/api/ereg/overenhet?orgnr=${orgnr}") {
+            content = """{"orgnr": "${orgnr}"}"""
+            contentType = APPLICATION_JSON
             with(jwtWithPid(orgnr))
         }.andExpect {
             status { isOk() }
