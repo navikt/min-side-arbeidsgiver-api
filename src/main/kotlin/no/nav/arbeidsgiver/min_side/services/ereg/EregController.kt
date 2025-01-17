@@ -43,18 +43,18 @@ class EregController(
                 return EregOrganisasjonDto(
                     organisasjonsnummer = org.organisasjonsnummer,
                     navn = org.navn.sammensattnavn,
-                    organisasjonsform = org.organisasjonDetaljer.enhetstyper?.first { it.gyldighetsPeriode.erGyldig() }
+                    organisasjonsform = org.organisasjonDetaljer.enhetstyper?.firstOrNull() { it.gyldighetsperiode.erGyldig() }
                         .let { OrganisasjonsformDto.fraOrganisasjonsform(it?.enhetstype) },
-                    naeringskoder = org.organisasjonDetaljer.naeringer?.filter { it.gyldighetsPeriode.erGyldig() }
+                    naeringskoder = org.organisasjonDetaljer.naeringer?.filter { it.gyldighetsperiode.erGyldig() }
                         ?.mapNotNull { it.naeringskode },
-                    postadresse = org.organisasjonDetaljer.postadresser?.first { it.gyldighetsPeriode.erGyldig() }
+                    postadresse = org.organisasjonDetaljer.postadresser?.firstOrNull { it.gyldighetsperiode.erGyldig() }
                         .let { EregAdresseDto.fraEregAdresse(it) },
-                    forretningsadresse = org.organisasjonDetaljer.forretningsadresser?.first { it.gyldighetsPeriode.erGyldig() }
+                    forretningsadresse = org.organisasjonDetaljer.forretningsadresser?.first { it.gyldighetsperiode.erGyldig() }
                         .let { EregAdresseDto.fraEregAdresse(it) },
-                    hjemmeside = org.organisasjonDetaljer.internettadresser?.firstOrNull { it.gyldighetsPeriode.erGyldig() }?.adresse,
+                    hjemmeside = org.organisasjonDetaljer.internettadresser?.firstOrNull { it.gyldighetsperiode.erGyldig() }?.adresse,
                     overordnetEnhet = org.orgnummerTilOverenhet(),
-                    antallAnsatte = org.organisasjonDetaljer.ansatte?.firstOrNull { it.gyldighetsPeriode.erGyldig() }?.antall,
-                    beliggenhetsadresse = org.organisasjonDetaljer.forretningsadresser?.first { it.gyldighetsPeriode.erGyldig() }
+                    antallAnsatte = org.organisasjonDetaljer.ansatte?.firstOrNull { it.gyldighetsperiode.erGyldig() }?.antall,
+                    beliggenhetsadresse = org.organisasjonDetaljer.forretningsadresser?.firstOrNull { it.gyldighetsperiode.erGyldig() }
                         .let { EregAdresseDto.fraEregAdresse(it) }
                 )
             }
@@ -70,12 +70,12 @@ class EregController(
         val poststed: String? = null
     ) {
         companion object {
-            fun fraEregAdresse(adresse: EregAdresse?): EregAdresseDto {
+            fun fraEregAdresse(adresse: EregAdresse?): EregAdresseDto? {
                 if (adresse == null) {
-                    null
+                    return null
                 }
                 return EregAdresseDto(
-                    adresse = concatinateAddresse(adresse!!),
+                    adresse = concatinateAddresse(adresse),
                     kommunenummer = adresse.kommunenummer,
                     land = landkodeTilLand[adresse.landkode],
                     landkode = adresse.landkode,

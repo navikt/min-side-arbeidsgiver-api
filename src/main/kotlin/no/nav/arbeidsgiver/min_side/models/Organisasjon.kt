@@ -19,7 +19,7 @@ data class Organisasjon(
                 name = eregOrganisasjon.navn.sammensattnavn,
                 parentOrganizationNumber = eregOrganisasjon.orgnummerTilOverenhet(),
                 organizationNumber = eregOrganisasjon.organisasjonsnummer,
-                organizationForm = eregOrganisasjon.organisasjonDetaljer.enhetstyper?.first { it.gyldighetsPeriode.erGyldig() }?.enhetstype ?: ""
+                organizationForm = eregOrganisasjon.organisasjonDetaljer.enhetstyper?.first { it.gyldighetsperiode.erGyldig() }?.enhetstype ?: ""
             )
         }
     }

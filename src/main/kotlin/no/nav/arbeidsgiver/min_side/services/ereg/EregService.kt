@@ -94,7 +94,7 @@ data class EregAdresse(
     val landkode: String?,
     val postnummer: String?,
     val poststed: String?,
-    val gyldighetsPeriode: GyldighetsPeriode?
+    val gyldighetsperiode: GyldighetsPeriode?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -109,26 +109,26 @@ data class EregOrganisasjonDetaljer(
 
 class EregEnhetstype (
     val enhetstype: String?,
-    val gyldighetsPeriode: GyldighetsPeriode?
+    val gyldighetsperiode: GyldighetsPeriode?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class EregNettAdresse (
     val adresse: String?,
-    val gyldighetsPeriode: GyldighetsPeriode?
+    val gyldighetsperiode: GyldighetsPeriode?
 )
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EregNaering(
     val naeringskode: String?,
-    val gyldighetsPeriode: GyldighetsPeriode?
+    val gyldighetsperiode: GyldighetsPeriode?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EregAnsatte(
     val antall: Int?,
-    val gyldighetsPeriode: GyldighetsPeriode?
+    val gyldighetsperiode: GyldighetsPeriode?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -155,19 +155,19 @@ data class EregOrganisasjon(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EregEnhetsRelasjon (
     val organisasjonsnummer: String,
-    val gyldighetsPeriode: GyldighetsPeriode?
+    val gyldighetsperiode: GyldighetsPeriode?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class OrganisasjonsLedd (
     val organisasjonsledd: EregEnhetsRelasjon?,
-    val gyldighetsPeriode: GyldighetsPeriode?
+    val gyldighetsperiode: GyldighetsPeriode?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EregNavn(
     val sammensattnavn: String,
-    val gyldighetsPeriode: GyldighetsPeriode?
+    val gyldighetsperiode: GyldighetsPeriode?
 )
 
 data class GyldighetsPeriode(

@@ -45,15 +45,49 @@ class EregControllerTest {
         server = MockRestServiceServer.bindTo(eregService.restTemplate).build()
     }
 
+
+    @Test
+    fun `overenhet som mangler en del felter`() {
+        val orgnr = "313199770"
+        server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr"))
+            .andExpect(method(HttpMethod.GET)).andRespond(withSuccess(overenhetUtenEnDelFelter, APPLICATION_JSON))
+
+        mockMvc.post("/api/ereg/overenhet") {
+            content = """{"orgnr": "${orgnr}"}"""
+            contentType = APPLICATION_JSON
+            with(jwtWithPid(orgnr))
+        }.andExpect {
+            status { isOk() }
+            content {
+                json("""
+                    {
+                      "organisasjonsnummer": "313199770",
+                      "navn": "ALLSIDIG UTMERKET TIGER AS",
+                      "organisasjonsform": {
+                        "kode": "AS",
+                        "beskrivelse": "Aksjeselskap"
+                      },
+                      "naeringskoder": null,
+                      "postadresse": null,
+                      "forretningsadresse": null,
+                      "hjemmeside": null,
+                      "overordnetEnhet": null,
+                      "antallAnsatte": 2,
+                      "beliggenhetsadresse": null
+                    }
+                """.trimIndent(), strict = true)
+            }
+        }
+    }
+
+
     @Test
     fun `henter underenhet fra ereg`() {
         val virksomhetsnummer = "910825526"
         server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
             .andExpect(method(HttpMethod.GET)).andRespond(withSuccess(underenhetRespons, APPLICATION_JSON))
 
-        mockMvc.post("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
-            content = """{"orgnr": "${virksomhetsnummer}"}"""
-            contentType = APPLICATION_JSON
+        mockMvc.post("/api/ereg/underenhet") {
             content = """{"orgnr": "${virksomhetsnummer}"}"""
             contentType = APPLICATION_JSON
             with(jwtWithPid(virksomhetsnummer))
@@ -111,7 +145,7 @@ class EregControllerTest {
         server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
             .andExpect(method(HttpMethod.GET)).andRespond(withSuccess(underenhetMedOrgleddRespons, APPLICATION_JSON))
 
-        mockMvc.post("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
+        mockMvc.post("/api/ereg/underenhet") {
             content = """{"orgnr": "${virksomhetsnummer}"}"""
             contentType = APPLICATION_JSON
             with(jwtWithPid(virksomhetsnummer))
@@ -172,7 +206,7 @@ class EregControllerTest {
                 withStatus(HttpStatus.NOT_FOUND).body(underenhetIkkeFunnetRespons).contentType(APPLICATION_JSON)
             )
 
-        mockMvc.post("/api/ereg/underenhet?orgnr=${virksomhetsnummer}") {
+        mockMvc.post("/api/ereg/underenhet") {
             content = """{"orgnr": "${virksomhetsnummer}"}"""
             contentType = APPLICATION_JSON
             with(jwtWithPid(virksomhetsnummer))
@@ -190,7 +224,7 @@ class EregControllerTest {
         server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(overenhetRespons, APPLICATION_JSON))
 
-        mockMvc.post("/api/ereg/overenhet?orgnr=${orgnr}") {
+        mockMvc.post("/api/ereg/overenhet") {
             content = """{"orgnr": "${orgnr}"}"""
             contentType = APPLICATION_JSON
             with(jwtWithPid(orgnr))
@@ -247,7 +281,7 @@ class EregControllerTest {
         server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(orgleddRespons, APPLICATION_JSON))
 
-        mockMvc.post("/api/ereg/overenhet?orgnr=${orgnr}") {
+        mockMvc.post("/api/ereg/overenhet") {
             content = """{"orgnr": "${orgnr}"}"""
             contentType = APPLICATION_JSON
             with(jwtWithPid(orgnr))
@@ -307,7 +341,7 @@ class EregControllerTest {
         server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(juridiskEnhetForOrgleddRespons, APPLICATION_JSON))
 
-        mockMvc.post("/api/ereg/overenhet?orgnr=${orgnr}") {
+        mockMvc.post("/api/ereg/overenhet") {
             content = """{"orgnr": "${orgnr}"}"""
             contentType = APPLICATION_JSON
             with(jwtWithPid(orgnr))
@@ -366,7 +400,7 @@ class EregControllerTest {
         server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr")).andExpect(method(HttpMethod.GET))
             .andRespond(withStatus(HttpStatus.NOT_FOUND).body(overenhetIkkeFunnetRespons).contentType(APPLICATION_JSON))
 
-        mockMvc.post("/api/ereg/overenhet?orgnr=${orgnr}") {
+        mockMvc.post("/api/ereg/overenhet") {
             content = """{"orgnr": "${orgnr}"}"""
             contentType = APPLICATION_JSON
             with(jwtWithPid(orgnr))
@@ -505,6 +539,7 @@ private const val underenhetRespons = """
   ]
 }
 """
+
 //language=JSON
 private const val overenhetRespons = """
 {
@@ -593,6 +628,7 @@ private const val overenhetRespons = """
   }
 }
 """
+
 //language=JSON
 private const val underenhetMedOrgleddRespons = """
 {
@@ -739,6 +775,7 @@ private const val underenhetMedOrgleddRespons = """
   ]
 }
 """
+
 //language=JSON
 private const val orgleddRespons = """
 {
@@ -897,6 +934,7 @@ private const val orgleddRespons = """
   }
 }
 """
+
 //language=JSON
 private const val juridiskEnhetForOrgleddRespons = """
  {
@@ -1051,6 +1089,101 @@ private const val juridiskEnhetForOrgleddRespons = """
   "juridiskEnhetDetaljer": {
     "enhetstype": "STAT",
     "sektorkode": "6100"
+  }
+}
+"""
+//language=JSON
+private const val overenhetUtenEnDelFelter = """
+   {
+  "organisasjonsnummer": "313199770",
+  "type": "JuridiskEnhet",
+  "navn": {
+    "sammensattnavn": "ALLSIDIG UTMERKET TIGER AS",
+    "navnelinje1": "ALLSIDIG UTMERKET TIGER AS",
+    "bruksperiode": {
+      "fom": "2021-09-20T19:42:15.072"
+    },
+    "gyldighetsperiode": {
+      "fom": "2021-03-18"
+    }
+  },
+  "organisasjonDetaljer": {
+    "registreringsdato": "2021-03-17T00:00:00",
+    "stiftelsesdato": "2000-05-17",
+    "enhetstyper": [
+      {
+        "enhetstype": "AS",
+        "bruksperiode": {
+          "fom": "2021-09-20T19:42:15.071"
+        },
+        "gyldighetsperiode": {
+          "fom": "2021-03-18"
+        }
+      }
+    ],
+    "navn": [
+      {
+        "sammensattnavn": "ALLSIDIG UTMERKET TIGER AS",
+        "navnelinje1": "ALLSIDIG UTMERKET TIGER AS",
+        "bruksperiode": {
+          "fom": "2021-09-20T19:42:15.072"
+        },
+        "gyldighetsperiode": {
+          "fom": "2021-03-18"
+        }
+      }
+    ], 
+    "ansatte": [
+      {
+        "antall": 2,
+        "bruksperiode": {
+          "fom": "2021-09-22T09:08:49.815"
+        },
+        "gyldighetsperiode": {
+          "fom": "2021-03-18"
+        }
+      }
+    ],
+    "navSpesifikkInformasjon": {
+      "erIA": false,
+      "bruksperiode": {
+        "fom": "1900-01-01T00:00:00"
+      },
+      "gyldighetsperiode": {
+        "fom": "1900-01-01"
+      }
+    },
+    "maalform": "NB",
+    "sistEndret": "2021-03-18"
+  },
+  "juridiskEnhetDetaljer": {
+    "enhetstype": "AS",
+    "sektorkode": "2100",
+    "kapitalopplysninger": [
+      {
+        "kapital": 1000000,
+        "kapitalInnbetalt": 1000000,
+        "valuta": "NOK",
+        "fritekst": "null",
+        "bruksperiode": {
+          "fom": "2021-09-20T19:42:15.065"
+        },
+        "gyldighetsperiode": {
+          "fom": "2021-03-18"
+        }
+      }
+    ],
+    "foretaksregisterRegistreringer": [
+      {
+        "registrert": true,
+        "bruksperiode": {
+          "fom": "2021-09-20T19:42:15.071"
+        },
+        "gyldighetsperiode": {
+          "fom": "2021-03-18"
+        }
+      }
+    ]
   }
 }
 """
