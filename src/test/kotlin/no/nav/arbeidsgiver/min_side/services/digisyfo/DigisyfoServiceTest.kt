@@ -4,6 +4,11 @@ import io.micrometer.core.instrument.MeterRegistry
 import no.nav.arbeidsgiver.min_side.kotlinCapture
 import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
+import no.nav.arbeidsgiver.min_side.services.ereg.EregEnhetsRelasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregEnhetstype
+import no.nav.arbeidsgiver.min_side.services.ereg.EregNavn
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjonDetaljer
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -81,11 +86,11 @@ class DigisyfoServiceTest {
 
         val result = digisyfoService.hentVirksomheterOgSykmeldte("42")
         assertThat(result).containsExactly(
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("10", "1"), 0),
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("11", "1"), 1),
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("20", "2"), 2),
-            VirksomhetOgAntallSykmeldte(mkOverenhet("1"), 0),
-            VirksomhetOgAntallSykmeldte(mkOverenhet("2"), 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("10", "1"))!!, 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("11", "1"))!!, 1),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("20", "2"))!!, 2),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("1"))!!, 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("2"))!!, 0),
         )
     }
 
@@ -100,11 +105,11 @@ class DigisyfoServiceTest {
 
         val result = digisyfoService.hentVirksomheterOgSykmeldte("42")
         assertThat(result).containsExactly(
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("3000", "300"), 2),
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("301", "30"), 1),
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("300", "30"), 0),
-            VirksomhetOgAntallSykmeldte(mkUnderenhet("30", "3"), 0),
-            VirksomhetOgAntallSykmeldte(mkOverenhet("3"), 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("3000", "300"))!!, 2),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("301", "30"))!!, 1),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("300", "30"))!!, 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("30", "3"))!!, 0),
+            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("3"))!!, 0),
         )
     }
 
@@ -126,18 +131,41 @@ class DigisyfoServiceTest {
 
 
     private fun mkUnderenhet(orgnr: String, parentOrgnr: String) =
-        Organisasjon(
-            name = "underenhet",
-            organizationNumber = orgnr,
-            parentOrganizationNumber = parentOrgnr,
-            organizationForm = "BEDR",
+        EregOrganisasjon(
+            organisasjonsnummer = orgnr,
+            organisasjonDetaljer = EregOrganisasjonDetaljer(
+                ansatte = null,
+                naeringer = null,
+                enhetstyper = listOf(EregEnhetstype("BEDR", null)),
+                postadresser = null,
+                forretningsadresser = null,
+                internettadresser = null
+            ),
+            inngaarIJuridiskEnheter = listOf(
+                EregEnhetsRelasjon(
+                    parentOrgnr, null
+                )
+            ),
+            bestaarAvOrganisasjonsledd = null,
+            type = "virksomhet",
+            navn = EregNavn("underenhet", null)
         )
 
     private fun mkOverenhet(orgnr: String) =
-        Organisasjon(
-            name = "overenhet",
-            organizationNumber = orgnr,
-            organizationForm = "AS",
+        EregOrganisasjon(
+            organisasjonsnummer = orgnr,
+            organisasjonDetaljer = EregOrganisasjonDetaljer(
+                ansatte = null,
+                naeringer = null,
+                enhetstyper = listOf(EregEnhetstype("AS", null)),
+                postadresser = null,
+                forretningsadresser = null,
+                internettadresser = null
+            ),
+            inngaarIJuridiskEnheter = null,
+            bestaarAvOrganisasjonsledd = null,
+            type = "organisasjonsledd",
+            navn = EregNavn("overenhet", null)
         )
 }
 

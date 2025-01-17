@@ -3,7 +3,11 @@ package no.nav.arbeidsgiver.min_side.kontaktinfo
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoController.KontaktinfoRequest
 import no.nav.arbeidsgiver.min_side.kotlinAny
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregEnhetsRelasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregEnhetstype
+import no.nav.arbeidsgiver.min_side.services.ereg.EregNavn
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjonDetaljer
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -23,18 +27,22 @@ import org.springframework.boot.test.mock.mockito.MockBean
 class KontaktinfoControllerAuthzTest {
     @Autowired
     lateinit var authenticatedUserHolder: AuthenticatedUserHolder
+
     @Autowired
     lateinit var altinnRollerClient: AltinnRollerClient
+
     @Autowired
     lateinit var eregService: EregService
+
     @Autowired
     lateinit var kontaktinfoClient: KontaktinfoClient
+
     @Autowired
     lateinit var kontaktinfoController: KontaktinfoController
 
     private val fnr = "012345678"
     private val orgnrUnderenhet = "0".repeat(9)
-    private val orgnrHovedenhet= "1".repeat(9)
+    private val orgnrHovedenhet = "1".repeat(9)
     private val orgnrAnnet = "2".repeat(9)
 
     @Test
@@ -79,18 +87,40 @@ class KontaktinfoControllerAuthzTest {
          * skjult manglende tilgangssjekker. */
         `when`(eregService.hentUnderenhet(kotlinAny())).thenAnswer {
             if (it.arguments[0] == orgnrUnderenhet) {
-                Organisasjon(
-                    parentOrganizationNumber = orgnrHovedenhet,
-                    organizationNumber = orgnrUnderenhet,
-                    organizationForm = "BEDR",
-                    name = "organisasjon"
+                EregOrganisasjon(
+                    organisasjonsnummer = orgnrUnderenhet,
+                    organisasjonDetaljer = EregOrganisasjonDetaljer(
+                        ansatte = null,
+                        naeringer = null,
+                        enhetstyper = listOf(EregEnhetstype("BEDR", null)),
+                        postadresser = null,
+                        forretningsadresser = null,
+                        internettadresser = null
+                    ),
+                    inngaarIJuridiskEnheter = listOf(
+                        EregEnhetsRelasjon(
+                            orgnrHovedenhet, null
+                        )
+                    ),
+                    bestaarAvOrganisasjonsledd = null,
+                    type = "virksomhet",
+                    navn = EregNavn("organisasjon", null)
                 )
             } else {
-                Organisasjon(
-                    parentOrganizationNumber = orgnrAnnet,
-                    organizationNumber = it.arguments[0] as String,
-                    organizationForm = "BEDR",
-                    name = "organisasjon"
+                EregOrganisasjon(
+                    organisasjonsnummer = orgnrAnnet,
+                    organisasjonDetaljer = EregOrganisasjonDetaljer(
+                        ansatte = null,
+                        naeringer = null,
+                        enhetstyper = listOf(EregEnhetstype("BEDR", null)),
+                        postadresser = null,
+                        forretningsadresser = null,
+                        internettadresser = null
+                    ),
+                    inngaarIJuridiskEnheter = null,
+                    bestaarAvOrganisasjonsledd = null,
+                    type = "organisasjonsledd",
+                    navn = EregNavn("organisasjon", null)
                 )
             }
         }
@@ -106,12 +136,13 @@ class KontaktinfoControllerAuthzTest {
     /* Mock alle andre tilgangssjekker som true, for å provosere fram lekkasje. */
     private fun mockTilganger(underenhet: Boolean, hovedenhet: Boolean) {
         `when`(altinnRollerClient.harAltinnRolle(kotlinAny(), kotlinAny(), kotlinAny(), kotlinAny())).thenAnswer {
-            when (it.arguments[0])  {
+            when (it.arguments[0]) {
                 fnr -> when (it.arguments[1]) {
                     orgnrUnderenhet -> underenhet
                     orgnrHovedenhet -> hovedenhet
                     else -> true
                 }
+
                 else -> true
             }
         }
