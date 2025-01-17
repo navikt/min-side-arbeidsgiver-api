@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class EregOrganisasjonDtoTest {
+class GyldighetsPeriodeTest {
 
     @Test
     fun `fom er i fortiden, tom er null`() {
