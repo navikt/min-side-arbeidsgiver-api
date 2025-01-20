@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
 import org.springframework.web.client.HttpServerErrorException
+import java.io.IOException
 import java.net.SocketException
 import javax.net.ssl.SSLHandshakeException
 
@@ -29,6 +30,7 @@ class TokenExchangeClientImpl(
         retryInterceptor(
             3,
             250L,
+            IOException::class.java, // lately been getting "GOAWAY received" as IOException, retry this as well
             SocketException::class.java,
             SSLHandshakeException::class.java,
             HttpServerErrorException.GatewayTimeout::class.java,
