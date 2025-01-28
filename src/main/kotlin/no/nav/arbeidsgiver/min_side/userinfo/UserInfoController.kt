@@ -36,7 +36,7 @@ class UserInfoController(
                 refusjonStatusService.statusoversikt(authenticatedUserHolder.fnr)
             }
         }
-        UserInfoResponsV3.from(tilganger.await(), syfoVirksomheter.await(), refusjoner.await())
+        UserInfoV3.from(tilganger.await(), syfoVirksomheter.await(), refusjoner.await())
     }
 
     @GetMapping("/api/userInfo/v2")
@@ -59,11 +59,11 @@ class UserInfoController(
             }
         }
 
-        UserInfoRespons.from(tilganger.await(), syfoVirksomheter.await(), refusjoner.await())
+        UserInfoV2.from(tilganger.await(), syfoVirksomheter.await(), refusjoner.await())
     }
 }
 
-data class UserInfoRespons(
+data class UserInfoV2(
     val altinnError: Boolean,
     val digisyfoError: Boolean,
     val organisasjoner: List<AltinnTilganger.AltinnTilgang>,
@@ -88,7 +88,7 @@ data class UserInfoRespons(
             tilgangerResult: Result<AltinnTilganger>,
             syfoResult: Result<Collection<DigisyfoService.VirksomhetOgAntallSykmeldte>>,
             refusjonerResult: Result<List<RefusjonStatusService.Statusoversikt>>
-        ) = UserInfoRespons(
+        ) = UserInfoV2(
             digisyfoError = syfoResult.isFailure,
 
             altinnError = tilgangerResult.fold(
@@ -127,7 +127,7 @@ data class UserInfoRespons(
     }
 }
 
-data class UserInfoResponsV3(
+data class UserInfoV3(
     val altinnError: Boolean,
     val digisyfoError: Boolean,
     val organisasjoner: List<AltinnTilganger.AltinnTilgang>,
@@ -140,7 +140,7 @@ data class UserInfoResponsV3(
             tilgangerResult: Result<AltinnTilganger>,
             syfoResult: Result<List<DigisyfoService.VirksomhetOgAntallSykmeldteV3>>,
             refusjonerResult: Result<List<RefusjonStatusService.Statusoversikt>>
-        ) = UserInfoResponsV3(
+        ) = UserInfoV3(
             digisyfoError = syfoResult.isFailure,
 
             altinnError = tilgangerResult.fold(

@@ -17,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.json.JsonCompareMode
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.web.filter.CharacterEncodingFilter
@@ -256,7 +257,7 @@ class UserInfoControllerTest {
                       ]
                     }  
                     """,
-                    true
+                    JsonCompareMode.STRICT
                 )
             }
         }
@@ -266,16 +267,91 @@ class UserInfoControllerTest {
         }.asyncDispatch().andExpect {
             status { isOk() }
             content {
-                jsonPath("$.organisasjoner.length()") { value(1) }
-            }
-        }
-
-        mockMvc.get("/api/userInfo/v3") {
-            with(jwtWithPid("42"))
-        }.asyncDispatch().andExpect {
-            status { isOk() }
-            content {
-                jsonPath("$.digisyfoOrganisasjoner.length()") { value(2) }
+                json(
+                    """
+                    {
+                      "altinnError": false,
+                      "digisyfoError": false,
+                      "organisasjoner": [
+                        {
+                          "orgnr": "1",
+                          "navn": "overenhet",
+                          "organisasjonsform": "AS",
+                          "altinn3Tilganger": [],
+                          "altinn2Tilganger": [],
+                          "underenheter": [
+                            {
+                              "orgnr": "10",
+                              "navn": "underenhet",
+                              "organisasjonsform": "BEDR",
+                              "altinn3Tilganger": [],
+                              "altinn2Tilganger": [
+                                "3403:1"
+                              ],
+                              "underenheter": []
+                            }
+                          ]
+                        }
+                      ],
+                      "tilganger": {
+                        "3403:1": [
+                          "10"
+                        ]
+                      },
+                      "digisyfoOrganisasjoner": [
+                        {
+                          "orgnr": "1",
+                          "navn": "overenhet",
+                          "organisasjonsform": "AS",
+                          "antallSykmeldte": 0,
+                          "underenheter": [
+                            {
+                              "orgnr": "10",
+                              "navn": "underenhet",
+                              "organisasjonsform": "BEDR",
+                              "antallSykmeldte": 0,
+                              "underenheter": []
+                            }
+                          ]
+                        },
+                        {
+                          "orgnr": "2",
+                          "navn": "overenhet",
+                          "organisasjonsform": "AS",
+                          "antallSykmeldte": 0,
+                          "underenheter": [
+                            {
+                              "orgnr": "20",
+                              "navn": "underenhet",
+                              "organisasjonsform": "BEDR",
+                              "antallSykmeldte": 1,
+                              "underenheter": []
+                            }
+                          ]
+                        }
+                      ],
+                      "refusjoner": [
+                        {
+                          "virksomhetsnummer": "314",
+                          "statusoversikt": {
+                            "ny": 1,
+                            "gammel": 2
+                          },
+                          "tilgang": true
+                        },
+                        {
+                          "virksomhetsnummer": "315",
+                          "statusoversikt": {
+                            "ny": 2,
+                            "gammel": 1
+                          },
+                          "tilgang": true
+                        }
+                      ]
+                    }  
+                    """,
+                    JsonCompareMode.STRICT
+                )
             }
         }
     }
