@@ -38,29 +38,6 @@ class UserInfoController(
         }
         UserInfoV3.from(tilganger.await(), syfoVirksomheter.await(), refusjoner.await())
     }
-
-    @GetMapping("/api/userInfo/v2")
-    suspend fun getUserInfo() = supervisorScope {
-        val tilganger = async {
-            runCatching {
-                altinnService.hentAltinnTilganger()
-            }
-        }
-
-        val syfoVirksomheter = async {
-            runCatching {
-                digisyfoService.hentVirksomheterOgSykmeldte(authenticatedUserHolder.fnr)
-            }
-        }
-
-        val refusjoner = async {
-            runCatching {
-                refusjonStatusService.statusoversikt(authenticatedUserHolder.fnr)
-            }
-        }
-
-        UserInfoV2.from(tilganger.await(), syfoVirksomheter.await(), refusjoner.await())
-    }
 }
 
 data class UserInfoV2(
