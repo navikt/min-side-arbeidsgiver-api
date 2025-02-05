@@ -6,16 +6,13 @@ import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenXToken
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpMethod.POST
 import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.*
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
@@ -31,10 +28,10 @@ class AltinnTilgangerServiceTest {
     @Autowired
     lateinit var altinnTilgangerService: AltinnService
 
-    @MockBean
+    @MockitoBean
     lateinit var tokenXClient: TokenExchangeClient
 
-    @MockBean
+    @MockitoBean
     lateinit var authenticatedUserHolder: AuthenticatedUserHolder
 
     @Test

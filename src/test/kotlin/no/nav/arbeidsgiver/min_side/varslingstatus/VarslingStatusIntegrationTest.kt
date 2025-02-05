@@ -2,7 +2,6 @@ package no.nav.arbeidsgiver.min_side.varslingstatus
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.flywaydb.core.Flyway
@@ -13,10 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
 
@@ -42,10 +41,10 @@ class VarslingStatusIntegrationTest {
 
     lateinit var varslingStatusKafkaListener: VarslingStatusKafkaListener
 
-    @MockBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
+    @MockitoBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
     lateinit var jwtDecoder: JwtDecoder
 
-    @MockBean
+    @MockitoBean
     lateinit var altinnService: AltinnService
 
     @Autowired

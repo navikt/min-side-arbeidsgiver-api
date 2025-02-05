@@ -4,7 +4,6 @@ import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
@@ -13,16 +12,16 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.json.JsonCompareMode
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.web.filter.CharacterEncodingFilter
 
-@MockBean(JwtDecoder::class)
+@MockitoBean(types= [JwtDecoder::class])
 @WebMvcTest(
     value = [
         UserInfoController::class,
@@ -39,13 +38,13 @@ class UserInfoControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
-    @MockBean
+    @MockitoBean
     lateinit var altinnService: AltinnService
 
-    @MockBean
+    @MockitoBean
     lateinit var digisyfoService: DigisyfoService
 
-    @MockBean
+    @MockitoBean
     lateinit var refusjonStatusService: RefusjonStatusService
 
     @Test
@@ -76,40 +75,6 @@ class UserInfoControllerTest {
                 tilgangTilOrgNr = mapOf("3403:1" to setOf("10"))
             )
         )
-        `when`(digisyfoService.hentVirksomheterOgSykmeldte("42")).thenReturn(
-            listOf(
-                DigisyfoService.VirksomhetOgAntallSykmeldte(
-                    Organisasjon(
-                        name = "underenhet",
-                        organizationNumber = "10",
-                        parentOrganizationNumber = "1",
-                        organizationForm = "BEDR",
-                    ), 0
-                ),
-                DigisyfoService.VirksomhetOgAntallSykmeldte(
-                    Organisasjon(
-                        name = "overenhet",
-                        organizationNumber = "1",
-                        organizationForm = "AS",
-                    ), 0
-                ),
-                DigisyfoService.VirksomhetOgAntallSykmeldte(
-                    Organisasjon(
-                        name = "underenhet",
-                        organizationNumber = "20",
-                        parentOrganizationNumber = "2",
-                        organizationForm = "BEDR",
-                    ), 1
-                ),
-                DigisyfoService.VirksomhetOgAntallSykmeldte(
-                    Organisasjon(
-                        name = "overenhet",
-                        organizationNumber = "2",
-                        organizationForm = "AS",
-                    ), 0
-                ),
-            )
-        )
         `when`(digisyfoService.hentVirksomheterOgSykmeldteV3("42")).thenReturn(
             listOf(
                 DigisyfoService.VirksomhetOgAntallSykmeldteV3(
@@ -117,13 +82,15 @@ class UserInfoControllerTest {
                     orgnr = "1",
                     organisasjonsform = "AS",
                     antallSykmeldte = 0,
-                    underenheter = listOf(
+                    orgnrOverenhet = null,
+                    underenheter = mutableListOf(
                         DigisyfoService.VirksomhetOgAntallSykmeldteV3(
                             navn = "underenhet",
                             orgnr = "10",
                             organisasjonsform = "BEDR",
                             antallSykmeldte = 0,
-                            underenheter = listOf(),
+                            orgnrOverenhet = "1",
+                            underenheter = mutableListOf(),
                         ),
                     )
                 ),
@@ -132,13 +99,15 @@ class UserInfoControllerTest {
                     orgnr = "2",
                     organisasjonsform = "AS",
                     antallSykmeldte = 0,
-                    underenheter = listOf(
+                    orgnrOverenhet = null,
+                    underenheter = mutableListOf(
                         DigisyfoService.VirksomhetOgAntallSykmeldteV3(
                             navn = "underenhet",
                             orgnr = "20",
                             organisasjonsform = "BEDR",
                             antallSykmeldte = 1,
-                            underenheter = listOf(),
+                            orgnrOverenhet = "2",
+                            underenheter = mutableListOf(),
                         ),
                     )
                 )

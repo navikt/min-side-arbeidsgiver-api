@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.userinfo
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
@@ -37,70 +36,6 @@ class UserInfoController(
             }
         }
         UserInfoV3.from(tilganger.await(), syfoVirksomheter.await(), refusjoner.await())
-    }
-}
-
-data class UserInfoV2(
-    val altinnError: Boolean,
-    val digisyfoError: Boolean,
-    val organisasjoner: List<AltinnTilganger.AltinnTilgang>,
-    val tilganger: Map<String, Collection<String>>,
-    val digisyfoOrganisasjoner: Collection<VirksomhetOgAntallSykmeldteV2>,
-    val refusjoner: List<RefusjonStatusService.Statusoversikt>,
-) {
-    companion object {
-        data class OrganisasjonV2(
-            @field:JsonProperty("Name") var name: String,
-            @field:JsonProperty("ParentOrganizationNumber") var parentOrganizationNumber: String? = null,
-            @field:JsonProperty("OrganizationNumber") var organizationNumber: String,
-            @field:JsonProperty("OrganizationForm") var organizationForm: String,
-        )
-
-        data class VirksomhetOgAntallSykmeldteV2(
-            val organisasjon: OrganisasjonV2,
-            val antallSykmeldte: Int,
-        )
-
-        fun from(
-            tilgangerResult: Result<AltinnTilganger>,
-            syfoResult: Result<Collection<DigisyfoService.VirksomhetOgAntallSykmeldte>>,
-            refusjonerResult: Result<List<RefusjonStatusService.Statusoversikt>>
-        ) = UserInfoV2(
-            digisyfoError = syfoResult.isFailure,
-
-            altinnError = tilgangerResult.fold(
-                onSuccess = { it.isError || refusjonerResult.isFailure },
-                onFailure = { true }
-            ),
-
-            organisasjoner = tilgangerResult.fold(
-                onSuccess = { it.hierarki },
-                onFailure = { emptyList() }
-            ),
-
-            digisyfoOrganisasjoner = syfoResult.fold(
-                onSuccess = { it.map{virksomhetOgAntallSykmeldte ->  VirksomhetOgAntallSykmeldteV2(
-                    antallSykmeldte = virksomhetOgAntallSykmeldte.antallSykmeldte,
-                    organisasjon = OrganisasjonV2(
-                        name = virksomhetOgAntallSykmeldte.organisasjon.name,
-                        parentOrganizationNumber = virksomhetOgAntallSykmeldte.organisasjon.parentOrganizationNumber,
-                        organizationNumber = virksomhetOgAntallSykmeldte.organisasjon.organizationNumber,
-                        organizationForm = virksomhetOgAntallSykmeldte.organisasjon.organizationForm
-                    ))
-                } },
-                onFailure = { emptyList() }
-            ),
-
-            refusjoner = refusjonerResult.fold(
-                onSuccess = { it },
-                onFailure = { emptyList() }
-            ),
-
-            tilganger = tilgangerResult.fold(
-                onSuccess = { it.tilgangTilOrgNr },
-                onFailure = { emptyMap() }
-            ),
-        )
     }
 }
 

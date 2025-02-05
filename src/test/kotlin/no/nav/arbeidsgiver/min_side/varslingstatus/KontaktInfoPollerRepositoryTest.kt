@@ -11,11 +11,12 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.time.Instant
 import kotlin.time.Duration.Companion.days
 import kotlin.time.toJavaDuration
 
-@MockBean(JwtDecoder::class)
+@MockitoBean(types=[JwtDecoder::class])
 @SpringBootTest(
     properties = [
         "spring.flyway.cleanDisabled=false",

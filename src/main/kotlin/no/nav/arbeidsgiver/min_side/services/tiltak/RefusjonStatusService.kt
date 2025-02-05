@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.services.tiltak
 
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.springframework.stereotype.Service
 

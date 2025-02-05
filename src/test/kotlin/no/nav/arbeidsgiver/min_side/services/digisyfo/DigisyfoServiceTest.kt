@@ -2,14 +2,8 @@ package no.nav.arbeidsgiver.min_side.services.digisyfo
 
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.arbeidsgiver.min_side.kotlinCapture
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
-import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
-import no.nav.arbeidsgiver.min_side.services.ereg.EregEnhetsRelasjon
-import no.nav.arbeidsgiver.min_side.services.ereg.EregEnhetstype
-import no.nav.arbeidsgiver.min_side.services.ereg.EregNavn
-import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
-import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjonDetaljer
-import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldteV3
+import no.nav.arbeidsgiver.min_side.services.ereg.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -19,17 +13,16 @@ import org.mockito.Captor
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
-@MockBean(MeterRegistry::class, answer = Answers.RETURNS_DEEP_STUBS)
+@MockitoBean(types = [MeterRegistry::class], answers = Answers.RETURNS_DEEP_STUBS)
 @SpringBootTest(classes = [DigisyfoService::class])
 class DigisyfoServiceTest {
 
-
-    @MockBean
+    @MockitoBean
     lateinit var digisyfoRepository: DigisyfoRepositoryImpl
 
-    @MockBean
+    @MockitoBean
     lateinit var eregService: EregService
 
     @Autowired
@@ -70,7 +63,7 @@ class DigisyfoServiceTest {
     fun `Ingen rettigheter`() {
         Mockito.`when`(digisyfoRepository.virksomheterOgSykmeldte("42")).thenReturn(listOf())
 
-        val result = digisyfoService.hentVirksomheterOgSykmeldte("42")
+        val result = digisyfoService.hentVirksomheterOgSykmeldteV3("42")
         assertThat(result).isEmpty()
     }
 
@@ -84,32 +77,50 @@ class DigisyfoServiceTest {
             )
         )
 
-        val result = digisyfoService.hentVirksomheterOgSykmeldte("42")
+        val result = digisyfoService.hentVirksomheterOgSykmeldteV3("42")
         assertThat(result).containsExactly(
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("10", "1"))!!, 0),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("11", "1"))!!, 1),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("20", "2"))!!, 2),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("1"))!!, 0),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("2"))!!, 0),
-        )
-    }
-
-    @Test
-    fun `nestede rettigheter`() {
-        Mockito.`when`(digisyfoRepository.virksomheterOgSykmeldte("42")).thenReturn(
-            listOf(
-                DigisyfoRepository.Virksomhetsinfo("3000", 2),
-                DigisyfoRepository.Virksomhetsinfo("301", 1),
+            VirksomhetOgAntallSykmeldteV3(
+                orgnr = "1",
+                navn = "overenhet",
+                organisasjonsform = "AS",
+                antallSykmeldte = 1,
+                orgnrOverenhet = null,
+                underenheter = mutableListOf(
+                    VirksomhetOgAntallSykmeldteV3(
+                        orgnr = "10",
+                        navn = "underenhet",
+                        organisasjonsform = "BEDR",
+                        antallSykmeldte = 0,
+                        orgnrOverenhet = "1",
+                        underenheter = mutableListOf()
+                    ),
+                    VirksomhetOgAntallSykmeldteV3(
+                        orgnr = "11",
+                        navn = "underenhet",
+                        organisasjonsform = "BEDR",
+                        antallSykmeldte = 1,
+                        orgnrOverenhet = "1",
+                        underenheter = mutableListOf()
+                    )
+                )
+            ),
+            VirksomhetOgAntallSykmeldteV3(
+                orgnr = "2",
+                navn = "overenhet",
+                organisasjonsform = "AS",
+                antallSykmeldte = 2,
+                orgnrOverenhet = null,
+                underenheter = mutableListOf(
+                    VirksomhetOgAntallSykmeldteV3(
+                        orgnr = "20",
+                        navn = "underenhet",
+                        organisasjonsform = "BEDR",
+                        antallSykmeldte = 2,
+                        orgnrOverenhet = "2",
+                        underenheter = mutableListOf()
+                    )
+                )
             )
-        )
-
-        val result = digisyfoService.hentVirksomheterOgSykmeldte("42")
-        assertThat(result).containsExactly(
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("3000", "300"))!!, 2),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("301", "30"))!!, 1),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("300", "30"))!!, 0),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkUnderenhet("30", "3"))!!, 0),
-            VirksomhetOgAntallSykmeldte(Organisasjon.fromEregOrganisasjon(mkOverenhet("3"))!!, 0),
         )
     }
 
@@ -126,7 +137,95 @@ class DigisyfoServiceTest {
         )
 
         val result = digisyfoService.hentVirksomheterOgSykmeldteV3("42")
-        assertThat(result).isEqualTo(digisyfoVirksomheterHieraki)
+        assertThat(result).isEqualTo(
+            listOf(
+                VirksomhetOgAntallSykmeldteV3(
+                    orgnr = "3",
+                    navn = "overenhet",
+                    organisasjonsform = "AS",
+                    antallSykmeldte = 3,
+                    orgnrOverenhet = null,
+                    underenheter = mutableListOf(
+                        VirksomhetOgAntallSykmeldteV3(
+                            orgnr = "30",
+                            navn = "underenhet",
+                            organisasjonsform = "BEDR",
+                            antallSykmeldte = 3,
+                            orgnrOverenhet = "3",
+                            underenheter = mutableListOf(
+                                VirksomhetOgAntallSykmeldteV3(
+                                    orgnr = "300",
+                                    navn = "underenhet",
+                                    organisasjonsform = "BEDR",
+                                    antallSykmeldte = 2,
+                                    orgnrOverenhet = "30",
+                                    underenheter = mutableListOf(
+                                        VirksomhetOgAntallSykmeldteV3(
+                                            orgnr = "3000",
+                                            navn = "underenhet",
+                                            organisasjonsform = "BEDR",
+                                            antallSykmeldte = 2,
+                                            orgnrOverenhet = "300",
+                                            underenheter = mutableListOf()
+                                        )
+                                    )
+                                ),
+                                VirksomhetOgAntallSykmeldteV3(
+                                    orgnr = "301",
+                                    navn = "underenhet",
+                                    organisasjonsform = "BEDR",
+                                    antallSykmeldte = 1,
+                                    orgnrOverenhet = "30",
+                                    underenheter = mutableListOf()
+                                )
+                            )
+                        )
+                    )
+                ),
+                VirksomhetOgAntallSykmeldteV3(
+                    orgnr = "2",
+                    navn = "overenhet",
+                    organisasjonsform = "AS",
+                    antallSykmeldte = 1,
+                    orgnrOverenhet = null,
+                    underenheter = mutableListOf(
+                        VirksomhetOgAntallSykmeldteV3(
+                            orgnr = "20",
+                            navn = "underenhet",
+                            organisasjonsform = "BEDR",
+                            antallSykmeldte = 1,
+                            orgnrOverenhet = "2",
+                            underenheter = mutableListOf()
+                        )
+                    )
+                ),
+                VirksomhetOgAntallSykmeldteV3(
+                    orgnr = "1",
+                    navn = "overenhet",
+                    organisasjonsform = "AS",
+                    antallSykmeldte = 2,
+                    orgnrOverenhet = null,
+                    underenheter = mutableListOf(
+                        VirksomhetOgAntallSykmeldteV3(
+                            orgnr = "10",
+                            navn = "underenhet",
+                            organisasjonsform = "BEDR",
+                            antallSykmeldte = 1,
+                            orgnrOverenhet = "1",
+                            underenheter = mutableListOf()
+                        ),
+                        VirksomhetOgAntallSykmeldteV3(
+                            orgnr = "11",
+                            navn = "underenhet",
+                            organisasjonsform = "BEDR",
+                            antallSykmeldte = 1,
+                            orgnrOverenhet = "1",
+                            underenheter = mutableListOf()
+                        )
+                    )
+                )
+            )
+        )
     }
 
 
@@ -169,80 +268,3 @@ class DigisyfoServiceTest {
         )
 }
 
-val digisyfoVirksomheterHieraki = listOf(
-    DigisyfoService.VirksomhetOgAntallSykmeldteV3(
-        orgnr = "3",
-        navn = "overenhet",
-        organisasjonsform = "AS",
-        antallSykmeldte = 0,
-        underenheter = listOf(
-            DigisyfoService.VirksomhetOgAntallSykmeldteV3(
-                orgnr = "30",
-                navn = "underenhet",
-                organisasjonsform = "BEDR",
-                antallSykmeldte = 0,
-                underenheter = listOf(
-                    DigisyfoService.VirksomhetOgAntallSykmeldteV3(
-                        orgnr = "301",
-                        navn = "underenhet",
-                        organisasjonsform = "BEDR",
-                        antallSykmeldte = 1,
-                        underenheter = listOf()
-                    ),
-                    DigisyfoService.VirksomhetOgAntallSykmeldteV3(
-                        orgnr = "300",
-                        navn = "underenhet",
-                        organisasjonsform = "BEDR",
-                        antallSykmeldte = 0,
-                        underenheter = listOf(
-                            DigisyfoService.VirksomhetOgAntallSykmeldteV3(
-                                orgnr = "3000",
-                                navn = "underenhet",
-                                organisasjonsform = "BEDR",
-                                antallSykmeldte = 2,
-                                underenheter = listOf()
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    ),
-    DigisyfoService.VirksomhetOgAntallSykmeldteV3(
-        orgnr = "2",
-        navn = "overenhet",
-        organisasjonsform = "AS",
-        antallSykmeldte = 0,
-        underenheter = listOf(
-            DigisyfoService.VirksomhetOgAntallSykmeldteV3(
-                orgnr = "20",
-                navn = "underenhet",
-                organisasjonsform = "BEDR",
-                antallSykmeldte = 1,
-                underenheter = listOf()
-            )
-        )
-    ),
-    DigisyfoService.VirksomhetOgAntallSykmeldteV3(
-        orgnr = "1",
-        navn = "overenhet",
-        organisasjonsform = "AS",
-        antallSykmeldte = 0,
-        underenheter = listOf(
-            DigisyfoService.VirksomhetOgAntallSykmeldteV3(
-                orgnr = "10",
-                navn = "underenhet",
-                organisasjonsform = "BEDR",
-                antallSykmeldte = 1,
-                underenheter = listOf()
-            ),
-            DigisyfoService.VirksomhetOgAntallSykmeldteV3(
-                orgnr = "11",
-                navn = "underenhet",
-                organisasjonsform = "BEDR",
-                antallSykmeldte = 1,
-                underenheter = listOf()
-            )
-        )
-    )
-)

@@ -1,9 +1,11 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
-import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoRepository.Virksomhetsinfo
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.services.ereg.GyldighetsPeriode.Companion.erGyldig
 import org.springframework.stereotype.Component
 
 @Component
@@ -13,63 +15,22 @@ class DigisyfoService(
     private val meterRegistry: MeterRegistry
 ) {
 
-    data class VirksomhetOgAntallSykmeldte(
-        val organisasjon: Organisasjon,
-        val antallSykmeldte: Int,
-    )
-
-    data class VirksomhetOgAntallSykmeldteV3(
-        val orgnr: String,
-        val navn: String,
-        val organisasjonsform: String,
-        val antallSykmeldte: Int,
-        val underenheter: List<VirksomhetOgAntallSykmeldteV3>
-    )
-
-    fun hentVirksomheterOgSykmeldte(fnr: String): Collection<VirksomhetOgAntallSykmeldte> {
-        val underenheter = digisyfoRepository.virksomheterOgSykmeldte(fnr)
-            .flatMap { hentUnderenhet(it) }
-        val overenheterOrgnr = underenheter
-            .mapNotNull { it.organisasjon.parentOrganizationNumber }
-            .toSet()
-        val resultat = underenheter + overenheterOrgnr
-            .flatMap { hentOverenhet(it) }
-
-        meterRegistry.counter(
-            "msa.digisyfo.tilgang",
-            "virksomheter",
-            resultat.size.toString()
-        ).increment()
-
-        return resultat.distinctBy { it.organisasjon.organizationNumber }
-    }
-
     fun hentVirksomheterOgSykmeldteV3(fnr: String): List<VirksomhetOgAntallSykmeldteV3> {
-        val underenheter = digisyfoRepository.virksomheterOgSykmeldte(fnr)
-            .flatMap { hentUnderenhet(it) }
+        val virksomheterOgSykmeldte = digisyfoRepository.virksomheterOgSykmeldte(fnr)
 
-        val alleOverenheter = underenheter
-            .mapNotNull { it.organisasjon.parentOrganizationNumber }
-            .toSet()
-            .flatMap { hentOverenhet(it) }
-            .distinctBy { it.organisasjon.organizationNumber }
+        val orgs = mutableMapOf<String, VirksomhetOgAntallSykmeldteV3>()
 
-        //TODO når v2 er borte kan vi kanskje bygge treet mens vi henter overenheter?
-
-        val alleOrganisasjoner = underenheter + alleOverenheter
-
-        fun byggHierarki(org: VirksomhetOgAntallSykmeldte): VirksomhetOgAntallSykmeldteV3 {
-            val direkteUnderenheter = alleOrganisasjoner.filter {
-                it.organisasjon.parentOrganizationNumber == org.organisasjon.organizationNumber
+        for (virksomhetOgSykmeldt in virksomheterOgSykmeldte) {
+            val virksomhet = orgs.computeIfAbsent(virksomhetOgSykmeldt.virksomhetsnummer) {
+                val eregOrg = eregService.hentUnderenhet(it) ?: throw RuntimeException("Fant ikke underenhet for $it")
+                VirksomhetOgAntallSykmeldteV3.from(eregOrg, virksomhetOgSykmeldt.antallSykmeldte)
             }
-            return VirksomhetOgAntallSykmeldteV3(
-                orgnr = org.organisasjon.organizationNumber,
-                navn = org.organisasjon.name,
-                organisasjonsform = org.organisasjon.organizationForm,
-                antallSykmeldte = org.antallSykmeldte,
-                underenheter = direkteUnderenheter.map(::byggHierarki)
-            )
+            orgs[virksomhet.orgnr] = virksomhet
+            berikOverenheter(orgs, virksomhet)
         }
+
+        val underenheter = orgs.values.filter {it.underenheter.isEmpty() }
+        val overenheter = orgs.values.filter {it.orgnrOverenhet == null }
 
         meterRegistry.counter(
             "msa.digisyfo.tilgang",
@@ -77,45 +38,55 @@ class DigisyfoService(
             underenheter.size.toString()
         ).increment()
 
-        return  alleOverenheter
-            .filter { it.organisasjon.parentOrganizationNumber == null }
-            .map(::byggHierarki)
+        return overenheter
     }
 
-    private fun hentForfedre(org: Organisasjon, orgs: MutableList<Organisasjon> = mutableListOf()): List<Organisasjon> {
-        if (org.parentOrganizationNumber == null) return orgs
+    private fun berikOverenheter(orgs: MutableMap<String, VirksomhetOgAntallSykmeldteV3>, virksomhet: VirksomhetOgAntallSykmeldteV3) {
+        val orgnummerTilOverenhet = virksomhet.orgnrOverenhet ?: return
 
-        val overenhet = eregService.hentOverenhet(org.parentOrganizationNumber!!).let {
-            Organisasjon.fromEregOrganisasjon(it)
-        } ?: return orgs
-
-        orgs.add(overenhet)
-        return hentForfedre(overenhet, orgs)
-
-    }
-
-
-    private fun hentOverenhet(orgnr: String): List<VirksomhetOgAntallSykmeldte> {
-        val hovedenhet = eregService.hentOverenhet(orgnr).let {
-            Organisasjon.fromEregOrganisasjon(it)
-        } ?: return listOf()
-        val forfedre = hentForfedre(hovedenhet)
-        val result = mutableListOf<VirksomhetOgAntallSykmeldte>()
-        result.add(VirksomhetOgAntallSykmeldte(hovedenhet, 0))
-        result.addAll(forfedre.map { VirksomhetOgAntallSykmeldte(it, 0) })
-        return result
-    }
-
-    private fun hentUnderenhet(virksomhetsinfo: Virksomhetsinfo): List<VirksomhetOgAntallSykmeldte> {
-        val underenhet = eregService.hentUnderenhet(virksomhetsinfo.virksomhetsnummer).let {
-            Organisasjon.fromEregOrganisasjon(it)
+        val overenhet = orgs.computeIfAbsent(orgnummerTilOverenhet) {
+            val eregOrg = eregService.hentOverenhet(it) ?: throw RuntimeException("Fant ikke overenhet for $it")
+            VirksomhetOgAntallSykmeldteV3.from(eregOrg, 0)
         }
-            ?: return listOf()
-        return listOf(
-            VirksomhetOgAntallSykmeldte(
-                underenhet,
-                virksomhetsinfo.antallSykmeldte
-            )
-        )
+        orgs[overenhet.orgnr] = overenhet
+        overenhet.leggTilUnderenhet(virksomhet)
+        berikOverenheter(orgs, overenhet)
+    }
+
+    data class VirksomhetOgAntallSykmeldteV3(
+        val orgnr: String,
+        val navn: String,
+        val organisasjonsform: String,
+        var antallSykmeldte: Int,
+        val underenheter: MutableList<VirksomhetOgAntallSykmeldteV3>,
+        @JsonIgnore val orgnrOverenhet: String?,
+    ) {
+        fun leggTilUnderenhet(underenhet: VirksomhetOgAntallSykmeldteV3) {
+            val eksisterende = underenheter.firstOrNull { it.orgnr == underenhet.orgnr }
+            if (eksisterende !== null) {
+                // legg til barnebarn
+                underenhet.underenheter.forEach {
+                    eksisterende.leggTilUnderenhet(it)
+                }
+            } else {
+                underenheter.add(underenhet)
+                underenheter.sortBy { it.orgnr }
+            }
+            antallSykmeldte = underenheter.sumOf { it.antallSykmeldte }
+        }
+
+        companion object {
+            fun from(eregOrganisasjon: EregOrganisasjon, antallSykmeldte: Int) =
+                VirksomhetOgAntallSykmeldteV3(
+                    orgnr = eregOrganisasjon.organisasjonsnummer,
+                    navn = eregOrganisasjon.navn.sammensattnavn,
+                    organisasjonsform = eregOrganisasjon.organisasjonDetaljer.enhetstyper?.first {
+                        it.gyldighetsperiode.erGyldig()
+                    }?.enhetstype ?: "",
+                    antallSykmeldte = antallSykmeldte,
+                    orgnrOverenhet = eregOrganisasjon.orgnummerTilOverenhet(),
+                    underenheter = mutableListOf(),
+                )
+        }
     }
 }
