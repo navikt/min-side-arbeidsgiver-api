@@ -64,7 +64,6 @@ class DigisyfoService(
         fun leggTilUnderenhet(underenhet: VirksomhetOgAntallSykmeldte) {
             val eksisterende = underenheter.firstOrNull { it.orgnr == underenhet.orgnr }
             if (eksisterende !== null) {
-                // legg til barnebarn
                 underenhet.underenheter.forEach {
                     eksisterende.leggTilUnderenhet(it)
                 }
