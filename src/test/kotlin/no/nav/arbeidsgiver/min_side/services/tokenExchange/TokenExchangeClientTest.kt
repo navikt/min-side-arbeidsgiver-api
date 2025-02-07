@@ -7,9 +7,9 @@ import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.*
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
@@ -26,7 +26,7 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 @EnableConfigurationProperties(TokenXProperties::class)
 class TokenExchangeClientTest {
 
-    @MockBean
+    @MockitoBean
     lateinit var clientAssertionTokenFactory: ClientAssertionTokenFactory
 
     @Autowired

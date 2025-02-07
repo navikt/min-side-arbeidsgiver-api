@@ -16,8 +16,8 @@ import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import java.util.UUID.randomUUID
@@ -41,10 +41,10 @@ class RefusjonStatusIntegrationTest {
 
     lateinit var refusjonStatusKafkaListener: RefusjonStatusKafkaListener
 
-    @MockBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
+    @MockitoBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
     lateinit var jwtDecoder: JwtDecoder
 
-    @MockBean
+    @MockitoBean
     lateinit var altinnService: AltinnService
 
     @Autowired
@@ -143,7 +143,7 @@ class RefusjonStatusIntegrationTest {
             }
         }
 
-        mockMvc.get("/api/userInfo/v2") {
+        mockMvc.get("/api/userInfo/v3") {
             with(jwtWithPid("42"))
         }.asyncDispatch().andExpect {
             status { isOk() }

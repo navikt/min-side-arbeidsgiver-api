@@ -2,7 +2,6 @@ package no.nav.arbeidsgiver.min_side
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.arbeidsgiver.min_side.models.Organisasjon
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Value

@@ -8,20 +8,24 @@ import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActionsDsl
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.request.RequestPostProcessor
 
-@MockBean(JwtDecoder::class)
-@MockBean(AuthenticatedUserHolder::class)
-@MockBean(AltinnRollerClient::class)
-@MockBean(EregService::class)
-@MockBean(KontaktinfoClient::class)
+@MockitoBean(
+    types = [
+        JwtDecoder::class,
+        AuthenticatedUserHolder::class,
+        AltinnRollerClient::class,
+        EregService::class,
+        KontaktinfoClient::class,
+    ]
+)
 @WebMvcTest(
     value = [
         KontaktinfoController::class,
@@ -44,12 +48,14 @@ class KontaktinfoControllerSerdeTest {
             status { isOk() }
             content {
                 contentType(APPLICATION_JSON)
-                json("""
+                json(
+                    """
                     {
                         "hovedenhet": null,
                         "underenhet": null
                     }
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
     }

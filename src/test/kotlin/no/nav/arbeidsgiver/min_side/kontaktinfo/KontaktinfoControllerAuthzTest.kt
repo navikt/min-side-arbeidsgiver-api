@@ -3,12 +3,7 @@ package no.nav.arbeidsgiver.min_side.kontaktinfo
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoController.KontaktinfoRequest
 import no.nav.arbeidsgiver.min_side.kotlinAny
-import no.nav.arbeidsgiver.min_side.services.ereg.EregEnhetsRelasjon
-import no.nav.arbeidsgiver.min_side.services.ereg.EregEnhetstype
-import no.nav.arbeidsgiver.min_side.services.ereg.EregNavn
-import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
-import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjonDetaljer
-import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.services.ereg.*
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -17,13 +12,17 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 @SpringBootTest(classes = [KontaktinfoController::class])
-@MockBean(AuthenticatedUserHolder::class)
-@MockBean(AltinnRollerClient::class)
-@MockBean(EregService::class)
-@MockBean(KontaktinfoClient::class)
+@MockitoBean(
+    types = [
+        AuthenticatedUserHolder::class,
+        AltinnRollerClient::class,
+        EregService::class,
+        KontaktinfoClient::class,
+    ]
+)
 class KontaktinfoControllerAuthzTest {
     @Autowired
     lateinit var authenticatedUserHolder: AuthenticatedUserHolder

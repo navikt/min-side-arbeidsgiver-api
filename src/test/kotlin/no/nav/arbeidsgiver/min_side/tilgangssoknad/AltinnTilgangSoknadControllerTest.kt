@@ -9,16 +9,16 @@ import org.mockito.Mockito.`when`
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.web.client.HttpClientErrorException
 import java.nio.charset.Charset
 
-@MockBean(JwtDecoder::class)
+@MockitoBean(types = [JwtDecoder::class])
 @WebMvcTest(
     value = [
         AltinnTilgangSoknadController::class,
@@ -33,10 +33,10 @@ class AltinnTilgangSoknadControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
-    @MockBean
+    @MockitoBean
     lateinit var altinnTilgangssøknadClient: AltinnTilgangssøknadClient
 
-    @MockBean
+    @MockitoBean
     lateinit var altinnService: AltinnService
 
     @Test
