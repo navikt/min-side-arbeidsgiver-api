@@ -75,16 +75,16 @@ class UserInfoControllerTest {
                 tilgangTilOrgNr = mapOf("3403:1" to setOf("10"))
             )
         )
-        `when`(digisyfoService.hentVirksomheterOgSykmeldteV3("42")).thenReturn(
+        `when`(digisyfoService.hentVirksomheterOgSykmeldte("42")).thenReturn(
             listOf(
-                DigisyfoService.VirksomhetOgAntallSykmeldteV3(
+                DigisyfoService.VirksomhetOgAntallSykmeldte(
                     navn = "overenhet",
                     orgnr = "1",
                     organisasjonsform = "AS",
                     antallSykmeldte = 0,
                     orgnrOverenhet = null,
                     underenheter = mutableListOf(
-                        DigisyfoService.VirksomhetOgAntallSykmeldteV3(
+                        DigisyfoService.VirksomhetOgAntallSykmeldte(
                             navn = "underenhet",
                             orgnr = "10",
                             organisasjonsform = "BEDR",
@@ -94,14 +94,14 @@ class UserInfoControllerTest {
                         ),
                     )
                 ),
-                DigisyfoService.VirksomhetOgAntallSykmeldteV3(
+                DigisyfoService.VirksomhetOgAntallSykmeldte(
                     navn = "overenhet",
                     orgnr = "2",
                     organisasjonsform = "AS",
                     antallSykmeldte = 0,
                     orgnrOverenhet = null,
                     underenheter = mutableListOf(
-                        DigisyfoService.VirksomhetOgAntallSykmeldteV3(
+                        DigisyfoService.VirksomhetOgAntallSykmeldte(
                             navn = "underenhet",
                             orgnr = "20",
                             organisasjonsform = "BEDR",

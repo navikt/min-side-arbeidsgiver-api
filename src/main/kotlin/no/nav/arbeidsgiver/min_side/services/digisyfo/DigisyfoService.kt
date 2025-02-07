@@ -15,15 +15,15 @@ class DigisyfoService(
     private val meterRegistry: MeterRegistry
 ) {
 
-    fun hentVirksomheterOgSykmeldteV3(fnr: String): List<VirksomhetOgAntallSykmeldteV3> {
+    fun hentVirksomheterOgSykmeldte(fnr: String): List<VirksomhetOgAntallSykmeldte> {
         val virksomheterOgSykmeldte = digisyfoRepository.virksomheterOgSykmeldte(fnr)
 
-        val orgs = mutableMapOf<String, VirksomhetOgAntallSykmeldteV3>()
+        val orgs = mutableMapOf<String, VirksomhetOgAntallSykmeldte>()
 
         for (virksomhetOgSykmeldt in virksomheterOgSykmeldte) {
             val virksomhet = orgs.computeIfAbsent(virksomhetOgSykmeldt.virksomhetsnummer) {
                 val eregOrg = eregService.hentUnderenhet(it) ?: throw RuntimeException("Fant ikke underenhet for $it")
-                VirksomhetOgAntallSykmeldteV3.from(eregOrg, virksomhetOgSykmeldt.antallSykmeldte)
+                VirksomhetOgAntallSykmeldte.from(eregOrg, virksomhetOgSykmeldt.antallSykmeldte)
             }
             orgs[virksomhet.orgnr] = virksomhet
             berikOverenheter(orgs, virksomhet)
@@ -41,27 +41,27 @@ class DigisyfoService(
         return overenheter
     }
 
-    private fun berikOverenheter(orgs: MutableMap<String, VirksomhetOgAntallSykmeldteV3>, virksomhet: VirksomhetOgAntallSykmeldteV3) {
+    private fun berikOverenheter(orgs: MutableMap<String, VirksomhetOgAntallSykmeldte>, virksomhet: VirksomhetOgAntallSykmeldte) {
         val orgnummerTilOverenhet = virksomhet.orgnrOverenhet ?: return
 
         val overenhet = orgs.computeIfAbsent(orgnummerTilOverenhet) {
             val eregOrg = eregService.hentOverenhet(it) ?: throw RuntimeException("Fant ikke overenhet for $it")
-            VirksomhetOgAntallSykmeldteV3.from(eregOrg, 0)
+            VirksomhetOgAntallSykmeldte.from(eregOrg)
         }
         orgs[overenhet.orgnr] = overenhet
         overenhet.leggTilUnderenhet(virksomhet)
         berikOverenheter(orgs, overenhet)
     }
 
-    data class VirksomhetOgAntallSykmeldteV3(
+    data class VirksomhetOgAntallSykmeldte(
         val orgnr: String,
         val navn: String,
         val organisasjonsform: String,
         var antallSykmeldte: Int,
-        val underenheter: MutableList<VirksomhetOgAntallSykmeldteV3>,
+        val underenheter: MutableList<VirksomhetOgAntallSykmeldte>,
         @JsonIgnore val orgnrOverenhet: String?,
     ) {
-        fun leggTilUnderenhet(underenhet: VirksomhetOgAntallSykmeldteV3) {
+        fun leggTilUnderenhet(underenhet: VirksomhetOgAntallSykmeldte) {
             val eksisterende = underenheter.firstOrNull { it.orgnr == underenhet.orgnr }
             if (eksisterende !== null) {
                 // legg til barnebarn
@@ -76,8 +76,8 @@ class DigisyfoService(
         }
 
         companion object {
-            fun from(eregOrganisasjon: EregOrganisasjon, antallSykmeldte: Int) =
-                VirksomhetOgAntallSykmeldteV3(
+            fun from(eregOrganisasjon: EregOrganisasjon, antallSykmeldte: Int = 0) =
+                VirksomhetOgAntallSykmeldte(
                     orgnr = eregOrganisasjon.organisasjonsnummer,
                     navn = eregOrganisasjon.navn.sammensattnavn,
                     organisasjonsform = eregOrganisasjon.organisasjonDetaljer.enhetstyper?.first {

@@ -27,7 +27,7 @@ class UserInfoController(
 
         val syfoVirksomheter = async {
             runCatching {
-                digisyfoService.hentVirksomheterOgSykmeldteV3(authenticatedUserHolder.fnr)
+                digisyfoService.hentVirksomheterOgSykmeldte(authenticatedUserHolder.fnr)
             }
         }
         val refusjoner = async {
@@ -44,13 +44,13 @@ data class UserInfoV3(
     val digisyfoError: Boolean,
     val organisasjoner: List<AltinnTilganger.AltinnTilgang>,
     val tilganger: Map<String, Collection<String>>,
-    val digisyfoOrganisasjoner: List<DigisyfoService.VirksomhetOgAntallSykmeldteV3>,
+    val digisyfoOrganisasjoner: List<DigisyfoService.VirksomhetOgAntallSykmeldte>,
     val refusjoner: List<RefusjonStatusService.Statusoversikt>,
 ) {
     companion object {
         fun from(
             tilgangerResult: Result<AltinnTilganger>,
-            syfoResult: Result<List<DigisyfoService.VirksomhetOgAntallSykmeldteV3>>,
+            syfoResult: Result<List<DigisyfoService.VirksomhetOgAntallSykmeldte>>,
             refusjonerResult: Result<List<RefusjonStatusService.Statusoversikt>>
         ) = UserInfoV3(
             digisyfoError = syfoResult.isFailure,
