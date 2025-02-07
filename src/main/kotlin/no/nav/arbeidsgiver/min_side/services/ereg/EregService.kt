@@ -57,9 +57,11 @@ class EregService(
     fun hentOverenhet(orgnummer: String): EregOrganisasjon? {
         return try {
             restTemplate.getForEntity(
-                "/v2/organisasjon/{orgnummer}",
+                "/v2/organisasjon/{orgnummer}?inkluderHierarki=true",
                 EregOrganisasjon::class.java,
-                mapOf("orgnummer" to orgnummer)
+                mapOf(
+                    "orgnummer" to orgnummer,
+                )
             ).body
         } catch (e: RestClientResponseException) {
             if (e.statusCode == HttpStatus.NOT_FOUND) {
