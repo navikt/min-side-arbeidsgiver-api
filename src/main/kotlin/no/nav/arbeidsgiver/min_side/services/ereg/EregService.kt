@@ -44,7 +44,7 @@ class EregService(
                 EregOrganisasjon::class.java,
                 mapOf("virksomhetsnummer" to virksomhetsnummer)
             )
-            return request.body
+            request.body
         } catch (e: RestClientResponseException) {
             if (e.statusCode == HttpStatus.NOT_FOUND) {
                 return null
