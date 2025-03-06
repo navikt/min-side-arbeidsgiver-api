@@ -92,6 +92,7 @@ data class EregAdresse(
     val type: String,
     val adresselinje1: String?,
     val adresselinje2: String?,
+    val adresselinje3: String?,
     val kommunenummer: String?,
     val landkode: String?,
     val postnummer: String?,

@@ -85,14 +85,8 @@ class EregController(
             }
 
             private fun concatinateAddresse(adresse: EregAdresse): String {
-                var res = ""
-                if (adresse.adresselinje1 != null) {
-                    res += adresse.adresselinje1
-                }
-                if (adresse.adresselinje2 != null) {
-                    res += adresse.adresselinje2
-                }
-                return res
+                val addresser = listOf(adresse.adresselinje1, adresse.adresselinje2, adresse.adresselinje3).mapNotNull { it }
+                return addresser.joinToString(" ")
             }
         }
     }

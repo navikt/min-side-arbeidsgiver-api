@@ -110,7 +110,7 @@ class EregControllerTest {
                       },
                       "naeringskoder": null,
                       "postadresse": {
-                        "adresse": "PERSONALKONTORET, PHILIP LUNDQUIST,POSTBOKS 144",                    
+                        "adresse": "PERSONALKONTORET, PHILIP LUNDQUIST, POSTBOKS 144",                    
                         "kommunenummer": "1120",
                         "land": "Norge",
                         "landkode": "NO",
@@ -118,7 +118,7 @@ class EregControllerTest {
                         "poststed": "KLEPPE"
                       },
                       "forretningsadresse": {
-                        "adresse": "AVDELING HORTEN, VED PHILIP LUNDQUIST, APOTEKERGATA 16",
+                        "adresse": "AVDELING HORTEN, VED PHILIP LUNDQUI ST, APOTEKERGATA 16",
                         "kommunenummer": "3801",
                         "land": "Norge",
                         "landkode": "NO",
@@ -129,7 +129,7 @@ class EregControllerTest {
                       "overordnetEnhet": "810825472",
                       "antallAnsatte": 10,
                       "beliggenhetsadresse": {
-                        "adresse": "AVDELING HORTEN, VED PHILIP LUNDQUIST, APOTEKERGATA 16",
+                        "adresse": "AVDELING HORTEN, VED PHILIP LUNDQUI ST, APOTEKERGATA 16",
                         "kommunenummer": "3801",
                         "land": "Norge",
                         "landkode": "NO",
