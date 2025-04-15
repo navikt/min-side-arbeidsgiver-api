@@ -61,7 +61,7 @@ class SykefraværstatistikkIntegrationTest {
 
     @Test
     fun `bruker som representerer virksomhet med tilgang får virksomhetstatistikk`() {
-        `when`(altinnService.harTilgang("123", "3403:1")).thenReturn(true)
+        `when`(altinnService.harTilgang("123", "nav_forebygge-og-redusere-sykefravar_sykefravarsstatistikk")).thenReturn(true)
         processStatistikkkategori(
             """{ "kategori": "VIRKSOMHET", "kode": "123", "årstall": "$innenværendeår", "kvartal": "1" }""",
             """
