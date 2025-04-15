@@ -38,6 +38,8 @@ class SykefraværstatistikkIntegrationTest {
 
     lateinit var sykefraværstatistikkKafkaListener: SykefraværstatistikkKafkaListener
 
+
+    @Suppress("unused")
     @MockitoBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
     lateinit var jwtDecoder: JwtDecoder
 
