@@ -11,6 +11,17 @@ spec:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
   readiness:
     path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
+  prometheus:
+    enabled: true
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: loki
+        - id: elastic
   maskinporten:
     enabled: true
     scopes:
@@ -33,9 +44,6 @@ spec:
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: dev-gcp
-  prometheus:
-    enabled: true
-    path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
   tokenx:
     enabled: true
   azure:
