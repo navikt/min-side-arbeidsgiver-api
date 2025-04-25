@@ -28,7 +28,6 @@ spec:
     logging:
       destinations:
         - id: loki
-        - id: elastic
   maskinporten:
     enabled: true
     scopes:
