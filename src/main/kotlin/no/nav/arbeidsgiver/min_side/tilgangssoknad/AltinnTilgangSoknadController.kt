@@ -71,6 +71,8 @@ class AltinnTilgangSoknadController(
             "5516" to 3,
             "5516" to 4,
             "5516" to 5,
+            "5516" to 6,
+            "5516" to 7,
             "5902" to 1,
             "5934" to 1,
         )
