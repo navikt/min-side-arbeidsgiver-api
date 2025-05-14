@@ -47,7 +47,7 @@ class DigisyfoRepositoryImplTest {
             ),
         )
 
-        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr2 to 0))
+        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0, vnr2 to 0))
     }
 
     @Test
@@ -64,7 +64,7 @@ class DigisyfoRepositoryImplTest {
             ),
         )
 
-        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr2 to 1))
+        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0, vnr2 to 1))
     }
 
     @Test
@@ -80,7 +80,7 @@ class DigisyfoRepositoryImplTest {
             ),
         )
 
-        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf())
+        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0))
     }
 
     @Test
@@ -114,7 +114,20 @@ class DigisyfoRepositoryImplTest {
             ),
         )
 
-        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr2 to 0, vnr3 to 1))
+        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0, vnr2 to 0, vnr3 to 1))
+    }
+
+    @Test
+    fun `tilgang som nærmeste leder uten sykmeldte`() {
+        val lookup = prepareDatabaseSingletonBatches(
+            today = "2022-06-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+            ),
+            sykmeldinger = listOf(),
+        )
+
+        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0))
     }
 
     @Test
@@ -130,7 +143,7 @@ class DigisyfoRepositoryImplTest {
             ),
         )
 
-        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf())
+        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0))
         Assertions.assertThat(lookup(leder2)).containsExactlyEntriesOf(mapOf(vnr2 to 1))
     }
 
@@ -147,7 +160,7 @@ class DigisyfoRepositoryImplTest {
             ),
         )
 
-        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf())
+        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0))
         Assertions.assertThat(lookup(leder2)).containsExactlyEntriesOf(mapOf(vnr2 to 1))
     }
 
@@ -215,7 +228,7 @@ class DigisyfoRepositoryImplTest {
             ),
         )
 
-        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf())
+        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0))
     }
 
     @Test
@@ -232,7 +245,7 @@ class DigisyfoRepositoryImplTest {
             ),
         )
 
-        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr2 to 1))
+        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0, vnr2 to 1))
     }
 
     @Test
@@ -266,7 +279,7 @@ class DigisyfoRepositoryImplTest {
             ),
         )
 
-        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr2 to 1))
+        Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0, vnr2 to 1))
     }
 
 
