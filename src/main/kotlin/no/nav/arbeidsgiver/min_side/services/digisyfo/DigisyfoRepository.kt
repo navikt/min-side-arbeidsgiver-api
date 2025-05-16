@@ -145,9 +145,9 @@ class DigisyfoRepositoryImpl(
                 where naermeste_leder_fnr = ?
             ),
             virksomheter as (
-                select distinct s.virksomhetsnummer as virksomhetsnummer
-                from sykmelding as s
-                join nl_koblinger nl on
+                select distinct nl.virksomhetsnummer as virksomhetsnummer
+                from nl_koblinger as nl
+                left outer join sykmelding s on
                     nl.virksomhetsnummer = s.virksomhetsnummer and
                     nl.ansatt_fnr = s.ansatt_fnr
             ),
