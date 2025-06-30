@@ -106,10 +106,10 @@ class LagredeFilterService(val jdbcTemplate: JdbcTemplate) {
         val filterId: String,
         val navn: String,
         val side: Int, //fjerne denne?
-        val tekstsoek: String?,
-        val virksomheter: List<String>?,
+        val tekstsoek: String,
+        val virksomheter: List<String>,
         val sortering: String?,
-        val sakstyper: List<String>?,
-        val oppgaveFilter: List<String>?
+        val sakstyper: List<String>,
+        val oppgaveFilter: List<String>
     )
 }
