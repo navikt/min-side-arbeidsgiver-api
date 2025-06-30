@@ -36,7 +36,7 @@ class AltinnService(
     private val restTemplate = restTemplateBuilder
         .additionalInterceptors(
             retryInterceptor(
-                maxAttempts = 3,
+                maxAttempts = 5,
                 backoffPeriod = 250L,
                 SocketException::class.java,
                 SSLHandshakeException::class.java,
