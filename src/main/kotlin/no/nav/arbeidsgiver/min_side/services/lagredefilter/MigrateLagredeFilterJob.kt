@@ -1,141 +1,153 @@
 package no.nav.arbeidsgiver.min_side.services.lagredefilter
 
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.services.storage.StorageEntry
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
+import java.sql.Timestamp
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatterBuilder
+import java.time.temporal.ChronoField
 
 @Component
 class MigrateLagredeFilterJob(
     val jdbcTemplate: JdbcTemplate,
 ) {
-    val batchSize = 100
+    private val log = logger()
 
     @EventListener(ApplicationReadyEvent::class)
+    @Transactional
     fun run() {
-        val storageEntries = jdbcTemplate.query(
-            "select * from storage where key = 'lagrede-filter' and value is not null"
-        ) { rs, _ ->
-            StorageEntry(
-                key = rs.getString("key"),
-                fnr = rs.getString("fnr"),
-                value = rs.getString("value"),
-                version = rs.getInt("version"),
-                timestamp = rs.getString("timestamp")
+        try {
+            log.info("Stareter migrering til lagrede_filter fra storage")
+            // slett rader i lagrede_filter tabellen hvis den finnes
+            jdbcTemplate.update(
+                "DELETE FROM lagrede_filter where 1=1"
             )
-        }
-    }
 
-
-    private fun konverterTilOppgaveFilter(oppgaveTilstand: List<String>?): List<String> {
-        return oppgaveTilstand?.mapNotNull { tilstand ->
-            when (tilstand) {
-                "Ny" -> "TILSTAND_NY"
-                "Utfoert" -> "TILSTAND_UTFOERT"
-                "Utgaatt" -> "TILSTAND_UTGAATT"
-                else -> null
+            val storageEntries = jdbcTemplate.query(
+                "select * from storage where key = 'lagrede-filter' and value is not null"
+            ) { rs, _ ->
+                StorageEntry(
+                    key = rs.getString("key"),
+                    fnr = rs.getString("fnr"),
+                    value = rs.getString("value"),
+                    version = rs.getInt("version"),
+                    timestamp = rs.getString("timestamp")
+                )
             }
-        } ?: emptyList()
-    }
-
-    private fun deserializeStorageEntry(storageEntry: StorageEntry): List<LagretFilter> {
-        val mapper = strictObjectMapper()
-        val storageFilterListe = mapper.readValue<List<String>>(storageEntry.value)
-        val lagredeFiltere = storageFilterListe.mapNotNull {
-            var storageValue: StorageValue<out StorageFilterBase>
-            try {
-                storageValue = mapper.readValue<StorageValue<StorageFilterMedOppgaveFilter>>(it)
-            } catch (ex: JsonProcessingException) {
-                try {
-                    storageValue = mapper.readValue<StorageValue<StorageFilterMedOppgaveTilstand>>(it)
-                } catch (ex: JsonProcessingException) {
-                    try {
-                        storageValue = mapper.readValue<StorageValue<StorageFilterBase>>(it)
-                    } catch (ex: JsonProcessingException) {
-                        return@mapNotNull null
+            val lagredeFiltere = storageEntries.flatMap { deserializeStorageEntry(it) }
+            val mapper = jacksonObjectMapper()
+            if (lagredeFiltere.isNotEmpty()) {
+                jdbcTemplate.batchUpdate(
+                    "INSERT INTO lagrede_filter (filter_id, fnr, navn, side, tekstsoek, virksomheter, sortering, sakstyper, oppgave_filter, opprettet_tidspunkt, sist_endret_tidspunkt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    lagredeFiltere.map { filter ->
+                        arrayOf(
+                            filter.filterId,
+                            filter.fnr,
+                            filter.navn,
+                            filter.side,
+                            filter.tekstsoek,
+                            mapper.writeValueAsString(filter.virksomheter),
+                            filter.sortering,
+                            mapper.writeValueAsString(filter.sakstyper),
+                            mapper.writeValueAsString(filter.oppgaveFilter),
+                            Timestamp.from(parseInstant(filter.opprettetTidspunkt)),
+                            Timestamp.from(parseInstant(filter.sistEndretTidspunkt))
+                        )
                     }
-                }
+                )
             }
-            LagretFilter(
-                filterId = storageValue.uuid,
-                fnr = storageEntry.fnr,
-                navn = storageValue.navn,
-                side = storageValue.filter.side,
-                tekstsoek = storageValue.filter.tekstsoek,
-                virksomheter = storageValue.filter.virksomheter ?: emptyList(),
-                sortering = fiksSortering(storageValue.filter.sortering),
-                sakstyper = storageValue.filter.sakstyper ?: emptyList(),
-                oppgaveFilter = when (storageValue.filter) {
-                    is StorageFilterMedOppgaveFilter -> (storageValue.filter as StorageFilterMedOppgaveFilter).oppgaveFilter ?: listOf()
-                    is StorageFilterMedOppgaveTilstand -> konverterTilOppgaveFilter((storageValue.filter as StorageFilterMedOppgaveTilstand).oppgaveTilstand)
-                    else -> listOf()
-                },
-                opprettetTidspunkt = storageEntry.timestamp,
-                sistEndretTidspunkt = storageEntry.timestamp
-            )
+            log.info("Migrering til lagrede_filter fra storage fullført. ${lagredeFiltere.size} filtere migrert.")
         }
-        return lagredeFiltere
-    }
-
-    private fun fiksSortering(sortering: String?): String {
-        if (sortering == null || sortering !in listOf("NYESTE", "ELDESTE")) {
-            return "NYESTE"
+        catch (e: Exception) {
+            log.error("Feil under migrering til lagrede_filter: ${e.message}", e)
+            throw e // Rerthrow exception to ensure transaction rollback
         }
-        return sortering
     }
 }
 
-private fun strictObjectMapper(): ObjectMapper {
-    return jacksonObjectMapper().registerKotlinModule()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
-        .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
-        .configure(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS, true)
-        .configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, true)
+private fun parseInstant(timestamp: String): Instant {
+    val formatter = DateTimeFormatterBuilder()
+        .appendPattern("yyyy-MM-dd HH:mm:ss")
+        .appendFraction(ChronoField.MICRO_OF_SECOND, 0, 6, true)
+        .appendOffset("+HH:MM", "Z") // handles +00:00 style offset
+        .toFormatter()
+
+    val normalizedTimestamp = timestamp.replace("+00", "+00:00")
+    return OffsetDateTime.parse(normalizedTimestamp, formatter).toInstant()
 }
 
-private data class StorageValue<T : StorageFilterBase>(
-    val uuid: String,
-    val navn: String,
-    val filter: T,
-)
 
-private open class StorageFilterBase(
-    val side: Int,
-    val tekstsoek: String?,
-    val virksomheter: List<String>?,
-    val sortering: String?,
-    val sakstyper: List<String>?
-)
+private fun konverterTilOppgaveFilter(oppgaveTilstand: List<String>?): List<String> {
+    return oppgaveTilstand?.mapNotNull { tilstand ->
+        when (tilstand) {
+            "Ny" -> "TILSTAND_NY"
+            "Utfoert" -> "TILSTAND_UTFOERT"
+            "Utgaatt" -> "TILSTAND_UTGAATT"
+            else -> null
+        }
+    } ?: emptyList()
+}
 
-private class StorageFilterMedOppgaveFilter(
-    side: Int,
-    tekstsoek: String?,
-    virksomheter: List<String>?,
-    sortering: String?,
-    sakstyper: List<String>?,
-    val oppgaveFilter: List<String>?
-) : StorageFilterBase(
-    side, tekstsoek, virksomheter, sortering, sakstyper
-)
+private fun fiksOppgaveFilter(filter: JsonNode): List<String> {
+    if (filter.has("oppgaveFilter"))
+        return filter.get("oppgaveFilter")?.map { it.asText() } ?: emptyList()
+    if (filter.has("oppgaveTilstand")) {
+        return konverterTilOppgaveFilter(filter.get("oppgaveTilstand").map { it.asText() })
+    } else
+        return emptyList()
+}
 
-private class StorageFilterMedOppgaveTilstand(
-    side: Int,
-    tekstsoek: String?,
-    virksomheter: List<String>?,
-    sortering: String?,
-    sakstyper: List<String>?,
-    val oppgaveTilstand: List<String>?
-) : StorageFilterBase(
-    side, tekstsoek, virksomheter, sortering, sakstyper
-)
 
+private fun deserializeStorageEntry(storageEntry: StorageEntry): List<LagretFilter> {
+    val mapper = jacksonObjectMapper()
+    val storageFilterListe = mapper.readValue<List<JsonNode>>(storageEntry.value)
+    val lagredeFiltere = storageFilterListe.mapNotNull { storageValue ->
+        val filter = storageValue.get("filter")
+        if (filter == null) {
+            return@mapNotNull null // Hopp over hvis filter ikke finnes
+        }
+
+        LagretFilter(
+            filterId = storageValue.get("uuid").asText(),
+            fnr = storageEntry.fnr,
+            navn = storageValue.get("navn").asText(),
+            side = filter.get("side").asInt(),
+            tekstsoek = filter.get("tekstsoek").asText(),
+            virksomheter = filter.get("virksomheter")?.map { it.asText() } ?: emptyList(),
+            sortering = fiksSortering(filter.get("sortering").asText()),
+            sakstyper = filter.get("sakstyper")?.map { it.asText() } ?: emptyList(),
+            oppgaveFilter = fiksOppgaveFilter(filter),
+            opprettetTidspunkt = storageEntry.timestamp,
+            sistEndretTidspunkt = storageEntry.timestamp
+        )
+    }
+    return lagredeFiltere
+}
+
+private fun fiksSortering(sortering: String?): String {
+    if (sortering == null || sortering !in listOf("NYESTE", "ELDSTE")) {
+        return "NYESTE"
+    }
+    return sortering
+}
+//
+//private fun strictObjectMapper(): ObjectMapper {
+//    return jacksonObjectMapper().registerKotlinModule()
+//        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+//        .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
+//        .configure(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS, false)
+//        .configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false)
+//}
 
 private data class LagretFilter(
     val filterId: String,
