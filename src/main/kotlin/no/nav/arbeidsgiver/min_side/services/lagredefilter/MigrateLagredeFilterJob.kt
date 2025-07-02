@@ -20,7 +20,7 @@ import java.time.temporal.ChronoField
 //TODO: fjerne denne etter at migrering i prod er gjort
 @Component
 @Profile(
-//    "prod-gcp",
+    "prod-gcp",
     "dev-gcp"
 )
 class MigrateLagredeFilterJob(
@@ -82,9 +82,9 @@ class MigrateLagredeFilterJob(
 
 private fun parseInstant(timestamp: String): Instant {
     val formatter = DateTimeFormatterBuilder()
-        .appendPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
+        .appendPattern("yyyy-MM-dd HH:mm:ss")
         .appendFraction(ChronoField.MICRO_OF_SECOND, 0, 6, true)
-        .appendOffset("+HH:mm", "Z") // handles +00:00 style offset
+        .appendOffset("+HH:mm", "Z")
         .toFormatter()
 
     return OffsetDateTime.parse(timestamp, formatter).toInstant()
