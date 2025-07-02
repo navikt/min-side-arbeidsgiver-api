@@ -1,7 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.lagredefilter
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.arbeidsgiver.min_side.config.logger
@@ -79,13 +78,12 @@ class MigrateLagredeFilterJob(
 
 private fun parseInstant(timestamp: String): Instant {
     val formatter = DateTimeFormatterBuilder()
-        .appendPattern("yyyy-MM-dd HH:mm:ss")
+        .appendPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
         .appendFraction(ChronoField.MICRO_OF_SECOND, 0, 6, true)
-        .appendOffset("+HH:MM", "Z") // handles +00:00 style offset
+        .appendOffset("+HH:mm", "Z") // handles +00:00 style offset
         .toFormatter()
 
-    val normalizedTimestamp = timestamp.replace("+00", "+00:00")
-    return OffsetDateTime.parse(normalizedTimestamp, formatter).toInstant()
+    return OffsetDateTime.parse(timestamp, formatter).toInstant()
 }
 
 
