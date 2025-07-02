@@ -24,7 +24,7 @@ class MigrateLagredeFilterJob(
 ) {
     private val log = logger()
 
-    @Profile("!test")
+    @Profile("prod-gcp", "dev-gcp")
     @EventListener(ApplicationReadyEvent::class)
     @Transactional
     fun run() {
