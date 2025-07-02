@@ -13,7 +13,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 @SpringBootTest(
     properties = [
         "server.servlet.context-path=/",
-        "spring.flyway.cleanDisabled=false",
     ]
 )
 class MigrateLagredeFilterJobTest {
