@@ -23,7 +23,7 @@ class MigrateLagredeFilterJob(
 ) {
     private val log = logger()
 
-    @EventListener(ApplicationReadyEvent::class)
+//    @EventListener(ApplicationReadyEvent::class)
     @Transactional
     fun run() {
         try {
