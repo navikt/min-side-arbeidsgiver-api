@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 @SpringBootTest(
     properties = [
@@ -22,6 +24,9 @@ class MigrateLagredeFilterJobTest {
 
     @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
+
+    @MockitoBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
+    lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
     lateinit var lagredeFilterService: LagredeFilterService
