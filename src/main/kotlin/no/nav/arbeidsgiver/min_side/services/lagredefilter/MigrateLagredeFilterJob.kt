@@ -19,12 +19,12 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 
 @Component
+@Profile("prod-gcp", "dev-gcp")
 class MigrateLagredeFilterJob(
     val jdbcTemplate: JdbcTemplate,
 ) {
     private val log = logger()
 
-    @Profile("prod-gcp", "dev-gcp")
     @EventListener(ApplicationReadyEvent::class)
     @Transactional
     fun run() {
