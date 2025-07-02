@@ -19,7 +19,10 @@ import java.time.temporal.ChronoField
 
 //TODO: fjerne denne etter at migrering i prod er gjort
 @Component
-@Profile("prod-gcp", "dev-gcp")
+@Profile(
+//    "prod-gcp",
+    "dev-gcp"
+)
 class MigrateLagredeFilterJob(
     val jdbcTemplate: JdbcTemplate,
 ) {
