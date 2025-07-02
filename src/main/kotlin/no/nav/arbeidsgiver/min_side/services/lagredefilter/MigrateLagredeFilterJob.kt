@@ -17,6 +17,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 
+//TODO: fjerne denne etter at migrering i prod er gjort
 @Component
 @Profile("prod-gcp", "dev-gcp")
 class MigrateLagredeFilterJob(
@@ -140,14 +141,6 @@ private fun fiksSortering(sortering: String?): String {
     }
     return sortering
 }
-//
-//private fun strictObjectMapper(): ObjectMapper {
-//    return jacksonObjectMapper().registerKotlinModule()
-//        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-//        .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
-//        .configure(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS, false)
-//        .configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false)
-//}
 
 private data class LagretFilter(
     val filterId: String,

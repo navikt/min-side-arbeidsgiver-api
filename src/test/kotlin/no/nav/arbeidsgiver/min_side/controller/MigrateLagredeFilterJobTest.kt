@@ -1,3 +1,5 @@
+//TODO: fjerne denne etter at migrering i prod er gjort
+
 //package no.nav.arbeidsgiver.min_side.controller
 //
 //import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
