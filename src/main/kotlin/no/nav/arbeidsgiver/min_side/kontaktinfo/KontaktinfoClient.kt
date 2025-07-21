@@ -13,7 +13,6 @@ import org.springframework.http.HttpMethod.GET
 import org.springframework.stereotype.Component
 import java.net.SocketException
 import javax.net.ssl.SSLHandshakeException
-import kotlin.collections.List
 
 @Component
 class KontaktinfoClient(

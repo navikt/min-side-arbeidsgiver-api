@@ -22,7 +22,7 @@ class SecurityConfig {
         // Kotlin DSL requires import org.springframework.security.config.annotation.web.invoke
         http {
             oauth2ResourceServer { jwt { } }
-            authorizeRequests {
+            authorizeHttpRequests {
                 authorize("/internal/actuator/**", permitAll)
                 authorize("/api/**", authenticated)
                 authorize(anyRequest, denyAll)
