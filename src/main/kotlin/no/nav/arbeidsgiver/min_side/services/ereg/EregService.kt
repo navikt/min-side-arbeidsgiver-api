@@ -2,7 +2,7 @@ package no.nav.arbeidsgiver.min_side.services.ereg
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.github.benmanes.caffeine.cache.Caffeine
-import no.nav.arbeidsgiver.min_side.config.callIdIntercetor
+import no.nav.arbeidsgiver.min_side.config.callIdInterceptor
 import no.nav.arbeidsgiver.min_side.config.retryInterceptor
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -26,7 +26,7 @@ class EregService(
     internal val restTemplate = restTemplateBuilder
         .rootUri(eregBaseUrl)
         .additionalInterceptors(
-            callIdIntercetor("Nav-Call-Id"),
+            callIdInterceptor("Nav-Call-Id"),
             retryInterceptor(
                 3,
                 250L,

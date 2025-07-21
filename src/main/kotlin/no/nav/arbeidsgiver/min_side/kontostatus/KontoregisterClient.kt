@@ -3,7 +3,7 @@ package no.nav.arbeidsgiver.min_side.kontostatus
 import com.github.benmanes.caffeine.cache.Caffeine
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.GittMiljø
-import no.nav.arbeidsgiver.min_side.config.callIdIntercetor
+import no.nav.arbeidsgiver.min_side.config.callIdInterceptor
 import no.nav.arbeidsgiver.min_side.config.retryInterceptor
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -12,7 +12,6 @@ import org.springframework.cache.caffeine.CaffeineCache
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
-import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClientResponseException
 import java.net.SocketException
@@ -29,8 +28,9 @@ class KontoregisterClient(
     internal val restTemplate = restTemplateBuilder
         .rootUri(sokosKontoregisterBaseUrl)
         .additionalInterceptors(
-            callIdIntercetor("nav-call-id"),
-            ClientHttpRequestInterceptor { request, body, execution ->
+            callIdInterceptor("nav-call-id"),
+
+            { request, body, execution ->
                 request.headers.setBearerAuth(
                     azureService.getAccessToken(gittMiljø.resolve(
                         prod = { "api://prod-fss.okonomi.sokos-kontoregister/.default" },
@@ -40,6 +40,7 @@ class KontoregisterClient(
                 )
                 execution.execute(request, body)
             },
+
             retryInterceptor(
                 3,
                 250L,
