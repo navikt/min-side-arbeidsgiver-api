@@ -128,7 +128,7 @@ private fun deserializeStorageEntry(storageEntry: StorageEntry): List<LagretFilt
             side = filter.get("side").asInt(),
             tekstsoek = filter.get("tekstsoek").asText(),
             virksomheter = filter.get("virksomheter")?.map { it.asText() } ?: emptyList(),
-            sortering = fiksSortering(filter.get("sortering").asText()),
+            sortering = fiksSortering(filter.get("sortering").asText()).toString(),
             sakstyper = filter.get("sakstyper")?.map { it.asText() } ?: emptyList(),
             oppgaveFilter = fiksOppgaveFilter(filter),
             opprettetTidspunkt = storageEntry.timestamp,
@@ -138,11 +138,11 @@ private fun deserializeStorageEntry(storageEntry: StorageEntry): List<LagretFilt
     return lagredeFiltere
 }
 
-private fun fiksSortering(sortering: String?): String {
-    if (sortering == null || sortering !in listOf("NYESTE", "ELDSTE")) {
-        return "NYESTE"
+private fun fiksSortering(sortering: String?): LagredeFilterService.SakSortering {
+    return when (sortering) {
+        "ELDSTE" -> LagredeFilterService.SakSortering.EldsteFørst
+        else -> LagredeFilterService.SakSortering.NyesteFørst
     }
-    return sortering
 }
 
 private data class LagretFilter(

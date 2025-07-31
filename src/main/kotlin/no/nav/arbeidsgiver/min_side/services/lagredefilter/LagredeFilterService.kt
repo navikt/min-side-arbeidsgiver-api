@@ -43,7 +43,7 @@ class LagredeFilterService(val jdbcTemplate: JdbcTemplate) {
                 ps.setString(2, filterId)
             }
         )
-        return existing;
+        return existing
     }
 
     @Transactional
@@ -61,7 +61,7 @@ class LagredeFilterService(val jdbcTemplate: JdbcTemplate) {
                     ps.setInt(4, filter.side)
                     ps.setString(5, filter.tekstsoek)
                     ps.setString(6, mapper.writeValueAsString(filter.virksomheter))
-                    ps.setString(7, filter.sortering)
+                    ps.setString(7, filter.sortering.toString())
                     ps.setString(8, mapper.writeValueAsString(filter.sakstyper))
                     ps.setString(9, mapper.writeValueAsString(filter.oppgaveFilter))
                     ps.setTimestamp(10, Timestamp.from(now)) // Opprettet tidspunkt
@@ -76,8 +76,8 @@ class LagredeFilterService(val jdbcTemplate: JdbcTemplate) {
                     ps.setInt(2, filter.side)
                     ps.setString(3, filter.tekstsoek)
                     ps.setString(4, mapper.writeValueAsString(filter.virksomheter))
-                    ps.setString(5, filter.sortering)
-                    ps.setString(6,  mapper.writeValueAsString(filter.sakstyper))
+                    ps.setString(5, filter.sortering.toString())
+                    ps.setString(6, mapper.writeValueAsString(filter.sakstyper))
                     ps.setString(7, mapper.writeValueAsString(filter.oppgaveFilter))
                     ps.setTimestamp(8, Timestamp.from(now)) // Sist endret tidspunkt
                     ps.setString(9, fnr)
@@ -96,7 +96,7 @@ class LagredeFilterService(val jdbcTemplate: JdbcTemplate) {
             side = row.getInt("side"), //fjerne?
             tekstsoek = row.getString("tekstsoek"),
             virksomheter = mapper.readValue<List<String>>(row.getString("virksomheter")),
-            sortering = row.getString("sortering"),
+            sortering = SakSortering.valueOf(row.getString("sortering")),
             sakstyper = mapper.readValue<List<String>>(row.getString("sakstyper")),
             oppgaveFilter = mapper.readValue<List<String>>(row.getString("oppgave_filter")),
         )
@@ -108,8 +108,13 @@ class LagredeFilterService(val jdbcTemplate: JdbcTemplate) {
         val side: Int, //fjerne denne?
         val tekstsoek: String,
         val virksomheter: List<String>,
-        val sortering: String?,
+        val sortering: SakSortering,
         val sakstyper: List<String>,
         val oppgaveFilter: List<String>
     )
+
+    enum class SakSortering {
+        NyesteFørst,
+        EldsteFørst,
+    }
 }
