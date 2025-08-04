@@ -114,7 +114,7 @@ class LagredeFilterService(val jdbcTemplate: JdbcTemplate) {
     )
 
     enum class SakSortering {
-        NyesteFørst,
-        EldsteFørst,
+        NYESTE,
+        ELDSTE,
     }
 }

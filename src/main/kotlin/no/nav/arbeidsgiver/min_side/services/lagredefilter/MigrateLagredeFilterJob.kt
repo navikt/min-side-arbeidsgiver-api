@@ -140,8 +140,8 @@ private fun deserializeStorageEntry(storageEntry: StorageEntry): List<LagretFilt
 
 private fun fiksSortering(sortering: String?): LagredeFilterService.SakSortering {
     return when (sortering) {
-        "ELDSTE" -> LagredeFilterService.SakSortering.EldsteFørst
-        else -> LagredeFilterService.SakSortering.NyesteFørst
+        "ELDSTE" -> LagredeFilterService.SakSortering.ELDSTE
+        else -> LagredeFilterService.SakSortering.NYESTE
     }
 }
 
