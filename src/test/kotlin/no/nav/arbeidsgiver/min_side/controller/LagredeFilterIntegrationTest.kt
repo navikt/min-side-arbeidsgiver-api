@@ -60,7 +60,7 @@ class LagredeFilterIntegrationTest {
                             "side": 1,
                             "tekstsoek": "",
                             "virksomheter": [],
-                            "sortering": "NyesteFørst",
+                            "sortering": "NYESTE",
                             "sakstyper": [],
                             "oppgaveFilter": ["TILSTAND_NY"] 
                         }
@@ -73,7 +73,7 @@ class LagredeFilterIntegrationTest {
                             "side": 1,
                             "tekstsoek": "",
                             "virksomheter": ["123456789"],
-                            "sortering": "NyesteFørst",
+                            "sortering": "NYESTE",
                             "sakstyper": [],
                             "oppgaveFilter": ["TILSTAND_NY_MED_PÅMINNELSE"] 
                         }
@@ -115,7 +115,7 @@ class LagredeFilterIntegrationTest {
                             "side": 1,
                             "tekstsoek": "",
                             "virksomheter": [],
-                            "sortering": "EldsteFørst",
+                            "sortering": "ELDSTE",
                             "sakstyper": [],
                             "oppgaveFilter": ["TILSTAND_NY_MED_PÅMINNELSE"] 
                         }
