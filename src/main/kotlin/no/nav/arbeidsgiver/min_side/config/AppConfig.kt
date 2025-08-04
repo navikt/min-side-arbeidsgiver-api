@@ -6,82 +6,30 @@ import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
-import org.slf4j.event.Level
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
-import org.springframework.boot.web.client.RestTemplateCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpRequest
-import org.springframework.http.HttpStatus.*
-import org.springframework.http.client.ClientHttpRequestExecution
-import org.springframework.http.client.ClientHttpRequestInterceptor
+import org.springframework.http.HttpStatus.resolve
 import org.springframework.scheduling.annotation.EnableScheduling
-import org.springframework.web.client.RestTemplate
 import org.springframework.web.filter.CharacterEncodingFilter
 import org.springframework.web.filter.OncePerRequestFilter
 import java.util.*
 
 const val CALL_ID = "callId"
 
+
+/**
+ * Beans av typen [OncePerRequestFilter] ie [jakarta.servlet.Filter] blir automatisk registrert i Spring Boot sin filter-kjede
+ * og er dermed tilgjengelig for alle requests som kommer inn i applikasjonen. Dette skjer vha [org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAdaptableBeans]
+ *
+ * Dette er en type automagi vi gjerne vil skrive oss ut av. Men kanskje ikke like viktig som [RestTemplateConfig] siden det kun er en servlet filter-kjede som blir opprettet per applikasjon.
+ */
 @Configuration
 @EnableScheduling
 @ConfigurationPropertiesScan("no.nav.arbeidsgiver.min_side")
 class AppConfig {
 
     private val log = logger()
-
-    /**
-     * propagerer callid fra MDC til request header
-     */
-    @Bean
-    fun callIdRestTemplateCustomizer(): RestTemplateCustomizer {
-        return RestTemplateCustomizer { restTemplate: RestTemplate ->
-            restTemplate.interceptors.add(callIdIntercetor())
-        }
-    }
-
-    /**
-     * log basic info om request response via resttemplate
-     */
-    @Bean
-    fun loggingInterceptorCustomizer() = RestTemplateCustomizer { restTemplate: RestTemplate ->
-        restTemplate.interceptors.add(
-            ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
-                log.info("RestTemplate.request: {} {}{}", request.method, request.uri.host, request.uri.path)
-                val response = execution.execute(request, body!!)
-                log.atLevel(
-                    when {
-                        response.statusCode in setOf(
-                            NOT_FOUND,
-
-                            BAD_GATEWAY,
-                            SERVICE_UNAVAILABLE,
-                            GATEWAY_TIMEOUT,
-                        ) ->
-                            Level.INFO
-
-                        response.statusCode.isError ->
-                            Level.ERROR
-
-                        else ->
-                            Level.INFO
-                    }
-                ).log(
-                    "RestTemplate.response: {} Content-Length: {} for request {} {}{}",
-                    when {
-                        response.statusCode.isError ->
-                            "${response.statusCode} ${response.statusText}"
-                        else ->
-                            response.statusCode
-                    },
-                    response.headers.contentLength,
-                    request.method,
-                    request.uri.host,
-                    request.uri.path
-                )
-                response
-            })
-    }
 
     /**
      * propagerer callId, inkl varianter, fra request header til MDC, setter ny uuid hvis mangler.
@@ -147,14 +95,5 @@ class AppConfig {
     @Bean
     fun characterEncodingFilter() = CharacterEncodingFilter("UTF-8", true)
 }
-
-
-fun callIdIntercetor(headerName: String = CALL_ID) =
-    ClientHttpRequestInterceptor { request: HttpRequest, body: ByteArray?, execution: ClientHttpRequestExecution ->
-        MDC.get(CALL_ID)?.let {
-            request.headers.addIfAbsent(headerName, it)
-        }
-        execution.execute(request, body!!)
-    }
 
 inline fun <reified T : Any> T.logger(): Logger = LoggerFactory.getLogger(this::class.java)
