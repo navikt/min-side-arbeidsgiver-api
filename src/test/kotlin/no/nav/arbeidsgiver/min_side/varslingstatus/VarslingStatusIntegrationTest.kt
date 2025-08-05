@@ -16,6 +16,7 @@ import org.springframework.core.io.Resource
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.json.JsonCompareMode.STRICT
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
 
@@ -157,7 +158,7 @@ class VarslingStatusIntegrationTest {
                     "varselTimestamp": "2021-01-01T00:00:00",
                     "kvittertEventTimestamp": "2021-01-04T00:00:00Z"
                     }""",
-                    true
+                    STRICT
                 )
             }
         }
@@ -201,7 +202,7 @@ class VarslingStatusIntegrationTest {
                     "varselTimestamp": "2021-01-01T00:00:00",
                     "kvittertEventTimestamp": "2021-01-07T00:00:00Z"
                     }""",
-                    true
+                    STRICT
                 )
             }
         }

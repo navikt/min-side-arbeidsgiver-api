@@ -18,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.json.JsonCompareMode.STRICT
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import java.util.UUID.randomUUID
@@ -138,7 +139,7 @@ class RefusjonStatusIntegrationTest {
                         "tilgang": true
                       }
                     ]
-                    """, true
+                    """, STRICT
                 )
             }
         }

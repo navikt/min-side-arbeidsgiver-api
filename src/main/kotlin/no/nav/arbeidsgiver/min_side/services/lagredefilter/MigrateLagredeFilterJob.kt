@@ -55,7 +55,7 @@ class MigrateLagredeFilterJob(
                 jdbcTemplate.batchUpdate(
                     "INSERT INTO lagrede_filter (filter_id, fnr, navn, side, tekstsoek, virksomheter, sortering, sakstyper, oppgave_filter, opprettet_tidspunkt, sist_endret_tidspunkt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     lagredeFiltere.map { filter ->
-                        arrayOf(
+                        arrayOf<Any?>(
                             filter.filterId,
                             filter.fnr,
                             filter.navn,
