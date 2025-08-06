@@ -32,7 +32,5 @@ class LagredeFilterController(
     )
     fun put(
         @RequestBody filter: LagredeFilterService.LagretFilter
-    ) {
-        lagredeFilterService.put(authenticatedUserHolder.fnr, filter)
-    }
+    ) = lagredeFilterService.put(authenticatedUserHolder.fnr, filter)
 }
