@@ -114,8 +114,8 @@ class SykefraværstatistikkKafkaListener(
 ) {
     @Profile("dev-gcp", "prod-gcp")
     @KafkaListener(
-        id = "min-side-arbeidsgiver-sfmeta-2",
-        topics = ["arbeidsgiver.sykefravarsstatistikk-metadata-virksomhet-v1"],
+        id = "min-side-arbeidsgiver-sfmeta-3",
+        topics = ["pia.sykefravarsstatistikk-metadata-virksomhet-v1"],
         containerFactory = "errorLoggingKafkaListenerContainerFactory"
     )
     fun processMetadataVirksomhet(record: ConsumerRecord<String?, String?>) {
@@ -133,11 +133,11 @@ class SykefraværstatistikkKafkaListener(
 
     @Profile("dev-gcp", "prod-gcp")
     @KafkaListener(
-        id = "min-side-arbeidsgiver-sfstats-2",
+        id = "min-side-arbeidsgiver-sfstats-3",
         topics = [
-            "arbeidsgiver.sykefravarsstatistikk-virksomhet-v1",
-            "arbeidsgiver.sykefravarsstatistikk-naring-v1",
-            "arbeidsgiver.sykefravarsstatistikk-bransje-v1",
+            "pia.sykefravarsstatistikk-virksomhet-v1",
+            "pia.sykefravarsstatistikk-naring-v1",
+            "pia.sykefravarsstatistikk-bransje-v1",
         ],
         containerFactory = "errorLoggingKafkaListenerContainerFactory"
     )
