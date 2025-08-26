@@ -21,21 +21,32 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabaseAsync
 import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
 import org.slf4j.event.Level
 import java.util.*
 
+
+
+private val databaseConfig = DatabaseConfig(
+    jdbcUrl = System.getenv("JDBC_DATABASE_URL"), // fix this
+    migrationLocation = "classpath:db/migration"
+)
+
 fun main() {
-    embeddedServer(CIO, port = 8080, host = "0.0.0.0") {
-        ktorConfig()
-        configureRouting()
+    runBlocking(Dispatchers.Default) {
+        embeddedServer(CIO, port = 8080, host = "0.0.0.0") {
+            ktorConfig()
+            configureRouting()
+        }
     }
 }
 
-fun Application.configureRouting() {
-    val lagredeFilterService = LagredeFilterService()
-
+suspend fun Application.configureRouting() {
+    val database = openDatabaseAsync(databaseConfig)
 }
 
 fun Application.ktorConfig() {
