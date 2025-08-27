@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
 
 
-@Service
+//@Service
 class AzureService(
     private val azureClient: AzureClient,
 ) {
@@ -21,8 +21,20 @@ class AzureService(
             override fun expireAfterCreate(key: String, response: AccessTokenEntry, currentTime: Long): Long {
                 return TimeUnit.SECONDS.toNanos(response.expiresInSeconds - cacheExpiryMarginSeconds)
             }
-            override fun expireAfterUpdate(key: String, value: AccessTokenEntry, currentTime: Long, currentDuration: Long): Long = currentDuration
-            override fun expireAfterRead(key: String, value: AccessTokenEntry, currentTime: Long, currentDuration: Long): Long = currentDuration
+
+            override fun expireAfterUpdate(
+                key: String,
+                value: AccessTokenEntry,
+                currentTime: Long,
+                currentDuration: Long
+            ): Long = currentDuration
+
+            override fun expireAfterRead(
+                key: String,
+                value: AccessTokenEntry,
+                currentTime: Long,
+                currentDuration: Long
+            ): Long = currentDuration
         })
         .maximumSize(maxCachedEntries)
         .build()
@@ -51,4 +63,10 @@ class AzureADProperties(
     var openidTokenEndpoint: String = "",
     var clientId: String = "",
     var clientSecret: String = "",
+)
+
+data class AzureAdConfig(
+    val openidTokenEndpoint: String,
+    val clientId: String,
+    val clientSecret: String,
 )

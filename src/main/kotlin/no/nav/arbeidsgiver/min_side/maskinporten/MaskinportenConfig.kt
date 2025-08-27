@@ -27,3 +27,14 @@ class MaskinportenConfig : InitializingBean {
         jwsSigner = RSASSASigner(privateJwkRsa)
     }
 }
+
+
+data class MaskinportenConfig2 (
+    val scopes: String,
+    val wellKnownUrl: String,
+    val clientId: String,
+    val clientJwk: String,
+) {
+    val privateJwkRsa: RSAKey = RSAKey.parse(clientJwk)
+    val jwsSigner = RSASSASigner(privateJwkRsa)
+}

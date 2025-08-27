@@ -6,40 +6,36 @@ import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
-import no.nav.arbeidsgiver.min_side.config.GittMiljø
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.logging.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import no.nav.arbeidsgiver.min_side.config.GittMiljø2
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.InitializingBean
-import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Profile
-import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
-import org.springframework.http.RequestEntity
-import org.springframework.stereotype.Component
-import org.springframework.util.LinkedMultiValueMap
 import java.time.Duration
 import java.time.Instant
 import java.util.*
 
 interface MaskinportenClient {
-    fun fetchNewAccessToken(): TokenResponseWrapper
+    suspend fun fetchNewAccessToken(): TokenResponseWrapper
 }
 
-@Component
-@Profile("dev-gcp", "prod-gcp")
+//@Component
+@Profile("dev-gcp", "prod-gcp") //TODO: opprett denne i Applicatipon
 class MaskinportenClientImpl(
-    val config: MaskinportenConfig,
-    val gittMiljø: GittMiljø,
-    restTemplateBuilder: RestTemplateBuilder,
-): MaskinportenClient, InitializingBean {
+    val config: MaskinportenConfig2,
+) : MaskinportenClient {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val restTemplate = restTemplateBuilder.build()
-    private lateinit var wellKnownResponse: WellKnownResponse
-
-    override fun afterPropertiesSet() {
-        wellKnownResponse = restTemplate.getForObject(config.wellKnownUrl, WellKnownResponse::class.java)!!
+    private val client = HttpClient(CIO) {
+        install(Logging)
     }
+    private var wellKnownResponse: WellKnownResponse? = null
 
-    private fun createClientAssertion(): String {
+    private suspend fun createClientAssertion(): String {
+        val wellKnownResponse = getWellKnownResponse()
         val now = Instant.now()
         val expire = now + Duration.ofSeconds(120)
 
@@ -50,7 +46,10 @@ class MaskinportenClientImpl(
             .expirationTime(Date.from(expire))
             .notBeforeTime(Date.from(now))
             .claim("scope", config.scopes)
-            .claim("resource", gittMiljø.resolve(prod = { "https://www.altinn.no/" }, other = { "https://tt02.altinn.no/" }))
+            .claim(
+                "resource",
+                GittMiljø2.resolve(prod = { "https://www.altinn.no/" }, other = { "https://tt02.altinn.no/" })
+            )
             .jwtID(UUID.randomUUID().toString())
             .build()
 
@@ -64,24 +63,27 @@ class MaskinportenClientImpl(
         return signedJWT.serialize()
     }
 
-    override fun fetchNewAccessToken(): TokenResponseWrapper {
+    private suspend fun getWellKnownResponse(): WellKnownResponse {
+        if (wellKnownResponse == null) {
+            wellKnownResponse = client.get(config.wellKnownUrl).body()
+        }
+        return wellKnownResponse!!
+    }
+
+    override suspend fun fetchNewAccessToken(): TokenResponseWrapper {
         logger.info("henter ny accesstoken")
         val requestedAt = Instant.now()
 
-        val tokenResponse = restTemplate.exchange(
-            RequestEntity
-                .method(HttpMethod.POST, wellKnownResponse.tokenEndpoint)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(
-                    LinkedMultiValueMap(
-                        mapOf(
-                            "grant_type" to listOf("urn:ietf:params:oauth:grant-type:jwt-bearer"),
-                            "assertion" to listOf(createClientAssertion())
-                        )
-                    )
-                ),
-            TokenResponse::class.java
-        ).body!!
+        val tokenResponse = client.request {
+            method = HttpMethod.Post
+            contentType(ContentType.Application.Json)
+            setBody(
+                mapOf(
+                    "grant_type" to listOf("urn:ietf:params:oauth:grant-type:jwt-bearer"),
+                    "assertion" to listOf(createClientAssertion())
+                )
+            )
+        }.body<TokenResponse>()
 
         logger.info("Fetched new access token. Expires in {} seconds.", tokenResponse.expiresInSeconds)
 

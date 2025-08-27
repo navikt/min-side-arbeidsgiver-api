@@ -13,7 +13,7 @@ interface MaskinportenTokenService {
     fun currentAccessToken(): String
 }
 
-@Component
+//@Component
 @Profile("dev-gcp", "prod-gcp")
 class MaskinportenTokenServiceImpl(
     private val maskinportenClient: MaskinportenClient,

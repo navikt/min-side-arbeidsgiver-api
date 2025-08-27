@@ -16,38 +16,68 @@ import io.ktor.server.plugins.callid.*
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.di.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabaseAsync
+import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
+import no.nav.arbeidsgiver.min_side.azuread.AzureClient
+import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.logger
-import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
+import no.nav.arbeidsgiver.min_side.maskinporten.*
 import org.slf4j.event.Level
 import java.util.*
 
 
-
 private val databaseConfig = DatabaseConfig(
-    jdbcUrl = System.getenv("JDBC_DATABASE_URL"), // fix this
+    jdbcUrl = System.getenv("JDBC_DATABASE_URL"), // fix this based on env
     migrationLocation = "classpath:db/migration"
+)
+
+private val maskinportenConfig = MaskinportenConfig2(
+    scopes = System.getenv("MASKINPORTEN_SCOPES"),
+    wellKnownUrl = System.getenv("MASKINPORTEN_WELL_KNOWN_URL"),
+    clientId = System.getenv("MASKINPORTEN_CLIENT_ID"),
+    clientJwk = System.getenv("MASKINPORTEN_CLIENT_JWK"),
+)
+
+private val azureAdConfig = AzureAdConfig(
+    openidTokenEndpoint = System.getenv("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+    clientId = System.getenv("AZURE_APP_CLIENT_ID"),
+    clientSecret = System.getenv("AZURE_APP_CLIENT_SECRET"),
 )
 
 fun main() {
     runBlocking(Dispatchers.Default) {
         embeddedServer(CIO, port = 8080, host = "0.0.0.0") {
             ktorConfig()
-            configureRouting()
+            configureDependencies()
         }
     }
 }
 
-suspend fun Application.configureRouting() {
-    val database = openDatabaseAsync(databaseConfig)
+fun Application.configureDependencies() {
+    dependencies {
+        provide<Database> { openDatabaseAsync(databaseConfig).await() }
+
+        provide(MeterRegistry::class)
+
+        provide<MaskinportenClient> { MaskinportenClientImpl(maskinportenConfig) }
+        provide<MaskinportenTokenService>(MaskinportenTokenServiceImpl::class)
+
+        provide<AzureClient> { AzureClient(azureAdConfig) }
+        provide(AzureService::class)
+
+
+    }
 }
+
 
 fun Application.ktorConfig() {
     val log = logger()
