@@ -22,7 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
     types = [
         VarslingStatusRepository::class,
         KontaktinfoClient::class,
-        EregService::class,
+        EregClient::class,
         KontaktInfoPollerRepository::class,
     ]
 )
@@ -37,14 +37,14 @@ class KontaktInfoPollingServiceTest {
     lateinit var kontaktinfoClient: KontaktinfoClient
 
     @Autowired
-    lateinit var eregService: EregService
+    lateinit var eregClient: EregClient
 
 
     @Test
     fun `bruker kofuvi for underenhet om den finnes`() {
         // given
         `when`(kontaktinfoPollerRepository.getAndDeleteForPoll()).thenReturn(underenhetOrgnr)
-        `when`(eregService.hentUnderenhet(underenhetOrgnr)).thenReturn(underenhet)
+        `when`(eregClient.hentUnderenhet(underenhetOrgnr)).thenReturn(underenhet)
         `when`(kontaktinfoClient.hentKontaktinfo(underenhetOrgnr)).thenReturn(kontaktinfoMedEpost)
         `when`(kontaktinfoClient.hentKontaktinfo(hovedenhetOrgnr)).thenReturn(kontaktinfoMedTlf)
 
@@ -63,7 +63,7 @@ class KontaktInfoPollingServiceTest {
     fun `henter kofuvi for hovedenhet om det mangler kofuvi på underenhet`() {
         // given
         `when`(kontaktinfoPollerRepository.getAndDeleteForPoll()).thenReturn(underenhetOrgnr)
-        `when`(eregService.hentUnderenhet(underenhetOrgnr)).thenReturn(underenhet)
+        `when`(eregClient.hentUnderenhet(underenhetOrgnr)).thenReturn(underenhet)
         `when`(kontaktinfoClient.hentKontaktinfo(underenhetOrgnr)).thenReturn(ingenKontaktinfo)
         `when`(kontaktinfoClient.hentKontaktinfo(hovedenhetOrgnr)).thenReturn(kontaktinfoMedEpost)
 

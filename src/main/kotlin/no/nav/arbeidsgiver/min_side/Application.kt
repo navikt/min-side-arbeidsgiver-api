@@ -38,6 +38,8 @@ import no.nav.arbeidsgiver.min_side.services.kontostatus.KontostatusService
 import no.nav.arbeidsgiver.min_side.maskinporten.*
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.*
+import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
+import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
 import org.slf4j.event.Level
 import java.util.*
@@ -106,6 +108,15 @@ fun Application.configureRoutes() {
         delete("/api/lagredeFilter/{filterId}"){
             dependencies.resolve<LagredeFilterService>().delete(call.parameters["filterId"]!!)
         }
+
+        // Ereg
+        post("api/ereg/underenhet"){
+            dependencies.resolve<EregService>().underenhet(call.receive<EregService.Request>())
+        }
+        post("api/ereg/overenhet"){
+            dependencies.resolve<EregService>().overenhet(call.receive<EregService.Request>())
+
+        }
     }
 }
 
@@ -134,7 +145,8 @@ fun Application.configureDependencies() {
         provide<DigisyfoService>(DigisyfoService::class)
         provide<SykmeldingRepository>(SykmeldingRepositoryImpl::class)
 
-
+        provide<EregClient>(EregClient::class)
+        provide<EregService>(EregService::class)
     }
 }
 

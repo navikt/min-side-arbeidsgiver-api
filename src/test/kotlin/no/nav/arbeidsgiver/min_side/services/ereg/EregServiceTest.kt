@@ -28,7 +28,7 @@ import org.springframework.test.web.servlet.post
     ]
 )
 @AutoConfigureMockMvc
-class EregControllerTest {
+class EregServiceTest {
 
     @MockitoBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
     lateinit var jwtDecoder: JwtDecoder
@@ -39,11 +39,11 @@ class EregControllerTest {
     lateinit var server: MockRestServiceServer
 
     @Autowired
-    lateinit var eregService: EregService
+    lateinit var eregClient: EregClient
 
     @BeforeEach
     fun setUp() {
-        server = MockRestServiceServer.bindTo(eregService.restTemplate).build()
+        server = MockRestServiceServer.bindTo(eregClient.restTemplate).build()
     }
 
 

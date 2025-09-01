@@ -4,14 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
-import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.GyldighetsPeriode.Companion.erGyldig
 import org.springframework.stereotype.Component
 
 @Component
 class DigisyfoService(
     private val digisyfoRepository: DigisyfoRepository,
-    private val eregService: EregService,
+    private val eregClient: EregClient,
     private val meterRegistry: MeterRegistry
 ) {
 
@@ -22,7 +22,7 @@ class DigisyfoService(
 
         for (virksomhetOgSykmeldt in virksomheterOgSykmeldte) {
             val virksomhet = orgs.computeIfAbsent(virksomhetOgSykmeldt.virksomhetsnummer) {
-                val eregOrg = eregService.hentUnderenhet(it) ?: throw RuntimeException("Fant ikke underenhet for $it")
+                val eregOrg = eregClient.hentUnderenhet(it) ?: throw RuntimeException("Fant ikke underenhet for $it")
                 VirksomhetOgAntallSykmeldte.from(eregOrg, virksomhetOgSykmeldt.antallSykmeldte)
             }
             orgs[virksomhet.orgnr] = virksomhet
@@ -45,7 +45,7 @@ class DigisyfoService(
         val orgnummerTilOverenhet = virksomhet.orgnrOverenhet ?: return
 
         val overenhet = orgs.computeIfAbsent(orgnummerTilOverenhet) {
-            val eregOrg = eregService.hentOverenhet(it) ?: throw RuntimeException("Fant ikke overenhet for $it")
+            val eregOrg = eregClient.hentOverenhet(it) ?: throw RuntimeException("Fant ikke overenhet for $it")
             VirksomhetOgAntallSykmeldte.from(eregOrg)
         }
         orgs[overenhet.orgnr] = overenhet

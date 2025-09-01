@@ -2,7 +2,7 @@ package no.nav.arbeidsgiver.min_side.varslingstatus
 
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
-import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -13,7 +13,7 @@ import kotlin.time.Duration.Companion.days
 class KontaktInfoPollingService(
     private val varslingStatusRepository: VarslingStatusRepository,
     private val kontaktinfoClient: KontaktinfoClient,
-    private val eregService: EregService,
+    private val eregClient: EregClient,
     private val kontaktInfoPollerRepository: KontaktInfoPollerRepository,
 ) {
 
@@ -64,7 +64,7 @@ class KontaktInfoPollingService(
             return kontaktinfoUnderenhet
         }
 
-        return eregService.hentUnderenhet(virksomhetsnummer)?.orgnummerTilOverenhet()
+        return eregClient.hentUnderenhet(virksomhetsnummer)?.orgnummerTilOverenhet()
             ?.let { kontaktinfoClient.hentKontaktinfo(it) }
     }
 

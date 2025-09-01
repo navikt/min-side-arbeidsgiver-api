@@ -2,19 +2,19 @@ package no.nav.arbeidsgiver.min_side.services.kontaktinfo
 
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
-import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 
 
 class KontaktInfoService(
     private val authenticatedUserHolder: AuthenticatedUserHolder,
     private val altinnRollerClient: AltinnRollerClient,
-    private val eregService: EregService,
+    private val eregClient: EregClient,
     private val kontaktinfoClient: KontaktinfoClient,
 ) {
     fun getKontaktinfo(requestBody: KontaktinfoRequest): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
-        val orgnrHovedenhet = eregService.hentUnderenhet(orgnrUnderenhet)
+        val orgnrHovedenhet = eregClient.hentUnderenhet(orgnrUnderenhet)
             ?.orgnummerTilOverenhet()
 
         return KontaktinfoResponse(

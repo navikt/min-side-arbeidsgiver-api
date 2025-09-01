@@ -23,7 +23,7 @@ class DigisyfoServiceTest {
     lateinit var digisyfoRepository: DigisyfoRepositoryImpl
 
     @MockitoBean
-    lateinit var eregService: EregService
+    lateinit var eregClient: EregClient
 
     @Autowired
     lateinit var digisyfoService: DigisyfoService
@@ -47,13 +47,13 @@ class DigisyfoServiceTest {
     @BeforeEach
     fun setUp() {
         Mockito.`when`(
-            eregService.hentOverenhet(orgnrCaptor.kotlinCapture())
+            eregClient.hentOverenhet(orgnrCaptor.kotlinCapture())
         ).thenAnswer {
             enhetsregisteret[orgnrCaptor.value]
         }
 
         Mockito.`when`(
-            eregService.hentUnderenhet(orgnrCaptor.kotlinCapture())
+            eregClient.hentUnderenhet(orgnrCaptor.kotlinCapture())
         ).thenAnswer {
             enhetsregisteret[orgnrCaptor.value]
         }

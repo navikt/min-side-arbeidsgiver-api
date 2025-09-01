@@ -3,7 +3,7 @@ package no.nav.arbeidsgiver.min_side.kontaktinfo
 import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import org.junit.jupiter.api.Test
@@ -23,7 +23,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor
         JwtDecoder::class,
         AuthenticatedUserHolder::class,
         AltinnRollerClient::class,
-        EregService::class,
+        EregClient::class,
         KontaktinfoClient::class,
     ]
 )

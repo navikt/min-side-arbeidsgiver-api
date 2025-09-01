@@ -20,7 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
     types = [
         AuthenticatedUserHolder::class,
         AltinnRollerClient::class,
-        EregService::class,
+        EregClient::class,
         KontaktinfoClient::class,
     ]
 )
@@ -32,7 +32,7 @@ class KontaktinfoControllerAuthzTest {
     lateinit var altinnRollerClient: AltinnRollerClient
 
     @Autowired
-    lateinit var eregService: EregService
+    lateinit var eregClient: EregClient
 
     @Autowired
     lateinit var kontaktinfoClient: KontaktinfoClient
@@ -85,7 +85,7 @@ class KontaktinfoControllerAuthzTest {
     fun beforeEach() {
         /* også kall med andre orgnr er vellykkede, for å unngå early return i controlleren, som kunne ha
          * skjult manglende tilgangssjekker. */
-        `when`(eregService.hentUnderenhet(kotlinAny())).thenAnswer {
+        `when`(eregClient.hentUnderenhet(kotlinAny())).thenAnswer {
             if (it.arguments[0] == orgnrUnderenhet) {
                 EregOrganisasjon(
                     organisasjonsnummer = orgnrUnderenhet,
