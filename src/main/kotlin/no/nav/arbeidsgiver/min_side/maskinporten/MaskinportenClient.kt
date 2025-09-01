@@ -6,13 +6,11 @@ import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
-import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.config.GittMiljø2
+import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import java.time.Duration
@@ -29,9 +27,7 @@ class MaskinportenClientImpl(
     val config: MaskinportenConfig2,
 ) : MaskinportenClient {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val client = HttpClient(CIO) {
-        install(Logging)
-    }
+    private val client = defaultHttpClient()
     private var wellKnownResponse: WellKnownResponse? = null
 
     private suspend fun createClientAssertion(): String {

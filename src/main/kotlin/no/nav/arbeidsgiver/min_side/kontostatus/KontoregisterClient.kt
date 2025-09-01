@@ -1,68 +1,42 @@
 package no.nav.arbeidsgiver.min_side.kontostatus
 
 import com.github.benmanes.caffeine.cache.Caffeine
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
-import no.nav.arbeidsgiver.min_side.config.GittMiljø
-import no.nav.arbeidsgiver.min_side.config.callIdInterceptor
-import no.nav.arbeidsgiver.min_side.config.retryInterceptor
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.web.client.RestTemplateBuilder
-import org.springframework.cache.annotation.Cacheable
+import no.nav.arbeidsgiver.min_side.config.Environment.Companion.sokosKontoregisterBaseUrl
+import no.nav.arbeidsgiver.min_side.config.GittMiljø2
+import no.nav.arbeidsgiver.min_side.config.logger
+import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import org.springframework.cache.caffeine.CaffeineCache
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpStatus
-import org.springframework.stereotype.Component
-import org.springframework.web.client.RestClientResponseException
-import java.net.SocketException
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLHandshakeException
 
-@Component
+//@Component
 class KontoregisterClient(
-    @Value("\${sokos-kontoregister.baseUrl}") sokosKontoregisterBaseUrl: String?,
-    restTemplateBuilder: RestTemplateBuilder,
-    azureService: AzureService,
-    gittMiljø: GittMiljø,
+    private val azureService: AzureService,
 ) {
-    internal val restTemplate = restTemplateBuilder
-        .rootUri(sokosKontoregisterBaseUrl)
-        .additionalInterceptors(
-            callIdInterceptor("nav-call-id"),
+    private val client = defaultHttpClient()
+    private val tokenScope = GittMiljø2.resolve(
+        prod = { "api://prod-fss.okonomi.sokos-kontoregister/.default" },
+        dev = { "api://dev-fss.okonomi.sokos-kontoregister-q2/.default" },
+        other = { "" }
+    )
+    private val logger = logger()
 
-            { request, body, execution ->
-                request.headers.setBearerAuth(
-                    azureService.getAccessToken(gittMiljø.resolve(
-                        prod = { "api://prod-fss.okonomi.sokos-kontoregister/.default" },
-                        dev = { "api://dev-fss.okonomi.sokos-kontoregister-q2/.default" },
-                        other = { "" }
-                    ))
-                )
-                execution.execute(request, body)
-            },
-
-            retryInterceptor(
-                3,
-                250L,
-                SocketException::class.java,
-                SSLHandshakeException::class.java,
-            )
-        )
-        .build()
-
-    @Cacheable(KONTOREGISTER_CACHE_NAME)
-    fun hentKontonummer(virksomhetsnummer: String): Kontooppslag? {
-        return try {
-            restTemplate.getForEntity(
-                "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/{virksomhetsnummer}",
-                Kontooppslag::class.java,
-                mapOf("virksomhetsnummer" to virksomhetsnummer)
-            ).body
-        } catch (e: RestClientResponseException) {
-            if (e.statusCode == HttpStatus.NOT_FOUND) {
+    //TODO: cache this
+    suspend fun hentKontonummer(virksomhetsnummer: String): Kontooppslag? {
+        return client.request("${sokosKontoregisterBaseUrl}/kontoregister/api/v1/hent-kontonummer-for-organisasjon/${virksomhetsnummer}") {
+            method = HttpMethod.Get
+            bearerAuth(azureService.getAccessToken(tokenScope))
+        }.let { response ->
+            if (response.status == HttpStatusCode.NotFound) {
+                logger.info("Fant ikke kontonummer for organisasjonsnummer $virksomhetsnummer")
                 return null
             }
-            throw e
+            response.body<Kontooppslag>()
         }
     }
 }

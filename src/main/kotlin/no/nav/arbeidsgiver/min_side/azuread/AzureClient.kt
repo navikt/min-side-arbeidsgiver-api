@@ -1,23 +1,16 @@
 package no.nav.arbeidsgiver.min_side.azuread
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import no.nav.arbeidsgiver.min_side.defaultHttpClient
 
 //@Component
 class AzureClient(
     private val azureAdConfig: AzureAdConfig,
 ) {
-    private val client = HttpClient(CIO) {
-        install(HttpRequestRetry) {
-            retryOnServerErrors(maxRetries = 3)
-            exponentialDelay()
-        }
-    }
+    private val client = defaultHttpClient()
 
     suspend fun fetchToken(scope: String): TokenResponse {
         return client.request(azureAdConfig.openidTokenEndpoint) {

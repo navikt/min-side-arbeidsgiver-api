@@ -112,7 +112,7 @@ fun Application.ktorConfig() {
         mdc("clientId") { call ->
             call.principal<InnloggetBrukerPrincipal>()?.clientId //TODO: fiks denne når principal er på plass
         }
-        callIdMdc("x_correlation_id")
+        callIdMdc(HttpHeaders.XCorrelationId)
     }
 
     install(CallId) {
