@@ -1,4 +1,4 @@
-package no.nav.arbeidsgiver.min_side.kontostatus
+package no.nav.arbeidsgiver.min_side.services.kontostatus
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.call.*

@@ -1,7 +1,7 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
-import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient
-import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient.Kontaktinfo
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Kontaktinfo
 import no.nav.arbeidsgiver.min_side.services.ereg.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify

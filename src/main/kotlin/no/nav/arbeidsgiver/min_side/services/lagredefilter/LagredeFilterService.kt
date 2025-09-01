@@ -2,6 +2,7 @@ package no.nav.arbeidsgiver.min_side.services.lagredefilter
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -11,21 +12,21 @@ import java.sql.Timestamp
 import java.time.Instant
 
 @Service
-class LagredeFilterService(val jdbcTemplate: JdbcTemplate) {
-    fun getAll(fnr: String, lock: Boolean = false): List<LagretFilter> {
+class LagredeFilterService(val jdbcTemplate: JdbcTemplate, val authenticatedUserHolder: AuthenticatedUserHolder) {
+    fun getAll(lock: Boolean = false): List<LagretFilter> {
         return jdbcTemplate.query(
             "SELECT * FROM lagrede_filter where fnr = ? ${if (lock) "for update" else ""}", { ps: PreparedStatement ->
-                ps.setString(1, fnr)
+                ps.setString(1, authenticatedUserHolder.fnr)
             }, { rs, _ ->
                 fromDbTransform(rs)
             })
     }
 
-    private fun get(fnr: String, filterId: String, lock: Boolean = false): LagretFilter? {
+    private fun get(filterId: String, lock: Boolean = false): LagretFilter? {
         return jdbcTemplate.query(
             "SELECT * FROM lagrede_filter where fnr = ? and filter_id = ? ${if (lock) "for update" else ""}",
             { ps: PreparedStatement ->
-                ps.setString(1, fnr)
+                ps.setString(1, authenticatedUserHolder.fnr)
                 ps.setString(2, filterId)
             },
             { rs, _ ->
@@ -35,11 +36,11 @@ class LagredeFilterService(val jdbcTemplate: JdbcTemplate) {
     }
 
     @Transactional
-    fun delete(fnr: String, filterId: String): LagretFilter? {
-        val existing = get(fnr, filterId, true) ?: return null
+    fun delete(filterId: String): LagretFilter? {
+        val existing = get(filterId, true) ?: return null
         jdbcTemplate.update(
             "DELETE FROM lagrede_filter WHERE fnr = ? AND filter_id = ?", { ps: PreparedStatement ->
-                ps.setString(1, fnr)
+                ps.setString(1, authenticatedUserHolder.fnr)
                 ps.setString(2, filterId)
             }
         )
@@ -47,16 +48,16 @@ class LagredeFilterService(val jdbcTemplate: JdbcTemplate) {
     }
 
     @Transactional
-    fun put(fnr: String, filter: LagretFilter): LagretFilter? {
+    fun put(filter: LagretFilter): LagretFilter? {
         val mapper = jacksonObjectMapper()
         val now = Instant.now()
-        val existing = get(fnr, filter.filterId, true)
+        val existing = get(filter.filterId, true)
         if (existing == null) {
             jdbcTemplate.update(
                 "INSERT INTO lagrede_filter (filter_id, fnr, navn, side, tekstsoek, virksomheter, sortering, sakstyper, oppgave_filter, opprettet_tidspunkt, sist_endret_tidspunkt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 { ps: PreparedStatement ->
                     ps.setString(1, filter.filterId)
-                    ps.setString(2, fnr)
+                    ps.setString(2, authenticatedUserHolder.fnr)
                     ps.setString(3, filter.navn)
                     ps.setInt(4, filter.side)
                     ps.setString(5, filter.tekstsoek)
@@ -80,7 +81,7 @@ class LagredeFilterService(val jdbcTemplate: JdbcTemplate) {
                     ps.setString(6, mapper.writeValueAsString(filter.sakstyper))
                     ps.setString(7, mapper.writeValueAsString(filter.oppgaveFilter))
                     ps.setTimestamp(8, Timestamp.from(now)) // Sist endret tidspunkt
-                    ps.setString(9, fnr)
+                    ps.setString(9, authenticatedUserHolder.fnr)
                     ps.setString(10, filter.filterId)
                 }
             )

@@ -4,6 +4,7 @@ import no.nav.arbeidsgiver.min_side.config.SecurityConfig
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

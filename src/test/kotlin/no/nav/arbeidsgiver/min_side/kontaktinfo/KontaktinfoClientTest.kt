@@ -1,6 +1,7 @@
 package no.nav.arbeidsgiver.min_side.kontaktinfo
 
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

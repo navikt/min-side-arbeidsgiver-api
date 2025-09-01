@@ -4,6 +4,7 @@ import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoController.KontaktinfoRequest
 import no.nav.arbeidsgiver.min_side.kotlinAny
 import no.nav.arbeidsgiver.min_side.services.ereg.*
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull

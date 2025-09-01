@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.cio.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.plugins.*
@@ -20,17 +21,24 @@ import io.ktor.server.plugins.di.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabaseAsync
 import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.logger
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktInfoService
+import no.nav.arbeidsgiver.min_side.services.kontostatus.KontostatusService
 import no.nav.arbeidsgiver.min_side.maskinporten.*
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import no.nav.arbeidsgiver.min_side.services.digisyfo.*
+import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
 import org.slf4j.event.Level
 import java.util.*
 
@@ -55,12 +63,54 @@ private val azureAdConfig = AzureAdConfig(
 
 fun main() {
     runBlocking(Dispatchers.Default) {
-        embeddedServer(CIO, port = 8080, host = "0.0.0.0") {
+        val server = embeddedServer(CIO, port = 8080, host = "0.0.0.0") {
             ktorConfig()
             configureDependencies()
+            configureRoutes()
+        }
+        server.start(wait = false)
+
+        launch{
+            // digisyfo kafka
+        }
+
+        launch {
+            server.application.dependencies.resolve<MaskinportenTokenService>().tokenRefreshingLoop()
+        }
+
+    }
+}
+
+fun Application.configureRoutes() {
+    routing {
+        // Kontaktinfo
+        post("/api/kontaktinfo/v1"){
+            dependencies.resolve<KontaktInfoService>().getKontaktinfo(call.receive<KontaktInfoService.KontaktinfoRequest>())
+        }
+
+        // Kontonummer
+        post("/api/kontonummerStatus/v1"){
+            dependencies.resolve<KontostatusService>().getKontonummerStatus(call.receive<KontostatusService.StatusRequest>())
+        }
+        post("/api/kontonummer/v1"){
+            dependencies.resolve<KontostatusService>().getKontonummer(call.receive<KontostatusService.OppslagRequest>())
+        }
+
+        // Lagrede filter
+        get("/api/lagredeFilter") {
+            dependencies.resolve<LagredeFilterService>().getAll()
+        }
+        put("/api/lagredeFilter"){
+            dependencies.resolve<LagredeFilterService>().put(call.receive<LagredeFilterService.LagretFilter>())
+        }
+        delete("/api/lagredeFilter/{filterId}"){
+            dependencies.resolve<LagredeFilterService>().delete(call.parameters["filterId"]!!)
         }
     }
 }
+
+
+
 
 fun Application.configureDependencies() {
     dependencies {
@@ -73,6 +123,16 @@ fun Application.configureDependencies() {
 
         provide<AzureClient> { AzureClient(azureAdConfig) }
         provide(AzureService::class)
+
+        provide<KontaktInfoService>(KontaktInfoService::class)
+        provide<KontostatusService>(KontostatusService::class)
+        provide<LagredeFilterService>(LagredeFilterService::class)
+        provide<AltinnService>(AltinnService::class)
+
+        provide<DigisyfoKafkaConsumerImpl>(DigisyfoKafkaConsumerImpl::class)
+        provide<DigisyfoRepository>(DigisyfoRepositoryImpl::class)
+        provide<DigisyfoService>(DigisyfoService::class)
+        provide<SykmeldingRepository>(SykmeldingRepositoryImpl::class)
 
 
     }

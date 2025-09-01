@@ -1,28 +1,25 @@
-package no.nav.arbeidsgiver.min_side.kontaktinfo
+package no.nav.arbeidsgiver.min_side.services.kontaktinfo
 
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
-import org.springframework.web.bind.annotation.*
 
-@RestController
-class KontaktinfoController(
+
+class KontaktInfoService(
     private val authenticatedUserHolder: AuthenticatedUserHolder,
     private val altinnRollerClient: AltinnRollerClient,
     private val eregService: EregService,
     private val kontaktinfoClient: KontaktinfoClient,
 ) {
-
-    @PostMapping("/api/kontaktinfo/v1")
-    fun getKontaktinfo(@RequestBody requestBody: KontaktinfoRequest): KontaktinfoResponse {
+    fun getKontaktinfo(requestBody: KontaktinfoRequest): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
         val orgnrHovedenhet = eregService.hentUnderenhet(orgnrUnderenhet)
             ?.orgnummerTilOverenhet()
 
         return KontaktinfoResponse(
             underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet),
-            hovedenhet = orgnrHovedenhet?.let { tilgangsstyrOgHentKontaktinfo(it) } ,
+            hovedenhet = orgnrHovedenhet?.let { tilgangsstyrOgHentKontaktinfo(it) },
         )
     }
 
@@ -92,5 +89,4 @@ class KontaktinfoController(
         )
     }
 }
-
 

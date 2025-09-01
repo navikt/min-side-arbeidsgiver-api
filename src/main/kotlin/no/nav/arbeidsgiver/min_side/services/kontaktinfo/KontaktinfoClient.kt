@@ -1,4 +1,4 @@
-package no.nav.arbeidsgiver.min_side.kontaktinfo
+package no.nav.arbeidsgiver.min_side.services.kontaktinfo
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty

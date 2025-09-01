@@ -1,35 +1,30 @@
-package no.nav.arbeidsgiver.min_side.kontostatus
+package no.nav.arbeidsgiver.min_side.services.kontostatus
 
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
 
 const val kontonummerTilgangTjenesetekode = "2896:87"
 
-@RestController
-class KontostatusController(
+class KontostatusService(
     val kontoregisterClient: KontoregisterClient,
     val altinnService: AltinnService
 ) {
 
-    @PostMapping("/api/kontonummerStatus/v1")
-    fun getKontonummerStatus(
-        @RequestBody body: StatusRequest,
+    suspend fun getKontonummerStatus(
+        body: StatusRequest,
     ) = when (kontoregisterClient.hentKontonummer(body.virksomhetsnummer)) {
         null -> StatusResponse(KontonummerStatus.MANGLER_KONTONUMMER)
         else -> StatusResponse(KontonummerStatus.OK)
     }
 
-
     /**
-    * Henter kontonummer for en gitt organisasjon.
-    * Kontonummer tilgangstyres på overordnet enhet, ikke på underenhet.
-    * Dersom bruker har tilgang på overordnet enhet, har hen også tilgang på underenhet (https://nav-it.slack.com/archives/CKZADNFBP/p1736263494923189)
+     * Henter kontonummer for en gitt organisasjon.
+     * Kontonummer tilgangstyres på overordnet enhet, ikke på underenhet.
+     * Dersom bruker har tilgang på overordnet enhet, har hen også tilgang på underenhet (https://nav-it.slack.com/archives/CKZADNFBP/p1736263494923189)
      */
-    @PostMapping("/api/kontonummer/v1")
-    fun getKontoNummer(
-        @RequestBody body: OppslagRequest,
+    suspend fun getKontonummer(
+        body: OppslagRequest,
     ): OppslagResponse? {
         val harTilgang = altinnService.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgangTjenesetekode)
         if (!harTilgang) {
@@ -37,7 +32,11 @@ class KontostatusController(
         }
         return when (val oppslag = kontoregisterClient.hentKontonummer(body.orgnrForOppslag)) {
             null -> OppslagResponse(KontonummerStatus.MANGLER_KONTONUMMER)
-            else -> OppslagResponse(status = KontonummerStatus.OK, kontonummer = oppslag.kontonr, orgnr = oppslag.mottaker)
+            else -> OppslagResponse(
+                status = KontonummerStatus.OK,
+                kontonummer = oppslag.kontonr,
+                orgnr = oppslag.mottaker
+            )
         }
     }
 
