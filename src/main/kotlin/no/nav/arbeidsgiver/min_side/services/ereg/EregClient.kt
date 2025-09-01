@@ -21,7 +21,7 @@ class EregClient {
 
     @Cacheable(EREG_CACHE_NAME)
     suspend fun hentUnderenhet(virksomhetsnummer: String): EregOrganisasjon? {
-        val response = client.request("$baseUrl/v2/organisasjon/{virksomhetsnummer}?inkluderHierarki=true") {
+        val response = client.get("$baseUrl/v2/organisasjon/{virksomhetsnummer}?inkluderHierarki=true") {
             parameter("virksomhetsnummer", virksomhetsnummer)
         }
 
@@ -38,7 +38,7 @@ class EregClient {
 
     @Cacheable(EREG_CACHE_NAME)
     suspend fun hentOverenhet(orgnummer: String): EregOrganisasjon? {
-        val response = client.request("$baseUrl/v2/organisasjon/{orgnummer}?inkluderHierarki=true") {
+        val response = client.get("$baseUrl/v2/organisasjon/{orgnummer}?inkluderHierarki=true") {
             parameter("orgnummer", orgnummer)
         }
 

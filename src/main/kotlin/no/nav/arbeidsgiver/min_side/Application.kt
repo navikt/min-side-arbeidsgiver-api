@@ -40,7 +40,11 @@ import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.*
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
+import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient
 import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
+import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
+import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
 import org.slf4j.event.Level
 import java.util.*
 
@@ -72,7 +76,7 @@ fun main() {
         }
         server.start(wait = false)
 
-        launch{
+        launch {
             // digisyfo kafka
         }
 
@@ -86,15 +90,17 @@ fun main() {
 fun Application.configureRoutes() {
     routing {
         // Kontaktinfo
-        post("/api/kontaktinfo/v1"){
-            dependencies.resolve<KontaktInfoService>().getKontaktinfo(call.receive<KontaktInfoService.KontaktinfoRequest>())
+        post("/api/kontaktinfo/v1") {
+            dependencies.resolve<KontaktInfoService>()
+                .getKontaktinfo(call.receive<KontaktInfoService.KontaktinfoRequest>())
         }
 
         // Kontonummer
-        post("/api/kontonummerStatus/v1"){
-            dependencies.resolve<KontostatusService>().getKontonummerStatus(call.receive<KontostatusService.StatusRequest>())
+        post("/api/kontonummerStatus/v1") {
+            dependencies.resolve<KontostatusService>()
+                .getKontonummerStatus(call.receive<KontostatusService.StatusRequest>())
         }
-        post("/api/kontonummer/v1"){
+        post("/api/kontonummer/v1") {
             dependencies.resolve<KontostatusService>().getKontonummer(call.receive<KontostatusService.OppslagRequest>())
         }
 
@@ -102,25 +108,28 @@ fun Application.configureRoutes() {
         get("/api/lagredeFilter") {
             dependencies.resolve<LagredeFilterService>().getAll()
         }
-        put("/api/lagredeFilter"){
+        put("/api/lagredeFilter") {
             dependencies.resolve<LagredeFilterService>().put(call.receive<LagredeFilterService.LagretFilter>())
         }
-        delete("/api/lagredeFilter/{filterId}"){
+        delete("/api/lagredeFilter/{filterId}") {
             dependencies.resolve<LagredeFilterService>().delete(call.parameters["filterId"]!!)
         }
 
         // Ereg
-        post("api/ereg/underenhet"){
+        post("api/ereg/underenhet") {
             dependencies.resolve<EregService>().underenhet(call.receive<EregService.Request>())
         }
-        post("api/ereg/overenhet"){
+        post("api/ereg/overenhet") {
             dependencies.resolve<EregService>().overenhet(call.receive<EregService.Request>())
-
         }
+
+        // Refusjon status
+        get("/api/refusjon_status") {
+            dependencies.resolve<RefusjonStatusService>().statusoversikt()
+        }
+
     }
 }
-
-
 
 
 fun Application.configureDependencies() {
@@ -135,9 +144,6 @@ fun Application.configureDependencies() {
         provide<AzureClient> { AzureClient(azureAdConfig) }
         provide(AzureService::class)
 
-        provide<KontaktInfoService>(KontaktInfoService::class)
-        provide<KontostatusService>(KontostatusService::class)
-        provide<LagredeFilterService>(LagredeFilterService::class)
         provide<AltinnService>(AltinnService::class)
 
         provide<DigisyfoKafkaConsumerImpl>(DigisyfoKafkaConsumerImpl::class)
@@ -147,6 +153,17 @@ fun Application.configureDependencies() {
 
         provide<EregClient>(EregClient::class)
         provide<EregService>(EregService::class)
+
+        provide<KontaktInfoService>(KontaktInfoService::class)
+        provide<KontaktinfoClient>(KontaktinfoClient::class)
+
+        provide<KontostatusService>(KontostatusService::class)
+        provide<KontoregisterClient>(KontoregisterClient::class)
+
+        provide<LagredeFilterService>(LagredeFilterService::class)
+
+        provide<RefusjonStatusService>(RefusjonStatusService::class)
+        provide<RefusjonStatusRepository>(RefusjonStatusRepository::class)
     }
 }
 

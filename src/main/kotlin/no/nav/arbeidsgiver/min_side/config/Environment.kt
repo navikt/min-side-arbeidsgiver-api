@@ -19,5 +19,11 @@ class Environment {
             dev = { "https://tt02.altinn.no" },
             other = { "http://altinn.example.org" }
         )
+
+        val altinnHeader = GittMiljø2.resolve(
+            prod = { System.getenv("ALTINN_HEADER") },
+            dev = { System.getenv("ALTINN_HEADER") },
+            other = { "test" }
+        )
     }
 }

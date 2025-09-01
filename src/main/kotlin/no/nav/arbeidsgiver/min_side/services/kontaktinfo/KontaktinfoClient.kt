@@ -2,36 +2,19 @@ package no.nav.arbeidsgiver.min_side.services.kontaktinfo
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.arbeidsgiver.min_side.config.retryInterceptor
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import no.nav.arbeidsgiver.min_side.config.Environment
+import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.web.client.RestTemplateBuilder
-import org.springframework.core.ParameterizedTypeReference
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod.GET
-import org.springframework.stereotype.Component
-import java.net.SocketException
-import javax.net.ssl.SSLHandshakeException
 
-@Component
 class KontaktinfoClient(
-    restTemplateBuilder: RestTemplateBuilder,
-    @Value("\${altinn.apiBaseUrl}") altinnApiBaseUrl: String,
-    @Value("\${altinn.altinnHeader}") private val altinnApiKey: String,
     private val maskinportenTokenService: MaskinportenTokenService,
 ) {
-    private val restTemplate = restTemplateBuilder
-        .rootUri(altinnApiBaseUrl)
-        .additionalInterceptors(
-            retryInterceptor(
-                3,
-                250L,
-                SocketException::class.java,
-                SSLHandshakeException::class.java,
-            )
-        )
-        .build()
+    private val client = defaultHttpClient()
+    private val altinnApiBaseUrl = Environment.altinnApiBaseUrl
+    private val altinnApiKey = Environment.altinnHeader
 
     data class Kontaktinfo(
         val eposter: Set<String>,
@@ -41,30 +24,24 @@ class KontaktinfoClient(
             get() = eposter.isNotEmpty() || telefonnumre.isNotEmpty()
     }
 
-    fun hentKontaktinfo(orgnr: String): Kontaktinfo {
-        val headers = HttpHeaders().apply {
-            set("apikey", altinnApiKey)
-            setBearerAuth(maskinportenTokenService.currentAccessToken())
+    suspend fun hentKontaktinfo(orgnr: String): Kontaktinfo {
+        val officialContactsResponse = client.request(
+            "$altinnApiBaseUrl/api/serviceowner/organizations/{organizationNumber}/officialcontacts?ForceEIAuthentication"
+        ) {
+            method = io.ktor.http.HttpMethod.Get
+            header("apiKey", altinnApiKey)
+            bearerAuth(maskinportenTokenService.currentAccessToken())
+            parameter("organizationNumber", orgnr)
         }
-
-        val officialcontacts = restTemplate.exchange(
-            "/api/serviceowner/organizations/{organizationNumber}/officialcontacts?ForceEIAuthentication",
-            GET,
-            HttpEntity<Nothing>(headers),
-            contactInfoListType,
-            mapOf(
-                "organizationNumber" to orgnr
-            )
-        ).body ?: throw RuntimeException("serviceowner/organizations/{orgnr}/officialcontacts got null body")
-
-        /* Ved ukjent orgnr returnerer altinn:
-         * HTTP/1.1 400 Invalid organization number: 0000000
-         **/
+        if (officialContactsResponse.status != HttpStatusCode.OK) {
+            throw RuntimeException("serviceowner/organizations/{orgnr}/officialcontacts returned ${officialContactsResponse.status}")
+        }
+        val officialContacts = officialContactsResponse.body<List<ContactInfoDTO>>()
 
         val eposter = mutableSetOf<String>()
         val telefonnumre = mutableSetOf<String>()
 
-        for (contact in officialcontacts) {
+        for (contact in officialContacts) {
             if (contact.emailAddress.isNotBlank()) {
                 eposter.add(contact.emailAddress)
             }
@@ -86,8 +63,4 @@ class KontaktinfoClient(
         @JsonProperty("EMailAddress")
         val emailAddress: String,
     )
-
-    companion object {
-        private val contactInfoListType = object : ParameterizedTypeReference<List<ContactInfoDTO>>() {}
-    }
 }
