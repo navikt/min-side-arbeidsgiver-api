@@ -32,7 +32,7 @@ fun defaultHttpClient(
         onRequest { request, _ ->
             if (request.headers[HttpHeaders.XCorrelationId] != null) return@onRequest
             val correlationId = MDC.get("x_correlation_id") ?: UUID.randomUUID().toString()
-            request.headers[HttpHeaders.XCorrelationId] = correlationId;
+            request.headers[HttpHeaders.XCorrelationId] = correlationId
         }
     }
 

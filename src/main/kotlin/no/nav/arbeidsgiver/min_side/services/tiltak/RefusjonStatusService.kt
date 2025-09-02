@@ -1,17 +1,14 @@
 package no.nav.arbeidsgiver.min_side.services.tiltak
 
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import org.springframework.stereotype.Service
 
 
-@Service
 class RefusjonStatusService(
     private val altinnService: AltinnService,
     private val refusjonStatusRepository: RefusjonStatusRepository,
 ) {
 
-    fun statusoversikt(): List<Statusoversikt> {
+    suspend fun statusoversikt(): List<Statusoversikt> {
         val orgnr = altinnService.hentAltinnTilganger()
             .tilgangTilOrgNr["$TJENESTEKODE:$TJENESTEVERSJON"] ?: emptySet()
 

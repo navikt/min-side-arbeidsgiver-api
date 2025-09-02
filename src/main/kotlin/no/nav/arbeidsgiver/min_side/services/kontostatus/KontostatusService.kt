@@ -1,8 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.kontostatus
 
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 
 const val kontonummerTilgangTjenesetekode = "2896:87"
 

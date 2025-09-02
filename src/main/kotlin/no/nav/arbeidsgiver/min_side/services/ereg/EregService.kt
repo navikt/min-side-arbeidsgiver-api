@@ -2,9 +2,6 @@ package no.nav.arbeidsgiver.min_side.services.ereg
 
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.ereg.GyldighetsPeriode.Companion.erGyldig
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
 
 class EregService(
     private val eregClient: EregClient
@@ -94,7 +91,7 @@ data class OrganisasjonsformDto(
     val beskrivelse: String
 ) {
     companion object {
-        fun fraOrganisasjonsform(organisasjonsForm: String?): OrganisasjonsformDto? {
+        fun fraOrganisasjonsform(organisasjonsForm: String?): OrganisasjonsformDto {
             return OrganisasjonsformDto(
                 kode = organisasjonsForm ?: "",
                 beskrivelse = organisasjonsFormTilBeskrivelse[organisasjonsForm] ?: ""

@@ -6,10 +6,6 @@ import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jose.jwk.RSAKey
 import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.config.logger
-import org.springframework.beans.factory.InitializingBean
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import java.text.ParseException
 
 class TokenXProperties {

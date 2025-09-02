@@ -2,11 +2,8 @@ package no.nav.arbeidsgiver.min_side.sykefraværstatistikk
 
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RestController
 
-@RestController
+
 class SykefraværstatistikkService(
     private val altinnService: AltinnService,
     private val sykefraværstatistikkRepository: SykefraværstatistikkRepository,
@@ -14,9 +11,8 @@ class SykefraværstatistikkService(
 
     val altinnRessursId = "nav_forebygge-og-redusere-sykefravar_sykefravarsstatistikk"
 
-    @GetMapping("/api/sykefravaerstatistikk/{orgnr}")
-    fun getStatistikk(
-        @PathVariable orgnr: String,
+    suspend fun getStatistikk(
+        orgnr: String,
     ): ResponseEntity<StatistikkRespons> {
         val harTilgang = altinnService.harTilgang(orgnr, altinnRessursId)
 

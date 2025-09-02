@@ -9,7 +9,7 @@ class VarslingStatusService(
     private val altinnService: AltinnService,
     private val repository: VarslingStatusRepository,
 ) {
-    fun getVarslingStatus(requestBody: VarslingStatusRequest): VarslingStatus {
+    suspend fun getVarslingStatus(requestBody: VarslingStatusRequest): VarslingStatus {
         val harTilgang = altinnService.harOrganisasjon(requestBody.virksomhetsnummer)
         if (!harTilgang) {
             return VarslingStatus(

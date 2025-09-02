@@ -4,15 +4,11 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Component
 
 interface TokenExchangeClient {
     suspend fun exchange(subjectToken: String, audience: String): TokenXToken
 }
 
-@Profile("local", "dev-gcp", "prod-gcp")
-@Component
 class TokenExchangeClientImpl(
     private val properties: TokenXProperties,
     private val clientAssertionTokenFactory: ClientAssertionTokenFactory,

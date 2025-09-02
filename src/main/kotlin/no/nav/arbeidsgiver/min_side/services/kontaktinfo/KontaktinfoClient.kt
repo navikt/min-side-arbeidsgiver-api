@@ -28,7 +28,7 @@ class KontaktinfoClient(
         val officialContactsResponse = client.request(
             "$altinnApiBaseUrl/api/serviceowner/organizations/{organizationNumber}/officialcontacts?ForceEIAuthentication"
         ) {
-            method = io.ktor.http.HttpMethod.Get
+            method = HttpMethod.Get
             header("apiKey", altinnApiKey)
             bearerAuth(maskinportenTokenService.currentAccessToken())
             parameter("organizationNumber", orgnr)

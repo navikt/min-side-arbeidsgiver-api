@@ -12,7 +12,7 @@ class KontaktInfoService(
     private val eregClient: EregClient,
     private val kontaktinfoClient: KontaktinfoClient,
 ) {
-    fun getKontaktinfo(requestBody: KontaktinfoRequest): KontaktinfoResponse {
+    suspend fun getKontaktinfo(requestBody: KontaktinfoRequest): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
         val orgnrHovedenhet = eregClient.hentUnderenhet(orgnrUnderenhet)
             ?.orgnummerTilOverenhet()
@@ -23,7 +23,7 @@ class KontaktInfoService(
         )
     }
 
-    private fun tilgangsstyrOgHentKontaktinfo(orgnr: String): Kontaktinfo? {
+    private suspend fun tilgangsstyrOgHentKontaktinfo(orgnr: String): Kontaktinfo? {
         val tilgangHovedenhet = altinnRollerClient.harAltinnRolle(
             fnr = authenticatedUserHolder.fnr,
             orgnr = orgnr,

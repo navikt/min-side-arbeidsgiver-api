@@ -2,35 +2,38 @@ package no.nav.arbeidsgiver.min_side.services.digisyfo
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
-import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.GyldighetsPeriode.Companion.erGyldig
-import org.springframework.stereotype.Component
 
-@Component
 class DigisyfoService(
     private val digisyfoRepository: DigisyfoRepository,
     private val eregClient: EregClient,
     private val meterRegistry: MeterRegistry
 ) {
 
-    fun hentVirksomheterOgSykmeldte(fnr: String): List<VirksomhetOgAntallSykmeldte> {
+    suspend fun hentVirksomheterOgSykmeldte(fnr: String): List<VirksomhetOgAntallSykmeldte> {
         val virksomheterOgSykmeldte = digisyfoRepository.virksomheterOgSykmeldte(fnr)
 
         val orgs = mutableMapOf<String, VirksomhetOgAntallSykmeldte>()
 
         for (virksomhetOgSykmeldt in virksomheterOgSykmeldte) {
-            val virksomhet = orgs.computeIfAbsent(virksomhetOgSykmeldt.virksomhetsnummer) {
-                val eregOrg = eregClient.hentUnderenhet(it) ?: throw RuntimeException("Fant ikke underenhet for $it")
-                VirksomhetOgAntallSykmeldte.from(eregOrg, virksomhetOgSykmeldt.antallSykmeldte)
+            val virksomhet = orgs[virksomhetOgSykmeldt.virksomhetsnummer].let {
+                if (it == null) {
+                    val eregOrg = eregClient.hentUnderenhet(virksomhetOgSykmeldt.virksomhetsnummer)
+                        ?: throw RuntimeException("Fant ikke underenhet for $virksomhetOgSykmeldt.virksomhetsnummer")
+                    orgs[virksomhetOgSykmeldt.virksomhetsnummer] =
+                        VirksomhetOgAntallSykmeldte.from(eregOrg, virksomhetOgSykmeldt.antallSykmeldte)
+                    orgs[virksomhetOgSykmeldt.virksomhetsnummer]
+                }
+                it!!
             }
-            orgs[virksomhet.orgnr] = virksomhet
             berikOverenheter(orgs, virksomhet)
         }
 
-        val underenheter = orgs.values.filter {it.underenheter.isEmpty() }
-        val overenheter = orgs.values.filter {it.orgnrOverenhet == null }
+        val underenheter = orgs.values.filter { it.underenheter.isEmpty() }
+        val overenheter = orgs.values.filter { it.orgnrOverenhet == null }
 
         meterRegistry.counter(
             "msa.digisyfo.tilgang",
@@ -41,14 +44,22 @@ class DigisyfoService(
         return overenheter
     }
 
-    private fun berikOverenheter(orgs: MutableMap<String, VirksomhetOgAntallSykmeldte>, virksomhet: VirksomhetOgAntallSykmeldte) {
+    private suspend fun berikOverenheter(
+        orgs: MutableMap<String, VirksomhetOgAntallSykmeldte>,
+        virksomhet: VirksomhetOgAntallSykmeldte
+    ) {
         val orgnummerTilOverenhet = virksomhet.orgnrOverenhet ?: return
 
-        val overenhet = orgs.computeIfAbsent(orgnummerTilOverenhet) {
-            val eregOrg = eregClient.hentOverenhet(it) ?: throw RuntimeException("Fant ikke overenhet for $it")
-            VirksomhetOgAntallSykmeldte.from(eregOrg)
+        val overenhet = orgs[orgnummerTilOverenhet].let {
+            if (it == null) {
+                val eregOrg = eregClient.hentUnderenhet(orgnummerTilOverenhet)
+                    ?: throw RuntimeException("Fant ikke underenhet for $orgnummerTilOverenhet")
+                orgs[orgnummerTilOverenhet] = VirksomhetOgAntallSykmeldte.from(eregOrg)
+                orgs[orgnummerTilOverenhet]
+            }
+            it!!
         }
-        orgs[overenhet.orgnr] = overenhet
+
         overenhet.leggTilUnderenhet(virksomhet)
         berikOverenheter(orgs, overenhet)
     }

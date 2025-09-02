@@ -45,15 +45,19 @@ class AltinnTilgangssøknadClient(
                 bearerAuth(maskinportenTokenService.currentAccessToken())
             }
 
-            if (response.status == HttpStatusCode.BadRequest) {
-                val body = response.body<String>()
-                if (body.contains("User profile")) { // Altinn returns 400 if user does not exist
-                    null
-                } else {
-                    throw RuntimeException("Altinn delegation requests: $body")
+            val body = when (response.status) {
+                HttpStatusCode.OK -> response.body<Søknadsstatus?>()
+                HttpStatusCode.BadRequest -> {
+                    val body = response.body<String>()
+                    if (body.contains("User profile")) { // Altinn returns 400 if user does not exist
+                        null
+                    } else {
+                        throw RuntimeException("Altinn delegation requests: $body")
+                    }
                 }
+
+                else -> throw RuntimeException("Altinn delegation requests: ${response.status}")
             }
-            val body = response.body<Søknadsstatus?>()
 
             if (body == null) {
                 log.error("Altinn delegation requests: body missing")

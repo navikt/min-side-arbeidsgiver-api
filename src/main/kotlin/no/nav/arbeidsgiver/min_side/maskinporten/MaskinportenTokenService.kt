@@ -3,9 +3,6 @@ package no.nav.arbeidsgiver.min_side.maskinporten
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.InitializingBean
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Component
 import java.lang.management.ManagementFactory
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
@@ -15,7 +12,6 @@ interface MaskinportenTokenService {
     suspend fun tokenRefreshingLoop()
 }
 
-@Profile("dev-gcp", "prod-gcp")
 class MaskinportenTokenServiceImpl(
     private val maskinportenClient: MaskinportenClient,
     private val meterRegistry: MeterRegistry,

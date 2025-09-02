@@ -7,8 +7,6 @@ import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RestController
 
 class UserInfoService(
     private val altinnService: AltinnService,

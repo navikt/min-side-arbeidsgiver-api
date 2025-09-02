@@ -1,17 +1,13 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
 import kotlinx.coroutines.delay
-import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
-import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
-@Service
 class KontaktInfoPollingService(
     private val varslingStatusRepository: VarslingStatusRepository,
     private val kontaktinfoClient: KontaktinfoClient,
@@ -31,11 +27,8 @@ class KontaktInfoPollingService(
     }
 
 
-    @Scheduled(
-        initialDelayString = "PT1M",
-        fixedDelayString = "PT1S",
-    )
-    @Transactional
+
+    //TODO: @Transactional
     suspend fun pollAndPullKontaktInfo() {
         val virksomhetsnummer = kontaktInfoPollerRepository.getAndDeleteForPoll() ?: return
         val kontaktInfo = finnKontaktinfoIOrgTre(virksomhetsnummer) ?: return
@@ -48,11 +41,8 @@ class KontaktInfoPollingService(
         delay(Duration.parse("PT1S"))
     }
 
-    @Scheduled(
-        initialDelayString = "PT1M",
-        fixedDelayString = "PT1H",
-    )
-    @Transactional
+
+    //TODO: @Transactional
     suspend fun cleanup() {
         varslingStatusRepository.slettVarslingStatuserEldreEnn(retention)
         kontaktInfoPollerRepository.slettKontaktinfoMedOkStatusEllerEldreEnn(retention)
