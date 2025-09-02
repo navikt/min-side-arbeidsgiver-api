@@ -45,6 +45,14 @@ import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient
 import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
+import no.nav.arbeidsgiver.min_side.services.tokenExchange.ClientAssertionTokenFactory
+import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
+import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClientImpl
+import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenXProperties
+import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.SykefraværstatistikkRepository
+import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.SykefraværstatistikkService
+import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangSoknadService
+import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssøknadClient
 import org.slf4j.event.Level
 import java.util.*
 
@@ -92,16 +100,16 @@ fun Application.configureRoutes() {
         // Kontaktinfo
         post("/api/kontaktinfo/v1") {
             dependencies.resolve<KontaktInfoService>()
-                .getKontaktinfo(call.receive<KontaktInfoService.KontaktinfoRequest>())
+                .getKontaktinfo(call.receive())
         }
 
         // Kontonummer
         post("/api/kontonummerStatus/v1") {
             dependencies.resolve<KontostatusService>()
-                .getKontonummerStatus(call.receive<KontostatusService.StatusRequest>())
+                .getKontonummerStatus(call.receive())
         }
         post("/api/kontonummer/v1") {
-            dependencies.resolve<KontostatusService>().getKontonummer(call.receive<KontostatusService.OppslagRequest>())
+            dependencies.resolve<KontostatusService>().getKontonummer(call.receive())
         }
 
         // Lagrede filter
@@ -109,7 +117,7 @@ fun Application.configureRoutes() {
             dependencies.resolve<LagredeFilterService>().getAll()
         }
         put("/api/lagredeFilter") {
-            dependencies.resolve<LagredeFilterService>().put(call.receive<LagredeFilterService.LagretFilter>())
+            dependencies.resolve<LagredeFilterService>().put(call.receive())
         }
         delete("/api/lagredeFilter/{filterId}") {
             dependencies.resolve<LagredeFilterService>().delete(call.parameters["filterId"]!!)
@@ -117,10 +125,10 @@ fun Application.configureRoutes() {
 
         // Ereg
         post("api/ereg/underenhet") {
-            dependencies.resolve<EregService>().underenhet(call.receive<EregService.Request>())
+            dependencies.resolve<EregService>().underenhet(call.receive())
         }
         post("api/ereg/overenhet") {
-            dependencies.resolve<EregService>().overenhet(call.receive<EregService.Request>())
+            dependencies.resolve<EregService>().overenhet(call.receive())
         }
 
         // Refusjon status
@@ -128,9 +136,20 @@ fun Application.configureRoutes() {
             dependencies.resolve<RefusjonStatusService>().statusoversikt()
         }
 
+        // Sykefraværstatistikk
+        get("/api/sykefravaerstatistikk/{orgnr}") {
+            dependencies.resolve<SykefraværstatistikkService>().getStatistikk(call.parameters["orgnr"]!!)
+        }
+
+        // Tilgangsøknad
+        get("/api/altinn-tilgangssoknad") {
+            dependencies.resolve<AltinnTilgangSoknadService>().mineSøknaderOmTilgang()
+        }
+        post("/api/altinn-tilgangssoknad") {
+            dependencies.resolve<AltinnTilgangSoknadService>().sendSøknadOmTilgang(call.receive())
+        }
     }
 }
-
 
 fun Application.configureDependencies() {
     dependencies {
@@ -164,6 +183,16 @@ fun Application.configureDependencies() {
 
         provide<RefusjonStatusService>(RefusjonStatusService::class)
         provide<RefusjonStatusRepository>(RefusjonStatusRepository::class)
+
+        provide<TokenXProperties>(TokenXProperties::class)
+        provide<TokenExchangeClient>(TokenExchangeClientImpl::class)
+        provide<ClientAssertionTokenFactory>(ClientAssertionTokenFactory::class) //TODO: remove this?
+
+        provide<SykefraværstatistikkService>(SykefraværstatistikkService::class)
+        provide<SykefraværstatistikkRepository>(SykefraværstatistikkRepository::class)
+
+        provide<AltinnTilgangssøknadClient>(AltinnTilgangssøknadClient::class)
+        provide<AltinnTilgangSoknadService>(AltinnTilgangSoknadService::class)
     }
 }
 

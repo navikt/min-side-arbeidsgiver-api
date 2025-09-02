@@ -5,26 +5,21 @@ import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
 import org.springframework.web.client.HttpClientErrorException
 
-@RestController
-@RequestMapping("/api/altinn-tilgangssoknad")
-class AltinnTilgangSoknadController(
+class AltinnTilgangSoknadService(
     private val altinnTilgangssøknadClient: AltinnTilgangssøknadClient,
     private val altinnService: AltinnService,
     private val authenticatedUserHolder: AuthenticatedUserHolder
 ) {
     private val log = logger()
 
-    @GetMapping
-    fun mineSøknaderOmTilgang(): List<AltinnTilgangssøknad> {
+    suspend fun mineSøknaderOmTilgang(): List<AltinnTilgangssøknad> {
         val fødselsnummer = authenticatedUserHolder.fnr
         return altinnTilgangssøknadClient.hentSøknader(fødselsnummer)
     }
 
-    @PostMapping
-    fun sendSøknadOmTilgang(@RequestBody søknadsskjema: AltinnTilgangssøknadsskjema): ResponseEntity<AltinnTilgangssøknad> {
+    suspend fun sendSøknadOmTilgang(søknadsskjema: AltinnTilgangssøknadsskjema): ResponseEntity<AltinnTilgangssøknad> {
         val brukerErIOrg = altinnService.harOrganisasjon(søknadsskjema.orgnr)
 
         if (!brukerErIOrg) {

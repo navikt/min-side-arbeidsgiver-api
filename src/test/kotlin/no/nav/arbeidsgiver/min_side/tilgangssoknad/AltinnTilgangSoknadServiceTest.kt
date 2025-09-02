@@ -21,7 +21,7 @@ import java.nio.charset.Charset
 @MockitoBean(types = [JwtDecoder::class])
 @WebMvcTest(
     value = [
-        AltinnTilgangSoknadController::class,
+        AltinnTilgangSoknadService::class,
         SecurityConfig::class,
         AuthenticatedUserHolder::class,
     ],
@@ -29,7 +29,7 @@ import java.nio.charset.Charset
         "server.servlet.context-path=/"
     ]
 )
-class AltinnTilgangSoknadControllerTest {
+class AltinnTilgangSoknadServiceTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -83,8 +83,8 @@ class AltinnTilgangSoknadControllerTest {
         val skjema = AltinnTilgangssøknadsskjema(
             orgnr = "314",
             redirectUrl = "https://yolo.it",
-            serviceCode = AltinnTilgangSoknadController.tjenester.first().first,
-            serviceEdition = AltinnTilgangSoknadController.tjenester.first().second,
+            serviceCode = AltinnTilgangSoknadService.tjenester.first().first,
+            serviceEdition = AltinnTilgangSoknadService.tjenester.first().second,
         )
         val søknad = AltinnTilgangssøknad(
             orgnr = "314",
@@ -138,8 +138,8 @@ class AltinnTilgangSoknadControllerTest {
         val skjema = AltinnTilgangssøknadsskjema(
             orgnr = "314",
             redirectUrl = "https://yolo.it",
-            serviceCode = AltinnTilgangSoknadController.tjenester.first().first,
-            serviceEdition = AltinnTilgangSoknadController.tjenester.first().second,
+            serviceCode = AltinnTilgangSoknadService.tjenester.first().first,
+            serviceEdition = AltinnTilgangSoknadService.tjenester.first().second,
         )
 
         `when`(altinnService.harOrganisasjon("314")).thenReturn(true)

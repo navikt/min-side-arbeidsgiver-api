@@ -4,6 +4,7 @@ import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jose.jwk.RSAKey
+import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.config.logger
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -14,13 +15,13 @@ import java.text.ParseException
 @Profile("local", "dev-gcp", "prod-gcp")
 @Configuration
 @ConfigurationProperties("token.x")
-class TokenXProperties(
-    var clientId: String = "",
-    var issuer: String = "",
-    var privateJwk: String = "",
-    var tokenEndpoint: String = "",
-) : InitializingBean {
-    val log = logger()
+class TokenXProperties {
+    val clientId: String = Environment.TokenX.clientId
+    val issuer: String = Environment.TokenX.issuer
+    val privateJwk: String = Environment.TokenX.privateJwk
+    val tokenEndpoint: String = Environment.TokenX.tokenEndpoint
+
+    private val log = logger()
 
     val privateJwkRsa by lazy { parsePrivateJwk() }
     val jwsSigner by lazy { createJWSSigner() }
@@ -41,7 +42,7 @@ class TokenXProperties(
         }
     }
 
-    override fun afterPropertiesSet() {
+    init {
         log.info(
             "TokenX configured with issuer={} clientId={} tokenEndpoint={}",
             issuer,

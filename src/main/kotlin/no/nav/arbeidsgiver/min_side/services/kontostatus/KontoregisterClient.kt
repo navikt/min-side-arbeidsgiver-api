@@ -5,7 +5,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
-import no.nav.arbeidsgiver.min_side.config.Environment.Companion.sokosKontoregisterBaseUrl
+import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.config.GittMiljø2
 import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
@@ -28,7 +28,7 @@ class KontoregisterClient(
 
     //TODO: cache this
     suspend fun hentKontonummer(virksomhetsnummer: String): Kontooppslag? {
-        return client.request("${sokosKontoregisterBaseUrl}/kontoregister/api/v1/hent-kontonummer-for-organisasjon/${virksomhetsnummer}") {
+        return client.request("${Environment.Sokos.sokosKontoregisterBaseUrl}/kontoregister/api/v1/hent-kontonummer-for-organisasjon/${virksomhetsnummer}") {
             method = HttpMethod.Get
             bearerAuth(azureService.getAccessToken(tokenScope))
         }.let { response ->

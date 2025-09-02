@@ -13,7 +13,7 @@ import org.springframework.kafka.listener.DefaultErrorHandler
 import org.springframework.kafka.listener.RetryListener
 import org.springframework.util.backoff.ExponentialBackOff
 
-@Profile("dev-gcp", "prod-gcp")
+@Profile("dev-gcp", "prod-gcp") //TODO: skrive om kafka implementasjonen
 @Configuration
 @EnableKafka
 class KafkaConfig {

@@ -13,8 +13,8 @@ class KontaktinfoClient(
     private val maskinportenTokenService: MaskinportenTokenService,
 ) {
     private val client = defaultHttpClient()
-    private val altinnApiBaseUrl = Environment.altinnApiBaseUrl
-    private val altinnApiKey = Environment.altinnHeader
+    private val altinnApiBaseUrl = Environment.Altinn.altinnApiBaseUrl
+    private val altinnApiKey = Environment.Altinn.altinnHeader
 
     data class Kontaktinfo(
         val eposter: Set<String>,

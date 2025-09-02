@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class SykefraværstatistikkController(
+class SykefraværstatistikkService(
     private val altinnService: AltinnService,
     private val sykefraværstatistikkRepository: SykefraværstatistikkRepository,
 ) {
@@ -54,7 +54,7 @@ class SykefraværstatistikkController(
     )
 }
 
-private fun SykefraværstatistikkController.StatistikkRespons?.asResponseEntity(): ResponseEntity<SykefraværstatistikkController.StatistikkRespons> =
+private fun SykefraværstatistikkService.StatistikkRespons?.asResponseEntity(): ResponseEntity<SykefraværstatistikkService.StatistikkRespons> =
     if (this == null) {
         ResponseEntity.noContent().build()
     } else {

@@ -3,56 +3,28 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.config.logger
-import no.nav.arbeidsgiver.min_side.config.retryInterceptor
+import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.DelegationRequest.RequestResource
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.web.client.RestTemplateBuilder
-import org.springframework.http.HttpHeaders
-import org.springframework.http.RequestEntity
-import org.springframework.stereotype.Component
-import org.springframework.web.client.HttpClientErrorException.BadRequest
-import org.springframework.web.client.HttpServerErrorException
-import org.springframework.web.client.ResourceAccessException
-import org.springframework.web.client.exchange
-import org.springframework.web.util.UriComponentsBuilder
-import java.net.SocketException
-import javax.net.ssl.SSLHandshakeException
 
-@Suppress("UastIncorrectHttpHeaderInspection")
-@Component
+
 class AltinnTilgangssøknadClient(
-    restTemplateBuilder: RestTemplateBuilder,
-    @Value("\${altinn.apiBaseUrl}") altinnApiBaseUrl: String,
-    @Value("\${altinn.altinnHeader}") private val altinnApiKey: String,
     private val maskinportenTokenService: MaskinportenTokenService,
 ) {
+    private val altinnApiBaseUrl = Environment.Altinn.altinnApiBaseUrl
+    private val altinnApiKey = Environment.Altinn.altinnHeader
+
     private val log = logger()
 
-    private val restTemplate = restTemplateBuilder
-        .rootUri(altinnApiBaseUrl)
-        .additionalInterceptors(
-            retryInterceptor(
-                maxAttempts = 3,
-                backoffPeriod = 250L,
-                HttpServerErrorException.BadGateway::class.java,
-                HttpServerErrorException.ServiceUnavailable::class.java,
-                HttpServerErrorException.GatewayTimeout::class.java,
-                SocketException::class.java,
-                SSLHandshakeException::class.java,
-                ResourceAccessException::class.java,
-            )
-        )
-        .build()
+    private val client = defaultHttpClient()
+    private val delegationRequestApiPath = "$altinnApiBaseUrl/api/serviceowner/delegationRequests"
 
-    private val delegationRequestApiPath = UriComponentsBuilder
-        .fromUriString(altinnApiBaseUrl)
-        .path("/api/serviceowner/delegationRequests")
-        .build()
-        .toUriString()
-
-    fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad> {
+    suspend fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad> {
         val filter = "CoveredBy eq '$fødselsnummer'"
         var shouldContinue = true
         var continuationtoken: String? = null
@@ -61,28 +33,27 @@ class AltinnTilgangssøknadClient(
             val uri =
                 "$delegationRequestApiPath?ForceEIAuthentication&${
                     if (continuationtoken == null) {
-                        "\$filter={filter}"
+                        "\$filter={$filter}"
                     } else {
-                        "\$filter={filter}&continuation={continuation}"
+                        "\$filter={$filter}&continuation={$continuationtoken}"
                     }
                 }"
 
-            val body = try {
-                restTemplate.exchange<Søknadsstatus?>(
-                    RequestEntity.get(uri, filter, continuationtoken)
-                        .headers(HttpHeaders().apply {
-                            set("accept", "application/hal+json")
-                            set("apikey", altinnApiKey)
-                            setBearerAuth(maskinportenTokenService.currentAccessToken())
-                        }).build()
-                ).body
-            } catch (e: BadRequest) {
-                if (e.message!!.contains("User profile")) { // Altinn returns 400 if user does not exist
+            val response = client.get(uri) {
+                header("accept", "application/hal+json")
+                header("apikey", altinnApiKey)
+                bearerAuth(maskinportenTokenService.currentAccessToken())
+            }
+
+            if (response.status == HttpStatusCode.BadRequest) {
+                val body = response.body<String>()
+                if (body.contains("User profile")) { // Altinn returns 400 if user does not exist
                     null
                 } else {
-                    throw e
+                    throw RuntimeException("Altinn delegation requests: $body")
                 }
             }
+            val body = response.body<Søknadsstatus?>()
 
             if (body == null) {
                 log.error("Altinn delegation requests: body missing")
@@ -110,30 +81,27 @@ class AltinnTilgangssøknadClient(
         return resultat
     }
 
-    fun sendSøknad(fødselsnummer: String, søknadsskjema: AltinnTilgangssøknadsskjema): AltinnTilgangssøknad {
-        val response = restTemplate.exchange<DelegationRequest?>(
-            RequestEntity
-                .post("$delegationRequestApiPath?ForceEIAuthentication")
-                .headers(HttpHeaders().apply {
-                    set("accept", "application/hal+json")
-                    set("apikey", altinnApiKey)
-                    setBearerAuth(maskinportenTokenService.currentAccessToken())
-                })
-                .body(
-                    DelegationRequest(
-                        CoveredBy = fødselsnummer,
-                        OfferedBy = søknadsskjema.orgnr,
-                        RedirectUrl = søknadsskjema.redirectUrl,
-                        RequestResources = listOf(
-                            RequestResource(
-                                ServiceCode = søknadsskjema.serviceCode,
-                                ServiceEditionCode = søknadsskjema.serviceEdition,
-                            )
-                        ),
-                    )
+    suspend fun sendSøknad(fødselsnummer: String, søknadsskjema: AltinnTilgangssøknadsskjema): AltinnTilgangssøknad {
+        val response = client.post("$delegationRequestApiPath?ForceEIAuthentication") {
+            header("accept", "application/hal+json")
+            header("apikey", altinnApiKey)
+            bearerAuth(maskinportenTokenService.currentAccessToken())
+            setBody(
+                DelegationRequest(
+                    CoveredBy = fødselsnummer,
+                    OfferedBy = søknadsskjema.orgnr,
+                    RedirectUrl = søknadsskjema.redirectUrl,
+                    RequestResources = listOf(
+                        RequestResource(
+                            ServiceCode = søknadsskjema.serviceCode,
+                            ServiceEditionCode = søknadsskjema.serviceEdition,
+                        )
+                    ),
                 )
-        )
-        return response.body.let {
+            )
+        }
+
+        return response.body<DelegationRequest?>().let {
             AltinnTilgangssøknad(
                 status = it!!.RequestStatus,
                 submitUrl = it.links!!.sendRequest!!.href,

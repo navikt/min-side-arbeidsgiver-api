@@ -17,7 +17,7 @@ import java.time.LocalDate
 @Component
 class EregClient {
     private val client = defaultHttpClient()
-    private val baseUrl = Environment.eregServicesBaseUrl
+    private val baseUrl = Environment.Ereg.eregServicesBaseUrl
 
     @Cacheable(EREG_CACHE_NAME)
     suspend fun hentUnderenhet(virksomhetsnummer: String): EregOrganisasjon? {
