@@ -24,7 +24,7 @@ import org.springframework.web.filter.CharacterEncodingFilter
 @MockitoBean(types= [JwtDecoder::class])
 @WebMvcTest(
     value = [
-        UserInfoController::class,
+        UserInfoService::class,
         SecurityConfig::class,
         AuthenticatedUserHolder::class,
         GittMiljø::class,
@@ -33,8 +33,8 @@ import org.springframework.web.filter.CharacterEncodingFilter
         "server.servlet.context-path=/"
     ]
 )
-@Import(UserInfoControllerTest.ForceUTF8Encoding::class)
-class UserInfoControllerTest {
+@Import(UserInfoServiceTest.ForceUTF8Encoding::class)
+class UserInfoServiceTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 

@@ -26,7 +26,21 @@ class Database private constructor(private val config: DatabaseConfig) : AutoClo
         }
     }
 
-    private fun executeUpdate(
+    fun transactional(block: () -> Unit) {
+        dataSource.connection.use { connection ->
+            try {
+                connection.autoCommit = false
+                block()
+                connection.commit()
+            } catch (e: Exception) {
+                connection.rollback()
+                throw e
+            }
+        }
+    }
+
+
+    fun executeUpdate(
         @Language("PostgresSQL")
         query: String,
         setup: ParameterSetters.() -> Unit = {},
@@ -41,7 +55,7 @@ class Database private constructor(private val config: DatabaseConfig) : AutoClo
         }
     }
 
-    private fun <T> executeQuery(
+    fun <T> executeQuery(
         @Language("PostgresSQL")
         query: String,
         setup: ParameterSetters.() -> Unit = {},
@@ -77,6 +91,7 @@ class Database private constructor(private val config: DatabaseConfig) : AutoClo
         dataSource.close()
     }
 }
+
 
 data class DatabaseConfig(
     val jdbcUrl: String,

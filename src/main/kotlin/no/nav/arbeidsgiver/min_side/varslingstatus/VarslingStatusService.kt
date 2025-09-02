@@ -2,20 +2,14 @@ package no.nav.arbeidsgiver.min_side.varslingstatus
 
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusDto.Status
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
 import java.time.LocalDateTime
 
-@RestController
-class VarslingStatusController(
+class VarslingStatusService(
     private val altinnService: AltinnService,
     private val repository: VarslingStatusRepository,
 ) {
-
-    @PostMapping("/api/varslingStatus/v1")
-    fun getVarslingStatus(@RequestBody requestBody: VarslingStatusRequest): VarslingStatus {
+    fun getVarslingStatus(requestBody: VarslingStatusRequest): VarslingStatus {
         val harTilgang = altinnService.harOrganisasjon(requestBody.virksomhetsnummer)
         if (!harTilgang) {
             return VarslingStatus(

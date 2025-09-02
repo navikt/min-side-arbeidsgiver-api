@@ -53,6 +53,12 @@ import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.SykefraværstatistikkR
 import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.SykefraværstatistikkService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangSoknadService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssøknadClient
+import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
+import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
+import no.nav.arbeidsgiver.min_side.varslingstatus.KontaktInfoPollerRepository
+import no.nav.arbeidsgiver.min_side.varslingstatus.KontaktInfoPollingService
+import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusService
+import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusRepository
 import org.slf4j.event.Level
 import java.util.*
 
@@ -88,10 +94,21 @@ fun main() {
             // digisyfo kafka
         }
 
+        // Kontakfinfo polling services
+        launch {
+            server.application.dependencies.resolve<KontaktInfoPollingService>().schedulePolling()
+        }
+        launch {
+            server.application.dependencies.resolve<KontaktInfoPollingService>().pollAndPullKontaktInfo()
+        }
+        launch {
+            server.application.dependencies.resolve<KontaktInfoPollingService>().cleanup()
+        }
+
+        // Maskinporten token refresher
         launch {
             server.application.dependencies.resolve<MaskinportenTokenService>().tokenRefreshingLoop()
         }
-
     }
 }
 
@@ -148,6 +165,16 @@ fun Application.configureRoutes() {
         post("/api/altinn-tilgangssoknad") {
             dependencies.resolve<AltinnTilgangSoknadService>().sendSøknadOmTilgang(call.receive())
         }
+
+        // Userinfo
+        get("/api/userInfo/v3") {
+            dependencies.resolve<UserInfoService>().getUserInfoV3()
+        }
+
+        // Varsling status
+        post("/api/varslingStatus/v1") {
+            dependencies.resolve<VarslingStatusService>().getVarslingStatus(call.receive())
+        }
     }
 }
 
@@ -160,14 +187,13 @@ fun Application.configureDependencies() {
         provide<MaskinportenClient> { MaskinportenClientImpl(maskinportenConfig) }
         provide<MaskinportenTokenService>(MaskinportenTokenServiceImpl::class)
 
-        provide<AzureClient> { AzureClient(azureAdConfig) }
+        provide { AzureClient(azureAdConfig) }
         provide(AzureService::class)
+        provide(AltinnService::class)
 
-        provide<AltinnService>(AltinnService::class)
-
-        provide<DigisyfoKafkaConsumerImpl>(DigisyfoKafkaConsumerImpl::class)
+        provide(DigisyfoKafkaConsumerImpl::class)
         provide<DigisyfoRepository>(DigisyfoRepositoryImpl::class)
-        provide<DigisyfoService>(DigisyfoService::class)
+        provide(DigisyfoService::class)
         provide<SykmeldingRepository>(SykmeldingRepositoryImpl::class)
 
         provide<EregClient>(EregClient::class)
@@ -193,6 +219,12 @@ fun Application.configureDependencies() {
 
         provide<AltinnTilgangssøknadClient>(AltinnTilgangssøknadClient::class)
         provide<AltinnTilgangSoknadService>(AltinnTilgangSoknadService::class)
+        provide<AltinnRollerClient>(AltinnRollerClient::class)
+
+        provide<KontaktInfoPollerRepository>(KontaktInfoPollerRepository::class)
+        provide<KontaktInfoPollingService>(KontaktInfoPollingService::class)
+        provide<VarslingStatusService>(VarslingStatusService::class)
+        provide<VarslingStatusRepository>(VarslingStatusRepository::class)
     }
 }
 
