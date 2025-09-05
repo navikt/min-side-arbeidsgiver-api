@@ -3,6 +3,7 @@ package no.nav.arbeidsgiver.min_side
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -28,7 +29,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabaseAsync
+import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabase
 import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
@@ -60,6 +61,7 @@ import no.nav.arbeidsgiver.min_side.varslingstatus.KontaktInfoPollingService
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusService
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusRepository
 import org.slf4j.event.Level
+import org.springframework.kafka.listener.BatchListenerFailedException
 import java.util.*
 
 
@@ -83,32 +85,63 @@ private val azureAdConfig = AzureAdConfig(
 
 fun main() {
     runBlocking(Dispatchers.Default) {
-        val server = embeddedServer(CIO, port = 8080, host = "0.0.0.0") {
+        embeddedServer(CIO, port = 8080, host = "0.0.0.0") {
             ktorConfig()
             configureDependencies()
             configureRoutes()
-        }
-        server.start(wait = false)
 
-        launch {
-            // digisyfo kafka
-        }
+            // Kafka consumers
+            val objectMapper = dependencies.resolve<ObjectMapper>()
+            val digisyfoRepository = dependencies.resolve<DigisyfoRepository>()
+            launch {
+                val config = KafkaConsumerConfig(
+                    groupId = "min-side-arbeidsgiver-narmesteleder-model-builder-1",
+                    topics = setOf("teamsykmelding.syfo-narmesteleder-leesah"),
+                )
+                DigisyfoKafkaConsumer(config) {
+                    val hendelse = objectMapper.readValue(it.value(), NarmesteLederHendelse::class.java)
+                    digisyfoRepository.processNærmesteLederEvent(hendelse)
+                }.start()
+            }
+            launch {
+                val config = KafkaConsumerConfig(
+                    groupId = "min-side-arbeidsgiver-sykmelding-1",
+                    topics = setOf("teamsykmelding.syfo-sendt-sykmelding"),
+                )
+                DigisyfoKafkaConsumer(config) {
+                    fun getSykmeldingHendelse(value: String?): SykmeldingHendelse? {
+                        return try {
+                            if (value == null) null else objectMapper.readValue(value, SykmeldingHendelse::class.java)
+                        } catch (e: JsonProcessingException) {
+                            throw RuntimeException(e)
+                        }
+                    }
+                    val parsedRecords = it
+                        .map {
+                            it.key() to getSykmeldingHendelse(it.value())
+                        }
+                    digisyfoRepository.processSykmeldingEvent(parsedRecords)
+                    val hendelse = objectMapper.readValue(it.value(), NarmesteLederHendelse::class.java)
+                    dependencies.resolve<DigisyfoRepository>().processSykmeldingEvent(hendelse)
+                }
+            }
 
-        // Kontakfinfo polling services
-        launch {
-            server.application.dependencies.resolve<KontaktInfoPollingService>().schedulePolling()
-        }
-        launch {
-            server.application.dependencies.resolve<KontaktInfoPollingService>().pollAndPullKontaktInfo()
-        }
-        launch {
-            server.application.dependencies.resolve<KontaktInfoPollingService>().cleanup()
-        }
+            // Kontakfinfo polling services
+            launch {
+                dependencies.resolve<KontaktInfoPollingService>().schedulePolling()
+            }
+            launch {
+                dependencies.resolve<KontaktInfoPollingService>().pollAndPullKontaktInfo()
+            }
+            launch {
+                dependencies.resolve<KontaktInfoPollingService>().cleanup()
+            }
 
-        // Maskinporten token refresher
-        launch {
-            server.application.dependencies.resolve<MaskinportenTokenService>().tokenRefreshingLoop()
-        }
+            // Maskinporten token refresher
+            launch {
+                dependencies.resolve<MaskinportenTokenService>().tokenRefreshingLoop()
+            }
+        }.start(wait = false)
     }
 }
 
@@ -180,9 +213,10 @@ fun Application.configureRoutes() {
 
 fun Application.configureDependencies() {
     dependencies {
-        provide<Database> { openDatabaseAsync(databaseConfig).await() }
+        provide<Database> { openDatabase(databaseConfig) }
 
         provide(MeterRegistry::class)
+        provide(ObjectMapper::class)
 
         provide<MaskinportenClient> { MaskinportenClientImpl(maskinportenConfig) }
         provide<MaskinportenTokenService>(MaskinportenTokenServiceImpl::class)
@@ -191,7 +225,6 @@ fun Application.configureDependencies() {
         provide(AzureService::class)
         provide(AltinnService::class)
 
-        provide(DigisyfoKafkaConsumerImpl::class)
         provide<DigisyfoRepository>(DigisyfoRepositoryImpl::class)
         provide(DigisyfoService::class)
         provide<SykmeldingRepository>(SykmeldingRepositoryImpl::class)

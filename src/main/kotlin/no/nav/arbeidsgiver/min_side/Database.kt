@@ -3,7 +3,6 @@ package no.nav.arbeidsgiver.min_side
 import com.codahale.metrics.MetricRegistry
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import kotlinx.coroutines.*
 import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
 import java.sql.PreparedStatement
@@ -16,14 +15,12 @@ import java.util.*
 class Database private constructor(private val config: DatabaseConfig) : AutoCloseable {
     private val dataSource = HikariDataSource(config.asHikariConfig())
 
-    private suspend fun migrate() {
-        withContext(Dispatchers.IO) {
-            Flyway.configure()
-                .locations(config.migrationLocation)
-                .dataSource(dataSource)
-                .load()
-                .migrate()
-        }
+    private fun migrate() {
+        Flyway.configure()
+            .locations(config.migrationLocation)
+            .dataSource(dataSource)
+            .load()
+            .migrate()
     }
 
     fun transactional(block: () -> Unit) {
@@ -78,20 +75,18 @@ class Database private constructor(private val config: DatabaseConfig) : AutoClo
     }
 
     companion object {
-        fun CoroutineScope.openDatabaseAsync(config: DatabaseConfig): Deferred<Database> {
-            return async {
-                val database = Database(config)
-                database.migrate()
-                database
-            }
+        fun openDatabase(config: DatabaseConfig): Database {
+            val database = Database(config)
+            database.migrate()
+            return database
         }
     }
 
     override fun close() {
         dataSource.close()
     }
-}
 
+}
 
 data class DatabaseConfig(
     val jdbcUrl: String,

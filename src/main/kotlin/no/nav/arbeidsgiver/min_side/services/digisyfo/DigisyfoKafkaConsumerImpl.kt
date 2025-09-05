@@ -9,12 +9,11 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.listener.BatchListenerFailedException
 import org.springframework.stereotype.Component
 
-@Component
-@Profile("dev-gcp", "prod-gcp")
 class DigisyfoKafkaConsumerImpl(
     private val objectMapper: ObjectMapper,
     private val digisyfoRepository: DigisyfoRepository
 ) {
+
     @KafkaListener(
         id = "min-side-arbeidsgiver-narmesteleder-model-builder-1",
         topics = ["teamsykmelding.syfo-narmesteleder-leesah"],
