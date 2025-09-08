@@ -44,6 +44,24 @@ class Database private constructor(private val config: DatabaseConfig) : AutoClo
         }
     }
 
+    suspend fun batchUpdate(
+        @Language("PostgresSQL")
+        query: String,
+        batchData: List<Array<Any?>>
+    ): IntArray {
+        return transactional {
+            prepareStatement(query).use { statement ->
+                batchData.forEach { params ->
+                    params.forEachIndexed { index, param ->
+                        statement.setObject(index + 1, param)
+                    }
+                    statement.addBatch()
+                }
+                statement.executeBatch()
+            }
+        }
+    }
+
     suspend fun nonTransactionalExecuteUpdate(
         @Language("PostgresSQL")
         query: String,
@@ -76,8 +94,7 @@ class Database private constructor(private val config: DatabaseConfig) : AutoClo
             return database
         }
 
-
-        suspend fun Connection.executeUpdate(
+        fun Connection.executeUpdate(
             @Language("PostgresSQL")
             query: String,
             setup: ParameterSetters.() -> Unit = {}
@@ -89,7 +106,7 @@ class Database private constructor(private val config: DatabaseConfig) : AutoClo
                 }
         }
 
-        suspend fun <T> Connection.executeQuery(
+        fun <T> Connection.executeQuery(
             @Language("PostgresSQL")
             query: String,
             setup: ParameterSetters.() -> Unit = {},
@@ -146,6 +163,8 @@ class ParameterSetters(
     fun text(value: String) = preparedStatement.setString(index++, value)
     fun nullableText(value: String?) = preparedStatement.setString(index++, value)
     fun integer(value: Int) = preparedStatement.setInt(index++, value)
+    fun integer(value: Number) = preparedStatement.setInt(index++, value.toInt())
+    fun double(value: Double) = preparedStatement.setDouble(index++, value)
     fun long(value: Long) = preparedStatement.setLong(index++, value)
     fun boolean(newState: Boolean) = preparedStatement.setBoolean(index++, newState)
     fun nullableBoolean(value: Boolean?) =

@@ -88,6 +88,7 @@ fun main() {
 
             startKafkaConsumers(this)
             startKontaktInfoPollingServices(this)
+            startDeleteOldSykmeldingLoop(this)
 
             // Maskinporten token refresher
             launch {

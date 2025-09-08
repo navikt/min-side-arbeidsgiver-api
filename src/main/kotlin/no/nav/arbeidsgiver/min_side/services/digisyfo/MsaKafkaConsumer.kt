@@ -37,7 +37,7 @@ class MsaKafkaConsumer(
         put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true)
     }
 
-    fun consume(processMessage: (ConsumerRecord<String?, String?>) -> Unit) {
+    suspend fun consume(processMessage: suspend (ConsumerRecord<String?, String?>) -> Unit) {
         val consumer = KafkaConsumer<String?, String?>(properties)
         consumer.subscribe(config.topics)
         while (true) {
@@ -48,7 +48,7 @@ class MsaKafkaConsumer(
         }
     }
 
-    fun batchConsume(processMessages: (ConsumerRecords<String?, String?>) -> Unit) {
+    suspend fun batchConsume(processMessages: suspend (ConsumerRecords<String?, String?>) -> Unit) {
         val consumer = KafkaConsumer<String?, String?>(properties)
         consumer.subscribe(config.topics)
         while (true) {
