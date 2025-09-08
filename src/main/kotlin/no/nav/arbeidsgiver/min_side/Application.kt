@@ -34,6 +34,7 @@ import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.logger
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.maskinporten.*
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.*
@@ -98,71 +99,68 @@ fun main() {
 
 fun Application.configureRoutes() {
     routing {
-        install(AuthenticationProvider) {
-            client = AuthClient(texasAuthConfig, IdentityProvider.AZURE_AD)
-            validate = { AutentisertM2MPrincipal.validate(it) }
-        }
+        authenticate("jwt") {
+            // Kontaktinfo
+            post("/api/kontaktinfo/v1") {
+                dependencies.resolve<KontaktInfoService>()
+                    .getKontaktinfo(call.receive())
+            }
 
-        // Kontaktinfo
-        post("/api/kontaktinfo/v1") {
-            dependencies.resolve<KontaktInfoService>()
-                .getKontaktinfo(call.receive())
-        }
+            // Kontonummer
+            post("/api/kontonummerStatus/v1") {
+                dependencies.resolve<KontostatusService>()
+                    .getKontonummerStatus(call.receive())
+            }
+            post("/api/kontonummer/v1") {
+                dependencies.resolve<KontostatusService>().getKontonummer(call.receive())
+            }
 
-        // Kontonummer
-        post("/api/kontonummerStatus/v1") {
-            dependencies.resolve<KontostatusService>()
-                .getKontonummerStatus(call.receive())
-        }
-        post("/api/kontonummer/v1") {
-            dependencies.resolve<KontostatusService>().getKontonummer(call.receive())
-        }
+            // Lagrede filter
+            get("/api/lagredeFilter") {
+                dependencies.resolve<LagredeFilterService>().getAll()
+            }
+            put("/api/lagredeFilter") {
+                dependencies.resolve<LagredeFilterService>().put(call.receive())
+            }
+            delete("/api/lagredeFilter/{filterId}") {
+                dependencies.resolve<LagredeFilterService>().delete(call.parameters["filterId"]!!)
+            }
 
-        // Lagrede filter
-        get("/api/lagredeFilter") {
-            dependencies.resolve<LagredeFilterService>().getAll()
-        }
-        put("/api/lagredeFilter") {
-            dependencies.resolve<LagredeFilterService>().put(call.receive())
-        }
-        delete("/api/lagredeFilter/{filterId}") {
-            dependencies.resolve<LagredeFilterService>().delete(call.parameters["filterId"]!!)
-        }
+            // Ereg
+            post("api/ereg/underenhet") {
+                dependencies.resolve<EregService>().underenhet(call.receive())
+            }
+            post("api/ereg/overenhet") {
+                dependencies.resolve<EregService>().overenhet(call.receive())
+            }
 
-        // Ereg
-        post("api/ereg/underenhet") {
-            dependencies.resolve<EregService>().underenhet(call.receive())
-        }
-        post("api/ereg/overenhet") {
-            dependencies.resolve<EregService>().overenhet(call.receive())
-        }
+            // Refusjon status
+            get("/api/refusjon_status") {
+                dependencies.resolve<RefusjonStatusService>().statusoversikt()
+            }
 
-        // Refusjon status
-        get("/api/refusjon_status") {
-            dependencies.resolve<RefusjonStatusService>().statusoversikt()
-        }
+            // Sykefraværstatistikk
+            get("/api/sykefravaerstatistikk/{orgnr}") {
+                dependencies.resolve<SykefraværstatistikkService>().getStatistikk(call.parameters["orgnr"]!!)
+            }
 
-        // Sykefraværstatistikk
-        get("/api/sykefravaerstatistikk/{orgnr}") {
-            dependencies.resolve<SykefraværstatistikkService>().getStatistikk(call.parameters["orgnr"]!!)
-        }
+            // Tilgangsøknad
+            get("/api/altinn-tilgangssoknad") {
+                dependencies.resolve<AltinnTilgangSoknadService>().mineSøknaderOmTilgang()
+            }
+            post("/api/altinn-tilgangssoknad") {
+                dependencies.resolve<AltinnTilgangSoknadService>().sendSøknadOmTilgang(call.receive())
+            }
 
-        // Tilgangsøknad
-        get("/api/altinn-tilgangssoknad") {
-            dependencies.resolve<AltinnTilgangSoknadService>().mineSøknaderOmTilgang()
-        }
-        post("/api/altinn-tilgangssoknad") {
-            dependencies.resolve<AltinnTilgangSoknadService>().sendSøknadOmTilgang(call.receive())
-        }
+            // Userinfo
+            get("/api/userInfo/v3") {
+                dependencies.resolve<UserInfoService>().getUserInfoV3()
+            }
 
-        // Userinfo
-        get("/api/userInfo/v3") {
-            dependencies.resolve<UserInfoService>().getUserInfoV3()
-        }
-
-        // Varsling status
-        post("/api/varslingStatus/v1") {
-            dependencies.resolve<VarslingStatusService>().getVarslingStatus(call.receive())
+            // Varsling status
+            post("/api/varslingStatus/v1") {
+                dependencies.resolve<VarslingStatusService>().getVarslingStatus(call.receive())
+            }
         }
     }
 }
@@ -173,6 +171,8 @@ fun Application.configureDependencies() {
 
         provide(MeterRegistry::class)
         provide(ObjectMapper::class)
+
+        provide<() -> AuthenticatedUserHolder> { { AuthenticatedUserHolder() } }
 
         provide<MaskinportenClient> { MaskinportenClientImpl(maskinportenConfig) }
         provide<MaskinportenTokenService>(MaskinportenTokenServiceImpl::class)
