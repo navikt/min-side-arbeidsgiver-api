@@ -98,6 +98,11 @@ fun main() {
 
 fun Application.configureRoutes() {
     routing {
+        install(AuthenticationProvider) {
+            client = AuthClient(texasAuthConfig, IdentityProvider.AZURE_AD)
+            validate = { AutentisertM2MPrincipal.validate(it) }
+        }
+
         // Kontaktinfo
         post("/api/kontaktinfo/v1") {
             dependencies.resolve<KontaktInfoService>()

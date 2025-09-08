@@ -3,8 +3,11 @@ package no.nav.arbeidsgiver.min_side
 import com.codahale.metrics.MetricRegistry
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
+import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
@@ -23,44 +26,76 @@ class Database private constructor(private val config: DatabaseConfig) : AutoClo
             .migrate()
     }
 
-    fun transactional(block: () -> Unit) {
-        dataSource.connection.use { connection ->
-            try {
-                connection.autoCommit = false
-                block()
-                connection.commit()
-            } catch (e: Exception) {
-                connection.rollback()
-                throw e
+    suspend fun <T> transactional(block: suspend Connection.() -> T): T {
+        return withContext(Dispatchers.IO) {
+            dataSource.connection.use { connection ->
+                try {
+                    connection.autoCommit = false
+                    val result = connection.block()
+                    connection.commit()
+                    result
+                } catch (e: Exception) {
+                    connection.rollback()
+                    throw e
+                } finally {
+                    connection.close()
+                }
             }
         }
     }
 
-
-    fun executeUpdate(
+    suspend fun nonTransactionalExecuteUpdate(
         @Language("PostgresSQL")
         query: String,
         setup: ParameterSetters.() -> Unit = {},
     ): Int {
         dataSource.connection.use { connection ->
-            connection
-                .prepareStatement(query)
-                .use { statement ->
-                    ParameterSetters(statement).apply(setup)
-                    return statement.executeUpdate()
-                }
+            return transactional {
+                connection.executeUpdate(query, setup)
+            }
         }
     }
 
-    fun <T> executeQuery(
+    suspend fun <T> nonTransactionalExecuteQuery(
         @Language("PostgresSQL")
         query: String,
         setup: ParameterSetters.() -> Unit = {},
         transform: (rs: ResultSet) -> T
     ): List<T> {
         dataSource.connection.use { connection ->
-            connection
-                .prepareStatement(query)
+            return transactional {
+                connection.executeQuery(query, setup, transform)
+            }
+        }
+    }
+
+    companion object {
+        fun openDatabase(config: DatabaseConfig): Database {
+            val database = Database(config)
+            database.migrate()
+            return database
+        }
+
+
+        suspend fun Connection.executeUpdate(
+            @Language("PostgresSQL")
+            query: String,
+            setup: ParameterSetters.() -> Unit = {}
+        ): Int {
+            prepareStatement(query)
+                .use { statement ->
+                    ParameterSetters(statement).apply(setup)
+                    return statement.executeUpdate()
+                }
+        }
+
+        suspend fun <T> Connection.executeQuery(
+            @Language("PostgresSQL")
+            query: String,
+            setup: ParameterSetters.() -> Unit = {},
+            transform: (rs: ResultSet) -> T
+        ): List<T> {
+            prepareStatement(query)
                 .use { statement ->
                     ParameterSetters(statement).apply(setup)
                     statement.executeQuery().use { rs ->
@@ -71,14 +106,6 @@ class Database private constructor(private val config: DatabaseConfig) : AutoClo
                         return results
                     }
                 }
-        }
-    }
-
-    companion object {
-        fun openDatabase(config: DatabaseConfig): Database {
-            val database = Database(config)
-            database.migrate()
-            return database
         }
     }
 
@@ -103,7 +130,7 @@ data class DatabaseConfig(
             idleTimeout = 10001
             maxLifetime = 30001
             leakDetectionThreshold = 30000
-            isAutoCommit = false
+            isAutoCommit = true
         }
     }
 }

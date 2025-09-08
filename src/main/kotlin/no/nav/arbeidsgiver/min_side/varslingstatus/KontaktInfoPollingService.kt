@@ -5,6 +5,7 @@ import io.ktor.server.plugins.di.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import no.nav.arbeidsgiver.min_side.Database
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
@@ -17,8 +18,8 @@ class KontaktInfoPollingService(
     private val kontaktinfoClient: KontaktinfoClient,
     private val eregClient: EregClient,
     private val kontaktInfoPollerRepository: KontaktInfoPollerRepository,
+    private val database: Database
 ) {
-
     val retention = 90.days
 
     suspend fun schedulePolling() {
@@ -30,25 +31,26 @@ class KontaktInfoPollingService(
         delay(Duration.parse("PT60M"))
     }
 
-
-    //TODO: @Transactional
     suspend fun pollAndPullKontaktInfo() {
-        val virksomhetsnummer = kontaktInfoPollerRepository.getAndDeleteForPoll() ?: return
-        val kontaktInfo = finnKontaktinfoIOrgTre(virksomhetsnummer) ?: return
+        database.transactional { //TODO: skriv om kontakginforpollerrepo
+            val virksomhetsnummer = kontaktInfoPollerRepository.getAndDeleteForPoll() ?: return@transactional
+            val kontaktInfo = finnKontaktinfoIOrgTre(virksomhetsnummer) ?: return@transactional
 
-        kontaktInfoPollerRepository.updateKontaktInfo(
-            virksomhetsnummer,
-            kontaktInfo.eposter.isNotEmpty(),
-            kontaktInfo.telefonnumre.isNotEmpty()
-        )
+            kontaktInfoPollerRepository.updateKontaktInfo(
+                virksomhetsnummer,
+                kontaktInfo.eposter.isNotEmpty(),
+                kontaktInfo.telefonnumre.isNotEmpty()
+            )
+        }
         delay(Duration.parse("PT1S"))
     }
 
 
-    //TODO: @Transactional
     suspend fun cleanup() {
-        varslingStatusRepository.slettVarslingStatuserEldreEnn(retention)
-        kontaktInfoPollerRepository.slettKontaktinfoMedOkStatusEllerEldreEnn(retention)
+        database.transactional { //TODO: skriv om kontakginforpollerrepo
+            varslingStatusRepository.slettVarslingStatuserEldreEnn(retention)
+            kontaktInfoPollerRepository.slettKontaktinfoMedOkStatusEllerEldreEnn(retention)
+        }
         delay(Duration.parse("PT1H"))
     }
 
