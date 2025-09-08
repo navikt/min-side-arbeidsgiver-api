@@ -116,8 +116,8 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
     // sykefraværstatistikk metadata
     scope.launch {
         val config = KafkaConsumerConfig(
-            groupId = "min-side-arbeidsgiver-sfmeta-2",
-            topics = setOf("arbeidsgiver.sykefravarsstatistikk-metadata-virksomhet-v1"),
+            groupId = "min-side-arbeidsgiver-sfmeta-3",
+            topics = setOf("pia.sykefravarsstatistikk-metadata-virksomhet-v1"),
         )
         MsaKafkaConsumer(config).consume { record ->
             val key = record.key().let {
