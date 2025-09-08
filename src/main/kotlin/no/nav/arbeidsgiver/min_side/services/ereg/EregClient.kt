@@ -1,73 +1,64 @@
 package no.nav.arbeidsgiver.min_side.services.ereg
 
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import no.nav.arbeidsgiver.min_side.config.Cache
 import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
-import org.springframework.cache.annotation.Cacheable
-import org.springframework.cache.caffeine.CaffeineCache
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.util.*
 
-@Component
+
 class EregClient {
     private val client = defaultHttpClient()
     private val baseUrl = Environment.Ereg.eregServicesBaseUrl
 
-    @Cacheable(EREG_CACHE_NAME)
-    suspend fun hentUnderenhet(virksomhetsnummer: String): EregOrganisasjon? {
-        val response = client.get("$baseUrl/v2/organisasjon/{virksomhetsnummer}?inkluderHierarki=true") {
-            parameter("virksomhetsnummer", virksomhetsnummer)
-        }
+    private val cache = Cache<String, Optional<EregOrganisasjon>>()
 
-        return when (response.status) {
-            HttpStatusCode.OK -> {
-                response.body<EregOrganisasjon>()
+    suspend fun hentUnderenhet(virksomhetsnummer: String): EregOrganisasjon? {
+        val value = cache.getOrCompute("$EREG_CACHE_NAME-$virksomhetsnummer") {
+            val response = client.get("$baseUrl/v2/organisasjon/{virksomhetsnummer}?inkluderHierarki=true") {
+                parameter("virksomhetsnummer", virksomhetsnummer)
             }
 
-            HttpStatusCode.NotFound -> return null
+            when (response.status) {
+                HttpStatusCode.OK -> {
+                    Optional.of(response.body<EregOrganisasjon>())
+                }
 
-            else -> throw RuntimeException("Feil ved henting av organisasjon fra Ereg: ${response.status}")
+                HttpStatusCode.NotFound -> Optional.empty()
+
+                else -> throw RuntimeException("Feil ved henting av organisasjon fra Ereg: ${response.status}")
+            }
         }
+        return value.orElse(null)
     }
 
-    @Cacheable(EREG_CACHE_NAME)
     suspend fun hentOverenhet(orgnummer: String): EregOrganisasjon? {
-        val response = client.get("$baseUrl/v2/organisasjon/{orgnummer}?inkluderHierarki=true") {
-            parameter("orgnummer", orgnummer)
-        }
-
-        return when (response.status) {
-            HttpStatusCode.OK -> {
-                response.body<EregOrganisasjon>()
+        val value = cache.getOrCompute("$EREG_CACHE_NAME-$orgnummer") {
+            val response = client.get("$baseUrl/v2/organisasjon/{orgnummer}?inkluderHierarki=true") {
+                parameter("orgnummer", orgnummer)
             }
 
-            HttpStatusCode.NotFound -> return null
+            when (response.status) {
+                HttpStatusCode.OK -> {
+                    Optional.of(response.body<EregOrganisasjon>())
+                }
 
-            else -> throw RuntimeException("Feil ved henting av organisasjon fra Ereg: ${response.status}")
+                HttpStatusCode.NotFound -> Optional.empty()
+
+                else -> throw RuntimeException("Feil ved henting av organisasjon fra Ereg: ${response.status}")
+            }
         }
+        return value.orElse(null)
     }
 }
 
 const val EREG_CACHE_NAME = "ereg_cache"
 
-@Configuration
-class EregCacheConfig {
-
-    @Bean
-    fun eregCache() = CaffeineCache(
-        EREG_CACHE_NAME,
-        Caffeine.newBuilder()
-            .maximumSize(600000)
-            .recordStats()
-            .build()
-    )
-}
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EregAdresse(
