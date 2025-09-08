@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.kontostatus
 
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 
 const val kontonummerTilgangTjenesetekode = "2896:87"
@@ -23,8 +24,9 @@ class KontostatusService(
      */
     suspend fun getKontonummer(
         body: OppslagRequest,
+        authenticatedUserHolder: AuthenticatedUserHolder
     ): OppslagResponse? {
-        val harTilgang = altinnService.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgangTjenesetekode)
+        val harTilgang = altinnService.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgangTjenesetekode, authenticatedUserHolder)
         if (!harTilgang) {
             return null
         }

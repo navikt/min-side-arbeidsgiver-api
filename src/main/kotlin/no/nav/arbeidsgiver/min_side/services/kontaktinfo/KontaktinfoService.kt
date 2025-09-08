@@ -7,23 +7,22 @@ import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 
 
 class KontaktInfoService(
-    private val authenticatedUserHolder: AuthenticatedUserHolder,
     private val altinnRollerClient: AltinnRollerClient,
     private val eregClient: EregClient,
     private val kontaktinfoClient: KontaktinfoClient,
 ) {
-    suspend fun getKontaktinfo(requestBody: KontaktinfoRequest): KontaktinfoResponse {
+    suspend fun getKontaktinfo(requestBody: KontaktinfoRequest, authenticatedUserHolder: AuthenticatedUserHolder): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
         val orgnrHovedenhet = eregClient.hentUnderenhet(orgnrUnderenhet)
             ?.orgnummerTilOverenhet()
 
         return KontaktinfoResponse(
-            underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet),
-            hovedenhet = orgnrHovedenhet?.let { tilgangsstyrOgHentKontaktinfo(it) },
+            underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet, authenticatedUserHolder),
+            hovedenhet = orgnrHovedenhet?.let { tilgangsstyrOgHentKontaktinfo(it, authenticatedUserHolder) },
         )
     }
 
-    private suspend fun tilgangsstyrOgHentKontaktinfo(orgnr: String): Kontaktinfo? {
+    private suspend fun tilgangsstyrOgHentKontaktinfo(orgnr: String, authenticatedUserHolder: AuthenticatedUserHolder): Kontaktinfo? {
         val tilgangHovedenhet = altinnRollerClient.harAltinnRolle(
             fnr = authenticatedUserHolder.fnr,
             orgnr = orgnr,

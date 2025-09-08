@@ -5,12 +5,10 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.cio.*
-import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.plugins.*
@@ -51,13 +49,15 @@ import no.nav.arbeidsgiver.min_side.services.tokenExchange.ClientAssertionTokenF
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClientImpl
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenXProperties
-import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.*
+import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.SykefraværstatistikkRepository
+import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.SykefraværstatistikkService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangSoknadService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssøknadClient
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
 import no.nav.arbeidsgiver.min_side.varslingstatus.*
 import org.slf4j.event.Level
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
 import java.util.*
 
 
@@ -102,64 +102,93 @@ fun Application.configureRoutes() {
         authenticate("jwt") {
             // Kontaktinfo
             post("/api/kontaktinfo/v1") {
-                dependencies.resolve<KontaktInfoService>()
-                    .getKontaktinfo(call.receive())
+                call.respond(
+                    dependencies.resolve<KontaktInfoService>()
+                        .getKontaktinfo(call.receive(), AuthenticatedUserHolder(call))
+                )
             }
 
             // Kontonummer
             post("/api/kontonummerStatus/v1") {
-                dependencies.resolve<KontostatusService>()
-                    .getKontonummerStatus(call.receive())
+                call.respond(
+                    dependencies.resolve<KontostatusService>().getKontonummerStatus(call.receive())
+                )
             }
             post("/api/kontonummer/v1") {
-                dependencies.resolve<KontostatusService>().getKontonummer(call.receive())
+                call.respond(
+                    dependencies.resolve<KontostatusService>()
+                        .getKontonummer(
+                            call.receive(), AuthenticatedUserHolder(call)
+                        ) ?: HttpStatusCode.NotFound
+                )
             }
 
             // Lagrede filter
             get("/api/lagredeFilter") {
-                dependencies.resolve<LagredeFilterService>().getAll()
+                call.respond(
+                    dependencies.resolve<LagredeFilterService>()
+                        .getAll(authenticatedUserHolder = AuthenticatedUserHolder(call))
+                )
             }
             put("/api/lagredeFilter") {
-                dependencies.resolve<LagredeFilterService>().put(call.receive())
+                call.respond(
+                    dependencies.resolve<LagredeFilterService>()
+                        .put(call.receive(), authenticatedUserHolder = AuthenticatedUserHolder(call))
+                )
             }
             delete("/api/lagredeFilter/{filterId}") {
-                dependencies.resolve<LagredeFilterService>().delete(call.parameters["filterId"]!!)
+
+                call.respond(
+                    dependencies.resolve<LagredeFilterService>().delete(
+                        call.parameters["filterId"]!!,
+                        authenticatedUserHolder = AuthenticatedUserHolder(call)
+                    ) ?: HttpStatusCode.NotFound
+                )
             }
 
             // Ereg
             post("api/ereg/underenhet") {
-                dependencies.resolve<EregService>().underenhet(call.receive())
+                call.respond(dependencies.resolve<EregService>().underenhet(call.receive()) ?: HttpStatusCode.NotFound)
             }
             post("api/ereg/overenhet") {
-                dependencies.resolve<EregService>().overenhet(call.receive())
+                call.respond(dependencies.resolve<EregService>().overenhet(call.receive()) ?: HttpStatusCode.NotFound)
             }
 
             // Refusjon status
             get("/api/refusjon_status") {
-                dependencies.resolve<RefusjonStatusService>().statusoversikt()
+                call.respond(dependencies.resolve<RefusjonStatusService>().statusoversikt(AuthenticatedUserHolder(call)))
             }
 
             // Sykefraværstatistikk
             get("/api/sykefravaerstatistikk/{orgnr}") {
-                dependencies.resolve<SykefraværstatistikkService>().getStatistikk(call.parameters["orgnr"]!!)
+                call.respond(
+                    dependencies.resolve<SykefraværstatistikkService>().getStatistikk(call.parameters["orgnr"]!!, AuthenticatedUserHolder(call))
+                )
             }
 
             // Tilgangsøknad
             get("/api/altinn-tilgangssoknad") {
-                dependencies.resolve<AltinnTilgangSoknadService>().mineSøknaderOmTilgang()
+                call.respond(
+                    dependencies.resolve<AltinnTilgangSoknadService>().mineSøknaderOmTilgang(
+                        AuthenticatedUserHolder(call)
+                    )
+                )
             }
             post("/api/altinn-tilgangssoknad") {
-                dependencies.resolve<AltinnTilgangSoknadService>().sendSøknadOmTilgang(call.receive())
+                call.respond(
+                    dependencies.resolve<AltinnTilgangSoknadService>()
+                        .sendSøknadOmTilgang(call.receive(), authenticatedUserHolder = AuthenticatedUserHolder(call))
+                )
             }
 
             // Userinfo
             get("/api/userInfo/v3") {
-                dependencies.resolve<UserInfoService>().getUserInfoV3()
+                call.respond(dependencies.resolve<UserInfoService>().getUserInfoV3(AuthenticatedUserHolder(call)))
             }
 
             // Varsling status
             post("/api/varslingStatus/v1") {
-                dependencies.resolve<VarslingStatusService>().getVarslingStatus(call.receive())
+                call.respond(dependencies.resolve<VarslingStatusService>().getVarslingStatus(call.receive(), AuthenticatedUserHolder(call)))
             }
         }
     }
@@ -171,8 +200,6 @@ fun Application.configureDependencies() {
 
         provide(MeterRegistry::class)
         provide(ObjectMapper::class)
-
-        provide<() -> AuthenticatedUserHolder> { { AuthenticatedUserHolder() } }
 
         provide<MaskinportenClient> { MaskinportenClientImpl(maskinportenConfig) }
         provide<MaskinportenTokenService>(MaskinportenTokenServiceImpl::class)

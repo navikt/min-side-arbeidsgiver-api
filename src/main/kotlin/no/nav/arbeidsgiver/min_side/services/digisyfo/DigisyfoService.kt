@@ -2,6 +2,7 @@ package no.nav.arbeidsgiver.min_side.services.digisyfo
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
@@ -13,8 +14,8 @@ class DigisyfoService(
     private val meterRegistry: MeterRegistry
 ) {
 
-    suspend fun hentVirksomheterOgSykmeldte(fnr: String): List<VirksomhetOgAntallSykmeldte> {
-        val virksomheterOgSykmeldte = digisyfoRepository.virksomheterOgSykmeldte(fnr)
+    suspend fun hentVirksomheterOgSykmeldte(authenticatedUserHolder: AuthenticatedUserHolder): List<VirksomhetOgAntallSykmeldte> {
+        val virksomheterOgSykmeldte = digisyfoRepository.virksomheterOgSykmeldte(authenticatedUserHolder.fnr)
 
         val orgs = mutableMapOf<String, VirksomhetOgAntallSykmeldte>()
 

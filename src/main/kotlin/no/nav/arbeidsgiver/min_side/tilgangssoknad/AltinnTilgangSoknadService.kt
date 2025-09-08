@@ -10,17 +10,16 @@ import org.springframework.web.client.HttpClientErrorException
 class AltinnTilgangSoknadService(
     private val altinnTilgangssøknadClient: AltinnTilgangssøknadClient,
     private val altinnService: AltinnService,
-    private val authenticatedUserHolder: AuthenticatedUserHolder
 ) {
     private val log = logger()
 
-    suspend fun mineSøknaderOmTilgang(): List<AltinnTilgangssøknad> {
+    suspend fun mineSøknaderOmTilgang(authenticatedUserHolder: AuthenticatedUserHolder): List<AltinnTilgangssøknad> {
         val fødselsnummer = authenticatedUserHolder.fnr
         return altinnTilgangssøknadClient.hentSøknader(fødselsnummer)
     }
 
-    suspend fun sendSøknadOmTilgang(søknadsskjema: AltinnTilgangssøknadsskjema): ResponseEntity<AltinnTilgangssøknad> {
-        val brukerErIOrg = altinnService.harOrganisasjon(søknadsskjema.orgnr)
+    suspend fun sendSøknadOmTilgang(søknadsskjema: AltinnTilgangssøknadsskjema, authenticatedUserHolder: AuthenticatedUserHolder): ResponseEntity<AltinnTilgangssøknad> {
+        val brukerErIOrg = altinnService.harOrganisasjon(søknadsskjema.orgnr, authenticatedUserHolder)
 
         if (!brukerErIOrg) {
             log.error("Bruker forsøker å be om tilgang til org de ikke er med i.")

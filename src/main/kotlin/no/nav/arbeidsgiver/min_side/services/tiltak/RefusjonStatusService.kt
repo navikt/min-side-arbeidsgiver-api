@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.tiltak
 
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 
 
@@ -8,8 +9,8 @@ class RefusjonStatusService(
     private val refusjonStatusRepository: RefusjonStatusRepository,
 ) {
 
-    suspend fun statusoversikt(): List<Statusoversikt> {
-        val orgnr = altinnService.hentAltinnTilganger()
+    suspend fun statusoversikt(authenticatedUserHolder: AuthenticatedUserHolder): List<Statusoversikt> {
+        val orgnr = altinnService.hentAltinnTilganger(authenticatedUserHolder)
             .tilgangTilOrgNr["$TJENESTEKODE:$TJENESTEVERSJON"] ?: emptySet()
 
         return refusjonStatusRepository

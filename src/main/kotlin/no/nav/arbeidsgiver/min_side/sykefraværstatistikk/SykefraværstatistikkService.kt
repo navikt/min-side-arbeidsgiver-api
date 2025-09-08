@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.sykefraværstatistikk
 
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.springframework.http.ResponseEntity
 
@@ -13,8 +14,9 @@ class SykefraværstatistikkService(
 
     suspend fun getStatistikk(
         orgnr: String,
+        authenticatedUserHolder: AuthenticatedUserHolder
     ): ResponseEntity<StatistikkRespons> {
-        val harTilgang = altinnService.harTilgang(orgnr, altinnRessursId)
+        val harTilgang = altinnService.harTilgang(orgnr, altinnRessursId, authenticatedUserHolder)
 
         return if (harTilgang) {
             val statistikk = sykefraværstatistikkRepository.virksomhetstatistikk(orgnr)?.let {

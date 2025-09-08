@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit
 
 class AltinnService(
     private val tokenExchangeClient: TokenExchangeClient,
-    private val authenticatedUserHolder: AuthenticatedUserHolder,
 ) {
 
     private val client = defaultHttpClient()
@@ -35,18 +34,18 @@ class AltinnService(
             .recordStats()
             .build()
 
-    suspend fun hentAltinnTilganger() =
+    suspend fun hentAltinnTilganger(authenticatedUserHolder: AuthenticatedUserHolder) =
         cache.getIfPresent(authenticatedUserHolder.token) ?: run {
-            hentAltinnTilgangerFraProxy().also {
+            hentAltinnTilgangerFraProxy(authenticatedUserHolder).also {
                 cache.put(authenticatedUserHolder.token, it)
             }
         }
 
-    suspend fun harTilgang(orgnr: String, tjeneste: String) = hentAltinnTilganger().harTilgang(orgnr, tjeneste)
+    suspend fun harTilgang(orgnr: String, tjeneste: String, authenticatedUserHolder: AuthenticatedUserHolder) = hentAltinnTilganger(authenticatedUserHolder).harTilgang(orgnr, tjeneste)
 
-    suspend fun harOrganisasjon(orgnr: String) = hentAltinnTilganger().harOrganisasjon(orgnr)
+    suspend fun harOrganisasjon(orgnr: String, authenticatedUserHolder: AuthenticatedUserHolder) = hentAltinnTilganger(authenticatedUserHolder).harOrganisasjon(orgnr)
 
-    private suspend fun hentAltinnTilgangerFraProxy(): AltinnTilganger {
+    private suspend fun hentAltinnTilgangerFraProxy(authenticatedUserHolder: AuthenticatedUserHolder): AltinnTilganger {
         val token = tokenExchangeClient.exchange(
             subjectToken = authenticatedUserHolder.token,
             audience = audience,

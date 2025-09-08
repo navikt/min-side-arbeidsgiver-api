@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusDto.Status
 import java.time.Instant
@@ -9,8 +10,8 @@ class VarslingStatusService(
     private val altinnService: AltinnService,
     private val repository: VarslingStatusRepository,
 ) {
-    suspend fun getVarslingStatus(requestBody: VarslingStatusRequest): VarslingStatus {
-        val harTilgang = altinnService.harOrganisasjon(requestBody.virksomhetsnummer)
+    suspend fun getVarslingStatus(requestBody: VarslingStatusRequest, authenticatedUserHolder: AuthenticatedUserHolder): VarslingStatus {
+        val harTilgang = altinnService.harOrganisasjon(requestBody.virksomhetsnummer, authenticatedUserHolder)
         if (!harTilgang) {
             return VarslingStatus(
                 status = Status.OK,
