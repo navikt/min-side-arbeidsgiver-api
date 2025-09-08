@@ -128,7 +128,6 @@ class SykefraværstatistikkKafkaListener(
                 objectMapper.readValue(record.value(), MetadataVirksomhetDto::class.java)
             )
         }
-
     }
 
     @Profile("dev-gcp", "prod-gcp")

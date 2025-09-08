@@ -1,6 +1,10 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
+import io.ktor.server.application.*
+import io.ktor.server.plugins.di.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
@@ -25,7 +29,6 @@ class KontaktInfoPollingService(
         )
         delay(Duration.parse("PT60M"))
     }
-
 
 
     //TODO: @Transactional
@@ -58,5 +61,22 @@ class KontaktInfoPollingService(
         return eregClient.hentUnderenhet(virksomhetsnummer)?.orgnummerTilOverenhet()
             ?.let { kontaktinfoClient.hentKontaktinfo(it) }
     }
+}
 
+suspend fun Application.startKontaktInfoPollingServices(
+    scope: CoroutineScope,
+) {
+    val kontaktInfoPollingService = dependencies.resolve<KontaktInfoPollingService>()
+
+    scope.launch {
+        kontaktInfoPollingService.schedulePolling()
+    }
+
+    scope.launch {
+        kontaktInfoPollingService.pollAndPullKontaktInfo()
+    }
+
+    scope.launch {
+        kontaktInfoPollingService.cleanup()
+    }
 }

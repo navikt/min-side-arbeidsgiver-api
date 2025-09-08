@@ -50,16 +50,12 @@ import no.nav.arbeidsgiver.min_side.services.tokenExchange.ClientAssertionTokenF
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClientImpl
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenXProperties
-import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.SykefraværstatistikkRepository
-import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.SykefraværstatistikkService
+import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.*
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangSoknadService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssøknadClient
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
-import no.nav.arbeidsgiver.min_side.varslingstatus.KontaktInfoPollerRepository
-import no.nav.arbeidsgiver.min_side.varslingstatus.KontaktInfoPollingService
-import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusRepository
-import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusService
+import no.nav.arbeidsgiver.min_side.varslingstatus.*
 import org.slf4j.event.Level
 import java.util.*
 
@@ -89,51 +85,8 @@ fun main() {
             configureDependencies()
             configureRoutes()
 
-            // Kafka consumers
-            val objectMapper = dependencies.resolve<ObjectMapper>()
-            val digisyfoRepository = dependencies.resolve<DigisyfoRepository>()
-            launch {
-                val config = KafkaConsumerConfig(
-                    groupId = "min-side-arbeidsgiver-narmesteleder-model-builder-1",
-                    topics = setOf("teamsykmelding.syfo-narmesteleder-leesah"),
-                )
-                DigisyfoKafkaConsumer(config).consumeMessages { record ->
-                    val hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse::class.java)
-                    digisyfoRepository.processNærmesteLederEvent(hendelse)
-                }
-            }
-            launch {
-                val config = KafkaConsumerConfig(
-                    groupId = "min-side-arbeidsgiver-sykmelding-1",
-                    topics = setOf("teamsykmelding.syfo-sendt-sykmelding"),
-                )
-                DigisyfoKafkaConsumer(config).batchConsumeMessages { records ->
-                    fun getSykmeldingHendelse(value: String?): SykmeldingHendelse? {
-                        return try {
-                            if (value == null) null else objectMapper.readValue(value, SykmeldingHendelse::class.java)
-                        } catch (e: JsonProcessingException) {
-                            throw RuntimeException(e)
-                        }
-                    }
-
-                    val parsedRecords = records
-                        .map {
-                            it.key() to getSykmeldingHendelse(it.value())
-                        }
-                    digisyfoRepository.processSykmeldingEvent(parsedRecords)
-                }
-            }
-
-            // Kontakfinfo polling services
-            launch {
-                dependencies.resolve<KontaktInfoPollingService>().schedulePolling()
-            }
-            launch {
-                dependencies.resolve<KontaktInfoPollingService>().pollAndPullKontaktInfo()
-            }
-            launch {
-                dependencies.resolve<KontaktInfoPollingService>().cleanup()
-            }
+            startKafkaConsumers(this)
+            startKontaktInfoPollingServices(this)
 
             // Maskinporten token refresher
             launch {

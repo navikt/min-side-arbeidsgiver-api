@@ -12,7 +12,6 @@ import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.config.GittMiljø2
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -21,8 +20,6 @@ interface MaskinportenClient {
     suspend fun fetchNewAccessToken(): TokenResponseWrapper
 }
 
-//@Component
-@Profile("dev-gcp", "prod-gcp") //TODO: opprett denne i Applicatipon
 class MaskinportenClientImpl(
     val config: MaskinportenConfig2,
 ) : MaskinportenClient {

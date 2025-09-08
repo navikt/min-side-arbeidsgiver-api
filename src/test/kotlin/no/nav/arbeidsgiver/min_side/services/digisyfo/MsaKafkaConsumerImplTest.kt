@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import java.time.LocalDate
 
-class DigisyfoKafkaConsumerImplTest {
+class MsaKafkaConsumerImplTest {
     val repository = DigisyfoRepositoryStub()
     val objectMapper: ObjectMapper = Jackson2ObjectMapperBuilder().build()
     val kafkaConsumer = DigisyfoKafkaConsumerImpl(objectMapper, repository)
