@@ -248,9 +248,6 @@ fun Application.ktorConfig() {
         mdc("path") { call ->
             call.request.path()
         }
-        mdc("clientId") { call ->
-            call.principal<InnloggetBrukerPrincipal>()?.clientId //TODO: fiks denne når principal er på plass
-        }
         callIdMdc(HttpHeaders.XCorrelationId)
     }
 
