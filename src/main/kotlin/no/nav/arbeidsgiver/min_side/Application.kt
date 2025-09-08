@@ -34,15 +34,15 @@ import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.logger
-import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktInfoService
-import no.nav.arbeidsgiver.min_side.services.kontostatus.KontostatusService
 import no.nav.arbeidsgiver.min_side.maskinporten.*
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.*
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktInfoService
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient
+import no.nav.arbeidsgiver.min_side.services.kontostatus.KontostatusService
 import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
@@ -58,10 +58,9 @@ import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
 import no.nav.arbeidsgiver.min_side.varslingstatus.KontaktInfoPollerRepository
 import no.nav.arbeidsgiver.min_side.varslingstatus.KontaktInfoPollingService
-import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusService
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusRepository
+import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusService
 import org.slf4j.event.Level
-import org.springframework.kafka.listener.BatchListenerFailedException
 import java.util.*
 
 
@@ -98,17 +97,17 @@ fun main() {
                     groupId = "min-side-arbeidsgiver-narmesteleder-model-builder-1",
                     topics = setOf("teamsykmelding.syfo-narmesteleder-leesah"),
                 )
-                DigisyfoKafkaConsumer(config) {
-                    val hendelse = objectMapper.readValue(it.value(), NarmesteLederHendelse::class.java)
+                DigisyfoKafkaConsumer(config).consumeMessages { record ->
+                    val hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse::class.java)
                     digisyfoRepository.processNærmesteLederEvent(hendelse)
-                }.start()
+                }
             }
             launch {
                 val config = KafkaConsumerConfig(
                     groupId = "min-side-arbeidsgiver-sykmelding-1",
                     topics = setOf("teamsykmelding.syfo-sendt-sykmelding"),
                 )
-                DigisyfoKafkaConsumer(config) {
+                DigisyfoKafkaConsumer(config).batchConsumeMessages { records ->
                     fun getSykmeldingHendelse(value: String?): SykmeldingHendelse? {
                         return try {
                             if (value == null) null else objectMapper.readValue(value, SykmeldingHendelse::class.java)
@@ -116,13 +115,12 @@ fun main() {
                             throw RuntimeException(e)
                         }
                     }
-                    val parsedRecords = it
+
+                    val parsedRecords = records
                         .map {
                             it.key() to getSykmeldingHendelse(it.value())
                         }
                     digisyfoRepository.processSykmeldingEvent(parsedRecords)
-                    val hendelse = objectMapper.readValue(it.value(), NarmesteLederHendelse::class.java)
-                    dependencies.resolve<DigisyfoRepository>().processSykmeldingEvent(hendelse)
                 }
             }
 
