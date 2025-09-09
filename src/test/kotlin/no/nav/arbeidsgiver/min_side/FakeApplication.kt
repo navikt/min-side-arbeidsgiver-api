@@ -1,0 +1,114 @@
+package no.nav.arbeidsgiver.min_side
+
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.cio.*
+import io.ktor.server.engine.*
+import io.ktor.server.plugins.calllogging.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.di.*
+import io.ktor.server.request.*
+import io.ktor.server.routing.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import no.nav.arbeidsgiver.min_side.config.logger
+import org.junit.jupiter.api.extension.*
+import org.slf4j.event.Level
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
+
+class FakeApplication(
+    private val port: Int = 0,
+    dependencyConfiguration: DependencyRegistry.() -> Unit
+) : BeforeAllCallback, AfterAllCallback {
+    private val server = embeddedServer(CIO, port = port) {
+        ktorConfig()
+        configureDependencies()
+        dependencies {
+            dependencyConfiguration()
+        }
+    }
+
+    override fun beforeAll(context: ExtensionContext?) {
+        server.start()
+    }
+
+    override fun afterAll(context: ExtensionContext?) {
+        server.stop()
+    }
+}
+
+class FakeApi : BeforeTestExecutionCallback, AfterTestExecutionCallback {
+    val stubs = mutableMapOf<Pair<HttpMethod, String>, (suspend RoutingContext.(Any) -> Unit)>()
+
+    val errors = mutableListOf<Throwable>()
+
+    private val server = embeddedServer(CIO, port = 0) {
+        install(CallLogging) {
+            level = Level.INFO
+        }
+
+        install(ContentNegotiation) {
+            json()
+        }
+
+        routing {
+            get("/internal/isready") {
+                call.response.status(HttpStatusCode.OK)
+            }
+
+            post("{...}") {
+                stubs[HttpMethod.Post to call.request.path()]?.let { handler ->
+                    try {
+                        handler(this)
+                    } catch (e: Exception) {
+                        errors.add(e)
+                        throw e
+                    }
+                } ?: return@post call.response.status(HttpStatusCode.NotFound)
+            }
+
+            get("{...}") {
+                stubs[HttpMethod.Get to call.request.path()]?.let { handler ->
+                    try {
+                        handler(this)
+                    } catch (e: Exception) {
+                        errors.add(e)
+                        throw e
+                    }
+                } ?: return@get call.response.status(HttpStatusCode.NotFound)
+            }
+        }
+    }
+
+    suspend fun ApplicationEngine.waitUntilReady() {
+        val log = logger()
+
+        val client = HttpClient(io.ktor.client.engine.cio.CIO)
+        suspend fun isAlive() = runCatching {
+            val port = resolvedConnectors().first().port
+            client.get("http://localhost:$port/internal/isready").status == HttpStatusCode.OK
+        }.getOrElse {
+            log.warn("not alive yet: $it", it)
+            false
+        }
+
+        while (!isAlive()) {
+            delay(100)
+        }
+    }
+
+    override fun beforeTestExecution(context: ExtensionContext?) {
+        runBlocking {
+            server.start(wait = false)
+            server.engine.waitUntilReady()
+
+        }
+    }
+
+
+    override fun afterTestExecution(context: ExtensionContext?) {
+        server.stop()
+    }
+}

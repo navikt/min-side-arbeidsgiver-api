@@ -1,5 +1,9 @@
 package no.nav.arbeidsgiver.min_side.controller
 
+import no.nav.arbeidsgiver.min_side.Database
+import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabase
+import no.nav.arbeidsgiver.min_side.DatabaseConfig
+import no.nav.arbeidsgiver.min_side.FakeApplication
 import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.BeforeEach
@@ -15,22 +19,16 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@SpringBootTest(
-    properties = [
-        "server.servlet.context-path=/",
-        "spring.flyway.cleanDisabled=false",
-    ]
-)
-@AutoConfigureMockMvc
+
 class LagredeFilterIntegrationTest {
-    @Autowired
-    lateinit var mockMvc: MockMvc
+    val testDatabaseConfig = DatabaseConfig(
+        jdbcUrl = "jdbc:postgresql://localhost:2345/?password=postgres&user=postgres",
+        migrationLocation = "db/migration"
+    )
 
-    @MockitoBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
-    lateinit var jwtDecoder: JwtDecoder
-
-    @Autowired
-    lateinit var flyway: Flyway
+    val app = FakeApplication(0) {
+        provide<Database> { openDatabase(testDatabaseConfig) }
+    }
 
     @BeforeEach
     fun setup() {
