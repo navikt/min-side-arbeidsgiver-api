@@ -138,7 +138,7 @@ data class DatabaseConfig(
 ) {
     fun asHikariConfig(): HikariConfig {
         return HikariConfig().apply {
-            jdbcUrl = jdbcUrl
+            jdbcUrl = this@DatabaseConfig.jdbcUrl
             driverClassName = "org.postgresql.Driver"
             metricRegistry = MetricRegistry()
             minimumIdle = 1

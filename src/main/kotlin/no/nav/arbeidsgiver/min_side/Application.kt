@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -31,6 +32,9 @@ import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabase
 import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
+import no.nav.arbeidsgiver.min_side.config.Environment
+import no.nav.arbeidsgiver.min_side.config.GittMiljø2
+import no.nav.arbeidsgiver.min_side.config.MsaJwtVerifier
 import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.maskinporten.*
@@ -61,24 +65,6 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
 import java.util.*
 
 
-private val databaseConfig = DatabaseConfig(
-    jdbcUrl = System.getenv("JDBC_DATABASE_URL"), // fix this based on env
-    migrationLocation = "classpath:db/migration"
-)
-
-private val maskinportenConfig = MaskinportenConfig2(
-    scopes = System.getenv("MASKINPORTEN_SCOPES"),
-    wellKnownUrl = System.getenv("MASKINPORTEN_WELL_KNOWN_URL"),
-    clientId = System.getenv("MASKINPORTEN_CLIENT_ID"),
-    clientJwk = System.getenv("MASKINPORTEN_CLIENT_JWK"),
-)
-
-private val azureAdConfig = AzureAdConfig(
-    openidTokenEndpoint = System.getenv("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
-    clientId = System.getenv("AZURE_APP_CLIENT_ID"),
-    clientSecret = System.getenv("AZURE_APP_CLIENT_SECRET"),
-)
-
 fun main() {
     runBlocking(Dispatchers.Default) {
         embeddedServer(CIO, port = 8080, host = "0.0.0.0") {
@@ -99,6 +85,7 @@ fun main() {
 }
 
 fun Application.configureRoutes() {
+    install(IgnoreTrailingSlash)
     routing {
         authenticate("jwt") {
             // Kontaktinfo
@@ -126,6 +113,7 @@ fun Application.configureRoutes() {
 
             // Lagrede filter
             get("/api/lagredeFilter") {
+                val service = dependencies.resolve<LagredeFilterService>()
                 call.respond(
                     dependencies.resolve<LagredeFilterService>()
                         .getAll(authenticatedUserHolder = AuthenticatedUserHolder(call))
@@ -138,7 +126,6 @@ fun Application.configureRoutes() {
                 )
             }
             delete("/api/lagredeFilter/{filterId}") {
-
                 call.respond(
                     dependencies.resolve<LagredeFilterService>().delete(
                         call.parameters["filterId"]!!,
@@ -157,13 +144,16 @@ fun Application.configureRoutes() {
 
             // Refusjon status
             get("/api/refusjon_status") {
-                call.respond(dependencies.resolve<RefusjonStatusService>().statusoversikt(AuthenticatedUserHolder(call)))
+                call.respond(
+                    dependencies.resolve<RefusjonStatusService>().statusoversikt(AuthenticatedUserHolder(call))
+                )
             }
 
             // Sykefraværstatistikk
             get("/api/sykefravaerstatistikk/{orgnr}") {
                 call.respond(
-                    dependencies.resolve<SykefraværstatistikkService>().getStatistikk(call.parameters["orgnr"]!!, AuthenticatedUserHolder(call))
+                    dependencies.resolve<SykefraværstatistikkService>()
+                        .getStatistikk(call.parameters["orgnr"]!!, AuthenticatedUserHolder(call))
                 )
             }
 
@@ -189,13 +179,34 @@ fun Application.configureRoutes() {
 
             // Varsling status
             post("/api/varslingStatus/v1") {
-                call.respond(dependencies.resolve<VarslingStatusService>().getVarslingStatus(call.receive(), AuthenticatedUserHolder(call)))
+                call.respond(
+                    dependencies.resolve<VarslingStatusService>()
+                        .getVarslingStatus(call.receive(), AuthenticatedUserHolder(call))
+                )
             }
         }
     }
 }
 
 fun Application.configureDependencies() {
+    val databaseConfig = DatabaseConfig(
+        jdbcUrl = System.getenv("JDBC_DATABASE_URL"), // fix this based on env
+        migrationLocation = "classpath:db/migration"
+    )
+
+    val maskinportenConfig = MaskinportenConfig2(
+        scopes = System.getenv("MASKINPORTEN_SCOPES"),
+        wellKnownUrl = System.getenv("MASKINPORTEN_WELL_KNOWN_URL"),
+        clientId = System.getenv("MASKINPORTEN_CLIENT_ID"),
+        clientJwk = System.getenv("MASKINPORTEN_CLIENT_JWK"),
+    )
+
+    val azureAdConfig = AzureAdConfig(
+        openidTokenEndpoint = System.getenv("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+        clientId = System.getenv("AZURE_APP_CLIENT_ID"),
+        clientSecret = System.getenv("AZURE_APP_CLIENT_SECRET"),
+    )
+
     dependencies {
         provide<Database> { openDatabase(databaseConfig) }
 
@@ -294,13 +305,9 @@ fun Application.ktorConfig() {
     }
 
     install(Authentication) {
-        jwt {
+        jwt("jwt") {
             verifier(
-                JWT
-                    .require(Algorithm.HMAC256("secret"))
-                    .withIssuer(System.getenv("TOKEN_X_ISSUER"))
-                    .withAudience(System.getenv("TOKEN_X_CLIENT_ID"))
-                    .build()
+                MsaJwtVerifier()
             )
             validate {
                 val validAcrClaims = listOf("Level4", "idporten-loa-high")
@@ -349,6 +356,6 @@ fun Application.ktorConfig() {
     }
 
     install(ContentNegotiation) {
-        json()
+        jackson()
     }
 }

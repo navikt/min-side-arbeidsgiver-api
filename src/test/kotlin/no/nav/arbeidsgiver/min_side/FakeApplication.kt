@@ -10,24 +10,39 @@ import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.di.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import no.nav.arbeidsgiver.min_side.config.MsaJwtVerifier
 import no.nav.arbeidsgiver.min_side.config.logger
 import org.junit.jupiter.api.extension.*
 import org.slf4j.event.Level
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
 
 class FakeApplication(
-    private val port: Int = 0,
+    port: Int = 0,
     dependencyConfiguration: DependencyRegistry.() -> Unit
 ) : BeforeAllCallback, AfterAllCallback {
-    private val server = embeddedServer(CIO, port = port) {
+    private val server = embeddedServer(CIO, port = port, host = "localhost") {
         ktorConfig()
-        configureDependencies()
+        configureRoutes()
+        routing {
+            get("/tokenIntrospection") {
+                call.respond(MsaJwtVerifier.TokenIntrospectionResponse(active = true, null))
+            }
+        }
         dependencies {
             dependencyConfiguration()
         }
+    }
+
+    fun start() {
+        server.start(wait = false)
+    }
+
+    fun stop() {
+        server.stop()
     }
 
     override fun beforeAll(context: ExtensionContext?) {

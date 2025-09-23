@@ -59,6 +59,11 @@ class Environment {
                 dev = { System.getenv("TOKEN_X_TOKEN_ENDPOINT") },
                 other = { "http://fake/token" }
             )
+            val tokenIntrospecionEndpint = GittMiljø2.resolve(
+                prod = { System.getenv("NAIS_TOKEN_INTROSPECTION_ENDPOINT") },
+                dev = { System.getenv("NAIS_TOKEN_INTROSPECTION_ENDPOINT") },
+                other = { "http://localhost:8080/tokenIntrospection" }
+            )
         }
     }
 }

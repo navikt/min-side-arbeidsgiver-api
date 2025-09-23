@@ -10,6 +10,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import io.ktor.util.*
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
@@ -17,9 +18,7 @@ import io.micrometer.core.instrument.Timer
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.serialization.json.Json
 import org.slf4j.MDC
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
 import java.io.EOFException
 import java.util.*
 import javax.net.ssl.SSLHandshakeException
@@ -40,7 +39,7 @@ fun defaultHttpClient(
         expectSuccess = true
 
         install(ContentNegotiation) {
-            json()
+            jackson()
         }
 
         install(HttpClientMetricsFeature) {
