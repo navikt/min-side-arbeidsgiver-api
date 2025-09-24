@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.controller
 
-import com.nimbusds.jose.util.Base64URL
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -55,25 +54,27 @@ class LagredeFilterIntegrationTest {
         app.stop()
     }
 
-
     @OptIn(ExperimentalEncodingApi::class)
     fun fakeToken(pid: String): String {
         val header = """
             {
-                alg: "HS256",
-                type: "JWT"
+                "alg": "HS256",
+                "typ": "JWT"
             }
         """.trimIndent()
         val payload = """
             {
               "active": true,
               "pid": "$pid",
-              "acr": "idporten-loa-high"              
+              "acr": "idporten-loa-high"
             }
             """.trimIndent()
-        val signature = "secret"
+        val secret = "secret"
 
-        val value = "${Base64URL.encode(header.encodeToByteArray())}.${Base64URL.encode(payload.encodeToByteArray())}.${Base64URL.encode(signature.encodeToByteArray())}"
+        fun String.b64Url(): String =
+            Base64.UrlSafe.encode(this.encodeToByteArray()).trimEnd('=')
+
+        val value = "${header.b64Url()}.${payload.b64Url()}.${secret.b64Url()}"
         return value
     }
 

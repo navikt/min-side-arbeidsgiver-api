@@ -11,7 +11,7 @@ class AuthenticatedUserHolder(private val call: ApplicationCall) {
     val token: String
         get() = call.request.headers["Authorization"]?.removePrefix("Bearer ") ?: throw RuntimeException("No Authorization header found")
 
-    private val jwt: JWTCredential
-        get() = call.principal<JWTCredential>()
+    private val jwt: JWTPrincipal
+        get() = call.principal<JWTPrincipal>()
             ?: throw RuntimeException("No valid JWT token found")
 }
