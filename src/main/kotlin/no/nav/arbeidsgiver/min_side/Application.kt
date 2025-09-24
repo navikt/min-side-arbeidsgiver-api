@@ -4,6 +4,8 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -326,32 +328,25 @@ fun Application.ktorConfig() {
     }
 
     install(StatusPages) {
-        exception<BadRequestException> { call, ex ->
-            log.warn("unhandled exception in ktor pipeline: {}", ex::class.qualifiedName, ex)
-            call.respond(
-                HttpStatusCode.InternalServerError, mapOf(
-                    "error" to "unexpected error",
+        exception<Throwable> { call, cause ->
+            when (cause) {
+                is IllegalArgumentException,
+                is BadRequestException -> call.respondText(
+                    text = "${HttpStatusCode.BadRequest}: $cause",
+                    status = HttpStatusCode.BadRequest
                 )
-            )
-        }
 
-        exception<JsonProcessingException> { call, ex ->
-            ex.clearLocation()
-            log.error("unhandled exception in ktor pipeline: {}", ex::class.qualifiedName, ex)
-            call.respond(
-                HttpStatusCode.InternalServerError, mapOf(
-                    "error" to "unexpected error",
-                )
-            )
-        }
+                is HttpRequestTimeoutException,
+                is ConnectTimeoutException -> {
+                    log.warn("Unexpected exception at ktor-toplevel: {}", cause.javaClass.canonicalName, cause)
+                    call.response.status(HttpStatusCode.InternalServerError)
+                }
 
-        exception<Throwable> { call, ex ->
-            log.error("unhandled exception in ktor pipeline: {}", ex::class.qualifiedName, ex)
-            call.respond(
-                HttpStatusCode.InternalServerError, mapOf(
-                    "error" to "unexpected error",
-                )
-            )
+                else -> {
+                    log.error("Unexpected exception at ktor-toplevel: {}", cause.javaClass.canonicalName, cause)
+                    call.response.status(HttpStatusCode.InternalServerError)
+                }
+            }
         }
     }
 
