@@ -1,6 +1,7 @@
 package no.nav.arbeidsgiver.min_side
 
 import io.ktor.client.*
+import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -19,6 +20,8 @@ import no.nav.arbeidsgiver.min_side.config.logger
 import org.junit.jupiter.api.extension.*
 import org.slf4j.event.Level
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class FakeApplication(
     port: Int = 0,
@@ -36,22 +39,29 @@ class FakeApplication(
             dependencyConfiguration()
         }
     }
-
-    fun start() {
-        server.start(wait = false)
-    }
-
-    fun stop() {
-        server.stop()
-    }
+    private val testContext = TestContext()
 
     override fun beforeAll(context: ExtensionContext?) {
-        server.start()
+        server.start(wait = false)
     }
 
     override fun afterAll(context: ExtensionContext?) {
         server.stop()
     }
+
+
+
+    fun runTest(block: suspend TestContext.() -> Unit) = runBlocking {
+        block(testContext)
+    }
+}
+
+class TestContext{
+    val client = defaultHttpClient(configure = {
+        install(DefaultRequest) {
+            url("http://localhost:8080")
+        }
+    })
 }
 
 class FakeApi : BeforeTestExecutionCallback, AfterTestExecutionCallback {
@@ -126,4 +136,28 @@ class FakeApi : BeforeTestExecutionCallback, AfterTestExecutionCallback {
     override fun afterTestExecution(context: ExtensionContext?) {
         server.stop()
     }
+}
+
+@OptIn(ExperimentalEncodingApi::class)
+fun fakeToken(pid: String): String {
+    val header = """
+            {
+                "alg": "HS256",
+                "typ": "JWT"
+            }
+        """.trimIndent()
+    val payload = """
+            {
+              "active": true,
+              "pid": "$pid",
+              "acr": "idporten-loa-high"
+            }
+            """.trimIndent()
+    val secret = "secret"
+
+    fun String.b64Url(): String =
+        Base64.UrlSafe.encode(this.encodeToByteArray()).trimEnd('=')
+
+    val value = "${header.b64Url()}.${payload.b64Url()}.${secret.b64Url()}"
+    return value
 }

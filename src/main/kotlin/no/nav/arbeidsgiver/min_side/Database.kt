@@ -15,8 +15,8 @@ import java.time.*
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-class Database private constructor(private val config: DatabaseConfig) : AutoCloseable {
-    private val dataSource = HikariDataSource(config.asHikariConfig())
+open class Database protected constructor(protected val config: DatabaseConfig) : AutoCloseable {
+    protected val dataSource = HikariDataSource(config.asHikariConfig())
 
     private fun migrate() {
         Flyway.configure()
