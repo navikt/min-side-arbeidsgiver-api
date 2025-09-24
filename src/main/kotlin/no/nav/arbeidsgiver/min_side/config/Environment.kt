@@ -26,7 +26,7 @@ class Environment {
             val altinnApiBaseUrl = GittMiljø2.resolve(
                 prod = { "https://www.altinn.no" },
                 dev = { "https://tt02.altinn.no" },
-                other = { "http://altinn.example.org" }
+                other = { "http://localhost:8081" }
             )
 
             val altinnHeader = GittMiljø2.resolve(
@@ -62,7 +62,7 @@ class Environment {
             val tokenIntrospecionEndpint = GittMiljø2.resolve(
                 prod = { System.getenv("NAIS_TOKEN_INTROSPECTION_ENDPOINT") },
                 dev = { System.getenv("NAIS_TOKEN_INTROSPECTION_ENDPOINT") },
-                other = { "http://localhost:8080/tokenIntrospection" }
+                other = { "http://localhost:8081/tokenIntrospection" }
             )
         }
     }

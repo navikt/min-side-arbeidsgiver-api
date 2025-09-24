@@ -3,6 +3,7 @@ package no.nav.arbeidsgiver.min_side.controller
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import no.nav.arbeidsgiver.min_side.FakeApi
 import no.nav.arbeidsgiver.min_side.FakeApplication
 import no.nav.arbeidsgiver.min_side.fakeToken
 import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
@@ -14,9 +15,11 @@ import org.skyscreamer.jsonassert.JSONAssert.assertEquals
 class LagredeFilterIntegrationTest {
     companion object {
         @RegisterExtension
-        val app = FakeApplication(8080, withDatabase = true) {
+        val app = FakeApplication(withDatabase = true) {
             provide<LagredeFilterService>(LagredeFilterService::class)
         }
+        @RegisterExtension
+        val fakeApi = FakeApi() // Brukes som mock token introspection server
     }
 
 

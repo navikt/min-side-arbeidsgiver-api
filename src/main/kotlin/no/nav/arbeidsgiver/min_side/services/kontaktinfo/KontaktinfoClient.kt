@@ -26,15 +26,14 @@ class KontaktinfoClient(
 
     suspend fun hentKontaktinfo(orgnr: String): Kontaktinfo {
         val officialContactsResponse = client.request(
-            "$altinnApiBaseUrl/api/serviceowner/organizations/{organizationNumber}/officialcontacts?ForceEIAuthentication"
+            "$altinnApiBaseUrl/api/serviceowner/organizations/${orgnr}/officialcontacts?ForceEIAuthentication"
         ) {
             method = HttpMethod.Get
             header("apiKey", altinnApiKey)
             bearerAuth(maskinportenTokenService.currentAccessToken())
-            parameter("organizationNumber", orgnr)
         }
         if (officialContactsResponse.status != HttpStatusCode.OK) {
-            throw RuntimeException("serviceowner/organizations/{orgnr}/officialcontacts returned ${officialContactsResponse.status}")
+            throw RuntimeException("serviceowner/organizations/{$orgnr}/officialcontacts returned ${officialContactsResponse.status}")
         }
         val officialContacts = officialContactsResponse.body<List<ContactInfoDTO>>()
 

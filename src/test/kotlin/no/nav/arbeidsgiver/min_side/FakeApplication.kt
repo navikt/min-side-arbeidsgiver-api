@@ -5,6 +5,7 @@ import io.ktor.client.*
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
@@ -25,20 +26,14 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 class FakeApplication(
-    port: Int = 0,
     withDatabase: Boolean = false,
     dependencyConfiguration: DependencyRegistry.() -> Unit
 ) : BeforeAllCallback, AfterAllCallback {
     private var database: TestDatabase? = null
 
-    private val server = embeddedServer(CIO, port = port, host = "localhost") {
+    private val server = embeddedServer(CIO, port = 8080, host = "localhost") {
         ktorConfig()
         configureRoutes()
-        routing {
-            get("/tokenIntrospection") {
-                call.respond(MsaJwtVerifier.TokenIntrospectionResponse(active = true, null))
-            }
-        }
         dependencies {
             if (withDatabase) {
                 database = TestDatabase()
@@ -51,6 +46,14 @@ class FakeApplication(
     }
     private val testContext = TestContext()
 
+    internal suspend inline fun <reified T> getDependency(): T {
+        return this.server.application.dependencies.resolve<T>()
+    }
+
+    fun runTest(block: suspend TestContext.() -> Unit) = runBlocking {
+        block(testContext)
+    }
+
     override fun beforeAll(context: ExtensionContext?) {
         server.start(wait = false)
     }
@@ -59,38 +62,37 @@ class FakeApplication(
         database?.clean()
         server.stop()
     }
-
-
-    fun runTest(block: suspend TestContext.() -> Unit) = runBlocking {
-        block(testContext)
-    }
 }
 
 class TestContext {
     val client = defaultHttpClient(configure = {
         install(DefaultRequest) {
-            url("http://localhost:8080")
+            url("http://localhost:8080") // Default port for FakeApi
         }
     })
 }
 
-class FakeApi : BeforeTestExecutionCallback, AfterTestExecutionCallback {
+class FakeApi : BeforeAllCallback, AfterAllCallback {
     val stubs = mutableMapOf<Pair<HttpMethod, String>, (suspend RoutingContext.(Any) -> Unit)>()
 
     val errors = mutableListOf<Throwable>()
 
-    private val server = embeddedServer(CIO, port = 0) {
+    private val server = embeddedServer(CIO, port = 8081, host = "localhost") {
         install(CallLogging) {
             level = Level.INFO
         }
 
         install(ContentNegotiation) {
-            json()
+            jackson()
         }
 
         routing {
             get("/internal/isready") {
                 call.response.status(HttpStatusCode.OK)
+            }
+
+            get("/tokenIntrospection") {
+                call.respond(MsaJwtVerifier.TokenIntrospectionResponse(active = true, null))
             }
 
             post("{...}") {
@@ -134,16 +136,14 @@ class FakeApi : BeforeTestExecutionCallback, AfterTestExecutionCallback {
         }
     }
 
-    override fun beforeTestExecution(context: ExtensionContext?) {
+    override fun beforeAll(context: ExtensionContext?) {
         runBlocking {
             server.start(wait = false)
             server.engine.waitUntilReady()
-
         }
     }
 
-
-    override fun afterTestExecution(context: ExtensionContext?) {
+    override fun afterAll(context: ExtensionContext?) {
         server.stop()
     }
 }

@@ -1,11 +1,8 @@
 package no.nav.arbeidsgiver.min_side
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
-import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.ktor.client.network.sockets.ConnectTimeoutException
-import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.network.sockets.*
+import io.ktor.client.plugins.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -34,8 +31,6 @@ import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabase
 import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
-import no.nav.arbeidsgiver.min_side.config.Environment
-import no.nav.arbeidsgiver.min_side.config.GittMiljø2
 import no.nav.arbeidsgiver.min_side.config.MsaJwtVerifier
 import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
@@ -63,7 +58,6 @@ import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
 import no.nav.arbeidsgiver.min_side.varslingstatus.*
 import org.slf4j.event.Level
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
 import java.util.*
 
 
@@ -225,6 +219,8 @@ fun Application.configureDependencies() {
         provide<DigisyfoRepository>(DigisyfoRepositoryImpl::class)
         provide(DigisyfoService::class)
         provide<SykmeldingRepository>(SykmeldingRepositoryImpl::class)
+
+        provide<UserInfoService>(UserInfoService::class)
 
         provide<EregClient>(EregClient::class)
         provide<EregService>(EregService::class)
