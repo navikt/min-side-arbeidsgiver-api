@@ -1,14 +1,11 @@
 package no.nav.arbeidsgiver.min_side.controller
 
-import TestDatabase
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.Database
 import no.nav.arbeidsgiver.min_side.FakeApplication
 import no.nav.arbeidsgiver.min_side.fakeToken
 import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.skyscreamer.jsonassert.JSONAssert.assertEquals
@@ -17,11 +14,7 @@ import org.skyscreamer.jsonassert.JSONAssert.assertEquals
 class LagredeFilterIntegrationTest {
     companion object {
         @RegisterExtension
-        val database = TestDatabase()
-
-        @RegisterExtension
-        val app = FakeApplication(8080) {
-            provide<Database> { database }
+        val app = FakeApplication(8080, withDatabase = true) {
             provide<LagredeFilterService>(LagredeFilterService::class)
         }
     }

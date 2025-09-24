@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side
 
+import TestDatabase
 import io.ktor.client.*
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.request.*
@@ -25,8 +26,11 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 
 class FakeApplication(
     port: Int = 0,
+    withDatabase: Boolean = false,
     dependencyConfiguration: DependencyRegistry.() -> Unit
 ) : BeforeAllCallback, AfterAllCallback {
+    private var database: TestDatabase? = null
+
     private val server = embeddedServer(CIO, port = port, host = "localhost") {
         ktorConfig()
         configureRoutes()
@@ -36,6 +40,12 @@ class FakeApplication(
             }
         }
         dependencies {
+            if (withDatabase) {
+                database = TestDatabase()
+                database!!.migrate()
+                provide<Database> { database!! }
+            }
+
             dependencyConfiguration()
         }
     }
@@ -46,9 +56,9 @@ class FakeApplication(
     }
 
     override fun afterAll(context: ExtensionContext?) {
+        database?.clean()
         server.stop()
     }
-
 
 
     fun runTest(block: suspend TestContext.() -> Unit) = runBlocking {
@@ -56,7 +66,7 @@ class FakeApplication(
     }
 }
 
-class TestContext{
+class TestContext {
     val client = defaultHttpClient(configure = {
         install(DefaultRequest) {
             url("http://localhost:8080")
