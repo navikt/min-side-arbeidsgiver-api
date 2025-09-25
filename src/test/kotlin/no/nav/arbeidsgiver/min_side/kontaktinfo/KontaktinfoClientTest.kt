@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.kontaktinfo
 
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.*
 import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.response.*
@@ -113,7 +114,7 @@ class KontaktinfoClientTest {
     fun organisasjonFinnesIkke(): Unit = app.runTest {
         fakeApi.stubs.put(
             Pair(
-                io.ktor.http.HttpMethod.Get,
+                HttpMethod.Get,
                 "/api/serviceowner/organizations/1/officialcontacts"
             ),
             { call.respond(HttpStatusCode.BadRequest) }
@@ -127,9 +128,10 @@ class KontaktinfoClientTest {
 
         /* Hvis orgnr ikke finnes får man responsen:
          * HTTP/1.1 400 Invalid organization number: 0000000 */
-        assertThrows<HttpClientErrorException.BadRequest> {
+        val e = assertThrows<ClientRequestException> {
             app.getDependency<KontaktinfoClient>().hentKontaktinfo("1")
         }
+        assert(e.response.status == HttpStatusCode.BadRequest)
     }
 
     private fun mockKontaktinfoResponse(orgnr: String, response: String) =
@@ -140,6 +142,7 @@ class KontaktinfoClientTest {
             ),
             {
                 assertNotNull(call.request.queryParameters)
+                call.response.headers.append(HttpHeaders.ContentType, "application/json")
                 call.respond(response)
             }
         )
