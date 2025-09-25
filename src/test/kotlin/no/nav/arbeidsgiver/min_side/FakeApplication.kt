@@ -21,13 +21,12 @@ import no.nav.arbeidsgiver.min_side.config.MsaJwtVerifier
 import no.nav.arbeidsgiver.min_side.config.logger
 import org.junit.jupiter.api.extension.*
 import org.slf4j.event.Level
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 class FakeApplication(
-    withDatabase: Boolean = false,
-    dependencyConfiguration: DependencyRegistry.() -> Unit
+    addDatabase: Boolean = false,
+    configure: Application.() -> Unit
 ) : BeforeAllCallback, AfterAllCallback {
     private var database: TestDatabase? = null
 
@@ -35,14 +34,13 @@ class FakeApplication(
         ktorConfig()
         configureRoutes()
         dependencies {
-            if (withDatabase) {
+            if (addDatabase) {
                 database = TestDatabase()
                 database!!.migrate()
                 provide<Database> { database!! }
             }
-
-            dependencyConfiguration()
         }
+        configure()
     }
     private val testContext = TestContext()
 

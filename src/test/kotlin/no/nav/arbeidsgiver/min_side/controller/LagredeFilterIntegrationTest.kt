@@ -3,6 +3,7 @@ package no.nav.arbeidsgiver.min_side.controller
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.plugins.di.dependencies
 import no.nav.arbeidsgiver.min_side.FakeApi
 import no.nav.arbeidsgiver.min_side.FakeApplication
 import no.nav.arbeidsgiver.min_side.fakeToken
@@ -15,9 +16,12 @@ import org.skyscreamer.jsonassert.JSONAssert.assertEquals
 class LagredeFilterIntegrationTest {
     companion object {
         @RegisterExtension
-        val app = FakeApplication(withDatabase = true) {
-            provide<LagredeFilterService>(LagredeFilterService::class)
+        val app = FakeApplication(addDatabase = true) {
+            dependencies {
+                provide<LagredeFilterService>(LagredeFilterService::class)
+            }
         }
+
         @RegisterExtension
         val fakeApi = FakeApi() // Brukes som mock token introspection server
     }
@@ -29,7 +33,7 @@ class LagredeFilterIntegrationTest {
             bearerAuth(fakeToken("42"))
         }.let {
             assert(it.status == HttpStatusCode.OK)
-            assertEquals("[]",it.bodyAsText(), true)
+            assertEquals("[]", it.bodyAsText(), true)
         }
     }
 

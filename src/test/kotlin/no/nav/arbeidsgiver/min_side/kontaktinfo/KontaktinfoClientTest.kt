@@ -1,9 +1,8 @@
 package no.nav.arbeidsgiver.min_side.kontaktinfo
 
 import io.ktor.http.*
-import io.ktor.server.request.uri
+import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.response.*
-import io.ktor.server.util.url
 import no.nav.arbeidsgiver.min_side.FakeApi
 import no.nav.arbeidsgiver.min_side.FakeApplication
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
@@ -25,10 +24,12 @@ class KontaktinfoClientTest {
     companion object {
         @RegisterExtension
         val app = FakeApplication(
-            withDatabase = true,
+            addDatabase = true,
         ) {
-            provide<KontaktinfoClient>(KontaktinfoClient::class)
-            provide<MaskinportenTokenService>(MaskinportenTokenServiceStub::class)
+            dependencies {
+                provide<KontaktinfoClient>(KontaktinfoClient::class)
+                provide<MaskinportenTokenService>(MaskinportenTokenServiceStub::class)
+            }
         }
 
         @RegisterExtension

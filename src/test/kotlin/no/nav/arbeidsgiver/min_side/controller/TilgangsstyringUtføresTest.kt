@@ -1,37 +1,16 @@
 package no.nav.arbeidsgiver.min_side.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import no.nav.arbeidsgiver.min_side.FakeApi
 import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import no.nav.arbeidsgiver.min_side.services.digisyfo.*
-import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
-import no.nav.arbeidsgiver.min_side.services.ereg.EregService
-import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktInfoService
-import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
-import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient
-import no.nav.arbeidsgiver.min_side.services.kontostatus.KontostatusService
-import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
-import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
-import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
-import no.nav.arbeidsgiver.min_side.services.tokenExchange.ClientAssertionTokenFactory
-import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
-import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClientImpl
-import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenXProperties
-import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.SykefraværstatistikkRepository
-import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.SykefraværstatistikkService
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangSoknadService
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssøknadClient
-import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
-import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
-import no.nav.arbeidsgiver.min_side.varslingstatus.KontaktInfoPollerRepository
-import no.nav.arbeidsgiver.min_side.varslingstatus.KontaktInfoPollingService
-import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusRepository
-import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
@@ -39,50 +18,24 @@ import org.junit.jupiter.api.extension.RegisterExtension
 class TilgangsstyringUtføresTest { //TODO: skirv om denne
     companion object {
         @RegisterExtension
-        val app = FakeApplication(withDatabase = true) {
-            provide<UserInfoService>(UserInfoService::class)
-            provide(ObjectMapper::class)
-            provide(AltinnService::class)
-
-            provide(DigisyfoService::class)
-            provide<DigisyfoRepository>(DigisyfoRepositoryImpl::class)
-            provide<SykmeldingRepository>(SykmeldingRepositoryImpl::class)
-
-            provide<EregClient>(EregClient::class)
-            provide<EregService>(EregService::class)
-
-            provide<KontaktInfoService>(KontaktInfoService::class)
-            provide<KontaktinfoClient>(KontaktinfoClient::class)
-
-            provide<KontostatusService>(KontostatusService::class)
-            provide<KontoregisterClient>(KontoregisterClient::class)
-
-            provide<LagredeFilterService>(LagredeFilterService::class)
-
-            provide<RefusjonStatusService>(RefusjonStatusService::class)
-            provide<RefusjonStatusRepository>(RefusjonStatusRepository::class)
-
-            provide<TokenXProperties>(TokenXProperties::class)
-            provide<TokenExchangeClient>(TokenExchangeClientImpl::class)
-            provide<ClientAssertionTokenFactory>(ClientAssertionTokenFactory::class) //TODO: remove this?
-
-            provide<SykefraværstatistikkService>(SykefraværstatistikkService::class)
-            provide<SykefraværstatistikkRepository>(SykefraværstatistikkRepository::class)
-
-            provide<AltinnTilgangssøknadClient>(AltinnTilgangssøknadClient::class)
-            provide<AltinnTilgangSoknadService>(AltinnTilgangSoknadService::class)
-            provide<AltinnRollerClient>(AltinnRollerClient::class)
-
-            provide<KontaktInfoPollerRepository>(KontaktInfoPollerRepository::class)
-            provide<KontaktInfoPollingService>(KontaktInfoPollingService::class)
-            provide<VarslingStatusService>(VarslingStatusService::class)
-            provide<VarslingStatusRepository>(VarslingStatusRepository::class)
+        val app = FakeApplication(addDatabase = true) {
+            routing {
+                authenticate("jwt") {
+                    get("/api/testauth"){
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+            }
         }
+        @RegisterExtension
+        val fakeApi = FakeApi()
     }
 
     @Test
     fun tilgangsstyringUtføres() = app.runTest {
-        client.get("/api/userInfo/v3")
+        client.get("/api/testauth"){
+            expectSuccess = false
+        }
             .let { response ->
                 assert(response.status == HttpStatusCode.Unauthorized)
             }
@@ -91,7 +44,7 @@ class TilgangsstyringUtføresTest { //TODO: skirv om denne
     @Test
     fun tilgangsstyringErOkForAcrLevel4() = app.runTest {
         val token = client.token(ACR.LEVEL4)
-        client.get("/api/userInfo/v3") {
+        client.get("/api/testauth") {
             bearerAuth(token)
         }
             .let { response ->
@@ -102,7 +55,7 @@ class TilgangsstyringUtføresTest { //TODO: skirv om denne
     @Test
     fun tilgangsstyringErOkForAcridportenLoaHigh() = app.runTest {
         val token = client.token(ACR.IDPORTEN_LOA_HIGH)
-        client.get("/api/userInfo/v3") {
+        client.get("/api/testauth") {
             bearerAuth(token)
         }
             .let { response ->
@@ -136,6 +89,6 @@ private val subjectToken =
  * Dette har jeg ikke fått til å fungere. Derfor er det en hardkodede verdier i JSON_CONFIG og en switch på acr requestParam
  */
 private enum class ACR(val value: String) {
-    LEVEL4("Level4"), IDPORTEN_LOA_HIGH("idporten-loa-high")
+    LEVEL4("Level4"), IDPORTEN_LOA_HIGH("idporten-loa-high"), LEVEL3("Level3")
 }
 
