@@ -67,7 +67,7 @@ class Environment {
             val tokenEndpoint = GittMiljø2.resolve(
                 prod = { System.getenv("TOKEN_X_TOKEN_ENDPOINT") },
                 dev = { System.getenv("TOKEN_X_TOKEN_ENDPOINT") },
-                other = { "http://fake/token" }
+                other = { "http://localhost:8081/token" }
             )
             val tokenIntrospecionEndpint = GittMiljø2.resolve(
                 prod = { System.getenv("NAIS_TOKEN_INTROSPECTION_ENDPOINT") },
