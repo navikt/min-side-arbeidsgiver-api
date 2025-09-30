@@ -6,9 +6,7 @@ import io.ktor.http.*
 import io.ktor.server.plugins.di.*
 import no.nav.arbeidsgiver.min_side.FakeApi
 import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.FakeAuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.fakeToken
-import no.nav.arbeidsgiver.min_side.kotlinAny
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension

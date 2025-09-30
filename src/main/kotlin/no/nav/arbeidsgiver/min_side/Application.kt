@@ -163,10 +163,10 @@ fun Application.configureRoutes() {
             }
             post("/api/altinn-tilgangssoknad") {
                 val authenticatedUserHolder = AuthenticatedUserHolderImpl(call)
-                call.respond(
-                    dependencies.resolve<AltinnTilgangSoknadService>()
-                        .sendSøknadOmTilgang(call.receive(), fnr = authenticatedUserHolder.fnr, token = authenticatedUserHolder.token)
-                )
+                val result = dependencies.resolve<AltinnTilgangSoknadService>()
+                    .sendSøknadOmTilgang(call.receive(), fnr = authenticatedUserHolder.fnr, token = authenticatedUserHolder.token)
+                call.response.status(result.status)
+                result.body?.let { call.respond(it) }
             }
 
             // Userinfo
