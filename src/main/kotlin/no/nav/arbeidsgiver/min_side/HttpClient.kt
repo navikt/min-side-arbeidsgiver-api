@@ -36,7 +36,7 @@ fun defaultHttpClient(
     }
 
     return HttpClient(CIO) {
-        expectSuccess = true
+        expectSuccess = false
 
         install(ContentNegotiation) {
             jackson()

@@ -1,117 +1,114 @@
-//package no.nav.arbeidsgiver.min_side.kontaktinfo
-//
-//import no.nav.arbeidsgiver.min_side.config.SecurityConfig
-//import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
-//import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-//import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
-//import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
-//import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
-//import org.junit.jupiter.api.Test
-//import org.springframework.beans.factory.annotation.Autowired
-//import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-//import org.springframework.http.MediaType
-//import org.springframework.http.MediaType.APPLICATION_JSON
-//import org.springframework.security.oauth2.jwt.JwtDecoder
-//import org.springframework.test.context.bean.override.mockito.MockitoBean
-//import org.springframework.test.web.servlet.MockMvc
-//import org.springframework.test.web.servlet.ResultActionsDsl
-//import org.springframework.test.web.servlet.post
-//import org.springframework.test.web.servlet.request.RequestPostProcessor
-//
-//@MockitoBean(
-//    types = [
-//        JwtDecoder::class,
-//        AuthenticatedUserHolder::class,
-//        AltinnRollerClient::class,
-//        EregClient::class,
-//        KontaktinfoClient::class,
-//    ]
-//)
-//@WebMvcTest(
-//    value = [
-//        KontaktinfoController::class,
-//        SecurityConfig::class,
-//        AuthenticatedUserHolder::class,
-//    ],
-//    properties = [
-//        "server.servlet.context-path=/"
-//    ]
-//)
-//class KontaktinfoControllerSerdeTest {
-//    @Autowired
-//    lateinit var mockMvc: MockMvc
-//
-//    @Test
-//    fun protocolFormat() {
-//        mockMvc.kontaktinfo(
-//            content = """{ "virksomhetsnummer": "123456789" }"""
-//        ).andExpect {
-//            status { isOk() }
-//            content {
-//                contentType(APPLICATION_JSON)
-//                json(
-//                    """
-//                    {
-//                        "hovedenhet": null,
-//                        "underenhet": null
-//                    }
-//                """.trimIndent()
-//                )
-//            }
-//        }
-//    }
-//
-//    @Test
-//    fun virksomhetsnummerAsNumberFails() {
-//        /* spring's objectmapper konverterer numbers til strings. */
-//        mockMvc.kontaktinfo(
-//            content = """{ "virksomhetsnummer": 123456789 }"""
-//        ).andExpect {
-//            status { isOk() }
-//        }
-//    }
+package no.nav.arbeidsgiver.min_side.kontaktinfo
+
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.server.plugins.di.*
+import no.nav.arbeidsgiver.min_side.FakeApi
+import no.nav.arbeidsgiver.min_side.FakeApplication
+import no.nav.arbeidsgiver.min_side.fakeToken
+import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
+import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
+import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktInfoService
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
+import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.mockito.Mockito
+import org.skyscreamer.jsonassert.JSONAssert.assertEquals
+
+
+class KontaktInfoServiceSerdeTest {
+    companion object {
+        @RegisterExtension
+        val app = FakeApplication(
+            addDatabase = true,
+        ) {
+            dependencies {
+                provide<KontaktinfoClient> { Mockito.mock<KontaktinfoClient>() }
+                provide<AltinnRollerClient> { Mockito.mock<AltinnRollerClient>() }
+                provide<EregClient> { Mockito.mock<EregClient>() }
+                provide<KontaktInfoService>(KontaktInfoService::class)
+                provide<MaskinportenTokenService>(MaskinportenTokenServiceStub::class)
+            }
+        }
+
+        @RegisterExtension
+        val fakeApi = FakeApi()
+    }
+
+    @Test
+    fun protocolFormat() = app.runTest {
+        client.kontaktinfo(
+            content = """{ "virksomhetsnummer": "123456789" }"""
+        ).let {
+            assert(HttpStatusCode.OK == it.status)
+            assertEquals(
+                """
+                    {
+                        "hovedenhet": null,
+                        "underenhet": null
+                    }
+                """.trimIndent(), it.bodyAsText(), true
+            )
+        }
+    }
+
+    @Test
+    fun virksomhetsnummerAsNumberFails() = app.runTest {
+        /* spring's objectmapper konverterer numbers til strings. */
+        client.kontaktinfo(
+            content = """{ "virksomhetsnummer": 123456789 }"""
+        ).let {
+            assert(HttpStatusCode.OK == it.status)
+        }
+    }
 //
 //
-//    @Test
-//    fun wrongJsonInRequest() {
-//        mockMvc.kontaktinfo(
-//            content = """{  }"""
-//        ).andExpect {
-//            status { isBadRequest() }
-//        }
-//    }
-//
-//
-//    @Test
-//    fun superflousJsonFields() {
-//        /* spring's objectmapper godtar ekstra felter. */
-//        mockMvc.kontaktinfo(
-//            content = """{ "virksomhetsnummer": "123412341", "garbage": 2 }"""
-//        ).andExpect {
-//            status { isOk() }
-//        }
-//    }
-//
-//    @Test
-//    fun disallowAcceptXML() {
-//        mockMvc.kontaktinfo(
-//            content = """{ "virksomhetsnummer": "123412341" }""",
-//            accept = MediaType.APPLICATION_XML
-//        ).andExpect {
-//            status { is4xxClientError() }
-//        }
-//    }
-//
-//    private fun MockMvc.kontaktinfo(
-//        contentType: MediaType? = APPLICATION_JSON,
-//        content: String,
-//        auth: RequestPostProcessor = jwtWithPid("42"),
-//        accept: MediaType? = APPLICATION_JSON,
-//    ): ResultActionsDsl =
-//        post("/api/kontaktinfo/v1") {
-//            this.contentType = contentType
-//            this.content = content
-//            this.accept = accept
-//            with(auth)
-//        }
-//}
+    @Test
+    fun wrongJsonInRequest() = app.runTest {
+        client.kontaktinfo(
+            content = """{  }"""
+        ).let {
+            assert(HttpStatusCode.BadRequest == it.status)
+        }
+    }
+
+
+    @Test
+    fun superflousJsonFields() = app.runTest {
+        /* spring's objectmapper godtar ekstra felter. */
+        client.kontaktinfo(
+            content = """{ "virksomhetsnummer": "123412341", "garbage": 2 }"""
+        ).let {
+            assert(HttpStatusCode.OK == it.status)
+        }
+    }
+
+    @Test
+    fun disallowAcceptXML() = app.runTest {
+        client.kontaktinfo(
+            content = """{ "virksomhetsnummer": "123412341" }""",
+            accept = ContentType.Application.Xml
+        ).let {
+            assert(it.status.value in (400 until 500))
+        }
+    }
+
+    private suspend fun HttpClient.kontaktinfo(
+        contentType: ContentType = ContentType.Application.Json,
+        content: String,
+        token: String = fakeToken("42"),
+        accept: ContentType = ContentType.Application.Json,
+    ): HttpResponse =
+        post("/api/kontaktinfo/v1") {
+            contentType(contentType)
+            setBody(content)
+            accept(accept)
+            bearerAuth(token)
+        }
+
+
+}

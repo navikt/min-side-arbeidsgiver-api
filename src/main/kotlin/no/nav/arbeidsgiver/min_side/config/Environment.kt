@@ -6,7 +6,7 @@ class Environment {
             val sokosKontoregisterBaseUrl = GittMiljø2.resolve(
                 prod = { "https://sokos-kontoregister.prod-fss-pub.nais.io" },
                 dev = { "https://sokos-kontoregister-q2.dev-fss-pub.nais.io" },
-                other = { "https://localhost" }
+                other = { "http://localhost:8081" }
             )
         }
     }
@@ -16,7 +16,7 @@ class Environment {
             val eregServicesBaseUrl = GittMiljø2.resolve(
                 prod = { "https://ereg-services.prod-fss-pub.nais.io" },
                 dev = { "https://ereg-services.dev-fss-pub.nais.io" },
-                other = { "https://localhost" }
+                other = { "http://localhost:8081" }
             )
         }
     }

@@ -14,13 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
-import org.springframework.web.client.HttpClientErrorException
 
-@RestClientTest(
-    KontaktinfoClient::class,
-    MaskinportenTokenServiceStub::class,
-)
 class KontaktinfoClientTest {
     companion object {
         @RegisterExtension
