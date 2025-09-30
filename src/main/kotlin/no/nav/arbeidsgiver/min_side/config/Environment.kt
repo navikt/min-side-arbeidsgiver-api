@@ -37,6 +37,16 @@ class Environment {
         }
     }
 
+    class AltinnTilgangerProxy {
+        companion object {
+            val altinnTilgangerUrl = GittMiljø2.resolve(
+                prod = { "http://arbeidsgiver-altinn-tilganger/altinn-tilganger" },
+                dev = { "http://arbeidsgiver-altinn-tilganger/altinn-tilganger" },
+                other = { "http://localhost:8081/altinn-tilganger" }
+            )
+        }
+    }
+
     class TokenX {
         companion object {
             val privateJwk = GittMiljø2.resolve(

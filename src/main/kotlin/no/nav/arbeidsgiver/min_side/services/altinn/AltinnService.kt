@@ -7,6 +7,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.config.GittMiljø2
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
@@ -51,7 +52,7 @@ class AltinnService(
             audience = audience,
         ).access_token!!
 
-        return client.post("http://arbeidsgiver-altinn-tilganger/altinn-tilganger") {
+        return client.post(Environment.AltinnTilgangerProxy.altinnTilgangerUrl) {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             bearerAuth(token)
