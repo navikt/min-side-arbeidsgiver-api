@@ -11,30 +11,34 @@ import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.*
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusDto
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusRepository
+import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.common.config.SslConfigs
+import java.lang.System.getenv
 import java.time.LocalDateTime
 import java.util.*
 
 data class KafkaConsumerConfig(
     val topics: Set<String>,
-    val groupId: String,
-    val autoOffsetReset: String = "earliest",
-    val maxPollRecords: Int = 500,
-    val sessionTimeoutMs: Int = 30000
+    val groupId: String
 )
 
 class MsaKafkaConsumer(
     private val config: KafkaConsumerConfig,
 ) {
     private val properties = Properties().apply {
-        put(ConsumerConfig.GROUP_ID_CONFIG, config.groupId)
-        put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, config.autoOffsetReset)
-        put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, config.maxPollRecords)
-        put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, config.sessionTimeoutMs)
-        put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true)
+        put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, (getenv("KAFKA_BROKERS") ?: "localhost:9092"))
+        put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "6000")
+        put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+        if (!getenv("KAFKA_KEYSTORE_PATH").isNullOrBlank())
+            put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL")
+            put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, getenv("KAFKA_KEYSTORE_PATH"))
+            put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
+            put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, getenv("KAFKA_TRUSTSTORE_PATH"))
+            put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
     }
 
     suspend fun consume(processMessage: suspend (ConsumerRecord<String?, String?>) -> Unit) {
@@ -60,14 +64,10 @@ class MsaKafkaConsumer(
     }
 }
 
-suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
-    val objectMapper = dependencies.resolve<ObjectMapper>()
-    val digisyfoRepository = dependencies.resolve<DigisyfoRepository>()
-    val refusjonStatusRepository = dependencies.resolve<RefusjonStatusRepository>()
-    val sykefraværstatistikkRepository = dependencies.resolve<SykefraværstatistikkRepository>()
-    val varslingStatusRepository = dependencies.resolve<VarslingStatusRepository>()
 
-    // Nærmeste leder
+suspend fun Application.startDigisyfoKafkaConsumers(scope: CoroutineScope) {
+    val digisyfoRepository = dependencies.resolve<DigisyfoRepository>()
+    val objectMapper = dependencies.resolve<ObjectMapper>()
     scope.launch {
         val config = KafkaConsumerConfig(
             groupId = "min-side-arbeidsgiver-narmesteleder-model-builder-1",
@@ -101,6 +101,16 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
             digisyfoRepository.processSykmeldingEvent(parsedRecords)
         }
     }
+}
+
+suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
+    val objectMapper = dependencies.resolve<ObjectMapper>()
+    val refusjonStatusRepository = dependencies.resolve<RefusjonStatusRepository>()
+    val sykefraværstatistikkRepository = dependencies.resolve<SykefraværstatistikkRepository>()
+    val varslingStatusRepository = dependencies.resolve<VarslingStatusRepository>()
+
+    startDigisyfoKafkaConsumers(scope)
+
 
     // Refusjon status
     scope.launch {

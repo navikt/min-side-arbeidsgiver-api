@@ -26,7 +26,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 
 class FakeApplication(
     addDatabase: Boolean = false,
-    configure: Application.() -> Unit
+    configure: suspend Application.() -> Unit
 ) : BeforeAllCallback, AfterAllCallback {
     private var database: TestDatabase? = null
 
