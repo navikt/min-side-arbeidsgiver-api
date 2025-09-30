@@ -26,9 +26,11 @@ class DigisyfoService(
                         ?: throw RuntimeException("Fant ikke underenhet for $virksomhetOgSykmeldt.virksomhetsnummer")
                     orgs[virksomhetOgSykmeldt.virksomhetsnummer] =
                         VirksomhetOgAntallSykmeldte.from(eregOrg, virksomhetOgSykmeldt.antallSykmeldte)
-                    orgs[virksomhetOgSykmeldt.virksomhetsnummer]
+                    orgs[virksomhetOgSykmeldt.virksomhetsnummer]!!
                 }
-                it!!
+                else{
+                    it
+                }
             }
             berikOverenheter(orgs, virksomhet)
         }
@@ -56,9 +58,11 @@ class DigisyfoService(
                 val eregOrg = eregClient.hentUnderenhet(orgnummerTilOverenhet)
                     ?: throw RuntimeException("Fant ikke underenhet for $orgnummerTilOverenhet")
                 orgs[orgnummerTilOverenhet] = VirksomhetOgAntallSykmeldte.from(eregOrg)
-                orgs[orgnummerTilOverenhet]
+                orgs[orgnummerTilOverenhet]!!
             }
-            it!!
+            else{
+                it
+            }
         }
 
         overenhet.leggTilUnderenhet(virksomhet)
