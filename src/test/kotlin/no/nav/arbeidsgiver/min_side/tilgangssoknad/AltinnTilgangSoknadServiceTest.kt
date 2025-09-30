@@ -1,173 +1,186 @@
-//package no.nav.arbeidsgiver.min_side.tilgangssoknad
-//
-//import no.nav.arbeidsgiver.min_side.config.SecurityConfig
-//import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
-//import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-//import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-//import org.junit.jupiter.api.Test
-//import org.mockito.Mockito.`when`
-//import org.skyscreamer.jsonassert.JSONAssert
-//import org.springframework.beans.factory.annotation.Autowired
-//import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-//import org.springframework.http.MediaType
-//import org.springframework.security.oauth2.jwt.JwtDecoder
-//import org.springframework.test.context.bean.override.mockito.MockitoBean
-//import org.springframework.test.web.servlet.MockMvc
-//import org.springframework.test.web.servlet.get
-//import org.springframework.test.web.servlet.post
-//import org.springframework.web.client.HttpClientErrorException
-//import java.nio.charset.Charset
-//
-//@MockitoBean(types = [JwtDecoder::class])
-//@WebMvcTest(
-//    value = [
-//        AltinnTilgangSoknadService::class,
-//        SecurityConfig::class,
-//        AuthenticatedUserHolder::class,
-//    ],
-//    properties = [
-//        "server.servlet.context-path=/"
-//    ]
-//)
-//class AltinnTilgangSoknadServiceTest {
-//    @Autowired
-//    lateinit var mockMvc: MockMvc
-//
-//    @MockitoBean
-//    lateinit var altinnTilgangssøknadClient: AltinnTilgangssøknadClient
-//
-//    @MockitoBean
-//    lateinit var altinnService: AltinnService
-//
-//    @Test
-//    fun mineSøknaderOmTilgang() {
-//        val altinnTilgangssøknad = AltinnTilgangssøknad(
-//            orgnr = "314",
-//            serviceCode = "13337",
-//            serviceEdition = 3,
-//            status = "Created",
-//            createdDateTime = "now",
-//            lastChangedDateTime = "whenever",
-//            submitUrl = "https://yolo.com",
-//        )
-//        `when`(altinnTilgangssøknadClient.hentSøknader("42")).thenReturn(listOf(altinnTilgangssøknad))
-//
-//        val jsonResponse = mockMvc.get("/api/altinn-tilgangssoknad") {
-//            with(jwtWithPid("42"))
-//            accept = MediaType.APPLICATION_JSON
-//        }.andExpect {
-//            status { isOk() }
-//        }.andReturn().response.contentAsString
-//
-//        JSONAssert.assertEquals(
-//            """
-//            [
-//              {
-//                "orgnr": "314",
-//                "serviceCode": "13337",
-//                "serviceEdition": 3,
-//                "status": "Created",
-//                "createdDateTime": "now",
-//                "lastChangedDateTime": "whenever",
-//                "submitUrl": "https://yolo.com"
-//              }
-//            ]
-//            """,
-//            jsonResponse,
-//            true
-//        )
-//    }
-//
-//    @Test
-//    fun sendSøknadOmTilgang() {
-//        val skjema = AltinnTilgangssøknadsskjema(
-//            orgnr = "314",
-//            redirectUrl = "https://yolo.it",
-//            serviceCode = AltinnTilgangSoknadService.tjenester.first().first,
-//            serviceEdition = AltinnTilgangSoknadService.tjenester.first().second,
-//        )
-//        val søknad = AltinnTilgangssøknad(
-//            orgnr = "314",
-//            serviceCode = "13337",
-//            serviceEdition = 3,
-//            status = "Created",
-//            createdDateTime = "now",
-//            lastChangedDateTime = "whenever",
-//            submitUrl = "https://yolo.com",
-//        )
-//
-//        `when`(altinnService.harOrganisasjon(skjema.orgnr)).thenReturn(true)
-//        `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenReturn(søknad)
-//
-//        val jsonResponse = mockMvc
-//            .post("/api/altinn-tilgangssoknad") {
-//                with(jwtWithPid("42"))
-//                accept = MediaType.APPLICATION_JSON
-//                contentType = MediaType.APPLICATION_JSON
-//                content = """
-//                        {
-//                            "orgnr": "${skjema.orgnr}",
-//                            "redirectUrl": "${skjema.redirectUrl}",
-//                            "serviceCode": "${skjema.serviceCode}",
-//                            "serviceEdition": ${skjema.serviceEdition}
-//                        }
-//                    """
-//            }.andExpect {
-//                status { isOk() }
-//            }.andReturn().response.contentAsString
-//
-//        JSONAssert.assertEquals(
-//            """
-//              {
-//                "orgnr": "${søknad.orgnr}",
-//                "serviceCode": "${søknad.serviceCode}",
-//                "serviceEdition": ${søknad.serviceEdition},
-//                "status": "${søknad.status}",
-//                "createdDateTime": "${søknad.createdDateTime}",
-//                "lastChangedDateTime": "${søknad.lastChangedDateTime}",
-//                "submitUrl": "${søknad.submitUrl}"
-//              }
-//            """,
-//            jsonResponse,
-//            true
-//        )
-//    }
-//
-//    @Test
-//    fun sendSøknadOmTilgangSomAlleredeErSøktPåGirBadRequest() {
-//        val skjema = AltinnTilgangssøknadsskjema(
-//            orgnr = "314",
-//            redirectUrl = "https://yolo.it",
-//            serviceCode = AltinnTilgangSoknadService.tjenester.first().first,
-//            serviceEdition = AltinnTilgangSoknadService.tjenester.first().second,
-//        )
-//
-//        `when`(altinnService.harOrganisasjon("314")).thenReturn(true)
-//        `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenThrow(
-//            HttpClientErrorException(
-//                org.springframework.http.HttpStatus.BAD_REQUEST,
-//                "Bad Request",
-//                """[{"ErrorCode":"40318","ErrorMessage":"This request for access has already been registered"}]""".encodeToByteArray(),
-//                Charset.defaultCharset()
-//            )
-//        )
-//
-//        mockMvc
-//            .post("/api/altinn-tilgangssoknad") {
-//                with(jwtWithPid("42"))
-//                accept = MediaType.APPLICATION_JSON
-//                contentType = MediaType.APPLICATION_JSON
-//                content = """
-//                        {
-//                            "orgnr": "${skjema.orgnr}",
-//                            "redirectUrl": "${skjema.redirectUrl}",
-//                            "serviceCode": "${skjema.serviceCode}",
-//                            "serviceEdition": ${skjema.serviceEdition}
-//                        }
-//                    """
-//            }.andExpect {
-//                status { isBadRequest() }
-//            }
-//
-//    }
-//}
+package no.nav.arbeidsgiver.min_side.tilgangssoknad
+
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.server.plugins.di.*
+import no.nav.arbeidsgiver.min_side.FakeApi
+import no.nav.arbeidsgiver.min_side.FakeApplication
+import no.nav.arbeidsgiver.min_side.FakeAuthenticatedUserHolder
+import no.nav.arbeidsgiver.min_side.fakeToken
+import no.nav.arbeidsgiver.min_side.kotlinAny
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import org.skyscreamer.jsonassert.JSONAssert
+import org.springframework.web.client.HttpClientErrorException
+import java.nio.charset.Charset
+
+
+class AltinnTilgangSoknadServiceTest {
+    companion object {
+        @RegisterExtension
+        val app = FakeApplication(
+            addDatabase = true,
+        ) {
+            dependencies {
+                provide<AltinnTilgangssøknadClient> { Mockito.mock<AltinnTilgangssøknadClient>() }
+                provide<AltinnTilgangSoknadService>(AltinnTilgangSoknadService::class)
+                provide<AltinnService> { Mockito.mock<AltinnService>() }
+            }
+        }
+
+        @RegisterExtension
+        val fakeApi = FakeApi()
+    }
+
+    @Test
+    fun mineSøknaderOmTilgang() = app.runTest {
+        val altinnTilgangssøknad = AltinnTilgangssøknad(
+            orgnr = "314",
+            serviceCode = "13337",
+            serviceEdition = 3,
+            status = "Created",
+            createdDateTime = "now",
+            lastChangedDateTime = "whenever",
+            submitUrl = "https://yolo.com",
+        )
+        val altinnTilgangssøknadClient = app.getDependency<AltinnTilgangssøknadClient>()
+        `when`(altinnTilgangssøknadClient.hentSøknader("42")).thenReturn(listOf(altinnTilgangssøknad))
+
+        val jsonResponse = client.get("/api/altinn-tilgangssoknad") {
+            bearerAuth(fakeToken("42"))
+            accept(ContentType.Application.Json)
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            it.bodyAsText()
+        }
+
+        JSONAssert.assertEquals(
+            """
+            [
+              {
+                "orgnr": "314",
+                "serviceCode": "13337",
+                "serviceEdition": 3,
+                "status": "Created",
+                "createdDateTime": "now",
+                "lastChangedDateTime": "whenever",
+                "submitUrl": "https://yolo.com"
+              }
+            ]
+            """,
+            jsonResponse,
+            true
+        )
+    }
+
+    @Test
+    fun sendSøknadOmTilgang() = app.runTest {
+        val skjema = AltinnTilgangssøknadsskjema(
+            orgnr = "314",
+            redirectUrl = "https://yolo.it",
+            serviceCode = AltinnTilgangSoknadService.tjenester.first().first,
+            serviceEdition = AltinnTilgangSoknadService.tjenester.first().second,
+        )
+        val søknad = AltinnTilgangssøknad(
+            orgnr = "314",
+            serviceCode = "13337",
+            serviceEdition = 3,
+            status = "Created",
+            createdDateTime = "now",
+            lastChangedDateTime = "whenever",
+            submitUrl = "https://yolo.com",
+        )
+
+
+        val altinnService = app.getDependency<AltinnService>()
+        val altinnTilgangssøknadClient = app.getDependency<AltinnTilgangssøknadClient>()
+        val token = fakeToken("42")
+
+        `when`(altinnService.harOrganisasjon(skjema.orgnr, token)).thenReturn(true)
+        `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenReturn(søknad)
+
+        val jsonResponse = client
+            .post("/api/altinn-tilgangssoknad") {
+                bearerAuth(token)
+                accept(ContentType.Application.Json)
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                        {
+                            "orgnr": "${skjema.orgnr}",
+                            "redirectUrl": "${skjema.redirectUrl}",
+                            "serviceCode": "${skjema.serviceCode}",
+                            "serviceEdition": ${skjema.serviceEdition}
+                        }
+                    """
+                )
+            }.let {
+                assert(it.status == HttpStatusCode.OK)
+                it.bodyAsText()
+            }
+
+        JSONAssert.assertEquals(
+            """
+              {
+                "orgnr": "${søknad.orgnr}",
+                "serviceCode": "${søknad.serviceCode}",
+                "serviceEdition": ${søknad.serviceEdition},
+                "status": "${søknad.status}",
+                "createdDateTime": "${søknad.createdDateTime}",
+                "lastChangedDateTime": "${søknad.lastChangedDateTime}",
+                "submitUrl": "${søknad.submitUrl}"
+              }
+            """,
+            jsonResponse,
+            true
+        )
+    }
+
+    @Test
+    fun sendSøknadOmTilgangSomAlleredeErSøktPåGirBadRequest() = app.runTest {
+        val skjema = AltinnTilgangssøknadsskjema(
+            orgnr = "314",
+            redirectUrl = "https://yolo.it",
+            serviceCode = AltinnTilgangSoknadService.tjenester.first().first,
+            serviceEdition = AltinnTilgangSoknadService.tjenester.first().second,
+        )
+
+        val altinnService = app.getDependency<AltinnService>()
+        val altinnTilgangssøknadClient = app.getDependency<AltinnTilgangssøknadClient>()
+        val token = fakeToken("42")
+
+        `when`(altinnService.harOrganisasjon("314", token)).thenReturn(true)
+        `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenThrow(
+            HttpClientErrorException(
+                org.springframework.http.HttpStatus.BAD_REQUEST,
+                "Bad Request",
+                """[{"ErrorCode":"40318","ErrorMessage":"This request for access has already been registered"}]""".encodeToByteArray(),
+                Charset.defaultCharset()
+            )
+        )
+
+        client
+            .post("/api/altinn-tilgangssoknad") {
+                bearerAuth(token)
+                accept(ContentType.Application.Json)
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                        {
+                            "orgnr": "${skjema.orgnr}",
+                            "redirectUrl": "${skjema.redirectUrl}",
+                            "serviceCode": "${skjema.serviceCode}",
+                            "serviceEdition": ${skjema.serviceEdition}
+                        }
+                    """
+                )
+            }.let {
+                assert(it.status == HttpStatusCode.BadRequest)
+            }
+
+    }
+}

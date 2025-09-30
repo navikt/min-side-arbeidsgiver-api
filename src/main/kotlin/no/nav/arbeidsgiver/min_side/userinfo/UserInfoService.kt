@@ -13,21 +13,21 @@ class UserInfoService(
     private val digisyfoService: DigisyfoService,
     private val refusjonStatusService: RefusjonStatusService,
 ) {
-    suspend fun getUserInfoV3(authenticatedUserHolder: AuthenticatedUserHolder) = supervisorScope {
+    suspend fun getUserInfoV3(fnr: String, token: String) = supervisorScope {
         val tilganger = async {
             runCatching {
-                altinnService.hentAltinnTilganger(authenticatedUserHolder)
+                altinnService.hentAltinnTilganger(token)
             }
         }
 
         val syfoVirksomheter = async {
             runCatching {
-                digisyfoService.hentVirksomheterOgSykmeldte(authenticatedUserHolder)
+                digisyfoService.hentVirksomheterOgSykmeldte(fnr)
             }
         }
         val refusjoner = async {
             runCatching {
-                refusjonStatusService.statusoversikt(authenticatedUserHolder)
+                refusjonStatusService.statusoversikt(token)
             }
         }
         UserInfoV3.from(tilganger.await(), syfoVirksomheter.await(), refusjoner.await())

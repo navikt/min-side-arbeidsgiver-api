@@ -3,7 +3,6 @@ package no.nav.arbeidsgiver.min_side.kontaktinfo
 import io.ktor.server.plugins.di.*
 import kotlinx.coroutines.runBlocking
 import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.kotlinAny
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
@@ -36,8 +35,6 @@ class KontaktinfoControllerAuthzTest {
         }
     }
 
-    val authenticatedUserHolder = Mockito.mock<AuthenticatedUserHolder>()
-
     private val fnr = "012345678"
     private val orgnrUnderenhet = "0".repeat(9)
     private val orgnrHovedenhet = "1".repeat(9)
@@ -49,7 +46,7 @@ class KontaktinfoControllerAuthzTest {
         mockTilganger(underenhet = true, hovedenhet = true)
         val kontakinfo =
             app.getDependency<KontaktInfoService>()
-                .getKontaktinfo(KontaktinfoRequest(orgnrUnderenhet), authenticatedUserHolder)
+                .getKontaktinfo(KontaktinfoRequest(orgnrUnderenhet), fnr)
         assertNotNull(kontakinfo.hovedenhet)
         assertNotNull(kontakinfo.underenhet)
     }
@@ -60,7 +57,7 @@ class KontaktinfoControllerAuthzTest {
 
         val kontakinfo =
             app.getDependency<KontaktInfoService>()
-                .getKontaktinfo(KontaktinfoRequest(orgnrUnderenhet), authenticatedUserHolder)
+                .getKontaktinfo(KontaktinfoRequest(orgnrUnderenhet), fnr)
         assertNull(kontakinfo.hovedenhet)
         assertNotNull(kontakinfo.underenhet)
     }
@@ -71,7 +68,7 @@ class KontaktinfoControllerAuthzTest {
 
         val kontakinfo =
             app.getDependency<KontaktInfoService>()
-                .getKontaktinfo(KontaktinfoRequest(orgnrUnderenhet), authenticatedUserHolder)
+                .getKontaktinfo(KontaktinfoRequest(orgnrUnderenhet), fnr)
         assertNotNull(kontakinfo.hovedenhet)
         assertNull(kontakinfo.underenhet)
     }
@@ -82,7 +79,7 @@ class KontaktinfoControllerAuthzTest {
 
         val kontakinfo =
             app.getDependency<KontaktInfoService>()
-                .getKontaktinfo(KontaktinfoRequest(orgnrUnderenhet), authenticatedUserHolder)
+                .getKontaktinfo(KontaktinfoRequest(orgnrUnderenhet), fnr)
         assertNull(kontakinfo.hovedenhet)
         assertNull(kontakinfo.underenhet)
     }
@@ -138,8 +135,6 @@ class KontaktinfoControllerAuthzTest {
             `when`(kontaktInfoClient.hentKontaktinfo(kotlinAny())).thenReturn(
                 KontaktinfoClient.Kontaktinfo(setOf("x"), setOf("y"))
             )
-
-            `when`(authenticatedUserHolder.fnr).thenReturn(fnr)
         }
     }
 

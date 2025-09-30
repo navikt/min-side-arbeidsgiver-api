@@ -11,20 +11,20 @@ class KontaktInfoService(
     private val eregClient: EregClient,
     private val kontaktinfoClient: KontaktinfoClient,
 ) {
-    suspend fun getKontaktinfo(requestBody: KontaktinfoRequest, authenticatedUserHolder: AuthenticatedUserHolder): KontaktinfoResponse {
+    suspend fun getKontaktinfo(requestBody: KontaktinfoRequest, fnr: String): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
         val orgnrHovedenhet = eregClient.hentUnderenhet(orgnrUnderenhet)
             ?.orgnummerTilOverenhet()
 
         return KontaktinfoResponse(
-            underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet, authenticatedUserHolder),
-            hovedenhet = orgnrHovedenhet?.let { tilgangsstyrOgHentKontaktinfo(it, authenticatedUserHolder) },
+            underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet, fnr),
+            hovedenhet = orgnrHovedenhet?.let { tilgangsstyrOgHentKontaktinfo(it, fnr) },
         )
     }
 
-    private suspend fun tilgangsstyrOgHentKontaktinfo(orgnr: String, authenticatedUserHolder: AuthenticatedUserHolder): Kontaktinfo? {
+    private suspend fun tilgangsstyrOgHentKontaktinfo(orgnr: String, fnr: String): Kontaktinfo? {
         val tilgangHovedenhet = altinnRollerClient.harAltinnRolle(
-            fnr = authenticatedUserHolder.fnr,
+            fnr = fnr,
             orgnr = orgnr,
             altinnRoller = ALTINN_ROLLER,
             externalRoller = EXTERNAL_ROLLER,

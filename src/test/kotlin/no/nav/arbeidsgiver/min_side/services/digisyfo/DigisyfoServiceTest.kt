@@ -73,9 +73,7 @@ class DigisyfoServiceTest {
     @Test
     fun `Ingen rettigheter`() = app.runTest {
         Mockito.`when`(app.getDependency<DigisyfoRepository>().virksomheterOgSykmeldte("42")).thenReturn(listOf())
-        val authenticatedUserHolder = Mockito.mock<AuthenticatedUserHolder>()
-        Mockito.`when`(authenticatedUserHolder.fnr).thenReturn("42")
-        val result = app.getDependency<DigisyfoService>().hentVirksomheterOgSykmeldte(authenticatedUserHolder)
+        val result = app.getDependency<DigisyfoService>().hentVirksomheterOgSykmeldte("42")
         assertThat(result).isEmpty()
     }
 
@@ -88,10 +86,8 @@ class DigisyfoServiceTest {
                 DigisyfoRepository.Virksomhetsinfo("20", 2),
             )
         )
-        val authenticatedUserHolder = Mockito.mock<AuthenticatedUserHolder>()
-        Mockito.`when`(authenticatedUserHolder.fnr).thenReturn("42")
 
-        val result = app.getDependency<DigisyfoService>().hentVirksomheterOgSykmeldte(authenticatedUserHolder)
+        val result = app.getDependency<DigisyfoService>().hentVirksomheterOgSykmeldte("42")
         assertThat(result).containsExactly(
             VirksomhetOgAntallSykmeldte(
                 orgnr = "1",
@@ -149,10 +145,8 @@ class DigisyfoServiceTest {
                 DigisyfoRepository.Virksomhetsinfo("11", 1),
             )
         )
-        val authenticatedUserHolder = Mockito.mock<AuthenticatedUserHolder>()
-        Mockito.`when`(authenticatedUserHolder.fnr).thenReturn("42")
 
-        val result = app.getDependency<DigisyfoService>().hentVirksomheterOgSykmeldte(authenticatedUserHolder)
+        val result = app.getDependency<DigisyfoService>().hentVirksomheterOgSykmeldte("42")
         assertThat(result).isEqualTo(
             listOf(
                 VirksomhetOgAntallSykmeldte(

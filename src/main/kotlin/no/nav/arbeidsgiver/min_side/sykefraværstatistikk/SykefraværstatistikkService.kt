@@ -14,9 +14,9 @@ class SykefraværstatistikkService(
 
     suspend fun getStatistikk(
         orgnr: String,
-        authenticatedUserHolder: AuthenticatedUserHolder
+        token: String
     ): ResponseEntity<StatistikkRespons> {
-        val harTilgang = altinnService.harTilgang(orgnr, altinnRessursId, authenticatedUserHolder)
+        val harTilgang = altinnService.harTilgang(orgnr, altinnRessursId, token)
 
         return if (harTilgang) {
             val statistikk = sykefraværstatistikkRepository.virksomhetstatistikk(orgnr)?.let {

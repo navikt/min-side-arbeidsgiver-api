@@ -9,21 +9,21 @@ import java.sql.ResultSet
 import java.time.Instant
 
 class LagredeFilterService(private val database: Database) {
-    suspend fun getAll(lock: Boolean = false, authenticatedUserHolder: AuthenticatedUserHolder): List<LagretFilter> {
+    suspend fun getAll(lock: Boolean = false, fnr: String): List<LagretFilter> {
         return database.nonTransactionalExecuteQuery(
             "SELECT * FROM lagrede_filter where fnr = ? ${if (lock) "for update" else ""}", {
-                text(authenticatedUserHolder.fnr)
+                text(fnr)
             }, { rs ->
                 fromDbTransform(rs)
             }
         )
     }
 
-    private suspend fun get(filterId: String, lock: Boolean = false, authenticatedUserHolder: AuthenticatedUserHolder): LagretFilter? {
+    private suspend fun get(filterId: String, lock: Boolean = false, fnr: String): LagretFilter? {
         return database.nonTransactionalExecuteQuery(
             "SELECT * FROM lagrede_filter where fnr = ? and filter_id = ? ${if (lock) "for update" else ""}",
             {
-                text(authenticatedUserHolder.fnr)
+                text(fnr)
                 text(filterId)
             },
             { rs ->
@@ -32,12 +32,12 @@ class LagredeFilterService(private val database: Database) {
             .firstOrNull()
     }
 
-    suspend fun delete(filterId: String, authenticatedUserHolder: AuthenticatedUserHolder): LagretFilter? {
+    suspend fun delete(filterId: String, fnr: String): LagretFilter? {
         return database.transactional {
-            val existing = get(filterId, true, authenticatedUserHolder) ?: return@transactional null
+            val existing = get(filterId, true, fnr) ?: return@transactional null
             executeUpdate(
                 "DELETE FROM lagrede_filter WHERE fnr = ? AND filter_id = ?", {
-                    text(authenticatedUserHolder.fnr)
+                    text(fnr)
                     text(filterId)
                 }
             )
@@ -45,17 +45,17 @@ class LagredeFilterService(private val database: Database) {
         }
     }
 
-    suspend fun put(filter: LagretFilter, authenticatedUserHolder: AuthenticatedUserHolder): LagretFilter {
+    suspend fun put(filter: LagretFilter, fnr: String): LagretFilter {
         return database.transactional {
             val mapper = jacksonObjectMapper()
             val now = Instant.now()
-            val existing = get(filter.filterId, true, authenticatedUserHolder)
+            val existing = get(filter.filterId, true, fnr)
             if (existing == null) {
                 executeUpdate(
                     "INSERT INTO lagrede_filter (filter_id, fnr, navn, side, tekstsoek, virksomheter, sortering, sakstyper, oppgave_filter, opprettet_tidspunkt, sist_endret_tidspunkt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     {
                         text(filter.filterId)
-                        text(authenticatedUserHolder.fnr)
+                        text(fnr)
                         text(filter.navn)
                         integer(filter.side)
                         text(filter.tekstsoek)
@@ -79,7 +79,7 @@ class LagredeFilterService(private val database: Database) {
                         text(mapper.writeValueAsString(filter.sakstyper))
                         text(mapper.writeValueAsString(filter.oppgaveFilter))
                         timestamp_without_timezone_utc(now) // Sist endret tidspunkt
-                        text(authenticatedUserHolder.fnr)
+                        text(fnr)
                         text(filter.filterId)
                     }
                 )

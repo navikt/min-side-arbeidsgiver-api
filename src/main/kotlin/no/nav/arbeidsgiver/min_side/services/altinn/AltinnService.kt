@@ -35,20 +35,20 @@ class AltinnService(
             .recordStats()
             .build()
 
-    suspend fun hentAltinnTilganger(authenticatedUserHolder: AuthenticatedUserHolder) =
-        cache.getIfPresent(authenticatedUserHolder.token) ?: run {
-            hentAltinnTilgangerFraProxy(authenticatedUserHolder).also {
-                cache.put(authenticatedUserHolder.token, it)
+    suspend fun hentAltinnTilganger(token: String) =
+        cache.getIfPresent(token) ?: run {
+            hentAltinnTilgangerFraProxy(token).also {
+                cache.put(token, it)
             }
         }
 
-    suspend fun harTilgang(orgnr: String, tjeneste: String, authenticatedUserHolder: AuthenticatedUserHolder) = hentAltinnTilganger(authenticatedUserHolder).harTilgang(orgnr, tjeneste)
+    suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) = hentAltinnTilganger(token).harTilgang(orgnr, tjeneste)
 
-    suspend fun harOrganisasjon(orgnr: String, authenticatedUserHolder: AuthenticatedUserHolder) = hentAltinnTilganger(authenticatedUserHolder).harOrganisasjon(orgnr)
+    suspend fun harOrganisasjon(orgnr: String, token: String) = hentAltinnTilganger(token).harOrganisasjon(orgnr)
 
-    private suspend fun hentAltinnTilgangerFraProxy(authenticatedUserHolder: AuthenticatedUserHolder): AltinnTilganger {
+    private suspend fun hentAltinnTilgangerFraProxy(token: String): AltinnTilganger {
         val token = tokenExchangeClient.exchange(
-            subjectToken = authenticatedUserHolder.token,
+            subjectToken = token,
             audience = audience,
         ).access_token!!
 

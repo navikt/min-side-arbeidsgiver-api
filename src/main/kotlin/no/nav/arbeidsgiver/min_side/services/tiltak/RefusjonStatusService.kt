@@ -9,8 +9,8 @@ class RefusjonStatusService(
     private val refusjonStatusRepository: RefusjonStatusRepository,
 ) {
 
-    suspend fun statusoversikt(authenticatedUserHolder: AuthenticatedUserHolder): List<Statusoversikt> {
-        val orgnr = altinnService.hentAltinnTilganger(authenticatedUserHolder)
+    suspend fun statusoversikt(token: String): List<Statusoversikt> {
+        val orgnr = altinnService.hentAltinnTilganger(token)
             .tilgangTilOrgNr["$TJENESTEKODE:$TJENESTEVERSJON"] ?: emptySet()
 
         return refusjonStatusRepository

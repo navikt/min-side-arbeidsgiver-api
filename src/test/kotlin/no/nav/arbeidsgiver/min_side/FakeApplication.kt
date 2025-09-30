@@ -19,8 +19,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import no.nav.arbeidsgiver.min_side.config.MsaJwtVerifier
 import no.nav.arbeidsgiver.min_side.config.logger
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import org.junit.jupiter.api.extension.*
 import org.slf4j.event.Level
+import com.auth0.jwt.JWT
+import com.auth0.jwt.interfaces.DecodedJWT
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -173,4 +176,11 @@ fun fakeToken(pid: String): String {
 
     val value = "${header.b64Url()}.${payload.b64Url()}.${secret.b64Url()}"
     return value
+}
+
+
+class FakeAuthenticatedUserHolder(override val token: String) : AuthenticatedUserHolder {
+    val decodedJWT: DecodedJWT = JWT.decode(token)
+    override val fnr: String
+        get() = decodedJWT.getClaim("pid").asString()
 }

@@ -10,8 +10,8 @@ class VarslingStatusService(
     private val altinnService: AltinnService,
     private val repository: VarslingStatusRepository,
 ) {
-    suspend fun getVarslingStatus(requestBody: VarslingStatusRequest, authenticatedUserHolder: AuthenticatedUserHolder): VarslingStatus {
-        val harTilgang = altinnService.harOrganisasjon(requestBody.virksomhetsnummer, authenticatedUserHolder)
+    suspend fun getVarslingStatus(requestBody: VarslingStatusRequest, token: String): VarslingStatus {
+        val harTilgang = altinnService.harOrganisasjon(requestBody.virksomhetsnummer, token)
         if (!harTilgang) {
             return VarslingStatus(
                 status = Status.OK,

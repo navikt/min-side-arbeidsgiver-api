@@ -24,9 +24,9 @@ class KontostatusService(
      */
     suspend fun getKontonummer(
         body: OppslagRequest,
-        authenticatedUserHolder: AuthenticatedUserHolder
+        token: String
     ): OppslagResponse? {
-        val harTilgang = altinnService.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgangTjenesetekode, authenticatedUserHolder)
+        val harTilgang = altinnService.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgangTjenesetekode, token)
         if (!harTilgang) {
             return null
         }

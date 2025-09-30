@@ -1,12 +1,19 @@
 //package no.nav.arbeidsgiver.min_side.sykefraværstatistikk
 //
 //import com.fasterxml.jackson.databind.ObjectMapper
+//import io.ktor.server.plugins.di.dependencies
+//import no.nav.arbeidsgiver.min_side.FakeApi
+//import no.nav.arbeidsgiver.min_side.FakeApplication
 //import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
+//import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
+//import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
 //import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+//import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 //import org.apache.kafka.clients.consumer.ConsumerRecord
 //import org.flywaydb.core.Flyway
 //import org.junit.jupiter.api.BeforeEach
 //import org.junit.jupiter.api.Test
+//import org.junit.jupiter.api.extension.RegisterExtension
 //import org.mockito.Mockito.`when`
 //import org.skyscreamer.jsonassert.JSONAssert.assertEquals
 //import org.springframework.beans.factory.annotation.Autowired
@@ -27,6 +34,21 @@
 //)
 //@AutoConfigureMockMvc
 //class SykefraværstatistikkIntegrationTest {
+//    companion object { //TODO: KAFKA
+//        @RegisterExtension
+//        val app = FakeApplication(
+//            addDatabase = true,
+//        ) {
+//            dependencies {
+//                provide<SykefraværstatistikkRepository>(SykefraværstatistikkRepository::class)
+//                provide<ObjectMapper>(ObjectMapper::class)
+//            }
+//        }
+//
+//        @RegisterExtension
+//        val fakeApi = FakeApi()
+//    }
+//
 //    @Autowired
 //    lateinit var mockMvc: MockMvc
 //
@@ -63,7 +85,12 @@
 //
 //    @Test
 //    fun `bruker som representerer virksomhet med tilgang får virksomhetstatistikk`() {
-//        `when`(altinnService.harTilgang("123", "nav_forebygge-og-redusere-sykefravar_sykefravarsstatistikk")).thenReturn(true)
+//        `when`(
+//            altinnService.harTilgang(
+//                "123",
+//                "nav_forebygge-og-redusere-sykefravar_sykefravarsstatistikk"
+//            )
+//        ).thenReturn(true)
 //        processStatistikkkategori(
 //            """{ "kategori": "VIRKSOMHET", "kode": "123", "årstall": "$innenværendeår", "kvartal": "1" }""",
 //            """
@@ -306,7 +333,6 @@
 //    }
 //
 //
-//
 //    @Test
 //    fun `bruker med tilgang får statistikk for bransje når virksomhet mangler`() {
 //        `when`(altinnService.harTilgang("123", "3403:1")).thenReturn(true)
@@ -463,6 +489,7 @@
 //            )
 //        )
 //    }
+//
 //    private fun processMetadataVirksomhet(key: String, value: String) {
 //        sykefraværstatistikkKafkaListener.processMetadataVirksomhet(
 //            ConsumerRecord(

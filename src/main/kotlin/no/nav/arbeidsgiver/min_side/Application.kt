@@ -33,7 +33,7 @@ import no.nav.arbeidsgiver.min_side.azuread.AzureClient
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.MsaJwtVerifier
 import no.nav.arbeidsgiver.min_side.config.logger
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolderImpl
 import no.nav.arbeidsgiver.min_side.maskinporten.*
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.*
@@ -88,7 +88,7 @@ fun Application.configureRoutes() {
             post("/api/kontaktinfo/v1") {
                 call.respond(
                     dependencies.resolve<KontaktInfoService>()
-                        .getKontaktinfo(call.receive(), AuthenticatedUserHolder(call))
+                        .getKontaktinfo(call.receive(), AuthenticatedUserHolderImpl(call).fnr)
                 )
             }
 
@@ -102,7 +102,7 @@ fun Application.configureRoutes() {
                 call.respond(
                     dependencies.resolve<KontostatusService>()
                         .getKontonummer(
-                            call.receive(), AuthenticatedUserHolder(call)
+                            call.receive(), AuthenticatedUserHolderImpl(call).token
                         ) ?: HttpStatusCode.NotFound
                 )
             }
@@ -112,20 +112,20 @@ fun Application.configureRoutes() {
                 val service = dependencies.resolve<LagredeFilterService>()
                 call.respond(
                     dependencies.resolve<LagredeFilterService>()
-                        .getAll(authenticatedUserHolder = AuthenticatedUserHolder(call))
+                        .getAll(fnr = AuthenticatedUserHolderImpl(call).fnr)
                 )
             }
             put("/api/lagredeFilter") {
                 call.respond(
                     dependencies.resolve<LagredeFilterService>()
-                        .put(call.receive(), authenticatedUserHolder = AuthenticatedUserHolder(call))
+                        .put(call.receive(), fnr = AuthenticatedUserHolderImpl(call).fnr)
                 )
             }
             delete("/api/lagredeFilter/{filterId}") {
                 call.respond(
                     dependencies.resolve<LagredeFilterService>().delete(
                         call.parameters["filterId"]!!,
-                        authenticatedUserHolder = AuthenticatedUserHolder(call)
+                        fnr = AuthenticatedUserHolderImpl(call).fnr
                     ) ?: HttpStatusCode.NotFound
                 )
             }
@@ -141,7 +141,7 @@ fun Application.configureRoutes() {
             // Refusjon status
             get("/api/refusjon_status") {
                 call.respond(
-                    dependencies.resolve<RefusjonStatusService>().statusoversikt(AuthenticatedUserHolder(call))
+                    dependencies.resolve<RefusjonStatusService>().statusoversikt(AuthenticatedUserHolderImpl(call).token)
                 )
             }
 
@@ -149,7 +149,7 @@ fun Application.configureRoutes() {
             get("/api/sykefravaerstatistikk/{orgnr}") {
                 call.respond(
                     dependencies.resolve<SykefraværstatistikkService>()
-                        .getStatistikk(call.parameters["orgnr"]!!, AuthenticatedUserHolder(call))
+                        .getStatistikk(call.parameters["orgnr"]!!, AuthenticatedUserHolderImpl(call).token)
                 )
             }
 
@@ -157,27 +157,29 @@ fun Application.configureRoutes() {
             get("/api/altinn-tilgangssoknad") {
                 call.respond(
                     dependencies.resolve<AltinnTilgangSoknadService>().mineSøknaderOmTilgang(
-                        AuthenticatedUserHolder(call)
+                        AuthenticatedUserHolderImpl(call).fnr
                     )
                 )
             }
             post("/api/altinn-tilgangssoknad") {
+                val authenticatedUserHolder = AuthenticatedUserHolderImpl(call)
                 call.respond(
                     dependencies.resolve<AltinnTilgangSoknadService>()
-                        .sendSøknadOmTilgang(call.receive(), authenticatedUserHolder = AuthenticatedUserHolder(call))
+                        .sendSøknadOmTilgang(call.receive(), fnr = authenticatedUserHolder.fnr, token = authenticatedUserHolder.token)
                 )
             }
 
             // Userinfo
             get("/api/userInfo/v3") {
-                call.respond(dependencies.resolve<UserInfoService>().getUserInfoV3(AuthenticatedUserHolder(call)))
+                val authenticatedUserHolder = AuthenticatedUserHolderImpl(call)
+                call.respond(dependencies.resolve<UserInfoService>().getUserInfoV3(fnr = authenticatedUserHolder.fnr, token = authenticatedUserHolder.token))
             }
 
             // Varsling status
             post("/api/varslingStatus/v1") {
                 call.respond(
                     dependencies.resolve<VarslingStatusService>()
-                        .getVarslingStatus(call.receive(), AuthenticatedUserHolder(call))
+                        .getVarslingStatus(call.receive(), AuthenticatedUserHolderImpl(call).token)
                 )
             }
         }

@@ -14,8 +14,8 @@ class DigisyfoService(
     private val meterRegistry: MeterRegistry
 ) {
 
-    suspend fun hentVirksomheterOgSykmeldte(authenticatedUserHolder: AuthenticatedUserHolder): List<VirksomhetOgAntallSykmeldte> {
-        val virksomheterOgSykmeldte = digisyfoRepository.virksomheterOgSykmeldte(authenticatedUserHolder.fnr)
+    suspend fun hentVirksomheterOgSykmeldte(fnr: String): List<VirksomhetOgAntallSykmeldte> {
+        val virksomheterOgSykmeldte = digisyfoRepository.virksomheterOgSykmeldte(fnr)
 
         val orgs = mutableMapOf<String, VirksomhetOgAntallSykmeldte>()
 

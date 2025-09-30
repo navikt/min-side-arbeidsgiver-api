@@ -13,13 +13,12 @@ class AltinnTilgangSoknadService(
 ) {
     private val log = logger()
 
-    suspend fun mineSøknaderOmTilgang(authenticatedUserHolder: AuthenticatedUserHolder): List<AltinnTilgangssøknad> {
-        val fødselsnummer = authenticatedUserHolder.fnr
-        return altinnTilgangssøknadClient.hentSøknader(fødselsnummer)
+    suspend fun mineSøknaderOmTilgang(fnr: String): List<AltinnTilgangssøknad> {
+        return altinnTilgangssøknadClient.hentSøknader(fnr)
     }
 
-    suspend fun sendSøknadOmTilgang(søknadsskjema: AltinnTilgangssøknadsskjema, authenticatedUserHolder: AuthenticatedUserHolder): ResponseEntity<AltinnTilgangssøknad> {
-        val brukerErIOrg = altinnService.harOrganisasjon(søknadsskjema.orgnr, authenticatedUserHolder)
+    suspend fun sendSøknadOmTilgang(søknadsskjema: AltinnTilgangssøknadsskjema, token: String, fnr: String): ResponseEntity<AltinnTilgangssøknad> {
+        val brukerErIOrg = altinnService.harOrganisasjon(søknadsskjema.orgnr, token)
 
         if (!brukerErIOrg) {
             log.error("Bruker forsøker å be om tilgang til org de ikke er med i.")
@@ -35,7 +34,7 @@ class AltinnTilgangSoknadService(
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
         }
         val body = try {
-            altinnTilgangssøknadClient.sendSøknad(authenticatedUserHolder.fnr, søknadsskjema)
+            altinnTilgangssøknadClient.sendSøknad(fnr, søknadsskjema)
         } catch (e: HttpClientErrorException) {
             if (e.responseBodyAsString.contains("40318")) {
                 // Bruker forsøker å sende en søknad som allerede er sendt.

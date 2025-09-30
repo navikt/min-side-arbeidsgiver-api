@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.kontostatus
 
-import io.ktor.client.call.body
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
@@ -12,8 +11,6 @@ import io.ktor.server.response.respond
 import no.nav.arbeidsgiver.min_side.FakeApi
 import no.nav.arbeidsgiver.min_side.FakeApplication
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
-import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.fakeToken
 import no.nav.arbeidsgiver.min_side.kotlinAny
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService

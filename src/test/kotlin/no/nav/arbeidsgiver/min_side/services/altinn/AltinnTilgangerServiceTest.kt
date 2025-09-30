@@ -38,9 +38,6 @@ class AltinnTilgangerServiceTest {
         `when`(tokenXClient.exchange(anyString(), anyString()))
             .thenReturn(TokenXToken(access_token = "access_token2"))
 
-        val authenticatedUserHolder = Mockito.mock<AuthenticatedUserHolder>()
-        `when`(authenticatedUserHolder.token).thenReturn("access_token1")
-
         fakeApi.stubs.put(
             Pair(
                 HttpMethod.Post,
@@ -54,7 +51,7 @@ class AltinnTilgangerServiceTest {
             }
         )
 
-        val tilganger = app.getDependency<AltinnService>().hentAltinnTilganger(authenticatedUserHolder)
+        val tilganger = app.getDependency<AltinnService>().hentAltinnTilganger("access_token1")
 
         assertFalse(tilganger.isError)
         assertTrue(tilganger.hierarki.size == 1)
@@ -98,9 +95,6 @@ class AltinnTilgangerServiceTest {
         `when`(tokenXClient.exchange(anyString(), anyString()))
             .thenReturn(TokenXToken(access_token = "access_token2"))
 
-        val authenticatedUserHolder = Mockito.mock<AuthenticatedUserHolder>()
-        `when`(authenticatedUserHolder.token).thenReturn("access_token1")
-
         fakeApi.stubs.put(
             Pair(
                 HttpMethod.Post,
@@ -114,7 +108,7 @@ class AltinnTilgangerServiceTest {
             }
         )
 
-        val organisasjoner = app.getDependency<AltinnService>().hentAltinnTilganger(authenticatedUserHolder)
+        val organisasjoner = app.getDependency<AltinnService>().hentAltinnTilganger("access_token1")
         assertTrue(organisasjoner.tilgangTilOrgNr.containsKey("4936:1"))
     }
 }
