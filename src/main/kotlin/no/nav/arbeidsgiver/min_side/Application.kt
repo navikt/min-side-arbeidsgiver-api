@@ -132,10 +132,10 @@ fun Application.configureRoutes() {
 
             // Ereg
             post("api/ereg/underenhet") {
-                call.respond(dependencies.resolve<EregService>().underenhet(call.receive()) ?: HttpStatusCode.NotFound)
+                call.respond(dependencies.resolve<EregService>().underenhet(call.receive()) ?: HttpStatusCode.OK)
             }
             post("api/ereg/overenhet") {
-                call.respond(dependencies.resolve<EregService>().overenhet(call.receive()) ?: HttpStatusCode.NotFound)
+                call.respond(dependencies.resolve<EregService>().overenhet(call.receive()) ?: HttpStatusCode.OK)
             }
 
             // Refusjon status

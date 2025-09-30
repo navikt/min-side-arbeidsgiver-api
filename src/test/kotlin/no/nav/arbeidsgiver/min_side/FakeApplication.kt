@@ -75,6 +75,11 @@ class FakeApi : BeforeAllCallback, AfterAllCallback {
 
     val errors = mutableListOf<Throwable>()
 
+    private fun pathWithQuery(call: ApplicationCall): String {
+        val query = call.request.queryString().let { if (it.isNotEmpty()) "?$it" else it }
+        return call.request.path() + query
+    }
+
     private val server = embeddedServer(CIO, port = 8081, host = "localhost") {
         install(CallLogging) {
             level = Level.INFO
@@ -94,7 +99,7 @@ class FakeApi : BeforeAllCallback, AfterAllCallback {
             }
 
             post("{...}") {
-                stubs[HttpMethod.Post to call.request.path()]?.let { handler ->
+                stubs[HttpMethod.Post to pathWithQuery(call)]?.let { handler ->
                     try {
                         handler(this)
                     } catch (e: Exception) {
@@ -105,7 +110,7 @@ class FakeApi : BeforeAllCallback, AfterAllCallback {
             }
 
             get("{...}") {
-                stubs[HttpMethod.Get to call.request.path()]?.let { handler ->
+                stubs[HttpMethod.Get to pathWithQuery(call)]?.let { handler ->
                     try {
                         handler(this)
                     } catch (e: Exception) {

@@ -36,6 +36,7 @@ fun defaultHttpClient(
     }
 
     return HttpClient(CIO) {
+        configure()
         expectSuccess = false
 
         install(ContentNegotiation) {
@@ -72,7 +73,6 @@ fun defaultHttpClient(
         }
 
         install(propagateXCorrelationIdPlugin)
-        configure()
     }
 }
 

@@ -3,8 +3,10 @@ package no.nav.arbeidsgiver.min_side.services.ereg
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import no.nav.arbeidsgiver.min_side.config.Cache
 import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
@@ -13,15 +15,18 @@ import java.util.*
 
 
 class EregClient {
-    private val client = defaultHttpClient()
+    private val client = defaultHttpClient(configure = {
+        install(ContentNegotiation) {
+            jackson { findAndRegisterModules() }
+        }
+    })
     private val baseUrl = Environment.Ereg.eregServicesBaseUrl
 
     private val cache = Cache<String, Optional<EregOrganisasjon>>()
 
     suspend fun hentUnderenhet(virksomhetsnummer: String): EregOrganisasjon? {
         val value = cache.getOrCompute("$EREG_CACHE_NAME-$virksomhetsnummer") {
-            val response = client.get("$baseUrl/v2/organisasjon/{virksomhetsnummer}?inkluderHierarki=true") {
-                parameter("virksomhetsnummer", virksomhetsnummer)
+            val response = client.get("$baseUrl/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true") {
             }
 
             when (response.status) {
@@ -39,8 +44,7 @@ class EregClient {
 
     suspend fun hentOverenhet(orgnummer: String): EregOrganisasjon? {
         val value = cache.getOrCompute("$EREG_CACHE_NAME-$orgnummer") {
-            val response = client.get("$baseUrl/v2/organisasjon/{orgnummer}?inkluderHierarki=true") {
-                parameter("orgnummer", orgnummer)
+            val response = client.get("$baseUrl/v2/organisasjon/$orgnummer?inkluderHierarki=true") {
             }
 
             when (response.status) {
@@ -83,6 +87,7 @@ data class EregOrganisasjonDetaljer(
     val internettadresser: List<EregNettAdresse>?,
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 class EregEnhetstype(
     val enhetstype: String?,
     val gyldighetsperiode: GyldighetsPeriode?
@@ -146,6 +151,7 @@ data class EregNavn(
     val gyldighetsperiode: GyldighetsPeriode?
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class GyldighetsPeriode(
     val fom: LocalDate?,
     val tom: LocalDate?
