@@ -38,18 +38,17 @@ class AltinnTilgangerServiceTest {
         `when`(tokenXClient.exchange(anyString(), anyString()))
             .thenReturn(TokenXToken(access_token = "access_token2"))
 
-        fakeApi.stubs.put(
-            Pair(
-                HttpMethod.Post,
-                "/altinn-tilganger"
-            ), {
-                assertEquals(call.request.headers["Authorization"], "Bearer access_token2")
-                call.respondText(
-                    altinnTilgangerResponse,
-                    ContentType.Application.Json
-                )
-            }
-        )
+        fakeApi.registerStub(
+            HttpMethod.Post,
+            "/altinn-tilganger"
+        ) {
+            assertEquals(call.request.headers["Authorization"], "Bearer access_token2")
+            call.respondText(
+                altinnTilgangerResponse,
+                ContentType.Application.Json
+            )
+        }
+
 
         val tilganger = app.getDependency<AltinnService>().hentAltinnTilganger("access_token1")
 
@@ -95,18 +94,17 @@ class AltinnTilgangerServiceTest {
         `when`(tokenXClient.exchange(anyString(), anyString()))
             .thenReturn(TokenXToken(access_token = "access_token2"))
 
-        fakeApi.stubs.put(
-            Pair(
-                HttpMethod.Post,
-                "/altinn-tilganger"
-            ), {
-                assertEquals(call.request.headers["Authorization"], "Bearer access_token2")
-                call.respondText(
-                    altinnTilgangerResponse,
-                    ContentType.Application.Json
-                )
-            }
-        )
+        fakeApi.registerStub(
+            HttpMethod.Post,
+            "/altinn-tilganger"
+        ) {
+            assertEquals(call.request.headers["Authorization"], "Bearer access_token2")
+            call.respondText(
+                altinnTilgangerResponse,
+                ContentType.Application.Json
+            )
+        }
+
 
         val organisasjoner = app.getDependency<AltinnService>().hentAltinnTilganger("access_token1")
         assertTrue(organisasjoner.tilgangTilOrgNr.containsKey("4936:1"))

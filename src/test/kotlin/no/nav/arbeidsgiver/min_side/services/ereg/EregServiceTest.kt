@@ -39,12 +39,11 @@ class EregServiceTest {
     @Test
     fun `overenhet som mangler en del felter`() = app.runTest {
         val orgnr = "313199770"
-        fakeApi.stubs.put(
-            Pair(
-                io.ktor.http.HttpMethod.Get,
-                "/v2/organisasjon/$orgnr?inkluderHierarki=true"
-            )
-        ) {
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$orgnr?inkluderHierarki=true"
+        )
+        {
             call.response.headers.append("Content-Type", "application/json")
             call.respond(overenhetUtenEnDelFelter)
         }
@@ -83,12 +82,11 @@ class EregServiceTest {
     fun `henter underenhet fra ereg`() = app.runTest {
         val virksomhetsnummer = "910825526"
 
-        fakeApi.stubs.put(
-            Pair(
-                io.ktor.http.HttpMethod.Get,
-                "/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"
-            )
-        ) {
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"
+        )
+        {
             call.response.headers.append("Content-Type", "application/json")
             call.respond(underenhetRespons)
         }
@@ -148,12 +146,11 @@ class EregServiceTest {
     fun `henter underenhet med orgledd fra ereg`() = app.runTest {
         val virksomhetsnummer = "912998827"
 
-        fakeApi.stubs.put(
-            Pair(
-                io.ktor.http.HttpMethod.Get,
-                "/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"
-            )
-        ) {
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"
+        )
+        {
             call.response.headers.append("Content-Type", "application/json")
             call.respond(underenhetMedOrgleddRespons)
         }
@@ -214,12 +211,11 @@ class EregServiceTest {
     @Test
     fun `underenhet er null fra ereg`() = app.runTest {
         val virksomhetsnummer = "12345678"
-        fakeApi.stubs.put(
-            Pair(
-                io.ktor.http.HttpMethod.Get,
-                "/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"
-            )
-        ) {
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"
+        )
+        {
             call.respond(HttpStatusCode.NotFound)
         }
 
@@ -237,12 +233,11 @@ class EregServiceTest {
     fun `henter overenhet fra ereg`() = app.runTest {
         val orgnr = "810825472"
 
-        fakeApi.stubs.put(
-            Pair(
-                io.ktor.http.HttpMethod.Get,
-                "/v2/organisasjon/$orgnr?inkluderHierarki=true"
-            )
-        ) {
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$orgnr?inkluderHierarki=true"
+        )
+        {
             call.response.headers.append("Content-Type", "application/json")
             call.respond(overenhetRespons)
         }
@@ -301,12 +296,11 @@ class EregServiceTest {
     fun `henter orgledd fra ereg`() = app.runTest {
         val orgnr = "889640782"
 
-        fakeApi.stubs.put(
-            Pair(
-                io.ktor.http.HttpMethod.Get,
-                "/v2/organisasjon/$orgnr?inkluderHierarki=true"
-            )
-        ) {
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$orgnr?inkluderHierarki=true"
+        )
+        {
             call.response.headers.append("Content-Type", "application/json")
             call.respond(orgleddRespons)
         }
@@ -368,12 +362,11 @@ class EregServiceTest {
     fun `henter jurudisk enhet for orgledd 889640782`() = app.runTest {
         val orgnr = "983887457"
 
-        fakeApi.stubs.put(
-            Pair(
-                io.ktor.http.HttpMethod.Get,
-                "/v2/organisasjon/$orgnr?inkluderHierarki=true"
-            )
-        ) {
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$orgnr?inkluderHierarki=true"
+        )
+        {
             call.response.headers.append("Content-Type", "application/json")
             call.respond(juridiskEnhetForOrgleddRespons)
         }
@@ -434,12 +427,11 @@ class EregServiceTest {
     fun `overenhet er null fra ereg`() = app.runTest {
         val orgnr = "314"
 
-        fakeApi.stubs.put(
-            Pair(
-                io.ktor.http.HttpMethod.Get,
-                "/v2/organisasjon/$orgnr?inkluderHierarki=true"
-            )
-        ) {
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$orgnr?inkluderHierarki=true"
+        )
+        {
             call.response.headers.append("Content-Type", "application/json")
             call.respond(HttpStatusCode.NotFound, overenhetIkkeFunnetRespons)
         }

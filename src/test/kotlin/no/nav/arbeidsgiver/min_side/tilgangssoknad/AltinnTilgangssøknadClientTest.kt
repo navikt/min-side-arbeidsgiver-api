@@ -33,16 +33,26 @@ class AltinnTilgangssøknadClientTest {
     @Test
     fun hentSøknader() = app.runTest {
         val fnr = "42"
-        fakeApi.stubs.put(
-            HttpMethod.Get to "/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter=CoveredBy+eq+'$fnr'",
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/api/serviceowner/delegationRequests",
+            parametersOf(
+                "ForceEIAuthentication" to listOf(""),
+                "\$filter" to listOf("CoveredBy+eq+'$fnr'"),
+            ),
             {
                 call.response.header(HttpHeaders.ContentType, "application/json")
                 call.respond(altinnHentSøknadResponse)
             }
         )
-
-        fakeApi.stubs.put(
-            HttpMethod.Get to "/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter=CoveredBy+eq+'$fnr'&continuation=$continuationtoken",
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/api/serviceowner/delegationRequests",
+            parametersOf(
+                "ForceEIAuthentication" to listOf(""),
+                "\$filter" to listOf("CoveredBy+eq+'$fnr'"),
+                "continuation" to listOf(continuationtoken)
+            ),
             {
                 call.response.header(HttpHeaders.ContentType, "application/json")
                 call.respond(altinnHentSøknadTomResponse)
@@ -66,13 +76,14 @@ class AltinnTilgangssøknadClientTest {
             serviceEdition = 7,
         )
 
-        fakeApi.stubs.put(
-            HttpMethod.Post to "/api/serviceowner/delegationRequests?ForceEIAuthentication",
-            {
-                call.response.header(HttpHeaders.ContentType, "application/json")
-                call.respond(altinnSendSøknadResponse)
-            }
-        )
+        fakeApi.registerStub(
+            HttpMethod.Post,
+            "/api/serviceowner/delegationRequests",
+            parametersOf("ForceEIAuthentication" to listOf("")),
+        ) {
+            call.response.header(HttpHeaders.ContentType, "application/json")
+            call.respond(altinnSendSøknadResponse)
+        }
 
         val result = app.getDependency<AltinnTilgangssøknadClient>().sendSøknad(fnr, skjema)
         assertThat(result.status).isNotBlank

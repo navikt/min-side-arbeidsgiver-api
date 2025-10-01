@@ -40,6 +40,7 @@ class KontostatusTest {
                 provide<KontostatusService>(KontostatusService::class)
             }
         }
+
         @RegisterExtension
         val fakeApi = FakeApi()
     }
@@ -47,22 +48,21 @@ class KontostatusTest {
     @Test
     fun `henter kontonummer fra kontoregister`() = app.runTest {
         val virksomhetsnummer = "42"
-        fakeApi.stubs.put(
-            Pair(
-                HttpMethod.Get,
-                "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
-            ), {
-                call.response.headers.append(HttpHeaders.ContentType, "application/json")
-                call.respond(
-                    """
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
+        ) {
+            call.response.headers.append(HttpHeaders.ContentType, "application/json")
+            call.respond(
+                """
                 {
                     "mottaker": "42",
                     "kontonr": "12345678901"
                 }
                 """
-                )
-            }
-        )
+            )
+        }
+
 
         app.getDependency<KontoregisterClient>().hentKontonummer(virksomhetsnummer).let {
             Assertions.assertEquals("42", it?.mottaker)
@@ -84,14 +84,12 @@ class KontostatusTest {
     @Test
     fun `finner ikke kontonummer for virksomhet`() = app.runTest {
         val virksomhetsnummer = "123"
-        fakeApi.stubs.put(
-            Pair(
-                HttpMethod.Get,
-                "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
-            ), {
-                call.respond(HttpStatusCode.NotFound)
-            }
-        )
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
+        ) {
+            call.respond(HttpStatusCode.NotFound)
+        }
 
         app.getDependency<KontoregisterClient>().hentKontonummer(virksomhetsnummer).let { // 404 kaster exception
             Assertions.assertNull(it)
@@ -113,22 +111,20 @@ class KontostatusTest {
     fun `henter kontonummer fra kontoregister og returnerer kontonummer og orgnr`() = app.runTest {
         val virksomhetsnummer = "42"
 
-        fakeApi.stubs.put(
-            Pair(
-                HttpMethod.Get,
-                "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
-            ), {
-                call.response.headers.append(HttpHeaders.ContentType, "application/json")
-                call.respond(
-                    """
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
+        ) {
+            call.response.headers.append(HttpHeaders.ContentType, "application/json")
+            call.respond(
+                """
                 {
                     "mottaker": "42",
                     "kontonr": "12345678901"
                 }
                 """
-                )
-            }
-        )
+            )
+        }
 
         app.getDependency<KontoregisterClient>().hentKontonummer(virksomhetsnummer).let {
             Assertions.assertEquals("42", it?.mottaker)
@@ -161,22 +157,20 @@ class KontostatusTest {
     fun `bruker har ikke tilgang til å se kontonummer returnerer 404`() = app.runTest {
         val virksomhetsnummer = "42"
 
-        fakeApi.stubs.put(
-            Pair(
-                HttpMethod.Get,
-                "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
-            ), {
-                call.response.headers.append(HttpHeaders.ContentType, "application/json")
-                call.respond(
-                    """
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
+        ) {
+            call.response.headers.append(HttpHeaders.ContentType, "application/json")
+            call.respond(
+                """
                 {
                     "mottaker": "42",
                     "kontonr": "12345678901"
                 }
                 """
-                )
-            }
-        )
+            )
+        }
 
         app.getDependency<KontoregisterClient>().hentKontonummer(virksomhetsnummer).let {
             Assertions.assertEquals("42", it?.mottaker)
@@ -207,14 +201,13 @@ class KontostatusTest {
     fun `kontnummer finnes ikke for virksomhet`() = app.runTest {
         val virksomhetsnummer = "123"
 
-        fakeApi.stubs.put(
-            Pair(
-                HttpMethod.Get,
-                "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
-            ), {
-                call.respond(HttpStatusCode.NotFound)
-            }
-        )
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
+        ) {
+            call.respond(HttpStatusCode.NotFound)
+        }
+
         app.getDependency<KontoregisterClient>().hentKontonummer(virksomhetsnummer).let {
             Assertions.assertNull(it)
         }

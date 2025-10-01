@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.*
 import org.slf4j.event.Level
 import com.auth0.jwt.JWT
 import com.auth0.jwt.interfaces.DecodedJWT
+import io.ktor.util.toMap
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -74,9 +75,30 @@ class TestContext {
 }
 
 class FakeApi : BeforeAllCallback, AfterAllCallback {
-    val stubs = mutableMapOf<Pair<HttpMethod, String>, (suspend RoutingContext.(Any) -> Unit)>()
-
+    private val stubs = mutableMapOf<Pair<HttpMethod, String>, (suspend RoutingContext.(Any) -> Unit)>()
     val errors = mutableListOf<Throwable>()
+
+    fun registerStub(
+        method: HttpMethod,
+        path: String,
+        queryParams: Parameters = Parameters.Empty,
+        handler: suspend RoutingContext.(Any) -> Unit
+    ) {
+        val pathAndQuery = path + if (!queryParams.isEmpty()) {
+            "?" + queryParams.entries().joinToString("&") { entry ->
+                entry.value.joinToString("&") { value ->
+                    if (value.isEmpty()) {
+                        entry.key
+                    } else {
+                        "${entry.key}=$value"
+                    }
+                }
+            }
+        } else {
+            ""
+        }
+        stubs[method to pathAndQuery] = handler
+    }
 
     private fun pathWithQuery(call: ApplicationCall): String {
         val query = call.request.queryString().let { if (it.isNotEmpty()) "?$it" else it }
@@ -102,25 +124,27 @@ class FakeApi : BeforeAllCallback, AfterAllCallback {
             }
 
             post("{...}") {
-                stubs[HttpMethod.Post to pathWithQuery(call)]?.let { handler ->
-                    try {
-                        handler(this)
-                    } catch (e: Exception) {
-                        errors.add(e)
-                        throw e
-                    }
-                } ?: return@post call.response.status(HttpStatusCode.NotFound)
+                stubs[HttpMethod.Post to pathWithQuery(call)] // Check if there is match with query params, otherwise fallback to path only
+                    ?: stubs[HttpMethod.Post to call.request.path()]?.let { handler ->
+                        try {
+                            handler(this)
+                        } catch (e: Exception) {
+                            errors.add(e)
+                            throw e
+                        }
+                    } ?: return@post call.response.status(HttpStatusCode.NotFound)
             }
 
             get("{...}") {
-                stubs[HttpMethod.Get to pathWithQuery(call)]?.let { handler ->
-                    try {
-                        handler(this)
-                    } catch (e: Exception) {
-                        errors.add(e)
-                        throw e
-                    }
-                } ?: return@get call.response.status(HttpStatusCode.NotFound)
+                stubs[HttpMethod.Get to pathWithQuery(call)]
+                    ?: stubs[HttpMethod.Get to call.request.path()]?.let { handler ->
+                        try {
+                            handler(this)
+                        } catch (e: Exception) {
+                            errors.add(e)
+                            throw e
+                        }
+                    } ?: return@get call.response.status(HttpStatusCode.NotFound)
             }
         }
     }

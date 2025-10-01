@@ -106,13 +106,12 @@ class KontaktinfoClientTest {
 
     @Test
     fun organisasjonFinnesIkke(): Unit = app.runTest {
-        fakeApi.stubs.put(
-            Pair(
-                HttpMethod.Get,
-                "/api/serviceowner/organizations/1/officialcontacts"
-            ),
-            { call.respond(HttpStatusCode.BadRequest) }
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/api/serviceowner/organizations/1/officialcontacts"
         )
+        { call.respond(HttpStatusCode.BadRequest) }
+
 
 //        altinnServer.expect {
 //            assertEquals("/api/serviceowner/organizations/1/officialcontacts", it.uri.path)
@@ -129,17 +128,16 @@ class KontaktinfoClientTest {
     }
 
     private fun mockKontaktinfoResponse(orgnr: String, response: String) =
-        fakeApi.stubs.put(
-            Pair(
-                HttpMethod.Get,
-                "/api/serviceowner/organizations/${orgnr}/officialcontacts"
-            ),
-            {
-                assertNotNull(call.request.queryParameters)
-                call.response.headers.append(HttpHeaders.ContentType, "application/json")
-                call.respond(response)
-            }
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/api/serviceowner/organizations/${orgnr}/officialcontacts"
         )
+        {
+            assertNotNull(call.request.queryParameters)
+            call.response.headers.append(HttpHeaders.ContentType, "application/json")
+            call.respond(response)
+        }
+
 
 //            .expect {
 //                assertEquals(HttpMethod.GET, it.method)

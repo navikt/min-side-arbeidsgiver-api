@@ -29,6 +29,7 @@ class TokenExchangeClientTest {
         @RegisterExtension
         val fakeApi = FakeApi()
     }
+
     val mapper = ObjectMapper()
 
     @Test
@@ -39,16 +40,17 @@ class TokenExchangeClientTest {
         token.access_token = "tolrolro"
 
         `when`(app.getDependency<ClientAssertionTokenFactory>().clientAssertion).thenReturn(clientAssertion)
-        fakeApi.stubs.put(
-            HttpMethod.Post to "/token",
-            {
-                val body = call.receive<Map<String, List<String>>>()
-                assert(body["subject_token"]!!.contains(subjectToken))
-                assert(body["client_assertion"]!!.contains(clientAssertion))
-                call.response.headers.append(HttpHeaders.ContentType, "application/json")
-                call.respond(mapper.writeValueAsString(token))
-            }
-        )
+        fakeApi.registerStub(
+            HttpMethod.Post,
+            "/token"
+        ) {
+            val body = call.receive<Map<String, List<String>>>()
+            assert(body["subject_token"]!!.contains(subjectToken))
+            assert(body["client_assertion"]!!.contains(clientAssertion))
+            call.response.headers.append(HttpHeaders.ContentType, "application/json")
+            call.respond(mapper.writeValueAsString(token))
+        }
+
 
         val tokenXClient = app.getDependency<TokenExchangeClient>()
 
