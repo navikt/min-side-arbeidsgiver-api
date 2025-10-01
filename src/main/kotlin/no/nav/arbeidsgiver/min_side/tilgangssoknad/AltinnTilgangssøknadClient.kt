@@ -25,7 +25,7 @@ class AltinnTilgangssøknadClient(
     private val delegationRequestApiPath = "$altinnApiBaseUrl/api/serviceowner/delegationRequests"
 
     suspend fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad> {
-        val filter = "CoveredBy eq '$fødselsnummer'"
+        val filter = "CoveredBy eq '$fødselsnummer'".replace(" ", "+")
         var shouldContinue = true
         var continuationtoken: String? = null
         val resultat = ArrayList<AltinnTilgangssøknad>()
@@ -33,9 +33,9 @@ class AltinnTilgangssøknadClient(
             val uri =
                 "$delegationRequestApiPath?ForceEIAuthentication&${
                     if (continuationtoken == null) {
-                        "\$filter={$filter}"
+                        "\$filter=$filter"
                     } else {
-                        "\$filter={$filter}&continuation={$continuationtoken}"
+                        "\$filter=$filter&continuation=$continuationtoken"
                     }
                 }"
 
@@ -89,7 +89,9 @@ class AltinnTilgangssøknadClient(
         val response = client.post("$delegationRequestApiPath?ForceEIAuthentication") {
             header("accept", "application/hal+json")
             header("apikey", altinnApiKey)
+            contentType(ContentType.Application.Json)
             bearerAuth(maskinportenTokenService.currentAccessToken())
+
             setBody(
                 DelegationRequest(
                     CoveredBy = fødselsnummer,
