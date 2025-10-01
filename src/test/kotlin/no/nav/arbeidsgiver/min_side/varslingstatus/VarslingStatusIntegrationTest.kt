@@ -1,12 +1,19 @@
 //package no.nav.arbeidsgiver.min_side.varslingstatus
 //
 //import com.fasterxml.jackson.databind.ObjectMapper
+//import io.ktor.server.plugins.di.dependencies
+//import no.nav.arbeidsgiver.min_side.FakeApi
+//import no.nav.arbeidsgiver.min_side.FakeApplication
 //import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 //import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+//import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
+//import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 //import org.apache.kafka.clients.consumer.ConsumerRecord
 //import org.flywaydb.core.Flyway
 //import org.junit.jupiter.api.BeforeEach
 //import org.junit.jupiter.api.Test
+//import org.junit.jupiter.api.extension.RegisterExtension
+//import org.mockito.Mockito
 //import org.mockito.Mockito.`when`
 //import org.springframework.beans.factory.annotation.Autowired
 //import org.springframework.beans.factory.annotation.Value
@@ -19,7 +26,7 @@
 //import org.springframework.test.json.JsonCompareMode.STRICT
 //import org.springframework.test.web.servlet.MockMvc
 //import org.springframework.test.web.servlet.post
-//
+//TODO KAFKA
 //@SpringBootTest(
 //    properties = [
 //        "server.servlet.context-path=/",
@@ -28,6 +35,25 @@
 //)
 //@AutoConfigureMockMvc
 //class VarslingStatusIntegrationTest {
+//    companion object {
+//        @RegisterExtension
+//        val app = FakeApplication(
+//            addDatabase = true,
+//        ) {
+//            dependencies {
+//                provide<KontaktInfoPollingService>(KontaktInfoPollingService::class)
+//                provide<VarslingStatusRepository>(VarslingStatusRepository::class)
+//                provide<KontaktInfoPollerRepository>(KontaktInfoPollerRepository::class)
+//                provide<ObjectMapper>(ObjectMapper::class)
+//                provide<KontaktinfoClient> { Mockito.mock<KontaktinfoClient>() }
+//                provide<EregClient> { Mockito.mock<EregClient>() }
+//            }
+//        }
+//
+//        @RegisterExtension
+//        val fakeApi = FakeApi()
+//    }
+//
 //    @Autowired
 //    lateinit var mockMvc: MockMvc
 //

@@ -62,7 +62,9 @@ class FakeApplication(
 
     override fun afterAll(context: ExtensionContext?) {
         database?.clean()
+        database?.close()
         server.stop()
+
     }
 }
 

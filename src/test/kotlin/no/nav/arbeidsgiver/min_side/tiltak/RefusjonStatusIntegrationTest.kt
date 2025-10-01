@@ -23,6 +23,7 @@
 //import org.springframework.test.web.servlet.get
 //import java.util.UUID.randomUUID
 //
+//// TODO: Kafka
 //@SpringBootTest(
 //    properties = [
 //        "server.servlet.context-path=/",

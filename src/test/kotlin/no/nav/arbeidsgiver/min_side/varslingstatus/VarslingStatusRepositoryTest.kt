@@ -13,7 +13,7 @@
 //import java.time.Instant
 //import kotlin.time.Duration.Companion.days
 //import kotlin.time.Duration.Companion.seconds
-//
+// TODO: kafka
 //@MockitoBean(types=[JwtDecoder::class])
 //@SpringBootTest(
 //    properties = [

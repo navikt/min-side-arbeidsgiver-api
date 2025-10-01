@@ -1,11 +1,18 @@
 //package no.nav.arbeidsgiver.min_side.varslingstatus
 //
 //import com.fasterxml.jackson.databind.ObjectMapper
+//import io.ktor.server.plugins.di.dependencies
+//import no.nav.arbeidsgiver.min_side.FakeApi
+//import no.nav.arbeidsgiver.min_side.FakeApplication
+//import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
+//import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
+//import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 //import org.apache.kafka.clients.consumer.ConsumerRecord
 //import org.flywaydb.core.Flyway
 //import org.junit.jupiter.api.Assertions.assertEquals
 //import org.junit.jupiter.api.BeforeEach
 //import org.junit.jupiter.api.Test
+//import org.junit.jupiter.api.extension.RegisterExtension
 //import org.springframework.beans.factory.annotation.Autowired
 //import org.springframework.boot.test.context.SpringBootTest
 //import org.springframework.jdbc.core.JdbcTemplate
@@ -14,7 +21,7 @@
 //import java.time.Instant
 //import kotlin.time.Duration.Companion.days
 //import kotlin.time.toJavaDuration
-//
+// TODO: Kafka
 //@MockitoBean(types=[JwtDecoder::class])
 //@SpringBootTest(
 //    properties = [
@@ -22,6 +29,23 @@
 //    ]
 //)
 //class KontaktInfoPollerRepositoryTest {
+//    companion object {
+//        @RegisterExtension
+//        val app = FakeApplication(
+//            addDatabase = true,
+//        ) {
+//            dependencies {
+//                provide<VarslingStatusRepository>(VarslingStatusRepository::class)
+//                provide<KontaktInfoPollerRepository>(KontaktInfoPollerRepository::class)
+//                provide<ObjectMapper>(ObjectMapper::class)
+//                provide<VarslingStatusRepository>(VarslingStatusRepository::class)
+//                provide<MaskinportenTokenService> { MaskinportenTokenServiceStub() }
+//            }
+//        }
+//
+//        @RegisterExtension
+//        val fakeApi = FakeApi()
+//    }
 //
 //    @Autowired
 //    lateinit var varslingStatusRepository: VarslingStatusRepository
