@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
@@ -349,6 +350,8 @@ fun Application.ktorConfig() {
     }
 
     install(ContentNegotiation) {
-        jackson()
+        jackson{
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        }
     }
 }
