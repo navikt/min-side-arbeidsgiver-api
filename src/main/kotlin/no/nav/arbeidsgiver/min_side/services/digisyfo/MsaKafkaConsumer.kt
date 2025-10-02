@@ -20,7 +20,6 @@ import org.apache.kafka.common.config.SslConfigs
 import java.lang.System.getenv
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.text.toInt
 
 data class KafkaConsumerConfig(
     val topics: Set<String>,
@@ -87,12 +86,12 @@ class NaermesteLederRecordProcessor(
 }
 
 
-class SykemeldingRecordProcessor(
+class SykmeldingRecordProcessor(
     private val objectMapper: ObjectMapper,
     private val digisyfoRepository: DigisyfoRepository,
 ) : ConsumerRecordProcessor {
     override suspend fun processRecord(record: ConsumerRecord<String?, String?>) {
-        NotImplementedError("NotImplemented")
+        throw NotImplementedError("NotImplemented")
     }
 
     override suspend fun processRecords(records: ConsumerRecords<String?, String?>) {
@@ -192,7 +191,7 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
             groupId = "min-side-arbeidsgiver-sykmelding-1",
             topics = setOf("teamsykmelding.syfo-sendt-sykmelding"),
         )
-        MsaKafkaConsumer(config).batchConsume(SykemeldingRecordProcessor(objectMapper, digisyfoRepository))
+        MsaKafkaConsumer(config).batchConsume(SykmeldingRecordProcessor(objectMapper, digisyfoRepository))
     }
 
 

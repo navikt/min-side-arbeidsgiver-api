@@ -4,20 +4,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.server.plugins.di.*
 import io.micrometer.core.instrument.MeterRegistry
-import kotlinx.coroutines.delay
 import no.nav.arbeidsgiver.min_side.FakeApplication
+import no.nav.arbeidsgiver.min_side.provideApplicationObjectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.serialization.StringSerializer
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.apache.kafka.common.TopicPartition
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.Answers
 import org.mockito.Mockito
 import java.time.LocalDate
-import java.util.*
 
 
 class MsaKafkaConsumerImplTest {
@@ -29,21 +25,11 @@ class MsaKafkaConsumerImplTest {
             dependencies {
                 provide<DigisyfoRepository>(DigisyfoRepositoryImpl::class)
                 provide<MeterRegistry> { Mockito.mock(MeterRegistry::class.java, Answers.RETURNS_DEEP_STUBS) }
-                provide<ObjectMapper>(ObjectMapper::class)
+                provideApplicationObjectMapper()
             }
-            startDigisyfoKafkaConsumers(this)
         }
     }
 
-
-    private fun createTestKafkaProducer(): KafkaProducer<String, String> {
-        val props = Properties().apply {
-            put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
-            put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java.canonicalName)
-            put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java.canonicalName)
-        }
-        return KafkaProducer(props)
-    }
 
     @Test
     fun `objectmapper handles localdate`() = app.runTest {
@@ -54,7 +40,11 @@ class MsaKafkaConsumerImplTest {
 
     @Test
     fun `sykmeldinger handles json items`() = app.runTest {
-        val kafkaProducer = createTestKafkaProducer()
+        val processor = SykmeldingRecordProcessor(
+            app.getDependency<ObjectMapper>(),
+            app.getDependency<DigisyfoRepository>()
+        )
+
         val fnr = "0011223344556"
         val json = """
             {
@@ -75,22 +65,34 @@ class MsaKafkaConsumerImplTest {
                 }
             }
         """
-        kafkaProducer.send(ProducerRecord("teamsykmelding.syfo-narmesteleder-leesah", 1, "key", json))
-        delay(2000) // wait for async to process
-        val virksomheterOgSykemeldte = app.getDependency<DigisyfoRepository>().virksomheterOgSykmeldte(fnr)
-        assertEquals(1, virksomheterOgSykemeldte.count())
-
+        val consumerRecords = ConsumerRecords(
+            mapOf(
+                TopicPartition("topic", 1) to
+                        listOf(
+                            ConsumerRecord(
+                                "topic", 1, 0, "someid",
+                                json
+                            )
+                        )
+            )
+        )
+        processor.processRecords(consumerRecords)
     }
 
     @Test
     fun `nærmeste leder handles json`() = app.runTest {
+        var processor = NaermesteLederRecordProcessor(
+            app.getDependency<ObjectMapper>(),
+            app.getDependency<DigisyfoRepository>()
+        )
+        val naermesteLederFnr = "0011223344556"
         val consumerRecord = ConsumerRecord(
             "foo", 1, 0, "someid",
             """{
                     "narmesteLederId": "20e8377b-9513-464a-8c09-4ebbd8c2b4e3",
                     "fnr":"***********",
                     "orgnummer":"974574861",
-                    "narmesteLederFnr":"***********",
+                    "narmesteLederFnr":"$naermesteLederFnr",
                     "narmesteLederTelefonnummer":"xxx",
                     "narmesteLederEpost":"xxx",
                     "aktivFom":"2020-02-24",
@@ -99,6 +101,6 @@ class MsaKafkaConsumerImplTest {
                     "timestamp":"2021-05-03T07:53:33.937472Z"
            }"""
         )
-//        kafkaConsumer.processNærmestelederRecord(consumerRecord)
+        processor.processRecord(consumerRecord)
     }
 }

@@ -58,6 +58,7 @@ import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssøknadClient
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
 import no.nav.arbeidsgiver.min_side.varslingstatus.*
+import org.flywaydb.core.internal.util.ObjectMapperFactory
 import org.slf4j.event.Level
 import java.util.*
 
@@ -142,7 +143,8 @@ fun Application.configureRoutes() {
             // Refusjon status
             get("/api/refusjon_status") {
                 call.respond(
-                    dependencies.resolve<RefusjonStatusService>().statusoversikt(AuthenticatedUserHolderImpl(call).token)
+                    dependencies.resolve<RefusjonStatusService>()
+                        .statusoversikt(AuthenticatedUserHolderImpl(call).token)
                 )
             }
 
@@ -165,7 +167,11 @@ fun Application.configureRoutes() {
             post("/api/altinn-tilgangssoknad") {
                 val authenticatedUserHolder = AuthenticatedUserHolderImpl(call)
                 val result = dependencies.resolve<AltinnTilgangSoknadService>()
-                    .sendSøknadOmTilgang(call.receive(), fnr = authenticatedUserHolder.fnr, token = authenticatedUserHolder.token)
+                    .sendSøknadOmTilgang(
+                        call.receive(),
+                        fnr = authenticatedUserHolder.fnr,
+                        token = authenticatedUserHolder.token
+                    )
                 call.response.status(result.status)
                 result.body?.let { call.respond(it) }
             }
@@ -173,7 +179,10 @@ fun Application.configureRoutes() {
             // Userinfo
             get("/api/userInfo/v3") {
                 val authenticatedUserHolder = AuthenticatedUserHolderImpl(call)
-                call.respond(dependencies.resolve<UserInfoService>().getUserInfoV3(fnr = authenticatedUserHolder.fnr, token = authenticatedUserHolder.token))
+                call.respond(
+                    dependencies.resolve<UserInfoService>()
+                        .getUserInfoV3(fnr = authenticatedUserHolder.fnr, token = authenticatedUserHolder.token)
+                )
             }
 
             // Varsling status
@@ -210,7 +219,7 @@ fun Application.configureDependencies() {
         provide<Database> { openDatabase(databaseConfig) }
 
         provide(MeterRegistry::class)
-        provide(ObjectMapper::class)
+        provideApplicationObjectMapper()
 
         provide<MaskinportenClient> { MaskinportenClientImpl(maskinportenConfig) }
         provide<MaskinportenTokenService>(MaskinportenTokenServiceImpl::class)
@@ -254,6 +263,12 @@ fun Application.configureDependencies() {
         provide<KontaktInfoPollingService>(KontaktInfoPollingService::class)
         provide<VarslingStatusService>(VarslingStatusService::class)
         provide<VarslingStatusRepository>(VarslingStatusRepository::class)
+    }
+}
+
+fun DependencyRegistry.provideApplicationObjectMapper() {
+    provide<ObjectMapper> {
+        ObjectMapper().findAndRegisterModules()
     }
 }
 
@@ -350,7 +365,7 @@ fun Application.ktorConfig() {
     }
 
     install(ContentNegotiation) {
-        jackson{
+        jackson {
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         }
     }
