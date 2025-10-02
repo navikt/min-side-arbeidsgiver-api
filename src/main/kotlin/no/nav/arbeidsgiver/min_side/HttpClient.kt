@@ -40,7 +40,9 @@ fun defaultHttpClient(
         expectSuccess = false
 
         install(ContentNegotiation) {
-            jackson()
+            jackson{
+                findAndRegisterModules()
+            }
         }
 
         install(HttpClientMetricsFeature) {

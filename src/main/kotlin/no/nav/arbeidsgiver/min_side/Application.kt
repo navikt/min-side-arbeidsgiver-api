@@ -366,6 +366,7 @@ fun Application.ktorConfig() {
 
     install(ContentNegotiation) {
         jackson {
+            findAndRegisterModules()
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         }
     }

@@ -128,25 +128,25 @@ class FakeApi : BeforeAllCallback, AfterAllCallback {
             post("{...}") {
                 (stubs[HttpMethod.Post to pathWithQuery(call)] // Check if there is match with query params, otherwise fallback to path only
                     ?: stubs[HttpMethod.Post to call.request.path()])?.let { handler ->
-                        try {
-                            handler(this)
-                        } catch (e: Exception) {
-                            errors.add(e)
-                            throw e
-                        }
-                    } ?: return@post call.response.status(HttpStatusCode.NotFound)
+                    try {
+                        handler(this)
+                    } catch (e: Exception) {
+                        errors.add(e)
+                        throw e
+                    }
+                } ?: return@post call.response.status(HttpStatusCode.NotFound)
             }
 
             get("{...}") {
                 (stubs[HttpMethod.Get to pathWithQuery(call)]
                     ?: stubs[HttpMethod.Get to call.request.path()])?.let { handler ->
-                        try {
-                            handler(this)
-                        } catch (e: Exception) {
-                            errors.add(e)
-                            throw e
-                        }
-                    } ?: return@get call.response.status(HttpStatusCode.NotFound)
+                    try {
+                        handler(this)
+                    } catch (e: Exception) {
+                        errors.add(e)
+                        throw e
+                    }
+                } ?: return@get call.response.status(HttpStatusCode.NotFound)
             }
         }
     }

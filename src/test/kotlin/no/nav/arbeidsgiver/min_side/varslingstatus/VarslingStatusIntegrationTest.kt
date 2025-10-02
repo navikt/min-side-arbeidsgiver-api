@@ -1,32 +1,40 @@
-//package no.nav.arbeidsgiver.min_side.varslingstatus
-//
-//import com.fasterxml.jackson.databind.ObjectMapper
-//import io.ktor.server.plugins.di.dependencies
-//import no.nav.arbeidsgiver.min_side.FakeApi
-//import no.nav.arbeidsgiver.min_side.FakeApplication
-//import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-//import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-//import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
-//import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
-//import org.apache.kafka.clients.consumer.ConsumerRecord
-//import org.flywaydb.core.Flyway
-//import org.junit.jupiter.api.BeforeEach
-//import org.junit.jupiter.api.Test
-//import org.junit.jupiter.api.extension.RegisterExtension
-//import org.mockito.Mockito
-//import org.mockito.Mockito.`when`
-//import org.springframework.beans.factory.annotation.Autowired
-//import org.springframework.beans.factory.annotation.Value
-//import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-//import org.springframework.boot.test.context.SpringBootTest
-//import org.springframework.core.io.Resource
-//import org.springframework.http.MediaType.APPLICATION_JSON
-//import org.springframework.security.oauth2.jwt.JwtDecoder
-//import org.springframework.test.context.bean.override.mockito.MockitoBean
-//import org.springframework.test.json.JsonCompareMode.STRICT
-//import org.springframework.test.web.servlet.MockMvc
-//import org.springframework.test.web.servlet.post
-////TODO KAFKA
+package no.nav.arbeidsgiver.min_side.varslingstatus
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.ktor.client.request.*
+import io.ktor.client.request.accept
+import io.ktor.client.request.post
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.*
+import io.ktor.http.contentType
+import io.ktor.server.application.Application
+import io.ktor.server.plugins.di.*
+import no.nav.arbeidsgiver.min_side.FakeApi
+import no.nav.arbeidsgiver.min_side.FakeApplication
+import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
+import no.nav.arbeidsgiver.min_side.fakeToken
+import no.nav.arbeidsgiver.min_side.provideApplicationObjectMapper
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import no.nav.arbeidsgiver.min_side.services.digisyfo.VarslingStatusRecordProcessor
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import org.skyscreamer.jsonassert.JSONAssert.assertEquals
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.core.io.Resource
+import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.test.json.JsonCompareMode.STRICT
+import org.springframework.test.web.servlet.post
+import kotlin.String
+import kotlin.arrayOf
+import kotlin.assert
+import kotlin.let
+import kotlin.to
+import kotlin.with
+
 //@SpringBootTest(
 //    properties = [
 //        "server.servlet.context-path=/",
@@ -34,26 +42,25 @@
 //    ]
 //)
 //@AutoConfigureMockMvc
-//class VarslingStatusIntegrationTest {
-//    companion object {
-//        @RegisterExtension
-//        val app = FakeApplication(
-//            addDatabase = true,
-//        ) {
-//            dependencies {
-//                provide<KontaktInfoPollingService>(KontaktInfoPollingService::class)
-//                provide<VarslingStatusRepository>(VarslingStatusRepository::class)
-//                provide<KontaktInfoPollerRepository>(KontaktInfoPollerRepository::class)
-//                provide<ObjectMapper>(ObjectMapper::class)
-//                provide<KontaktinfoClient> { Mockito.mock<KontaktinfoClient>() }
-//                provide<EregClient> { Mockito.mock<EregClient>() }
-//            }
-//        }
-//
-//        @RegisterExtension
-//        val fakeApi = FakeApi()
-//    }
-//
+class VarslingStatusIntegrationTest {
+    companion object {
+        @RegisterExtension
+        val app = FakeApplication(
+            addDatabase = true,
+        ) {
+            dependencies {
+                provide<VarslingStatusService>(VarslingStatusService::class)
+                provide<VarslingStatusRepository>(VarslingStatusRepository::class)
+                provide<KontaktInfoPollerRepository>(KontaktInfoPollerRepository::class)
+                provideApplicationObjectMapper()
+                provide<AltinnService> { Mockito.mock<AltinnService>() }
+            }
+        }
+
+        @RegisterExtension
+        val fakeApi = FakeApi()
+    }
+
 //    @Autowired
 //    lateinit var mockMvc: MockMvc
 //
@@ -77,9 +84,7 @@
 //    @Autowired
 //    lateinit var flyway: Flyway
 //
-//    @Value("classpath:fager.ekstern-varsling-status.topic")
-//    lateinit var sampleTopic: Resource
-//
+
 //    @BeforeEach
 //    fun setup() {
 //        flyway.clean()
@@ -89,23 +94,63 @@
 //            objectMapper,
 //        )
 //    }
-//
-//    @Test
-//    fun `bruker som ikke har tilgang får status ok som default`() {
-//        `when`(altinnService.harOrganisasjon("314")).thenReturn(false)
-//
-//        processVarslingStatus(
-//            """
-//                {
-//                    "virksomhetsnummer": "314",
-//                    "varselId": "vid1",
-//                    "varselTimestamp": "2021-01-01T00:00:00",
-//                    "kvittertEventTimestamp": "2021-01-01T00:00:00Z",
-//                    "status": "MANGLER_KOFUVI",
-//                    "version": "1"
-//                }
-//            """
-//        )
+
+    @Test
+    fun `bruker som ikke har tilgang får status ok som default`() = app.runTest {
+        val token = fakeToken("42")
+        `when`(app.getDependency<AltinnService>().harOrganisasjon("314", token)).thenReturn(false)
+
+        app.processVarslingStatus(
+            """
+                {
+                    "virksomhetsnummer": "314",
+                    "varselId": "vid1",
+                    "varselTimestamp": "2021-01-01T00:00:00",
+                    "kvittertEventTimestamp": "2021-01-01T00:00:00Z",
+                    "status": "MANGLER_KOFUVI",
+                    "version": "1"
+                }
+            """
+        )
+
+        client.post("/api/varslingStatus/v1") {
+            setBody("""{"virksomhetsnummer": "314"}""")
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            bearerAuth(token)
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals("""{"status":"OK"}""", it.bodyAsText(), true)
+        }
+    }
+
+    @Test
+    fun `bruker med tilgang men ingen status i databasen får OK som default`() = app.runTest {
+        val token = fakeToken("42")
+        `when`(app.getDependency<AltinnService>().harOrganisasjon("314", token)).thenReturn(true)
+
+        app.processVarslingStatus(
+            """
+                {
+                    "virksomhetsnummer": "86",
+                    "varselId": "vid1",
+                    "varselTimestamp": "2021-01-01T00:00:00",
+                    "kvittertEventTimestamp": "2021-01-01T00:00:00Z",
+                    "status": "MANGLER_KOFUVI",
+                    "version": "1"
+                }
+            """
+        )
+
+        client.post("/api/varslingStatus/v1") {
+            setBody("""{"virksomhetsnummer": "314"}""")
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            bearerAuth(token)
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals("""{"status":"OK"}""", it.bodyAsText(), true)
+        }
 //
 //        mockMvc.post("/api/varslingStatus/v1") {
 //            content = """{"virksomhetsnummer": "314"}"""
@@ -116,60 +161,48 @@
 //            status { isOk() }
 //            content { json("""{"status": "OK"}""") }
 //        }
-//    }
-//
-//    @Test
-//    fun `bruker med tilgang men ingen status i databasen får OK som default`() {
-//        `when`(altinnService.harOrganisasjon("314")).thenReturn(true)
-//
-//        processVarslingStatus(
-//            """
-//                {
-//                    "virksomhetsnummer": "86",
-//                    "varselId": "vid1",
-//                    "varselTimestamp": "2021-01-01T00:00:00",
-//                    "kvittertEventTimestamp": "2021-01-01T00:00:00Z",
-//                    "status": "MANGLER_KOFUVI",
-//                    "version": "1"
-//                }
-//            """
-//        )
-//
-//        mockMvc.post("/api/varslingStatus/v1") {
-//            content = """{"virksomhetsnummer": "314"}"""
-//            contentType = APPLICATION_JSON
-//            accept = APPLICATION_JSON
-//            with(jwtWithPid("42"))
-//        }.andExpect {
-//            status { isOk() }
-//            content { json("""{"status": "OK"}""") }
-//        }
-//    }
-//
-//    @Test
-//    fun `returnerer siste status for virksomhet`() {
-//        `when`(altinnService.harOrganisasjon("314")).thenReturn(true)
-//
-//        listOf(
-//            "MANGLER_KOFUVI" to "2021-01-02T00:00:00Z",
-//            "OK" to "2021-01-01T00:00:00Z",
-//            "MANGLER_KOFUVI" to "2021-01-04T00:00:00Z",
-//            "ANNEN_FEIL" to "2021-01-03T00:00:00Z",
-//        ).forEachIndexed { index, (status, timestamp) ->
-//            processVarslingStatus(
-//                """
-//                    {
-//                        "virksomhetsnummer": "314",
-//                        "varselId": "vid$index",
-//                        "varselTimestamp": "2021-01-01T00:00:00",
-//                        "kvittertEventTimestamp": "$timestamp",
-//                        "status": "$status",
-//                        "version": "1"
-//                    }
-//                """
-//            )
-//        }
-//
+    }
+
+    @Test
+    fun `returnerer siste status for virksomhet`() = app.runTest {
+        val token = fakeToken("42")
+        `when`(app.getDependency<AltinnService>().harOrganisasjon("314", token)).thenReturn(true)
+
+        listOf(
+            "MANGLER_KOFUVI" to "2021-01-02T00:00:00Z",
+            "OK" to "2021-01-01T00:00:00Z",
+            "MANGLER_KOFUVI" to "2021-01-04T00:00:00Z",
+            "ANNEN_FEIL" to "2021-01-03T00:00:00Z",
+        ).forEachIndexed { index, (status, timestamp) ->
+            app.processVarslingStatus(
+                """
+                    {
+                        "virksomhetsnummer": "314",
+                        "varselId": "vid$index",
+                        "varselTimestamp": "2021-01-01T00:00:00",
+                        "kvittertEventTimestamp": "$timestamp",
+                        "status": "$status",
+                        "version": "1"
+                    }
+                """
+            )
+        }
+        client.post("/api/varslingStatus/v1") {
+            setBody("""{"virksomhetsnummer": "314"}""")
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            bearerAuth(token)
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(
+                """{
+                    "status": "MANGLER_KOFUVI",
+                    "varselTimestamp": "2021-01-01T00:00:00",
+                    "kvittertEventTimestamp": "2021-01-04T00:00:00Z"
+                    }""", it.bodyAsText(), true
+            )
+        }
+
 //        mockMvc.post("/api/varslingStatus/v1") {
 //            content = """{"virksomhetsnummer": "314"}"""
 //            contentType = APPLICATION_JSON
@@ -178,42 +211,59 @@
 //        }.andExpect {
 //            status { isOk() }
 //            content {
-//                json(
-//                    """{
+//                """{
 //                    "status": "MANGLER_KOFUVI",
 //                    "varselTimestamp": "2021-01-01T00:00:00",
 //                    "kvittertEventTimestamp": "2021-01-04T00:00:00Z"
 //                    }""",
+//                json(
 //                    STRICT
 //                )
 //            }
-//        }
-//    }
-//
-//    @Test
-//    fun `returnerer siste status for virksomhet OK`() {
-//        `when`(altinnService.harOrganisasjon("314")).thenReturn(true)
-//
-//        listOf(
-//            "MANGLER_KOFUVI" to "2021-01-01T00:00:00Z",
-//            "OK" to "2021-01-07T00:00:00Z",
-//            "ANNEN_FEIL" to "2021-01-02T00:00:00Z",
-//            "MANGLER_KOFUVI" to "2021-01-03T00:00:00Z",
-//        ).forEachIndexed { index, (status, timestamp) ->
-//            processVarslingStatus(
-//                """
-//                    {
-//                        "virksomhetsnummer": "314",
-//                        "varselId": "vid$index",
-//                        "varselTimestamp": "2021-01-01T00:00:00",
-//                        "kvittertEventTimestamp": "$timestamp",
-//                        "status": "$status",
-//                        "version": "1"
-//                    }
-//                """
-//            )
-//        }
-//
+    }
+
+
+    @Test
+    fun `returnerer siste status for virksomhet OK`() = app.runTest {
+        val token = fakeToken("42")
+        `when`(app.getDependency<AltinnService>().harOrganisasjon("314", token)).thenReturn(true)
+
+        listOf(
+            "MANGLER_KOFUVI" to "2021-01-01T00:00:00Z",
+            "OK" to "2021-01-07T00:00:00Z",
+            "ANNEN_FEIL" to "2021-01-02T00:00:00Z",
+            "MANGLER_KOFUVI" to "2021-01-03T00:00:00Z",
+        ).forEachIndexed { index, (status, timestamp) ->
+            app.processVarslingStatus(
+                """
+                    {
+                        "virksomhetsnummer": "314",
+                        "varselId": "vid$index",
+                        "varselTimestamp": "2021-01-01T00:00:00",
+                        "kvittertEventTimestamp": "$timestamp",
+                        "status": "$status",
+                        "version": "1"
+                    }
+                """
+            )
+        }
+
+        client.post("/api/varslingStatus/v1") {
+            setBody("""{"virksomhetsnummer": "314"}""")
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            bearerAuth(token)
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(
+                """{
+                    "status": "OK",
+                    "varselTimestamp": "2021-01-01T00:00:00",
+                    "kvittertEventTimestamp": "2021-01-07T00:00:00Z"
+                    }""", it.bodyAsText(), true
+            )
+        }
+
 //        mockMvc.post("/api/varslingStatus/v1") {
 //            content = """{"virksomhetsnummer": "314"}"""
 //            contentType = APPLICATION_JSON
@@ -232,26 +282,40 @@
 //                )
 //            }
 //        }
-//    }
-//
-//    @Test
-//    fun `får ok dersom kontaktinfo er pollet og funnet`() {
-//        `when`(altinnService.harOrganisasjon("314")).thenReturn(true)
-//
-//        processVarslingStatus(
-//            """
-//                {
-//                    "virksomhetsnummer": "314",
-//                    "varselId": "vid1",
-//                    "varselTimestamp": "2021-01-01T00:00:00",
-//                    "kvittertEventTimestamp": "2021-01-01T00:00:00Z",
-//                    "status": "MANGLER_KOFUVI",
-//                    "version": "1"
-//                }
-//            """
-//        )
-//        kontaktInfoPollerRepository.updateKontaktInfo(virksomhetsnummer = "314", harEpost = true, harTlf = true)
-//
+    }
+
+    @Test
+    fun `får ok dersom kontaktinfo er pollet og funnet`() = app.runTest {
+        val token = fakeToken("42")
+        `when`(app.getDependency<AltinnService>().harOrganisasjon("314", token)).thenReturn(true)
+
+        app.processVarslingStatus(
+            """
+                {
+                    "virksomhetsnummer": "314",
+                    "varselId": "vid1",
+                    "varselTimestamp": "2021-01-01T00:00:00",
+                    "kvittertEventTimestamp": "2021-01-01T00:00:00Z",
+                    "status": "MANGLER_KOFUVI",
+                    "version": "1"
+                }
+            """
+        )
+        app.getDependency<KontaktInfoPollerRepository>()
+            .updateKontaktInfo(virksomhetsnummer = "314", harEpost = true, harTlf = true)
+
+        client.post("/api/varslingStatus/v1") {
+            setBody("""{"virksomhetsnummer": "314"}""")
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            bearerAuth(token)
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(
+                """{"status": "OK"}""", it.bodyAsText(), true
+            )
+        }
+
 //        mockMvc.post("/api/varslingStatus/v1") {
 //            content = """{"virksomhetsnummer": "314"}"""
 //            contentType = APPLICATION_JSON
@@ -261,24 +325,30 @@
 //            status { isOk() }
 //            content { json("""{"status": "OK"}""") }
 //        }
-//    }
-//
-//    /**
-//     * fil generert med:
-//     * kafka-console-consumer.sh --bootstrap-server $KAFKA_BROKERS --consumer.config $KAFKA_CONFIG/kafka.properties --topic fager.ekstern-varsling-status --formatter kafka.tools.DefaultMessageFormatter --property print.value=true --from-beginning --timeout-ms 30000 > fager.ekstern-varsling-status.topic
-//     */
-//    @Test
-//    fun `konsumerer innhold på topic fra dev`() {
-//        sampleTopic.file.readLines().forEach {
-//            processVarslingStatus(it)
-//        }
-//    }
-//
-//    private fun processVarslingStatus(value: String) {
-//        varslingStatusKafkaListener.processVarslingStatus(
-//            ConsumerRecord(
-//                "", 0, 0, "", value
-//            )
-//        )
-//    }
-//}
+    }
+
+    /**
+     * fil generert med:
+     * kafka-console-consumer.sh --bootstrap-server $KAFKA_BROKERS --consumer.config $KAFKA_CONFIG/kafka.properties --topic fager.ekstern-varsling-status --formatter kafka.tools.DefaultMessageFormatter --property print.value=true --from-beginning --timeout-ms 30000 > fager.ekstern-varsling-status.topic
+     */
+    @Test
+    fun `konsumerer innhold på topic fra dev`() = app.runTest {
+        val sampleTopic = this::class.java.classLoader.getResource("fager.ekstern-varsling-status.topic")
+            ?: throw IllegalArgumentException("Could not find resource file")
+
+        sampleTopic.readText().lines().forEach { line ->
+            if (line.isNotBlank()) {
+                app.processVarslingStatus(line)
+            }
+        }
+    }
+
+    private suspend fun FakeApplication.processVarslingStatus(value: String) {
+        val processor = VarslingStatusRecordProcessor(getDependency<ObjectMapper>(), getDependency<VarslingStatusRepository>())
+        processor.processRecord(
+            ConsumerRecord(
+                "", 0, 0, "", value
+            )
+        )
+    }
+}
