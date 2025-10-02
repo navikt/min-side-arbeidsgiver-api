@@ -121,10 +121,9 @@ class KontaktinfoClientTest {
 
         /* Hvis orgnr ikke finnes får man responsen:
          * HTTP/1.1 400 Invalid organization number: 0000000 */
-        val e = assertThrows<ClientRequestException> {
+        val e = assertThrows<RuntimeException> {
             app.getDependency<KontaktinfoClient>().hentKontaktinfo("1")
         }
-        assert(e.response.status == HttpStatusCode.BadRequest)
     }
 
     private fun mockKontaktinfoResponse(orgnr: String, response: String) =

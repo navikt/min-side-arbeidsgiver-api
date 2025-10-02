@@ -126,8 +126,8 @@ class FakeApi : BeforeAllCallback, AfterAllCallback {
             }
 
             post("{...}") {
-                stubs[HttpMethod.Post to pathWithQuery(call)] // Check if there is match with query params, otherwise fallback to path only
-                    ?: stubs[HttpMethod.Post to call.request.path()]?.let { handler ->
+                (stubs[HttpMethod.Post to pathWithQuery(call)] // Check if there is match with query params, otherwise fallback to path only
+                    ?: stubs[HttpMethod.Post to call.request.path()])?.let { handler ->
                         try {
                             handler(this)
                         } catch (e: Exception) {
@@ -138,8 +138,8 @@ class FakeApi : BeforeAllCallback, AfterAllCallback {
             }
 
             get("{...}") {
-                stubs[HttpMethod.Get to pathWithQuery(call)]
-                    ?: stubs[HttpMethod.Get to call.request.path()]?.let { handler ->
+                (stubs[HttpMethod.Get to pathWithQuery(call)]
+                    ?: stubs[HttpMethod.Get to call.request.path()])?.let { handler ->
                         try {
                             handler(this)
                         } catch (e: Exception) {

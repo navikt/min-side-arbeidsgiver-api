@@ -40,7 +40,7 @@ class AltinnTilgangerServiceTest {
 
         fakeApi.registerStub(
             HttpMethod.Post,
-            "/altinn-tilganger"
+            "/altinn-tilganger",
         ) {
             assertEquals(call.request.headers["Authorization"], "Bearer access_token2")
             call.respondText(
