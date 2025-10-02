@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.kontaktinfo
 
-import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.*
 import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.response.*
@@ -113,12 +112,6 @@ class KontaktinfoClientTest {
         { call.respond(HttpStatusCode.BadRequest) }
 
 
-//        altinnServer.expect {
-//            assertEquals("/api/serviceowner/organizations/1/officialcontacts", it.uri.path)
-//            assertNotNull("query-parameters må være gitt", it.uri.query)
-//            assertTrue(it.uri.query.contains("ForceEIAuthentication"))
-//        }.andRespond(withBadRequest())
-
         /* Hvis orgnr ikke finnes får man responsen:
          * HTTP/1.1 400 Invalid organization number: 0000000 */
         val e = assertThrows<RuntimeException> {
@@ -136,21 +129,6 @@ class KontaktinfoClientTest {
             call.response.headers.append(HttpHeaders.ContentType, "application/json")
             call.respond(response)
         }
-
-
-//            .expect {
-//                assertEquals(HttpMethod.GET, it.method)
-//                assertEquals("/api/serviceowner/organizations/${orgnr}/officialcontacts", it.uri.path)
-//                assertNotNull("query-parameters må være gitt", it.uri.query)
-//                assertTrue(
-//                    it.uri.query.contains("ForceEIAuthentication"),
-//                    "altinn forventer spesiell header for autentiserting"
-//                )
-//                assertTrue(it.headers.getFirst("authorization")!!.startsWith("Bearer"), "bearer token må være satt")
-//                assertTrue(it.headers.getFirst("apikey")!!.isNotBlank(), "apikey må være satt")
-//            }.andRespond(
-//                withSuccess(response, APPLICATION_JSON)
-//            )
 }
 
 /* Hentet ved kall mot tt02.altinn.no */

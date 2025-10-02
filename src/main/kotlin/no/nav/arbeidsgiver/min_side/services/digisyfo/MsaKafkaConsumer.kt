@@ -20,6 +20,7 @@ import org.apache.kafka.common.config.SslConfigs
 import java.lang.System.getenv
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.text.toInt
 
 data class KafkaConsumerConfig(
     val topics: Set<String>,
@@ -35,81 +36,164 @@ class MsaKafkaConsumer(
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
         if (!getenv("KAFKA_KEYSTORE_PATH").isNullOrBlank())
             put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL")
-            put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, getenv("KAFKA_KEYSTORE_PATH"))
-            put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
-            put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, getenv("KAFKA_TRUSTSTORE_PATH"))
-            put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
+        put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, getenv("KAFKA_KEYSTORE_PATH"))
+        put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
+        put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, getenv("KAFKA_TRUSTSTORE_PATH"))
+        put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
     }
 
-    suspend fun consume(processMessage: suspend (ConsumerRecord<String?, String?>) -> Unit) {
+    suspend fun consume(processor: ConsumerRecordProcessor) {
         val consumer = KafkaConsumer<String?, String?>(properties)
         consumer.subscribe(config.topics)
         while (true) {
             val records = consumer.poll(java.time.Duration.ofMillis(1000))
             for (record in records) {
-                processMessage(record)
+                processor.processRecord(record)
             }
         }
     }
 
-    suspend fun batchConsume(processMessages: suspend (ConsumerRecords<String?, String?>) -> Unit) {
+    suspend fun batchConsume(processor: ConsumerRecordProcessor) {
         val consumer = KafkaConsumer<String?, String?>(properties)
         consumer.subscribe(config.topics)
         while (true) {
             val records = consumer.poll(java.time.Duration.ofMillis(1000))
             if (records.any()) {
-                processMessages(records)
+                processor.processRecords(records)
             }
         }
     }
 }
 
 
-suspend fun Application.startDigisyfoKafkaConsumers(scope: CoroutineScope) {
-    val digisyfoRepository = dependencies.resolve<DigisyfoRepository>()
+interface ConsumerRecordProcessor {
+    suspend fun processRecord(record: ConsumerRecord<String?, String?>)
+    suspend fun processRecords(records: ConsumerRecords<String?, String?>) {
+        for (record in records) {
+            processRecord(record)
+        }
+    }
+}
+
+
+class NaermesteLederRecordProcessor(
+    private val objectMapper: ObjectMapper,
+    private val digisyfoRepository: DigisyfoRepository,
+) : ConsumerRecordProcessor {
+    override suspend fun processRecord(record: ConsumerRecord<String?, String?>) {
+        val hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse::class.java)
+        digisyfoRepository.processNærmesteLederEvent(hendelse)
+    }
+}
+
+
+class SykemeldingRecordProcessor(
+    private val objectMapper: ObjectMapper,
+    private val digisyfoRepository: DigisyfoRepository,
+) : ConsumerRecordProcessor {
+    override suspend fun processRecord(record: ConsumerRecord<String?, String?>) {
+        NotImplementedError("NotImplemented")
+    }
+
+    override suspend fun processRecords(records: ConsumerRecords<String?, String?>) {
+        val parsedRecords = records
+            .map {
+                it.key() to getSykmeldingHendelse(it.value())
+            }
+        digisyfoRepository.processSykmeldingEvent(parsedRecords)
+    }
+
+    private fun getSykmeldingHendelse(value: String?): SykmeldingHendelse? {
+        return try {
+            if (value == null) null else objectMapper.readValue(value, SykmeldingHendelse::class.java)
+        } catch (e: JsonProcessingException) {
+            throw RuntimeException(e)
+        }
+    }
+}
+
+
+class RefusjonStatusRecordProcessor(
+    private val objectMapper: ObjectMapper,
+    private val refusjonStatusRepository: RefusjonStatusRepository,
+) : ConsumerRecordProcessor {
+    override suspend fun processRecord(record: ConsumerRecord<String?, String?>) {
+        refusjonStatusRepository.processHendelse(objectMapper.readValue(record.value()!!)) // fra spring implementasjon var dette non-nullable ConsumerRecord<String, String>
+    }
+}
+
+
+class SykefraværStatistikkMetadataRecordProcessor(
+    private val objectMapper: ObjectMapper,
+    private val sykefraværstatistikkRepository: SykefraværstatistikkRepository,
+) : ConsumerRecordProcessor {
+    override suspend fun processRecord(record: ConsumerRecord<String?, String?>) {
+        val key = record.key().let {
+            objectMapper.readValue(it, MetadataVirksomhetKafkaKeyDto::class.java)
+        }
+
+        if (key.arstall.toInt() >= LocalDateTime.now().year - 1) {
+            sykefraværstatistikkRepository.processMetadataVirksomhet(
+                objectMapper.readValue(record.value(), MetadataVirksomhetDto::class.java)
+            )
+        }
+    }
+}
+
+class SykefraværStatistikkRecordProcessor(
+    private val objectMapper: ObjectMapper,
+    private val sykefraværstatistikkRepository: SykefraværstatistikkRepository,
+) : ConsumerRecordProcessor {
+    override suspend fun processRecord(record: ConsumerRecord<String?, String?>) {
+        val key = record.key().let {
+            objectMapper.readValue(it, StatistikkategoriKafkaKeyDto::class.java)
+        }
+
+        if (key.arstall.toInt() >= LocalDateTime.now().year - 1) {
+            sykefraværstatistikkRepository.processStatistikkategori(
+                objectMapper.readValue(record.value(), StatistikkategoriDto::class.java)
+            )
+        }
+    }
+}
+
+class VarslingStatusRecordProcessor(
+    private val objectMapper: ObjectMapper,
+    private val varslingStatusRepository: VarslingStatusRepository,
+) : ConsumerRecordProcessor {
+    override suspend fun processRecord(record: ConsumerRecord<String?, String?>) {
+        varslingStatusRepository.processVarslingStatus(
+            objectMapper.readValue(record.value(), VarslingStatusDto::class.java)
+        )
+    }
+}
+
+
+suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
     val objectMapper = dependencies.resolve<ObjectMapper>()
+    val digisyfoRepository = dependencies.resolve<DigisyfoRepository>()
+    val refusjonStatusRepository = dependencies.resolve<RefusjonStatusRepository>()
+    val sykefraværstatistikkRepository = dependencies.resolve<SykefraværstatistikkRepository>()
+    val varslingStatusRepository = dependencies.resolve<VarslingStatusRepository>()
+
+
+    // Nærmeste leder
     scope.launch {
         val config = KafkaConsumerConfig(
             groupId = "min-side-arbeidsgiver-narmesteleder-model-builder-1",
             topics = setOf("teamsykmelding.syfo-narmesteleder-leesah"),
         )
-        MsaKafkaConsumer(config).consume { record ->
-            val hendelse = objectMapper.readValue(record.value(), NarmesteLederHendelse::class.java)
-            digisyfoRepository.processNærmesteLederEvent(hendelse)
-        }
+        MsaKafkaConsumer(config).consume(NaermesteLederRecordProcessor(objectMapper, digisyfoRepository))
     }
 
-    // Sykmelding
+    // Sykemelding
     scope.launch {
         val config = KafkaConsumerConfig(
             groupId = "min-side-arbeidsgiver-sykmelding-1",
             topics = setOf("teamsykmelding.syfo-sendt-sykmelding"),
         )
-        MsaKafkaConsumer(config).batchConsume { records ->
-            fun getSykmeldingHendelse(value: String?): SykmeldingHendelse? {
-                return try {
-                    if (value == null) null else objectMapper.readValue(value, SykmeldingHendelse::class.java)
-                } catch (e: JsonProcessingException) {
-                    throw RuntimeException(e)
-                }
-            }
-
-            val parsedRecords = records
-                .map {
-                    it.key() to getSykmeldingHendelse(it.value())
-                }
-            digisyfoRepository.processSykmeldingEvent(parsedRecords)
-        }
+        MsaKafkaConsumer(config).batchConsume(SykemeldingRecordProcessor(objectMapper, digisyfoRepository))
     }
-}
-
-suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
-    val objectMapper = dependencies.resolve<ObjectMapper>()
-    val refusjonStatusRepository = dependencies.resolve<RefusjonStatusRepository>()
-    val sykefraværstatistikkRepository = dependencies.resolve<SykefraværstatistikkRepository>()
-    val varslingStatusRepository = dependencies.resolve<VarslingStatusRepository>()
-
-    startDigisyfoKafkaConsumers(scope)
 
 
     // Refusjon status
@@ -118,9 +202,7 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
             groupId = "min-side-arbeidsgiver-1",
             topics = setOf("arbeidsgiver.tiltak-refusjon-endret-status"),
         )
-        MsaKafkaConsumer(config).consume { record ->
-            refusjonStatusRepository.processHendelse(objectMapper.readValue(record.value()!!)) // fra spring implementasjon var dette non-nullable ConsumerRecord<String, String>
-        }
+        MsaKafkaConsumer(config).consume(RefusjonStatusRecordProcessor(objectMapper, refusjonStatusRepository))
     }
 
     // sykefraværstatistikk metadata
@@ -129,17 +211,12 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
             groupId = "min-side-arbeidsgiver-sfmeta-3",
             topics = setOf("pia.sykefravarsstatistikk-metadata-virksomhet-v1"),
         )
-        MsaKafkaConsumer(config).consume { record ->
-            val key = record.key().let {
-                objectMapper.readValue(it, MetadataVirksomhetKafkaKeyDto::class.java)
-            }
-
-            if (key.arstall.toInt() >= LocalDateTime.now().year - 1) {
-                sykefraværstatistikkRepository.processMetadataVirksomhet(
-                    objectMapper.readValue(record.value(), MetadataVirksomhetDto::class.java)
-                )
-            }
-        }
+        MsaKafkaConsumer(config).consume(
+            SykefraværStatistikkMetadataRecordProcessor(
+                objectMapper,
+                sykefraværstatistikkRepository
+            )
+        )
     }
 
     // sykefraværstatistikk virksomhet, næring, bransje
@@ -152,17 +229,12 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
                 "arbeidsgiver.sykefravarsstatistikk-bransje-v1",
             )
         )
-        MsaKafkaConsumer(config).consume { record ->
-            val key = record.key().let {
-                objectMapper.readValue(it, StatistikkategoriKafkaKeyDto::class.java)
-            }
-
-            if (key.arstall.toInt() >= LocalDateTime.now().year - 1) {
-                sykefraværstatistikkRepository.processStatistikkategori(
-                    objectMapper.readValue(record.value(), StatistikkategoriDto::class.java)
-                )
-            }
-        }
+        MsaKafkaConsumer(config).consume(
+            SykefraværStatistikkRecordProcessor(
+                objectMapper,
+                sykefraværstatistikkRepository
+            )
+        )
     }
 
     // Varsling status
@@ -171,10 +243,6 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
             groupId = "min-side-arbeidsgiver-varsling-status-1",
             topics = setOf("fager.ekstern-varsling-status")
         )
-        MsaKafkaConsumer(config).consume { record ->
-            varslingStatusRepository.processVarslingStatus(
-                objectMapper.readValue(record.value(), VarslingStatusDto::class.java)
-            )
-        }
+        MsaKafkaConsumer(config).consume(VarslingStatusRecordProcessor(objectMapper, varslingStatusRepository))
     }
 }
