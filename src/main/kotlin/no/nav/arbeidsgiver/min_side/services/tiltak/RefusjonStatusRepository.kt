@@ -41,16 +41,16 @@ class RefusjonStatusRepository(
         if (virksomhetsnummer.isEmpty()) {
             return listOf()
         }
-        val virksomhetsnummere = virksomhetsnummer.joinToString(",")
+        val virksomhetsnummere = virksomhetsnummer.joinToString(",") { "?" }
 
         val grouped = database.nonTransactionalExecuteQuery(
             """
-            select virksomhetsnummer, status, count(*) as count 
-                from refusjon_status 
-                where virksomhetsnummer in (?) 
-                group by virksomhetsnummer, status
-            """.trimIndent(),
-            { text(virksomhetsnummere) },
+        select virksomhetsnummer, status, count(*) as count 
+            from refusjon_status 
+            where virksomhetsnummer in ($virksomhetsnummere) 
+            group by virksomhetsnummer, status
+        """.trimIndent(),
+            { virksomhetsnummer.forEach { text(it) } },
             { rs ->
                 mapOf(
                     "virksomhetsnummer" to rs.getString("virksomhetsnummer"),
