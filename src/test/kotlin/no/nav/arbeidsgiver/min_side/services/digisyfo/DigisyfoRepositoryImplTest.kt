@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import TestDatabase
+import no.nav.arbeidsgiver.min_side.TestDatabase
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions

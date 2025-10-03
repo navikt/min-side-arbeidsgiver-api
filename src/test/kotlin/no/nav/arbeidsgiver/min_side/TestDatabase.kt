@@ -1,5 +1,5 @@
-import no.nav.arbeidsgiver.min_side.Database
-import no.nav.arbeidsgiver.min_side.DatabaseConfig
+package no.nav.arbeidsgiver.min_side
+
 import org.flywaydb.core.Flyway
 
 val testDatabaseConfig = DatabaseConfig(
