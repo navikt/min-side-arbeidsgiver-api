@@ -2,6 +2,7 @@ package no.nav.arbeidsgiver.min_side
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.http.*
@@ -58,7 +59,6 @@ import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssøknadClient
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
 import no.nav.arbeidsgiver.min_side.varslingstatus.*
-import org.flywaydb.core.internal.util.ObjectMapperFactory
 import org.slf4j.event.Level
 import java.util.*
 
@@ -268,7 +268,7 @@ fun Application.configureDependencies() {
 
 fun DependencyRegistry.provideApplicationObjectMapper() {
     provide<ObjectMapper> {
-        ObjectMapper().findAndRegisterModules()
+        ObjectMapper().defaultConfiguration()
     }
 }
 
@@ -366,8 +366,14 @@ fun Application.ktorConfig() {
 
     install(ContentNegotiation) {
         jackson {
-            findAndRegisterModules()
-            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            defaultConfiguration()
         }
     }
+}
+
+fun ObjectMapper.defaultConfiguration(): ObjectMapper {
+    return this
+        .findAndRegisterModules()
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 }

@@ -19,8 +19,8 @@ class VarslingStatusService(
                 kvittertEventTimestamp = Instant.now(),
             )
         }
-
-        return repository.varslingStatus(virksomhetsnummer = requestBody.virksomhetsnummer)
+        val result = repository.varslingStatus(virksomhetsnummer = requestBody.virksomhetsnummer)
+        return result
     }
 
     data class VarslingStatusRequest(

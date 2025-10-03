@@ -38,7 +38,8 @@ class VarslingStatusRepository(
                     varselTimestamp = LocalDateTime.parse(rs.getString("varslet_tidspunkt")),
                     kvittertEventTimestamp = Instant.parse(rs.getString("status_tidspunkt"))
                 )
-            }).firstOrNull() ?: VarslingStatus(
+            }).firstOrNull() ?:
+            VarslingStatus(
             status = Status.OK,
             varselTimestamp = LocalDateTime.now(),
             kvittertEventTimestamp = Instant.now(),

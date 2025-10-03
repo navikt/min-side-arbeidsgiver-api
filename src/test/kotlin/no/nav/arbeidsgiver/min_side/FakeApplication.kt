@@ -31,7 +31,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 class FakeApplication(
     addDatabase: Boolean = false,
     configure: suspend Application.() -> Unit
-) : BeforeAllCallback, AfterAllCallback {
+) : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
     private var database: TestDatabase? = null
 
     private val server = embeddedServer(CIO, port = 8080, host = "localhost") {
@@ -61,10 +61,13 @@ class FakeApplication(
     }
 
     override fun afterAll(context: ExtensionContext?) {
-        database?.clean()
-        database?.close()
         server.stop()
+        database?.close()
+    }
 
+    override fun beforeEach(context: ExtensionContext?) {
+        database?.clean()
+        database?.migrate()
     }
 }
 
