@@ -5,7 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.server.plugins.di.*
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.provideApplicationObjectMapper
+import no.nav.arbeidsgiver.min_side.provideDefaultObjectMapper
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.common.TopicPartition
@@ -25,7 +25,7 @@ class MsaKafkaConsumerImplTest {
             dependencies {
                 provide<DigisyfoRepository>(DigisyfoRepositoryImpl::class)
                 provide<MeterRegistry> { Mockito.mock(MeterRegistry::class.java, Answers.RETURNS_DEEP_STUBS) }
-                provideApplicationObjectMapper()
+                provideDefaultObjectMapper()
             }
         }
     }

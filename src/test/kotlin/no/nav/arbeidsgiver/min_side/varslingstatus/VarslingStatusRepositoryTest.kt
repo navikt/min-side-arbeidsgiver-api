@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.server.plugins.di.*
 import no.nav.arbeidsgiver.min_side.FakeApi
 import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.provideApplicationObjectMapper
+import no.nav.arbeidsgiver.min_side.provideDefaultObjectMapper
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.VarslingStatusRecordProcessor
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -25,7 +25,7 @@ class VarslingStatusRepositoryTest {
             dependencies {
                 provide<VarslingStatusRepository>(VarslingStatusRepository::class)
                 provide<KontaktInfoPollerRepository>(KontaktInfoPollerRepository::class)
-                provideApplicationObjectMapper()
+                provideDefaultObjectMapper()
                 provide<VarslingStatusService>(VarslingStatusService::class)
                 provide<AltinnService> { Mockito.mock<AltinnService>() }
             }

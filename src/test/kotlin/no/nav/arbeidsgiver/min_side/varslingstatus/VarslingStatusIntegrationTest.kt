@@ -8,7 +8,7 @@ import io.ktor.server.plugins.di.*
 import no.nav.arbeidsgiver.min_side.FakeApi
 import no.nav.arbeidsgiver.min_side.FakeApplication
 import no.nav.arbeidsgiver.min_side.fakeToken
-import no.nav.arbeidsgiver.min_side.provideApplicationObjectMapper
+import no.nav.arbeidsgiver.min_side.provideDefaultObjectMapper
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.VarslingStatusRecordProcessor
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -28,7 +28,7 @@ class VarslingStatusIntegrationTest {
                 provide<VarslingStatusService>(VarslingStatusService::class)
                 provide<VarslingStatusRepository>(VarslingStatusRepository::class)
                 provide<KontaktInfoPollerRepository>(KontaktInfoPollerRepository::class)
-                provideApplicationObjectMapper()
+                provideDefaultObjectMapper()
                 provide<AltinnService> { Mockito.mock<AltinnService>() }
             }
         }

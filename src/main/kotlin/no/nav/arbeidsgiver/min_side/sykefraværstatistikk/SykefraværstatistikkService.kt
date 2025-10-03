@@ -1,8 +1,8 @@
 package no.nav.arbeidsgiver.min_side.sykefraværstatistikk
 
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
+import io.ktor.http.HttpStatusCode
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import org.springframework.http.ResponseEntity
+import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssøknad
 
 
 class SykefraværstatistikkService(
@@ -15,7 +15,7 @@ class SykefraværstatistikkService(
     suspend fun getStatistikk(
         orgnr: String,
         token: String
-    ): ResponseEntity<StatistikkRespons> {
+    ): ResponseEntity {
         val harTilgang = altinnService.harTilgang(orgnr, altinnRessursId, token)
 
         return if (harTilgang) {
@@ -44,17 +44,23 @@ class SykefraværstatistikkService(
         }
     }
 
+
     // DTO som matcher tidligere respons fra sykefraværsstatistikk-apiet
     data class StatistikkRespons(
         val type: String,
         val label: String,
         val prosent: Double,
     )
+    data class ResponseEntity(
+        val status: HttpStatusCode,
+        val body: StatistikkRespons? = null,
+    )
 }
 
-private fun SykefraværstatistikkService.StatistikkRespons?.asResponseEntity(): ResponseEntity<SykefraværstatistikkService.StatistikkRespons> =
+
+private fun SykefraværstatistikkService.StatistikkRespons?.asResponseEntity(): SykefraværstatistikkService.ResponseEntity =
     if (this == null) {
-        ResponseEntity.noContent().build()
+        SykefraværstatistikkService.ResponseEntity(HttpStatusCode.NoContent)
     } else {
-        ResponseEntity.ok().body(this)
+        SykefraværstatistikkService.ResponseEntity(HttpStatusCode.OK, this)
     }

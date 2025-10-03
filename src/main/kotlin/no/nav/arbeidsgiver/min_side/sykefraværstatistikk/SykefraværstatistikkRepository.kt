@@ -84,7 +84,7 @@ class SykefraværstatistikkRepository(
         database.nonTransactionalExecuteUpdate(
             """
             insert into sykefraværstatistikk_v2(kode, kategori, prosent, arstall, kvartal) 
-                values(:kode, :kategori, :prosent, :arstall, :kvartal)
+                values(?, ?, ?, ?, ?)
             on conflict (kode, arstall, kvartal) 
                 do update set 
                     kode = EXCLUDED.kode,        

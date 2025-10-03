@@ -150,10 +150,10 @@ fun Application.configureRoutes() {
 
             // Sykefraværstatistikk
             get("/api/sykefravaerstatistikk/{orgnr}") {
-                call.respond(
-                    dependencies.resolve<SykefraværstatistikkService>()
-                        .getStatistikk(call.parameters["orgnr"]!!, AuthenticatedUserHolderImpl(call).token)
-                )
+                val result = dependencies.resolve<SykefraværstatistikkService>()
+                    .getStatistikk(call.parameters["orgnr"]!!, AuthenticatedUserHolderImpl(call).token)
+                call.response.status(result.status)
+                call.respond(result.body ?: "")
             }
 
             // Tilgangsøknad
@@ -219,7 +219,7 @@ fun Application.configureDependencies() {
         provide<Database> { openDatabase(databaseConfig) }
 
         provide(MeterRegistry::class)
-        provideApplicationObjectMapper()
+        provideDefaultObjectMapper()
 
         provide<MaskinportenClient> { MaskinportenClientImpl(maskinportenConfig) }
         provide<MaskinportenTokenService>(MaskinportenTokenServiceImpl::class)
@@ -266,7 +266,7 @@ fun Application.configureDependencies() {
     }
 }
 
-fun DependencyRegistry.provideApplicationObjectMapper() {
+fun DependencyRegistry.provideDefaultObjectMapper() {
     provide<ObjectMapper> {
         ObjectMapper().defaultConfiguration()
     }
