@@ -9,12 +9,8 @@ import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.config.GittMiljø2
 import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
-import org.springframework.cache.caffeine.CaffeineCache
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import java.util.concurrent.TimeUnit
 
-//@Component
 class KontoregisterClient(
     private val azureService: AzureService,
 ) {
@@ -56,17 +52,3 @@ data class Kontooppslag(
 )
 
 const val KONTOREGISTER_CACHE_NAME = "kontoregister_cache"
-
-@Configuration
-class KontoregisterCacheConfig {
-
-    @Bean
-    fun kontoregisterCache() = CaffeineCache(
-        KONTOREGISTER_CACHE_NAME,
-        Caffeine.newBuilder()
-            .maximumSize(600000)
-            .expireAfterWrite(30, TimeUnit.MINUTES)
-            .recordStats()
-            .build()
-    )
-}

@@ -2,9 +2,7 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
 import io.ktor.http.HttpStatusCode
 import no.nav.arbeidsgiver.min_side.config.logger
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import org.springframework.web.client.HttpClientErrorException
 
 class AltinnTilgangSoknadService(
     private val altinnTilgangssøknadClient: AltinnTilgangssøknadClient,

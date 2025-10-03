@@ -34,7 +34,6 @@ import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.MsaJwtVerifier
-import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolderImpl
 import no.nav.arbeidsgiver.min_side.maskinporten.*
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
@@ -274,8 +273,6 @@ fun DependencyRegistry.provideDefaultObjectMapper() {
 
 
 fun Application.ktorConfig() {
-    val log = logger()
-
     log.info("Starting ktor application")
 
     install(Compression) {
