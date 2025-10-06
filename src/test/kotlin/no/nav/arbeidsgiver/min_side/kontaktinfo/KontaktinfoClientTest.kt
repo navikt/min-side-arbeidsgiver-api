@@ -9,8 +9,8 @@ import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 

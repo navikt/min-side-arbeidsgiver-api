@@ -1,9 +1,11 @@
 package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.plugins.di.*
+import kotlinx.coroutines.runBlocking
 import no.nav.arbeidsgiver.min_side.FakeApi
 import no.nav.arbeidsgiver.min_side.FakeApplication
 import no.nav.arbeidsgiver.min_side.fakeToken
@@ -13,7 +15,6 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.skyscreamer.jsonassert.JSONAssert
-import org.springframework.web.client.HttpClientErrorException
 import java.nio.charset.Charset
 
 
@@ -152,17 +153,24 @@ class AltinnTilgangSoknadServiceTest {
         val token = fakeToken("42")
 
         `when`(altinnService.harOrganisasjon("314", token)).thenReturn(true)
-        `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).thenThrow(
-            HttpClientErrorException(
-                org.springframework.http.HttpStatus.BAD_REQUEST,
-                "Bad Request",
-                """[{"ErrorCode":"40318","ErrorMessage":"This request for access has already been registered"}]""".encodeToByteArray(),
-                Charset.defaultCharset()
+        `when`(altinnTilgangssøknadClient.sendSøknad("42", skjema)).then {
+            val response = Mockito.mock<HttpResponse>()
+            `when`(response.status).thenReturn(HttpStatusCode.BadRequest)
+            runBlocking {
+                `when`(response.bodyAsText()).thenReturn(
+                    """[{"ErrorCode":"40318","ErrorMessage":"This request for access has already been registered"}]"""
+                )
+            }
+
+            throw ClientRequestException(
+                response,
+                """[{"ErrorCode":"40318","ErrorMessage":"This request for access has already been registered"}]""",
             )
-        )
+        }
 
         client
-            .post("/api/altinn-tilgangssoknad") {
+            .post("/api/altinn-tilgangssoknad")
+            {
                 bearerAuth(token)
                 accept(ContentType.Application.Json)
                 contentType(ContentType.Application.Json)

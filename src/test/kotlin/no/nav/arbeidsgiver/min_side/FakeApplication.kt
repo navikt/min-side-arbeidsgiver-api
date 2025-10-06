@@ -17,7 +17,6 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import no.nav.arbeidsgiver.min_side.config.MsaJwtVerifier
-import no.nav.arbeidsgiver.min_side.config.logger
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
