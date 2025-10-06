@@ -5,7 +5,7 @@ import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jose.jwk.RSAKey
 import no.nav.arbeidsgiver.min_side.config.Environment
-import no.nav.arbeidsgiver.min_side.config.logger
+import no.nav.arbeidsgiver.min_side.logger
 import java.text.ParseException
 
 class TokenXProperties {

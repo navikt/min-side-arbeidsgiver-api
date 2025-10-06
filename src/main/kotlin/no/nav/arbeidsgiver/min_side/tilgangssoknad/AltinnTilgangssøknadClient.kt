@@ -7,8 +7,8 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.config.Environment
-import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
+import no.nav.arbeidsgiver.min_side.logger
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.DelegationRequest.RequestResource
 

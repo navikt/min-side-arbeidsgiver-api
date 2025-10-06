@@ -1,7 +1,9 @@
 package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
-import io.ktor.http.HttpStatusCode
-import no.nav.arbeidsgiver.min_side.config.logger
+import io.ktor.client.plugins.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import no.nav.arbeidsgiver.min_side.logger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 
 class AltinnTilgangSoknadService(
@@ -32,8 +34,8 @@ class AltinnTilgangSoknadService(
         }
         val body = try {
             altinnTilgangssøknadClient.sendSøknad(fnr, søknadsskjema)
-        } catch (e: HttpClientErrorException) {
-            if (e.responseBodyAsString.contains("40318")) {
+        } catch (e: ClientRequestException) {
+            if (e.response.bodyAsText().contains("40318")) {
                 // Bruker forsøker å sende en søknad som allerede er sendt.
                 return ResponseEntity(HttpStatusCode.BadRequest)
             } else {

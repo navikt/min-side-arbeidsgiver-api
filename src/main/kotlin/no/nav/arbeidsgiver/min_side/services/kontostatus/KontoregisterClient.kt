@@ -1,15 +1,13 @@
 package no.nav.arbeidsgiver.min_side.services.kontostatus
 
-import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.config.GittMiljø2
-import no.nav.arbeidsgiver.min_side.config.logger
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
-import java.util.concurrent.TimeUnit
+import no.nav.arbeidsgiver.min_side.logger
 
 class KontoregisterClient(
     private val azureService: AzureService,

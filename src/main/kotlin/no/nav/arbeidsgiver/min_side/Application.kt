@@ -24,8 +24,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.prometheusmetrics.PrometheusConfig
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import io.micrometer.prometheus.PrometheusConfig
+import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -349,12 +349,12 @@ fun Application.ktorConfig() {
 
                 is HttpRequestTimeoutException,
                 is ConnectTimeoutException -> {
-                    log.warn("Unexpected exception at ktor-toplevel: {}", cause.javaClass.canonicalName, cause)
+                    call.application.log.warn("Unexpected exception at ktor-toplevel: {}", cause.javaClass.canonicalName, cause)
                     call.response.status(HttpStatusCode.InternalServerError)
                 }
 
                 else -> {
-                    log.error("Unexpected exception at ktor-toplevel: {}", cause.javaClass.canonicalName, cause)
+                    call.application.log.error("Unexpected exception at ktor-toplevel: {}", cause.javaClass.canonicalName, cause)
                     call.response.status(HttpStatusCode.InternalServerError)
                 }
             }
