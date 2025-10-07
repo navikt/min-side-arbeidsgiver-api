@@ -9,7 +9,7 @@ import com.nimbusds.jwt.SignedJWT
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.config.GittMiljø2
+import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -41,7 +41,7 @@ class MaskinportenClientImpl(
             .claim("scope", config.scopes)
             .claim(
                 "resource",
-                GittMiljø2.resolve(prod = { "https://www.altinn.no/" }, other = { "https://tt02.altinn.no/" })
+                GittMiljø.resolve(prod = { "https://www.altinn.no/" }, other = { "https://tt02.altinn.no/" })
             )
             .jwtID(UUID.randomUUID().toString())
             .build()

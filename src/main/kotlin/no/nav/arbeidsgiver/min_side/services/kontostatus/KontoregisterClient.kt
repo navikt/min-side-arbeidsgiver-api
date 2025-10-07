@@ -5,7 +5,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.Environment
-import no.nav.arbeidsgiver.min_side.config.GittMiljø2
+import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import no.nav.arbeidsgiver.min_side.logger
 
@@ -13,7 +13,7 @@ class KontoregisterClient(
     private val azureService: AzureService,
 ) {
     private val client = defaultHttpClient()
-    private val tokenScope = GittMiljø2.resolve(
+    private val tokenScope = GittMiljø.resolve(
         prod = { "api://prod-fss.okonomi.sokos-kontoregister/.default" },
         dev = { "api://dev-fss.okonomi.sokos-kontoregister-q2/.default" },
         other = { "" }

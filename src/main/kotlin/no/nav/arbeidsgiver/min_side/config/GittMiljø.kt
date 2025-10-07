@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.config
 
-class GittMiljø2 {
+class GittMiljø {
     companion object {
         fun <T> resolve(
             other: () -> T,

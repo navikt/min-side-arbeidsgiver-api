@@ -8,8 +8,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.config.Environment
-import no.nav.arbeidsgiver.min_side.config.GittMiljø2
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
+import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
@@ -21,7 +20,7 @@ class AltinnService(
 
     private val client = defaultHttpClient()
     private val audience = "${
-        GittMiljø2.resolve(
+        GittMiljø.resolve(
             prod = { System.getenv("NAIS_CLUSTER_NAME") },
             dev = { System.getenv("NAIS_CLUSTER_NAME") },
             other = { "local" }
