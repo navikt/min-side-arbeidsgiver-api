@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
@@ -21,7 +22,10 @@ class AltinnTilgangssøknadClient(
 
     private val log = logger()
 
-    private val client = defaultHttpClient()
+    private val client = defaultHttpClient(configure = {
+        expectSuccess = true
+    })
+
     private val delegationRequestApiPath = "$altinnApiBaseUrl/api/serviceowner/delegationRequests"
 
     suspend fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad> {
@@ -106,6 +110,8 @@ class AltinnTilgangssøknadClient(
                 )
             )
         }
+
+        println("Altinn response: ${response.status}, ${response.bodyAsText()}")
 
         return response.body<DelegationRequest?>().let {
             AltinnTilgangssøknad(

@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side
 
-import com.fasterxml.jackson.databind.SerializationFeature
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -37,7 +36,6 @@ fun defaultHttpClient(
     }
 
     return HttpClient(CIO) {
-        configure()
         expectSuccess = false
 
         install(ContentNegotiation) {
@@ -76,6 +74,7 @@ fun defaultHttpClient(
         }
 
         install(propagateXCorrelationIdPlugin)
+        configure()
     }
 }
 
