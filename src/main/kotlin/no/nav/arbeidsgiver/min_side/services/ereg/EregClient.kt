@@ -2,17 +2,17 @@ package no.nav.arbeidsgiver.min_side.services.ereg
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
-import no.nav.arbeidsgiver.min_side.config.Cache
 import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
+import no.nav.arbeidsgiver.min_side.getOrCompute
 import java.time.LocalDate
 import java.util.*
-
 
 class EregClient {
     private val client = defaultHttpClient(configure = {
@@ -22,7 +22,12 @@ class EregClient {
     })
     private val baseUrl = Environment.Ereg.eregServicesBaseUrl
 
-    private val cache = Cache<String, Optional<EregOrganisasjon>>()
+    private val cache =
+        Caffeine.newBuilder()
+            .maximumSize(600000)
+            .recordStats()
+            .build<String, Optional<EregOrganisasjon>>()
+
 
     suspend fun hentUnderenhet(virksomhetsnummer: String): EregOrganisasjon? {
         val value = cache.getOrCompute("$EREG_CACHE_NAME-$virksomhetsnummer") {
