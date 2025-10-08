@@ -1,13 +1,17 @@
 package no.nav.arbeidsgiver.min_side.services.kontostatus
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import no.nav.arbeidsgiver.min_side.Nullable
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
+import no.nav.arbeidsgiver.min_side.getOrComputeNullable
 import no.nav.arbeidsgiver.min_side.logger
+import java.util.concurrent.TimeUnit
 
 class KontoregisterClient(
     private val azureService: AzureService,
@@ -20,17 +24,25 @@ class KontoregisterClient(
     )
     private val logger = logger()
 
+    private val cache = Caffeine.newBuilder()
+        .maximumSize(600000)
+        .expireAfterWrite(30, TimeUnit.MINUTES)
+        .recordStats()
+        .build<String, Nullable<Kontooppslag>>()
+
     //TODO: cache this
     suspend fun hentKontonummer(virksomhetsnummer: String): Kontooppslag? {
-        return client.request("${Environment.Sokos.sokosKontoregisterBaseUrl}/kontoregister/api/v1/hent-kontonummer-for-organisasjon/${virksomhetsnummer}") {
-            method = HttpMethod.Get
-            bearerAuth(azureService.getAccessToken(tokenScope))
-        }.let { response ->
-            if (response.status == HttpStatusCode.NotFound) {
-                logger.info("Fant ikke kontonummer for organisasjonsnummer $virksomhetsnummer")
-                return null
+        return cache.getOrComputeNullable("$KONTOREGISTER_CACHE_NAME-$virksomhetsnummer") {
+            client.request("${Environment.Sokos.sokosKontoregisterBaseUrl}/kontoregister/api/v1/hent-kontonummer-for-organisasjon/${virksomhetsnummer}") {
+                method = HttpMethod.Get
+                bearerAuth(azureService.getAccessToken(tokenScope))
+            }.let { response ->
+                    logger.info("Fant ikke kontonummer for organisasjonsnummer $virksomhetsnummer")
+                if (response.status == HttpStatusCode.NotFound) {
+                    null
+                }
+                response.body<Kontooppslag>()
             }
-            response.body<Kontooppslag>()
         }
     }
 }

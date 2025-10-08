@@ -10,6 +10,7 @@ import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.config.Environment
 import no.nav.arbeidsgiver.min_side.config.GittMiljø
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
+import no.nav.arbeidsgiver.min_side.getOrCompute
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
 import java.util.concurrent.TimeUnit
@@ -28,20 +29,19 @@ class AltinnService(
     }:fager:arbeidsgiver-altinn-tilganger"
 
     private val cache: Cache<String, AltinnTilganger> =
-        Caffeine.newBuilder() //TODO: kopier denne rundt om kring der det trengs
+        Caffeine.newBuilder()
             .maximumSize(10000)
             .expireAfterWrite(10, TimeUnit.MINUTES)
             .recordStats()
             .build()
 
     suspend fun hentAltinnTilganger(token: String) =
-        cache.getIfPresent(token) ?: run {
-            hentAltinnTilgangerFraProxy(token).also {
-                cache.put(token, it)
-            }
+        cache.getOrCompute(token) {
+            hentAltinnTilgangerFraProxy(token)
         }
 
-    suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) = hentAltinnTilganger(token).harTilgang(orgnr, tjeneste)
+    suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) =
+        hentAltinnTilganger(token).harTilgang(orgnr, tjeneste)
 
     suspend fun harOrganisasjon(orgnr: String, token: String) = hentAltinnTilganger(token).harOrganisasjon(orgnr)
 
