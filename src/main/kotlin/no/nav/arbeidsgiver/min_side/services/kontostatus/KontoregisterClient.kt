@@ -2,6 +2,7 @@ package no.nav.arbeidsgiver.min_side.services.kontostatus
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.call.*
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.Nullable
@@ -16,7 +17,9 @@ import java.util.concurrent.TimeUnit
 class KontoregisterClient(
     private val azureService: AzureService,
 ) {
-    private val client = defaultHttpClient()
+    private val client = defaultHttpClient(configure = {
+        expectSuccess = true
+    })
     private val tokenScope = GittMiljø.resolve(
         prod = { "api://prod-fss.okonomi.sokos-kontoregister/.default" },
         dev = { "api://dev-fss.okonomi.sokos-kontoregister-q2/.default" },
@@ -30,18 +33,23 @@ class KontoregisterClient(
         .recordStats()
         .build<String, Nullable<Kontooppslag>>()
 
-    //TODO: cache this
     suspend fun hentKontonummer(virksomhetsnummer: String): Kontooppslag? {
         return cache.getOrComputeNullable("$KONTOREGISTER_CACHE_NAME-$virksomhetsnummer") {
-            client.request("${Environment.Sokos.sokosKontoregisterBaseUrl}/kontoregister/api/v1/hent-kontonummer-for-organisasjon/${virksomhetsnummer}") {
-                method = HttpMethod.Get
-                bearerAuth(azureService.getAccessToken(tokenScope))
-            }.let { response ->
-                    logger.info("Fant ikke kontonummer for organisasjonsnummer $virksomhetsnummer")
-                if (response.status == HttpStatusCode.NotFound) {
-                    null
+            try {
+                client.request("${Environment.Sokos.sokosKontoregisterBaseUrl}/kontoregister/api/v1/hent-kontonummer-for-organisasjon/${virksomhetsnummer}") {
+                    method = HttpMethod.Get
+                    bearerAuth(azureService.getAccessToken(tokenScope))
+                }.let { response ->
+                    if (response.status == HttpStatusCode.NotFound) {
+                        null
+                    }
+                    response.body<Kontooppslag>()
                 }
-                response.body<Kontooppslag>()
+            } catch (e: ClientRequestException) {
+                if (e.response.status == HttpStatusCode.NotFound) {
+                    return@getOrComputeNullable null
+                }
+                throw e
             }
         }
     }
