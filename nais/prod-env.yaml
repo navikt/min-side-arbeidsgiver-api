@@ -47,9 +47,6 @@ spec:
             envVarPrefix: DB
   envFrom:
     - secret: min-side-ag-secrets
-  env:
-    - name: SPRING_PROFILES_ACTIVE
-      value: prod-gcp
   tokenx:
     enabled: true
   azure:
