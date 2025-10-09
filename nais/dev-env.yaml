@@ -8,12 +8,12 @@ metadata:
 spec:
   image: {{{ image }}}
   liveness:
-    path: /ditt-nav-arbeidsgiver-api/internal/isalive
+    path: /internal/isalive
   readiness:
-    path: /ditt-nav-arbeidsgiver-api/internal/isready
+    path: /internal/isready
   prometheus:
     enabled: true
-    path: /ditt-nav-arbeidsgiver-api/internal/prometheus
+    path: /internal/prometheus
   observability:
     autoInstrumentation:
       enabled: true
