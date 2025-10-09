@@ -35,8 +35,10 @@ class MsaKafkaConsumer(
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
         if (!getenv("KAFKA_KEYSTORE_PATH").isNullOrBlank())
             put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL")
+        put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PKCS12")
         put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, getenv("KAFKA_KEYSTORE_PATH"))
         put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
+        put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PKCS12")
         put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, getenv("KAFKA_TRUSTSTORE_PATH"))
         put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
     }
