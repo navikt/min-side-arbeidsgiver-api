@@ -107,111 +107,113 @@ fun Application.configureRoutes() {
         }
 
         authenticate("jwt") {
+            route("api") {
             // Kontaktinfo
-            post("/api/kontaktinfo/v1") {
-                call.respond(
-                    dependencies.resolve<KontaktInfoService>()
-                        .getKontaktinfo(call.receive(), AuthenticatedUserHolderImpl(call).fnr)
-                )
-            }
+                post("kontaktinfo/v1") {
+                    call.respond(
+                        dependencies.resolve<KontaktInfoService>()
+                            .getKontaktinfo(call.receive(), AuthenticatedUserHolderImpl(call).fnr)
+                    )
+                }
 
-            // Kontonummer
-            post("/api/kontonummerStatus/v1") {
-                call.respond(
-                    dependencies.resolve<KontostatusService>().getKontonummerStatus(call.receive())
-                )
-            }
-            post("/api/kontonummer/v1") {
-                call.respond(
-                    dependencies.resolve<KontostatusService>()
-                        .getKontonummer(
-                            call.receive(), AuthenticatedUserHolderImpl(call).token
+                // Kontonummer
+                post("kontonummerStatus/v1") {
+                    call.respond(
+                        dependencies.resolve<KontostatusService>().getKontonummerStatus(call.receive())
+                    )
+                }
+                post("kontonummer/v1") {
+                    call.respond(
+                        dependencies.resolve<KontostatusService>()
+                            .getKontonummer(
+                                call.receive(), AuthenticatedUserHolderImpl(call).token
+                            ) ?: HttpStatusCode.NotFound
+                    )
+                }
+
+                // Lagrede filter
+                get("lagredeFilter") {
+                    val service = dependencies.resolve<LagredeFilterService>()
+                    call.respond(
+                        dependencies.resolve<LagredeFilterService>()
+                            .getAll(fnr = AuthenticatedUserHolderImpl(call).fnr)
+                    )
+                }
+                put("lagredeFilter") {
+                    call.respond(
+                        dependencies.resolve<LagredeFilterService>()
+                            .put(call.receive(), fnr = AuthenticatedUserHolderImpl(call).fnr)
+                    )
+                }
+                delete("lagredeFilter/{filterId}") {
+                    call.respond(
+                        dependencies.resolve<LagredeFilterService>().delete(
+                            call.parameters["filterId"]!!,
+                            fnr = AuthenticatedUserHolderImpl(call).fnr
                         ) ?: HttpStatusCode.NotFound
-                )
-            }
-
-            // Lagrede filter
-            get("/api/lagredeFilter") {
-                val service = dependencies.resolve<LagredeFilterService>()
-                call.respond(
-                    dependencies.resolve<LagredeFilterService>()
-                        .getAll(fnr = AuthenticatedUserHolderImpl(call).fnr)
-                )
-            }
-            put("/api/lagredeFilter") {
-                call.respond(
-                    dependencies.resolve<LagredeFilterService>()
-                        .put(call.receive(), fnr = AuthenticatedUserHolderImpl(call).fnr)
-                )
-            }
-            delete("/api/lagredeFilter/{filterId}") {
-                call.respond(
-                    dependencies.resolve<LagredeFilterService>().delete(
-                        call.parameters["filterId"]!!,
-                        fnr = AuthenticatedUserHolderImpl(call).fnr
-                    ) ?: HttpStatusCode.NotFound
-                )
-            }
-
-            // Ereg
-            post("api/ereg/underenhet") {
-                call.respond(dependencies.resolve<EregService>().underenhet(call.receive()) ?: HttpStatusCode.OK)
-            }
-            post("api/ereg/overenhet") {
-                call.respond(dependencies.resolve<EregService>().overenhet(call.receive()) ?: HttpStatusCode.OK)
-            }
-
-            // Refusjon status
-            get("/api/refusjon_status") {
-                call.respond(
-                    dependencies.resolve<RefusjonStatusService>()
-                        .statusoversikt(AuthenticatedUserHolderImpl(call).token)
-                )
-            }
-
-            // Sykefraværstatistikk
-            get("/api/sykefravaerstatistikk/{orgnr}") {
-                val result = dependencies.resolve<SykefraværstatistikkService>()
-                    .getStatistikk(call.parameters["orgnr"]!!, AuthenticatedUserHolderImpl(call).token)
-                call.response.status(result.status)
-                call.respond(result.body ?: "")
-            }
-
-            // Tilgangsøknad
-            get("/api/altinn-tilgangssoknad") {
-                call.respond(
-                    dependencies.resolve<AltinnTilgangSoknadService>().mineSøknaderOmTilgang(
-                        AuthenticatedUserHolderImpl(call).fnr
                     )
-                )
-            }
-            post("/api/altinn-tilgangssoknad") {
-                val authenticatedUserHolder = AuthenticatedUserHolderImpl(call)
-                val result = dependencies.resolve<AltinnTilgangSoknadService>()
-                    .sendSøknadOmTilgang(
-                        call.receive(),
-                        fnr = authenticatedUserHolder.fnr,
-                        token = authenticatedUserHolder.token
+                }
+
+                // Ereg
+                post("ereg/underenhet") {
+                    call.respond(dependencies.resolve<EregService>().underenhet(call.receive()) ?: HttpStatusCode.OK)
+                }
+                post("ereg/overenhet") {
+                    call.respond(dependencies.resolve<EregService>().overenhet(call.receive()) ?: HttpStatusCode.OK)
+                }
+
+                // Refusjon status
+                get("refusjon_status") {
+                    call.respond(
+                        dependencies.resolve<RefusjonStatusService>()
+                            .statusoversikt(AuthenticatedUserHolderImpl(call).token)
                     )
-                call.response.status(result.status)
-                result.body?.let { call.respond(it) }
-            }
+                }
 
-            // Userinfo
-            get("/api/userInfo/v3") {
-                val authenticatedUserHolder = AuthenticatedUserHolderImpl(call)
-                call.respond(
-                    dependencies.resolve<UserInfoService>()
-                        .getUserInfoV3(fnr = authenticatedUserHolder.fnr, token = authenticatedUserHolder.token)
-                )
-            }
+                // Sykefraværstatistikk
+                get("sykefravaerstatistikk/{orgnr}") {
+                    val result = dependencies.resolve<SykefraværstatistikkService>()
+                        .getStatistikk(call.parameters["orgnr"]!!, AuthenticatedUserHolderImpl(call).token)
+                    call.response.status(result.status)
+                    call.respond(result.body ?: "")
+                }
 
-            // Varsling status
-            post("/api/varslingStatus/v1") {
-                call.respond(
-                    dependencies.resolve<VarslingStatusService>()
-                        .getVarslingStatus(call.receive(), AuthenticatedUserHolderImpl(call).token)
-                )
+                // Tilgangsøknad
+                get("altinn-tilgangssoknad") {
+                    call.respond(
+                        dependencies.resolve<AltinnTilgangSoknadService>().mineSøknaderOmTilgang(
+                            AuthenticatedUserHolderImpl(call).fnr
+                        )
+                    )
+                }
+                post("altinn-tilgangssoknad") {
+                    val authenticatedUserHolder = AuthenticatedUserHolderImpl(call)
+                    val result = dependencies.resolve<AltinnTilgangSoknadService>()
+                        .sendSøknadOmTilgang(
+                            call.receive(),
+                            fnr = authenticatedUserHolder.fnr,
+                            token = authenticatedUserHolder.token
+                        )
+                    call.response.status(result.status)
+                    result.body?.let { call.respond(it) }
+                }
+
+                // Userinfo
+                get("userInfo/v3") {
+                    val authenticatedUserHolder = AuthenticatedUserHolderImpl(call)
+                    call.respond(
+                        dependencies.resolve<UserInfoService>()
+                            .getUserInfoV3(fnr = authenticatedUserHolder.fnr, token = authenticatedUserHolder.token)
+                    )
+                }
+
+                // Varsling status
+                post("varslingStatus/v1") {
+                    call.respond(
+                        dependencies.resolve<VarslingStatusService>()
+                            .getVarslingStatus(call.receive(), AuthenticatedUserHolderImpl(call).token)
+                    )
+                }
             }
         }
     }
@@ -371,12 +373,20 @@ fun Application.ktorConfig() {
 
                 is HttpRequestTimeoutException,
                 is ConnectTimeoutException -> {
-                    call.application.log.warn("Unexpected exception at ktor-toplevel: {}", cause.javaClass.canonicalName, cause)
+                    call.application.log.warn(
+                        "Unexpected exception at ktor-toplevel: {}",
+                        cause.javaClass.canonicalName,
+                        cause
+                    )
                     call.response.status(HttpStatusCode.InternalServerError)
                 }
 
                 else -> {
-                    call.application.log.error("Unexpected exception at ktor-toplevel: {}", cause.javaClass.canonicalName, cause)
+                    call.application.log.error(
+                        "Unexpected exception at ktor-toplevel: {}",
+                        cause.javaClass.canonicalName,
+                        cause
+                    )
                     call.response.status(HttpStatusCode.InternalServerError)
                 }
             }
