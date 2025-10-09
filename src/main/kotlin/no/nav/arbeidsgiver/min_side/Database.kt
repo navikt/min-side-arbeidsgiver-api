@@ -3,10 +3,12 @@ package no.nav.arbeidsgiver.min_side
 import com.codahale.metrics.MetricRegistry
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.http.URLBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
+import java.net.URI
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -133,13 +135,46 @@ Database protected constructor(protected val config: DatabaseConfig) : AutoClose
 
 }
 
+class DbUrl(
+    url: String
+) {
+
+    /**
+     * we need to strip the jdbc: part by using schemeSpecificPart
+     * so that URI is able to parse correctly.
+     * the jdbc: prefix is added back in toString()
+     */
+    private val uri = URLBuilder(
+        URI(url).also {
+            require(it.scheme == "jdbc") { "not a jdbc url: $url" }
+        }.schemeSpecificPart
+    ).build()
+
+    private val urlParameters = uri.encodedQuery.split('&').associate {
+        val parts = it.split('=')
+        val name = parts.firstOrNull() ?: ""
+        val value = parts.drop(1).firstOrNull() ?: ""
+        Pair(name, value)
+    }
+
+    val username = urlParameters["user"]!!
+    val password = urlParameters["password"]!!
+    val database = uri.encodedPath.split('/').last()
+    val host = uri.host
+    val port = uri.port
+    val jdbcUrl = "jdbc:postgresql://$host:$port/$database?user=$username&password=$password"
+
+    override fun toString() = "jdbc:$uri"
+}
+
+
 data class DatabaseConfig(
     val jdbcUrl: String,
     val migrationLocation: String,
 ) {
     fun asHikariConfig(): HikariConfig {
         return HikariConfig().apply {
-            jdbcUrl = this@DatabaseConfig.jdbcUrl
+            jdbcUrl = jdbcUrl
             driverClassName = "org.postgresql.Driver"
             metricRegistry = MetricRegistry()
             minimumIdle = 1

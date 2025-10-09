@@ -222,7 +222,7 @@ fun Application.configureRoutes() {
 
 fun Application.configureDependencies() {
     val databaseConfig = DatabaseConfig(
-        jdbcUrl = System.getenv("DB_JDBC_URL"), // fix this based on env
+        jdbcUrl = DbUrl(System.getenv("DB_JDBC_URL")).jdbcUrl, // Vi får en dårlig jdbcUrl fra nais, så vi må vaske denne. Dette vil bli fikset dersom vi rullerer secrets
         migrationLocation = "classpath:db/migration"
     )
 
