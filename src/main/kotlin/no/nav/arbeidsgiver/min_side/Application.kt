@@ -222,7 +222,7 @@ fun Application.configureRoutes() {
 
 fun Application.configureDependencies() {
     val databaseConfig = DatabaseConfig(
-        jdbcUrl = System.getenv("JDBC_DB_URL"), // fix this based on env
+        jdbcUrl = System.getenv("DB_JDBC_URL"), // fix this based on env
         migrationLocation = "classpath:db/migration"
     )
 
