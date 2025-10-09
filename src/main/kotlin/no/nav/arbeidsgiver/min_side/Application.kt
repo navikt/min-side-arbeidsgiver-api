@@ -242,7 +242,7 @@ fun Application.configureDependencies() {
     dependencies {
         provide<Database> { openDatabase(databaseConfig) }
 
-        provide(MeterRegistry::class)
+        provide<MeterRegistry>(PrometheusMeterRegistry::class)
         provideDefaultObjectMapper()
 
         provide<MaskinportenClient> { MaskinportenClientImpl(maskinportenConfig) }
