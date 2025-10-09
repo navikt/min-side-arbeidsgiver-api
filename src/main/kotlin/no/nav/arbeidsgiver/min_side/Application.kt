@@ -108,7 +108,7 @@ fun Application.configureRoutes() {
 
         authenticate("jwt") {
             route("api") {
-            // Kontaktinfo
+                // Kontaktinfo
                 post("kontaktinfo/v1") {
                     call.respond(
                         dependencies.resolve<KontaktInfoService>()
@@ -133,7 +133,6 @@ fun Application.configureRoutes() {
 
                 // Lagrede filter
                 get("lagredeFilter") {
-                    val service = dependencies.resolve<LagredeFilterService>()
                     call.respond(
                         dependencies.resolve<LagredeFilterService>()
                             .getAll(fnr = AuthenticatedUserHolderImpl(call).fnr)
@@ -156,7 +155,9 @@ fun Application.configureRoutes() {
 
                 // Ereg
                 post("ereg/underenhet") {
-                    call.respond(dependencies.resolve<EregService>().underenhet(call.receive()) ?: HttpStatusCode.OK)
+                    call.respond(
+                        dependencies.resolve<EregService>().underenhet(call.receive()) ?: HttpStatusCode.OK
+                    )
                 }
                 post("ereg/overenhet") {
                     call.respond(dependencies.resolve<EregService>().overenhet(call.receive()) ?: HttpStatusCode.OK)
