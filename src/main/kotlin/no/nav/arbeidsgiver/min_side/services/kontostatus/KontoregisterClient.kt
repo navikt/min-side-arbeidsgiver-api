@@ -7,8 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.Nullable
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
-import no.nav.arbeidsgiver.min_side.config.Environment
-import no.nav.arbeidsgiver.min_side.config.GittMiljø
+import no.nav.arbeidsgiver.min_side.config.Miljø
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import no.nav.arbeidsgiver.min_side.getOrComputeNullable
 import no.nav.arbeidsgiver.min_side.logger
@@ -20,7 +19,7 @@ class KontoregisterClient(
     private val client = defaultHttpClient(configure = {
         expectSuccess = true
     })
-    private val tokenScope = GittMiljø.resolve(
+    private val tokenScope = Miljø.resolve(
         prod = { "api://prod-fss.okonomi.sokos-kontoregister/.default" },
         dev = { "api://dev-fss.okonomi.sokos-kontoregister-q2/.default" },
         other = { "" }
@@ -36,7 +35,7 @@ class KontoregisterClient(
     suspend fun hentKontonummer(virksomhetsnummer: String): Kontooppslag? {
         return cache.getOrComputeNullable("$KONTOREGISTER_CACHE_NAME-$virksomhetsnummer") {
             try {
-                client.request("${Environment.Sokos.sokosKontoregisterBaseUrl}/kontoregister/api/v1/hent-kontonummer-for-organisasjon/${virksomhetsnummer}") {
+                client.request("${Miljø.Sokos.kontoregisterBaseUrl}/kontoregister/api/v1/hent-kontonummer-for-organisasjon/${virksomhetsnummer}") {
                     method = HttpMethod.Get
                     bearerAuth(azureService.getAccessToken(tokenScope))
                 }.let { response ->

@@ -4,15 +4,15 @@ import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jose.jwk.RSAKey
-import no.nav.arbeidsgiver.min_side.config.Environment
+import no.nav.arbeidsgiver.min_side.config.Miljø
 import no.nav.arbeidsgiver.min_side.logger
 import java.text.ParseException
 
 class TokenXProperties {
-    val clientId: String = Environment.TokenX.clientId
-    val issuer: String = Environment.TokenX.issuer
-    val privateJwk: String = Environment.TokenX.privateJwk
-    val tokenEndpoint: String = Environment.TokenX.tokenEndpoint
+    val clientId: String = Miljø.TokenX.clientId
+    val issuer: String = Miljø.TokenX.issuer
+    val privateJwk: String = Miljø.TokenX.privateJwk
+    val tokenEndpoint: String = Miljø.TokenX.tokenEndpoint
 
     private val log = logger()
 

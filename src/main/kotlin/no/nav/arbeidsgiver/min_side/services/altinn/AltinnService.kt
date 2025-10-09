@@ -7,8 +7,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.config.Environment
-import no.nav.arbeidsgiver.min_side.config.GittMiljø
+import no.nav.arbeidsgiver.min_side.config.Miljø
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import no.nav.arbeidsgiver.min_side.getOrCompute
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
@@ -21,7 +20,7 @@ class AltinnService(
 
     private val client = defaultHttpClient()
     private val audience = "${
-        GittMiljø.resolve(
+        Miljø.resolve(
             prod = { System.getenv("NAIS_CLUSTER_NAME") },
             dev = { System.getenv("NAIS_CLUSTER_NAME") },
             other = { "local" }
@@ -51,7 +50,7 @@ class AltinnService(
             audience = audience,
         ).access_token!!
 
-        return client.post(Environment.AltinnTilgangerProxy.altinnTilgangerUrl) {
+        return client.post(Miljø.AltinnTilgangerProxy.url) {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             bearerAuth(token)

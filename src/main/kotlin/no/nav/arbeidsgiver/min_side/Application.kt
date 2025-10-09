@@ -33,6 +33,7 @@ import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabase
 import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
+import no.nav.arbeidsgiver.min_side.config.Health
 import no.nav.arbeidsgiver.min_side.config.MsaJwtVerifier
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolderImpl
 import no.nav.arbeidsgiver.min_side.maskinporten.*
@@ -61,7 +62,6 @@ import no.nav.arbeidsgiver.min_side.varslingstatus.*
 import org.slf4j.event.Level
 import java.util.*
 
-
 fun main() {
     runBlocking(Dispatchers.Default) {
         embeddedServer(CIO, port = 8080, host = "0.0.0.0") {
@@ -84,6 +84,28 @@ fun main() {
 fun Application.configureRoutes() {
     install(IgnoreTrailingSlash)
     routing {
+        route("internal") {
+            get("prometheus") {
+                call.respond<String>(PrometheusMeterRegistry(PrometheusConfig.DEFAULT).scrape())
+            }
+            get("isalive") {
+                call.response.status(
+                    if (Health.alive)
+                        HttpStatusCode.OK
+                    else
+                        HttpStatusCode.ServiceUnavailable
+                )
+            }
+            get("isready") {
+                call.response.status(
+                    if (Health.ready)
+                        HttpStatusCode.OK
+                    else
+                        HttpStatusCode.ServiceUnavailable
+                )
+            }
+        }
+
         authenticate("jwt") {
             // Kontaktinfo
             post("/api/kontaktinfo/v1") {

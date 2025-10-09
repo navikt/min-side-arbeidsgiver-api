@@ -5,15 +5,15 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.config.Environment
+import no.nav.arbeidsgiver.min_side.config.Miljø
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
 
 class AltinnRollerClient(
     private val maskinportenTokenService: MaskinportenTokenService,
 ) {
-    private val altinnApiBaseUrl = Environment.Altinn.altinnApiBaseUrl
-    private val altinnApiKey = Environment.Altinn.altinnHeader
+    private val altinnApiBaseUrl = Miljø.Altinn.baseUrl
+    private val altinnApiKey = Miljø.Altinn.altinnHeader
 
     private val client = defaultHttpClient()
 

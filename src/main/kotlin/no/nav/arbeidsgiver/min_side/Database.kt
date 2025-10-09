@@ -15,7 +15,8 @@ import java.time.*
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-open class Database protected constructor(protected val config: DatabaseConfig) : AutoCloseable {
+open class
+Database protected constructor(protected val config: DatabaseConfig) : AutoCloseable {
     protected val dataSource = HikariDataSource(config.asHikariConfig())
 
     private fun migrate() {

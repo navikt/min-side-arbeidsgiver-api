@@ -4,11 +4,9 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.JWTVerifier
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.request.headers
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
@@ -23,7 +21,7 @@ class MsaJwtVerifier : JWTVerifier {
     override fun verify(token: String?): DecodedJWT {
         if (token == null) throw JWTVerificationException("Token is null")
         return runBlocking {
-            client.get(Environment.TokenX.tokenIntrospecionEndpint) {
+            client.get(Miljø.TokenX.tokenIntrospecionEndpint) {
                 contentType(ContentType.Application.Json)
                 setBody(TokenIntrospectionRequest(token))
             }.run {

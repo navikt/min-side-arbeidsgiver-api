@@ -8,7 +8,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
-import no.nav.arbeidsgiver.min_side.config.Environment
+import no.nav.arbeidsgiver.min_side.config.Miljø
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
 import no.nav.arbeidsgiver.min_side.getOrCompute
 import java.time.LocalDate
@@ -20,7 +20,7 @@ class EregClient {
             jackson { findAndRegisterModules() }
         }
     })
-    private val baseUrl = Environment.Ereg.eregServicesBaseUrl
+    private val baseUrl = Miljø.Ereg.baseUrl
 
     private val cache =
         Caffeine.newBuilder()
