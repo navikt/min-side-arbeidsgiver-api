@@ -23,9 +23,14 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.prometheus.PrometheusConfig
-import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
+import io.micrometer.core.instrument.binder.logging.LogbackMetrics
+import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics
+import io.micrometer.core.instrument.binder.system.ProcessorMetrics
+import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -86,7 +91,7 @@ fun Application.configureRoutes() {
     routing {
         route("internal") {
             get("prometheus") {
-                call.respond<String>(PrometheusMeterRegistry(PrometheusConfig.DEFAULT).scrape())
+                call.respond<String>(Metrics.meterRegistry.scrape())
             }
             get("isalive") {
                 call.response.status(
@@ -242,7 +247,6 @@ fun Application.configureDependencies() {
     dependencies {
         provide<Database> { openDatabase(databaseConfig) }
 
-        provide<MeterRegistry> { PrometheusMeterRegistry(PrometheusConfig.DEFAULT) }
         provideDefaultObjectMapper()
 
         provide<MaskinportenClient> { MaskinportenClientImpl(maskinportenConfig) }
@@ -360,7 +364,19 @@ fun Application.ktorConfig() {
     }
 
     install(MicrometerMetrics) {
-        registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+        registry = Metrics.meterRegistry
+        distributionStatisticConfig = DistributionStatisticConfig.Builder()
+            .percentilesHistogram(true)
+            .build()
+        meterBinders = listOf(
+            ClassLoaderMetrics(),
+            JvmMemoryMetrics(),
+            JvmGcMetrics(),
+            ProcessorMetrics(),
+            JvmThreadMetrics(),
+            FileDescriptorMetrics(),
+            LogbackMetrics()
+        )
     }
 
     install(StatusPages) {
