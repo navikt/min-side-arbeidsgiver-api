@@ -31,6 +31,7 @@ class MsaKafkaConsumer(
     private val config: KafkaConsumerConfig,
 ) {
     private val properties = Properties().apply {
+        put(ConsumerConfig.GROUP_ID_CONFIG, config.groupId)
         put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, (getenv("KAFKA_BROKERS") ?: "localhost:9092"))
         put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "6000")
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
