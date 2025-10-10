@@ -21,7 +21,7 @@ class MsaJwtVerifier : JWTVerifier {
     override fun verify(token: String?): DecodedJWT {
         if (token == null) throw JWTVerificationException("Token is null")
         return runBlocking {
-            client.get(Miljø.TokenX.tokenIntrospecionEndpint) {
+            client.post(Miljø.TokenX.tokenIntrospecionEndpint) {
                 contentType(ContentType.Application.Json)
                 setBody(TokenIntrospectionRequest(token))
             }.run {
