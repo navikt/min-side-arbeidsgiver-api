@@ -68,7 +68,7 @@ class MaskinportenClientImpl(
         val requestedAt = Instant.now()
 
         val tokenResponse = client.post(getWellKnownResponse().tokenEndpoint) {
-            contentType(ContentType.Application.Json)
+            contentType(ContentType.Application.FormUrlEncoded)
             setBody(
                 mapOf(
                     "grant_type" to listOf("urn:ietf:params:oauth:grant-type:jwt-bearer"),
