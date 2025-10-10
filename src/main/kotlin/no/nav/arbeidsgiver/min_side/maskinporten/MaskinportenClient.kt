@@ -67,7 +67,7 @@ class MaskinportenClientImpl(
         logger.info("henter ny accesstoken")
         val requestedAt = Instant.now()
 
-        val tokenResponse = client.request {
+        val tokenResponse = client.get(getWellKnownResponse().tokenEndpoint) {
             method = HttpMethod.Post
             contentType(ContentType.Application.Json)
             setBody(
