@@ -17,7 +17,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.config.SslConfigs
-import org.apache.kafka.common.serialization.StringSerializer
+import org.apache.kafka.common.serialization.StringDeserializer
 import java.lang.System.getenv
 import java.time.LocalDateTime
 import java.util.*
@@ -34,8 +34,8 @@ class MsaKafkaConsumer(
         put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, (getenv("KAFKA_BROKERS") ?: "localhost:9092"))
         put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "6000")
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-        put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer::class.java.canonicalName)
-        put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringSerializer::class.java.canonicalName)
+        put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.canonicalName)
+        put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.canonicalName)
         if (!getenv("KAFKA_KEYSTORE_PATH").isNullOrBlank()) {
             put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL")
             put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PKCS12")
