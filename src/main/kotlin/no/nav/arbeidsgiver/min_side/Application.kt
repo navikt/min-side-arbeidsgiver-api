@@ -23,6 +23,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
@@ -248,6 +249,8 @@ fun Application.configureDependencies() {
         provide<Database> { openDatabase(databaseConfig) }
 
         provideDefaultObjectMapper()
+
+        provide<MeterRegistry> { Metrics.meterRegistry }
 
         provide<MaskinportenClient> { MaskinportenClientImpl(maskinportenConfig) }
         provide<MaskinportenTokenService>(MaskinportenTokenServiceImpl::class)
