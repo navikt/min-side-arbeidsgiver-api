@@ -17,6 +17,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.config.SslConfigs
+import org.apache.kafka.common.serialization.StringSerializer
 import java.lang.System.getenv
 import java.time.LocalDateTime
 import java.util.*
@@ -33,14 +34,17 @@ class MsaKafkaConsumer(
         put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, (getenv("KAFKA_BROKERS") ?: "localhost:9092"))
         put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "6000")
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-        if (!getenv("KAFKA_KEYSTORE_PATH").isNullOrBlank())
+        put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer::class.java.canonicalName)
+        put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringSerializer::class.java.canonicalName)
+        if (!getenv("KAFKA_KEYSTORE_PATH").isNullOrBlank()) {
             put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL")
-        put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PKCS12")
-        put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, getenv("KAFKA_KEYSTORE_PATH"))
-        put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
-        put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PKCS12")
-        put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, getenv("KAFKA_TRUSTSTORE_PATH"))
-        put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
+            put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PKCS12")
+            put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, getenv("KAFKA_KEYSTORE_PATH"))
+            put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
+            put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PKCS12")
+            put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, getenv("KAFKA_TRUSTSTORE_PATH"))
+            put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, getenv("KAFKA_CREDSTORE_PASSWORD"))
+        }
     }
 
     suspend fun consume(processor: ConsumerRecordProcessor) {
