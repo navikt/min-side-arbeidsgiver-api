@@ -121,7 +121,7 @@ class FakeApi : BeforeAllCallback, AfterAllCallback {
                 call.response.status(HttpStatusCode.OK)
             }
 
-            get("/tokenIntrospection") {
+            post("/tokenIntrospection") {
                 call.respond(MsaJwtVerifier.TokenIntrospectionResponse(active = true, null))
             }
 
