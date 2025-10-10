@@ -70,10 +70,10 @@ class MaskinportenClientImpl(
         val tokenResponse = client.post(getWellKnownResponse().tokenEndpoint) {
             contentType(ContentType.Application.FormUrlEncoded)
             setBody(
-                mapOf(
-                    "grant_type" to listOf("urn:ietf:params:oauth:grant-type:jwt-bearer"),
-                    "assertion" to listOf(createClientAssertion())
-                )
+                Parameters.build {
+                    append("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
+                    append("assertion", createClientAssertion())
+                }
             )
         }.body<TokenResponse>()
 
