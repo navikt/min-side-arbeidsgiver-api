@@ -1,6 +1,7 @@
 package no.nav.arbeidsgiver.min_side.services.tokenExchange
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.ktor.client.request.forms.FormDataContent
 import io.ktor.http.*
 import io.ktor.server.plugins.di.*
 import io.ktor.server.request.*
@@ -44,9 +45,9 @@ class TokenExchangeClientTest {
             HttpMethod.Post,
             "/token"
         ) {
-            val body = call.receive<Map<String, List<String>>>()
-            assert(body["subject_token"]!!.contains(subjectToken))
-            assert(body["client_assertion"]!!.contains(clientAssertion))
+            val body = call.receive<Parameters>()
+            assertEquals(subjectToken, body["subject_token"])
+            assertEquals(clientAssertion, body["client_assertion"])
             call.response.headers.append(HttpHeaders.ContentType, "application/json")
             call.respond(mapper.writeValueAsString(token))
         }
