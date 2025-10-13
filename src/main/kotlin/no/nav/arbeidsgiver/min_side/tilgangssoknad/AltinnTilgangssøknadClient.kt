@@ -39,18 +39,22 @@ class AltinnTilgangssøknadClient(
         var continuationtoken: String? = null
         val resultat = ArrayList<AltinnTilgangssøknad>()
         while (shouldContinue) {
-            val uri =
-                "$delegationRequestApiPath?ForceEIAuthentication&${
-                    if (continuationtoken == null) {
-                        "\$filter=$filter"
-                    } else {
-                        "\$filter=$filter&continuation=$continuationtoken"
-                    }
-                }"
+//            val uri =
+//                "$delegationRequestApiPath?ForceEIAuthentication&${
+//                    if (continuationtoken == null) {
+//                        "\$filter=$filter"
+//                    } else {
+//                        "\$filter=$filter&continuation=$continuationtoken"
+//                    }
+//                }"
 
 
             val body = try {
-                client.get(uri) {
+                client.get("$delegationRequestApiPath?ForceEIAuthentication") {
+                    parameter("\$filter", "CoveredBy eq '$fødselsnummer'")
+                    if (continuationtoken != null) {
+                        parameter("continuation", continuationtoken)
+                    }
                     header("accept", "application/hal+json")
                     header("apikey", altinnApiKey)
                     bearerAuth(maskinportenTokenService.currentAccessToken())
