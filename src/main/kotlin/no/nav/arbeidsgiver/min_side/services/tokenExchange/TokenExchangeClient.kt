@@ -30,7 +30,7 @@ class TokenExchangeClientImpl(
             contentType(ContentType.Application.Json)
         }
         if (response.status != HttpStatusCode.OK){
-            throw RuntimeException("Feil ved token exchange mot TokenX. Status=${response.status}")
+            throw RuntimeException("Feil ved token exchange mot TokenX. Status=${response.status} message =${response.body<String>()}")
         }
 
         return response.body()
