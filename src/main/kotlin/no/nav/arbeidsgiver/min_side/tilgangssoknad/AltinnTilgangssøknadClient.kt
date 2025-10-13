@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.ktor.client.call.*
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
@@ -43,25 +44,25 @@ class AltinnTilgangssøknadClient(
                     }
                 }"
 
-            val response = client.get(uri) {
-                header("accept", "application/hal+json")
-                header("apikey", altinnApiKey)
-                bearerAuth(maskinportenTokenService.currentAccessToken())
-            }
 
-            val body = when (response.status) {
-                HttpStatusCode.OK -> response.body<Søknadsstatus?>()
-                HttpStatusCode.BadRequest -> {
-                    val body = response.body<String>()
-                    if (body.contains("User profile")) { // Altinn returns 400 if user does not exist
+            val body = try {
+                client.get(uri) {
+                    header("accept", "application/hal+json")
+                    header("apikey", altinnApiKey)
+                    bearerAuth(maskinportenTokenService.currentAccessToken())
+                }.body<Søknadsstatus?>()
+            } catch (e: ClientRequestException) {
+                if (e.response.status == HttpStatusCode.BadRequest) {
+                    if (e.response.bodyAsText().contains("User profile")) {
                         null
                     } else {
-                        throw RuntimeException("Altinn delegation requests: $body")
+                        throw e
                     }
+                } else {
+                    throw e
                 }
-
-                else -> throw RuntimeException("Altinn delegation requests: ${response.status}")
             }
+
 
             if (body == null) {
                 log.error("Altinn delegation requests: body missing")
@@ -74,7 +75,8 @@ class AltinnTilgangssøknadClient(
                 continuationtoken = body.continuationtoken
             }
 
-            body.embedded.delegationRequests!!.mapTo(resultat) { søknadDTO: DelegationRequest ->
+            body.embedded.delegationRequests!!.mapTo(resultat)
+            { søknadDTO: DelegationRequest ->
                 AltinnTilgangssøknad(
                     orgnr = søknadDTO.OfferedBy,
                     status = søknadDTO.RequestStatus,
