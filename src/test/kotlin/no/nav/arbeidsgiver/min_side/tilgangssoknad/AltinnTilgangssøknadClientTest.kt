@@ -38,7 +38,7 @@ class AltinnTilgangssøknadClientTest {
             "/api/serviceowner/delegationRequests",
             parametersOf(
                 "ForceEIAuthentication" to listOf(""),
-                "\$filter" to listOf("CoveredBy+eq+'$fnr'"),
+                "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
             ),
             {
                 call.response.header(HttpHeaders.ContentType, "application/json")
@@ -50,7 +50,7 @@ class AltinnTilgangssøknadClientTest {
             "/api/serviceowner/delegationRequests",
             parametersOf(
                 "ForceEIAuthentication" to listOf(""),
-                "\$filter" to listOf("CoveredBy+eq+'$fnr'"),
+                "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
                 "continuation" to listOf(continuationtoken)
             ),
             {

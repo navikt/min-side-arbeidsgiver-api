@@ -30,7 +30,7 @@ class AltinnTilgangssøknadClient(
     private val delegationRequestApiPath = "$altinnApiBaseUrl/api/serviceowner/delegationRequests"
 
     suspend fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad> {
-        val filter = "CoveredBy eq '$fødselsnummer'".replace(" ", "+")
+        val filter = "CoveredBy eq '$fødselsnummer'".replace(" ", "%20") // URL encode space as %20
         var shouldContinue = true
         var continuationtoken: String? = null
         val resultat = ArrayList<AltinnTilgangssøknad>()
