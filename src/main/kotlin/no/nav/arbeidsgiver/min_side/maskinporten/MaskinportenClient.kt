@@ -8,6 +8,7 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.FormDataContent
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.config.Miljø
 import no.nav.arbeidsgiver.min_side.defaultHttpClient
@@ -70,9 +71,11 @@ class MaskinportenClientImpl(
         val tokenResponse = client.post(getWellKnownResponse().tokenEndpoint) {
             contentType(ContentType.Application.FormUrlEncoded)
             setBody(
-                mapOf(
-                    "grant_type" to "urn:ietf:params:oauth:grant-type:jwt-bearer",
-                    "assertion" to createClientAssertion()
+                FormDataContent(
+                    Parameters.build {
+                        append("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
+                        append("assertion", createClientAssertion())
+                    }
                 )
             )
         }.body<TokenResponse>()
