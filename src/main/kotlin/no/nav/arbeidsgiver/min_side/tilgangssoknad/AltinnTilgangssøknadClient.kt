@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.ktor.client.call.*
 import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
@@ -25,6 +26,9 @@ class AltinnTilgangssøknadClient(
 
     private val client = defaultHttpClient(configure = {
         expectSuccess = true
+        install(HttpTimeout) {
+            requestTimeoutMillis = 1000 * 120
+        }
     })
 
     private val delegationRequestApiPath = "$altinnApiBaseUrl/api/serviceowner/delegationRequests"

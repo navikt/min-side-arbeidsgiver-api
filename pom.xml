@@ -130,13 +130,6 @@
             <artifactId>kotlinx-coroutines-core</artifactId>
             <version>${kotlinx_coroutines_version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-coroutines-debug</artifactId>
-            <version>${kotlinx_coroutines_version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
