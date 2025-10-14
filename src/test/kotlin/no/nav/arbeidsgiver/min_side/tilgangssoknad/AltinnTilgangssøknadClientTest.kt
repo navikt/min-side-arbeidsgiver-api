@@ -30,39 +30,39 @@ class AltinnTilgangssøknadClientTest {
     /**
      * se: https://www.altinn.no/api/serviceowner/Help/Api/GET-serviceowner-delegationRequests_serviceCode_serviceEditionCode_status[0]_status[1]_continuation_coveredby_offeredby
      */
-//    @Test
-//    fun hentSøknader() = app.runTest {
-//        val fnr = "42"
-//        fakeApi.registerStub(
-//            HttpMethod.Get,
-//            "/api/serviceowner/delegationRequests",
-//            parametersOf(
-//                "ForceEIAuthentication" to listOf(""),
-//                "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
-//            ),
-//            {
-//                call.response.header(HttpHeaders.ContentType, "application/json")
-//                call.respond(altinnHentSøknadResponse)
-//            }
-//        )
-//        fakeApi.registerStub(
-//            HttpMethod.Get,
-//            "/api/serviceowner/delegationRequests",
-//            parametersOf(
-//                "ForceEIAuthentication" to listOf(""),
-//                "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
-//                "continuation" to listOf(continuationtoken)
-//            ),
-//            {
-//                call.response.header(HttpHeaders.ContentType, "application/json")
-//                call.respond(altinnHentSøknadTomResponse)
-//            }
-//        )
-//
-//        val result = app.getDependency<AltinnTilgangssøknadClient>().hentSøknader(fnr)
-//        assertThat(result).isNotEmpty
-//    }
-//
+    @Test
+    fun hentSøknader() = app.runTest {
+        val fnr = "42"
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/api/serviceowner/delegationRequests",
+            parametersOf(
+                "ForceEIAuthentication" to listOf(""),
+                "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
+            ),
+            {
+                call.response.header(HttpHeaders.ContentType, "application/json")
+                call.respond(altinnHentSøknadResponse)
+            }
+        )
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/api/serviceowner/delegationRequests",
+            parametersOf(
+                "ForceEIAuthentication" to listOf(""),
+                "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
+                "continuation" to listOf(continuationtoken)
+            ),
+            {
+                call.response.header(HttpHeaders.ContentType, "application/json")
+                call.respond(altinnHentSøknadTomResponse)
+            }
+        )
+
+        val result = app.getDependency<AltinnTilgangssøknadClient>().hentSøknader(fnr)
+        assertThat(result).isNotEmpty
+    }
+
     /**
      * se https://www.altinn.no/api/serviceowner/Help/Api/POST-serviceowner-delegationRequests
      */
