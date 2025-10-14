@@ -80,7 +80,7 @@ class MaskinportenClientImpl(
             )
         }.body<TokenResponse>()
 
-        logger.info("Fetched new access token. Expires in {} seconds. scope {}", tokenResponse.expiresInSeconds, tokenResponse.scope)
+        logger.info("Fetched new access token. Expires in {} seconds.", tokenResponse.expiresInSeconds)
 
         return TokenResponseWrapper(
             requestedAt = requestedAt,
