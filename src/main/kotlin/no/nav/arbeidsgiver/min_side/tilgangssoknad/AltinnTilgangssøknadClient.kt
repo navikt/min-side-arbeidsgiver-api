@@ -26,9 +26,6 @@ class AltinnTilgangssøknadClient(
 
     private val client = defaultHttpClient(configure = {
         expectSuccess = true
-        install(HttpTimeout) {
-            requestTimeoutMillis = 1000 * 120
-        }
     })
 
     private val delegationRequestApiPath = "$altinnApiBaseUrl/api/serviceowner/delegationRequests"
@@ -52,8 +49,8 @@ class AltinnTilgangssøknadClient(
             val body = try {
                 client.get(uri) {
                     header("accept", "application/hal+json")
-//                    header("apikey", altinnApiKey)
-//                    bearerAuth(maskinportenTokenService.currentAccessToken())
+                    header("apikey", altinnApiKey)
+                    bearerAuth(maskinportenTokenService.currentAccessToken())
                 }.body<Søknadsstatus?>()
             } catch (e: ClientRequestException) {
                 if (e.response.status == HttpStatusCode.BadRequest) {

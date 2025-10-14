@@ -71,7 +71,7 @@ fun defaultHttpClient(
             }
         }
 
-        install(propagateXCorrelationIdPlugin)
+//        install(propagateXCorrelationIdPlugin)
         configure()
     }
 }
