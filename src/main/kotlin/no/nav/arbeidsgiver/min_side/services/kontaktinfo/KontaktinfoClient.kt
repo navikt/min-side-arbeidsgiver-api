@@ -26,7 +26,7 @@ class KontaktinfoClient(
 
     suspend fun hentKontaktinfo(orgnr: String): Kontaktinfo {
         val officialContactsResponse = client.request(
-            "$altinnApiBaseUrl/api/serviceowner/organizations/${orgnr}/officialcontacts?ForceEIAuthentication"
+            "$altinnApiBaseUrl/api/serviceowner/organizations/${orgnr}/officialcontacts"
         ) {
             method = HttpMethod.Get
             header("apiKey", altinnApiKey)

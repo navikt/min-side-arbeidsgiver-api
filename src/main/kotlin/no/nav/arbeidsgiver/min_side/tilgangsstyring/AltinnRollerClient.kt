@@ -43,7 +43,7 @@ class AltinnRollerClient(
             "(RoleType+eq+'Altinn'+and+($altinnRolleFilter))+or+(RoleType+eq+'External'+and+($eregRolleFilter))"
 
         val rollerResponse =
-            client.get("$altinnApiBaseUrl/api/serviceowner/authorization/roles?subject=$fnr&reportee=$orgnr&${'$'}filter=$filter&ForceEIAuthentication") {
+            client.get("$altinnApiBaseUrl/api/serviceowner/authorization/roles?subject=$fnr&reportee=$orgnr&${'$'}filter=$filter") {
                 header("apikey", altinnApiKey)
                 bearerAuth(maskinportenTokenService.currentAccessToken())
             }

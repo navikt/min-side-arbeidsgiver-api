@@ -80,9 +80,9 @@ fun main() {
             startDeleteOldSykmeldingLoop(this)
 
             // Maskinporten token refresher
-//            launch {
-//                dependencies.resolve<MaskinportenTokenService>().tokenRefreshingLoop()
-//            }
+            launch {
+                dependencies.resolve<MaskinportenTokenService>().tokenRefreshingLoop()
+            }
         }.start(wait = false)
     }
 }

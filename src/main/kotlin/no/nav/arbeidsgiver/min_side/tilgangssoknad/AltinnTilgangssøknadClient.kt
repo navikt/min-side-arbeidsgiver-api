@@ -37,7 +37,7 @@ class AltinnTilgangssøknadClient(
         val resultat = ArrayList<AltinnTilgangssøknad>()
         while (shouldContinue) {
             val uri =
-                "$delegationRequestApiPath?ForceEIAuthentication&${
+                "$delegationRequestApiPath?${
                     if (continuationtoken == null) {
                         "\$filter=$filter"
                     } else {
@@ -94,7 +94,7 @@ class AltinnTilgangssøknadClient(
     }
 
     suspend fun sendSøknad(fødselsnummer: String, søknadsskjema: AltinnTilgangssøknadsskjema): AltinnTilgangssøknad {
-        val response = client.post("$delegationRequestApiPath?ForceEIAuthentication") {
+        val response = client.post("$delegationRequestApiPath") {
             header("accept", "application/hal+json")
             header("apikey", altinnApiKey)
             contentType(ContentType.Application.Json)

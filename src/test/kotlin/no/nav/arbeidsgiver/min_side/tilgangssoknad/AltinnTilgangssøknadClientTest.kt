@@ -37,7 +37,6 @@ class AltinnTilgangssøknadClientTest {
             HttpMethod.Get,
             "/api/serviceowner/delegationRequests",
             parametersOf(
-                "ForceEIAuthentication" to listOf(""),
                 "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
             ),
             {
@@ -49,7 +48,6 @@ class AltinnTilgangssøknadClientTest {
             HttpMethod.Get,
             "/api/serviceowner/delegationRequests",
             parametersOf(
-                "ForceEIAuthentication" to listOf(""),
                 "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
                 "continuation" to listOf(continuationtoken)
             ),
@@ -79,7 +77,6 @@ class AltinnTilgangssøknadClientTest {
         fakeApi.registerStub(
             HttpMethod.Post,
             "/api/serviceowner/delegationRequests",
-            parametersOf("ForceEIAuthentication" to listOf("")),
         ) {
             call.response.header(HttpHeaders.ContentType, "application/json")
             call.respond(altinnSendSøknadResponse)

@@ -160,7 +160,6 @@ class AltinnRollerClientTest {
             "/api/serviceowner/authorization/roles"
         ) {
             val queryParams = call.request.queryParameters
-            assertTrue("ForceEIAuthentication" in queryParams)
             assertTrue("\$filter" in queryParams)
             assertEquals(fnr, queryParams["subject"])
             assertEquals(orgnr, queryParams["reportee"])
