@@ -53,7 +53,7 @@ class AltinnTilgangssøknadClient(
                 client.get(uri) {
                     header("accept", "application/hal+json")
                     header("apikey", altinnApiKey)
-                    bearerAuth(maskinportenTokenService.currentAccessToken())
+//                    bearerAuth(maskinportenTokenService.currentAccessToken())
                 }.body<Søknadsstatus?>()
             } catch (e: ClientRequestException) {
                 if (e.response.status == HttpStatusCode.BadRequest) {
