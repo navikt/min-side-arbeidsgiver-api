@@ -50,6 +50,7 @@ class AltinnTilgangssøknadClient(
                 client.get(uri) {
                     header("Accept", "application/hal+json")
                     header("ApiKey", altinnApiKey)
+                    contentType(ContentType.Application.HalJson)
                     bearerAuth(maskinportenTokenService.currentAccessToken())
                 }.body<Søknadsstatus?>()
             } catch (e: ClientRequestException) {
