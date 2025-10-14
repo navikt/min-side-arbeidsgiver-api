@@ -20,18 +20,19 @@ class MaskinportenTokenServiceImpl(
     private val tokenStore = AtomicReference<TokenResponseWrapper?>()
 
     override suspend fun currentAccessToken(): String {
-        val storedToken = tokenStore.get()
-        val token = if (storedToken != null && storedToken.percentageRemaining() > 20.0) {
-            storedToken
-        } else {
-            logger.error("maskinporten access token almost expired. is refresh loop running? doing emergency fetch.")
-            /* this shouldn't happen, as refresh loop above refreshes often */
-            maskinportenClient.fetchNewAccessToken().also {
-                tokenStore.set(it)
-            }
-        }
-
-        return token.tokenResponse.accessToken
+//        val storedToken = tokenStore.get()
+//        val token = if (storedToken != null && storedToken.percentageRemaining() > 20.0) {
+//            storedToken
+//        } else {
+//            logger.error("maskinporten access token almost expired. is refresh loop running? doing emergency fetch.")
+//            /* this shouldn't happen, as refresh loop above refreshes often */
+//            maskinportenClient.fetchNewAccessToken().also {
+//                tokenStore.set(it)
+//            }
+//        }
+//
+//        return token.tokenResponse.accessToken
+        return maskinportenClient.fetchNewAccessToken().tokenResponse.accessToken
     }
 
     override suspend fun tokenRefreshingLoop() {
