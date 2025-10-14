@@ -52,7 +52,7 @@ class AltinnTilgangssøknadClient(
             val body = try {
                 client.get(uri) {
                     header("accept", "application/hal+json")
-                    header("apikey", altinnApiKey)
+//                    header("apikey", altinnApiKey)
 //                    bearerAuth(maskinportenTokenService.currentAccessToken())
                 }.body<Søknadsstatus?>()
             } catch (e: ClientRequestException) {
