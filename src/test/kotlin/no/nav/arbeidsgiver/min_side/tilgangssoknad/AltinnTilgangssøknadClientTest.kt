@@ -2,6 +2,7 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
 import io.ktor.http.*
 import io.ktor.server.plugins.di.*
+import io.ktor.server.request.header
 import io.ktor.server.response.*
 import no.nav.arbeidsgiver.min_side.FakeApi
 import no.nav.arbeidsgiver.min_side.FakeApplication
@@ -40,7 +41,10 @@ class AltinnTilgangssøknadClientTest {
                 "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
             ),
             {
-                call.response.header(HttpHeaders.ContentType, "application/json")
+                if (call.request.header("accept")!!.contains("application/json")){
+                    call.respond(HttpStatusCode.BadRequest, "Feil i accept header: ${call.request.header("accept")!!}")
+                }
+                call.response.header(HttpHeaders.ContentType, "application/hal+json")
                 call.respond(altinnHentSøknadResponse)
             }
         )
@@ -52,7 +56,7 @@ class AltinnTilgangssøknadClientTest {
                 "continuation" to listOf(continuationtoken)
             ),
             {
-                call.response.header(HttpHeaders.ContentType, "application/json")
+                call.response.header(HttpHeaders.ContentType, "application/hal+json")
                 call.respond(altinnHentSøknadTomResponse)
             }
         )
@@ -78,7 +82,7 @@ class AltinnTilgangssøknadClientTest {
             HttpMethod.Post,
             "/api/serviceowner/delegationRequests",
         ) {
-            call.response.header(HttpHeaders.ContentType, "application/json")
+            call.response.header(HttpHeaders.ContentType, "application/hal+json")
             call.respond(altinnSendSøknadResponse)
         }
 

@@ -111,7 +111,7 @@ class AltinnTilgangSoknadServiceSendTest {
         val token = fakeToken("42")
 
         fakeApi.registerStub(HttpMethod.Post, "/api/serviceowner/delegationRequests") {
-            call.response.headers.append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            call.response.headers.append(HttpHeaders.ContentType, ContentType.Application.HalJson.toString())
             call.respond(
                 """
                  {

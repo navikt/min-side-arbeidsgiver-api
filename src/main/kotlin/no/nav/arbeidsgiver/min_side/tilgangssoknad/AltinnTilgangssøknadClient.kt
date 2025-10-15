@@ -3,17 +3,28 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.ktor.client.HttpClient
 import io.ktor.client.call.*
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.SocketTimeoutException
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.*
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.serialization.jackson.jackson
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import no.nav.arbeidsgiver.min_side.HttpClientMetricsFeature
+import no.nav.arbeidsgiver.min_side.Metrics
 import no.nav.arbeidsgiver.min_side.config.Miljø
-import no.nav.arbeidsgiver.min_side.defaultHttpClient
+import no.nav.arbeidsgiver.min_side.defaultConfiguration
 import no.nav.arbeidsgiver.min_side.logger
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.DelegationRequest.RequestResource
+import java.io.EOFException
+import javax.net.ssl.SSLHandshakeException
 
 
 class AltinnTilgangssøknadClient(
@@ -24,9 +35,43 @@ class AltinnTilgangssøknadClient(
 
     private val log = logger()
 
-    private val client = defaultHttpClient(configure = {
+    private val client = HttpClient(CIO) {
         expectSuccess = true
-    })
+
+        install(ContentNegotiation) {
+            jackson(contentType = ContentType.Application.HalJson) {
+                defaultConfiguration()
+            }
+        }
+
+        install(HttpClientMetricsFeature) {
+            registry = Metrics.meterRegistry
+        }
+
+        install(HttpRequestRetry) {
+            retryOnServerErrors(3)
+            retryOnExceptionIf(3) { _, cause ->
+                when (cause) {
+                    is SocketTimeoutException,
+                    is ConnectTimeoutException,
+                    is EOFException,
+                    is SSLHandshakeException,
+                    is ClosedReceiveChannelException,
+                    is HttpRequestTimeoutException -> true
+
+                    else -> false
+                }
+            }
+
+            delayMillis { 250L }
+        }
+
+        install(Logging) {
+            sanitizeHeader {
+                true
+            }
+        }
+    }
 
     private val delegationRequestApiPath = "$altinnApiBaseUrl/api/serviceowner/delegationRequests"
 
@@ -97,9 +142,9 @@ class AltinnTilgangssøknadClient(
 
     suspend fun sendSøknad(fødselsnummer: String, søknadsskjema: AltinnTilgangssøknadsskjema): AltinnTilgangssøknad {
         val response = client.post("$delegationRequestApiPath") {
-            header("accept", "application/hal+json")
+            accept(ContentType.Application.HalJson)
             header("apikey", altinnApiKey)
-            contentType(ContentType.Application.Json)
+            contentType(ContentType.Application.HalJson)
             bearerAuth(maskinportenTokenService.currentAccessToken())
 
             setBody(
