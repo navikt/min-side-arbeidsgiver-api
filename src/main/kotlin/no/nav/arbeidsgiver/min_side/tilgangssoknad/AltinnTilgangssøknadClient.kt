@@ -50,6 +50,7 @@ class AltinnTilgangssøknadClient(
                 val response = client.get(uri) {
                     header("accept", "application/hal+json")
                     header("apikey", altinnApiKey)
+                    contentType(ContentType.Application.HalJson)
                     bearerAuth(maskinportenTokenService.currentAccessToken())
                 }
                 log.info("Altinn delegation response: ${response.status} ${response.bodyAsText()}")
