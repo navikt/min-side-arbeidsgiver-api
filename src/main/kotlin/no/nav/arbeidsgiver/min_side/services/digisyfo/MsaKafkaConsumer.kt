@@ -33,8 +33,9 @@ class MsaKafkaConsumer(
     private val properties = Properties().apply {
         put(ConsumerConfig.GROUP_ID_CONFIG, config.groupId)
         put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, (getenv("KAFKA_BROKERS") ?: "localhost:9092"))
-        put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "6000")
+        put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "60000")
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+        put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
         put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.canonicalName)
         put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.canonicalName)
         if (!getenv("KAFKA_KEYSTORE_PATH").isNullOrBlank()) {
@@ -53,8 +54,11 @@ class MsaKafkaConsumer(
         consumer.subscribe(config.topics)
         while (true) {
             val records = consumer.poll(java.time.Duration.ofMillis(1000))
-            for (record in records) {
-                processor.processRecord(record)
+            if (records.any()) {
+                for (record in records) {
+                    processor.processRecord(record)
+                }
+                consumer.commitSync()
             }
         }
     }
@@ -66,6 +70,7 @@ class MsaKafkaConsumer(
             val records = consumer.poll(java.time.Duration.ofMillis(1000))
             if (records.any()) {
                 processor.processRecords(records)
+                consumer.commitSync()
             }
         }
     }
