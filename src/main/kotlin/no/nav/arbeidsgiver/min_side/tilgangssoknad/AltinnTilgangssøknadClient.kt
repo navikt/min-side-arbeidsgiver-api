@@ -48,8 +48,8 @@ class AltinnTilgangssøknadClient(
 
             val body = try {
                 val response = client.get(uri) {
-                    header("accept", "application/hal+json")
                     header("apikey", altinnApiKey)
+                    accept(ContentType.Application.HalJson)
                     contentType(ContentType.Application.HalJson)
                     bearerAuth(maskinportenTokenService.currentAccessToken())
                 }
