@@ -47,12 +47,14 @@ class AltinnTilgangssøknadClient(
 
 
             val body = try {
-                client.get(uri) {
+                val response = client.get(uri) {
                     header("Accept", "application/hal+json")
                     header("ApiKey", altinnApiKey)
                     contentType(ContentType.Application.Json)
                     bearerAuth(maskinportenTokenService.currentAccessToken())
-                }.body<Søknadsstatus?>()
+                }
+                log.info("Altinn delegation response: ${response.status} ${response.bodyAsText()}")
+                response.body<Søknadsstatus?>()
             } catch (e: ClientRequestException) {
                 if (e.response.status == HttpStatusCode.BadRequest) {
                     if (e.response.bodyAsText().contains("User profile")) {
