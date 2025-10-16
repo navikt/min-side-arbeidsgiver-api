@@ -6,7 +6,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.server.application.*
 import io.ktor.server.plugins.di.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.*
@@ -60,8 +59,6 @@ class MsaKafkaConsumer(
                     processor.processRecord(record)
                 }
                 consumer.commitSync()
-            } else {
-                delay(100)
             }
         }
     }
@@ -74,8 +71,6 @@ class MsaKafkaConsumer(
             if (records.any()) {
                 processor.processRecords(records)
                 consumer.commitSync()
-            } else {
-                delay(100)
             }
         }
     }

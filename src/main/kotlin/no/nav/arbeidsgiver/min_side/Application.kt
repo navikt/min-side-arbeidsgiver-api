@@ -32,8 +32,7 @@ import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabase
 import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
@@ -84,10 +83,16 @@ fun main() {
             configureDependencies()
             configureRoutes()
 
-            startKafkaConsumers(this)
-            startKontaktInfoPollingServices(this)
-            startDeleteOldSykmeldingLoop(this)
 
+            val consumerScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+            startKafkaConsumers(consumerScope)
+            startKontaktInfoPollingServices(consumerScope)
+            startDeleteOldSykmeldingLoop(consumerScope)
+
+            monitor.subscribe(ApplicationStopping) {
+                log.info("ApplicationStopping: signal received, shutting down")
+                consumerScope.cancel()
+            }
         }.start(wait = false)
     }
 }
