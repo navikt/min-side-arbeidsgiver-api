@@ -3,13 +3,10 @@ package no.nav.arbeidsgiver.min_side.azuread
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.Expiry
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Configuration
-import org.springframework.stereotype.Service
+import no.nav.arbeidsgiver.min_side.getOrCompute
 import java.util.concurrent.TimeUnit
 
 
-@Service
 class AzureService(
     private val azureClient: AzureClient,
 ) {
@@ -28,8 +25,8 @@ class AzureService(
         .build()
 
 
-    fun getAccessToken(scope: String): String {
-        return cache.get(scope) {
+    suspend fun getAccessToken(scope: String): String {
+        return cache.getOrCompute(scope) {
             azureClient.fetchToken(scope).let {
                 AccessTokenEntry(
                     accessToken = it.accessToken,
@@ -45,10 +42,8 @@ internal data class AccessTokenEntry(
     val expiresInSeconds: Long
 )
 
-@Configuration
-@ConfigurationProperties("azuread")
-class AzureADProperties(
-    var openidTokenEndpoint: String = "",
-    var clientId: String = "",
-    var clientSecret: String = "",
+data class AzureAdConfig(
+    val openidTokenEndpoint: String,
+    val clientId: String,
+    val clientSecret: String,
 )

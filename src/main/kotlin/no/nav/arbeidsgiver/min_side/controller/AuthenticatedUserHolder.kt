@@ -1,23 +1,22 @@
 package no.nav.arbeidsgiver.min_side.controller
 
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import org.springframework.stereotype.Component
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 
-
-@Component
-class AuthenticatedUserHolder {
+interface AuthenticatedUserHolder{
     val fnr: String
-        get() = jwt.getClaimAsString("pid")
-
     val token: String
-        get() = jwt.tokenValue
+}
 
-    private val jwt: Jwt
-        get() = try {
-            (SecurityContextHolder.getContext().authentication as JwtAuthenticationToken).token
-        } catch (e: Exception) {
-            throw RuntimeException("no valid token. auth: ${SecurityContextHolder.getContext().authentication.javaClass}")
-        }
+class AuthenticatedUserHolderImpl(private val call: ApplicationCall) : AuthenticatedUserHolder {
+    override val fnr: String
+        get() = jwt.payload.getClaim("pid").asString()
+
+    override val token: String
+        get() = call.request.headers["Authorization"]?.removePrefix("Bearer ") ?: throw RuntimeException("No Authorization header found")
+
+    private val jwt: JWTPrincipal
+        get() = call.principal<JWTPrincipal>()
+            ?: throw RuntimeException("No valid JWT token found")
 }

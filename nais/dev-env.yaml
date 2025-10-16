@@ -8,12 +8,12 @@ metadata:
 spec:
   image: {{{ image }}}
   liveness:
-    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
+    path: /internal/isalive
   readiness:
-    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
+    path: /internal/isready
   prometheus:
     enabled: true
-    path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
+    path: /internal/prometheus
   observability:
     autoInstrumentation:
       enabled: true
@@ -40,9 +40,6 @@ spec:
             envVarPrefix: DB
   envFrom:
     - secret: min-side-ag-secrets
-  env:
-    - name: SPRING_PROFILES_ACTIVE
-      value: dev-gcp
   tokenx:
     enabled: true
   azure:

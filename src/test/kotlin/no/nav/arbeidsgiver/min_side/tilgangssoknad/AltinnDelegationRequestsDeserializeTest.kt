@@ -2,19 +2,15 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.arbeidsgiver.min_side.defaultConfiguration
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
-import org.springframework.boot.test.context.SpringBootTest
 
-@SpringBootTest(classes = [JacksonAutoConfiguration::class])
 class AltinnDelegationRequestsDeserializeTest {
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
 
+    val objectMapper = ObjectMapper().defaultConfiguration()
     @Test
-    fun deserialiseJsonResponseIntoDTO() {
+    fun deserialiseJsonResponseIntoDTO()  {
         val text = this.javaClass.getResourceAsStream("/altinnTilgangerGet.json")!!.readAllBytes()
         val readValue = objectMapper.readValue<Søknadsstatus>(text)
         Assertions.assertThat(readValue.embedded).isNotNull

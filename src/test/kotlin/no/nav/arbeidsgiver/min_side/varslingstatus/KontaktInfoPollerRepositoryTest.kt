@@ -1,57 +1,40 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.ktor.server.plugins.di.*
+import no.nav.arbeidsgiver.min_side.Database
+import no.nav.arbeidsgiver.min_side.FakeApi
+import no.nav.arbeidsgiver.min_side.FakeApplication
+import no.nav.arbeidsgiver.min_side.provideDefaultObjectMapper
+import no.nav.arbeidsgiver.min_side.services.digisyfo.VarslingStatusRecordProcessor
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.Instant
 import kotlin.time.Duration.Companion.days
 import kotlin.time.toJavaDuration
 
-@MockitoBean(types=[JwtDecoder::class])
-@SpringBootTest(
-    properties = [
-        "spring.flyway.cleanDisabled=false",
-    ]
-)
+
 class KontaktInfoPollerRepositoryTest {
+    companion object {
+        @RegisterExtension
+        val app = FakeApplication(
+            addDatabase = true,
+        ) {
+            dependencies {
+                provide<VarslingStatusRepository>(VarslingStatusRepository::class)
+                provide<KontaktInfoPollerRepository>(KontaktInfoPollerRepository::class)
+                provideDefaultObjectMapper()
+            }
+        }
 
-    @Autowired
-    lateinit var varslingStatusRepository: VarslingStatusRepository
-
-    @Autowired
-    lateinit var kontaktInfoPollerRepository: KontaktInfoPollerRepository
-
-    @Autowired
-    lateinit var objectMapper: ObjectMapper
-
-    @Autowired
-    lateinit var jdbcTemplate: JdbcTemplate
-
-    lateinit var varslingStatusKafkaListener: VarslingStatusKafkaListener
-
-    @Autowired
-    lateinit var flyway: Flyway
-
-    @BeforeEach
-    fun setup() {
-        flyway.clean()
-        flyway.migrate()
-        varslingStatusKafkaListener = VarslingStatusKafkaListener(
-            varslingStatusRepository,
-            objectMapper,
-        )
+        @RegisterExtension
+        val fakeApi = FakeApi()
     }
 
     @Test
-    fun `sletter kontaktinfo med ok status eller eldre enn`() {
+    fun `sletter kontaktinfo med ok status eller eldre enn`() = app.runTest {
         listOf(
             // OK
             Triple("OK", "42", Instant.now().toString()),
@@ -65,7 +48,7 @@ class KontaktInfoPollerRepositoryTest {
             // MANGLER_KOFUVI and old
             Triple("MANGLER_KOFUVI", "315", Instant.now().minus(2.days.toJavaDuration()).toString()),
         ).forEachIndexed { index, (status, vnr, tidspunkt) ->
-            processVarslingStatus(
+            app.processVarslingStatus(
                 """
                 {
                         "virksomhetsnummer": "$vnr",
@@ -77,23 +60,26 @@ class KontaktInfoPollerRepositoryTest {
                     }
                 """.trimIndent()
             )
-            kontaktInfoPollerRepository.updateKontaktInfo(vnr, harEpost = true, harTlf = true)
+            app.getDependency<KontaktInfoPollerRepository>().updateKontaktInfo(vnr, harEpost = true, harTlf = true)
         }
 
-        kontaktInfoPollerRepository.slettKontaktinfoMedOkStatusEllerEldreEnn(1.days)
+        app.getDependency<KontaktInfoPollerRepository>().slettKontaktinfoMedOkStatusEllerEldreEnn(1.days)
 
-        val kontaktinfo = jdbcTemplate.queryForList(
-            """
-           select * from kontaktinfo_resultat 
-        """
-        ).map { it["virksomhetsnummer"] as String }
-
+        val kontaktinfo = app.getDependency<Database>().nonTransactionalExecuteQuery(
+            "select * from kontaktinfo_resultat",
+            {},
+            { it.getString("virksomhetsnummer") }
+        )
         assertEquals(listOf("314"), kontaktinfo)
     }
 
 
-    private fun processVarslingStatus(value: String) {
-        varslingStatusKafkaListener.processVarslingStatus(
+    private suspend fun FakeApplication.processVarslingStatus(value: String) {
+        val processor = VarslingStatusRecordProcessor(
+            getDependency<ObjectMapper>(),
+            getDependency<VarslingStatusRepository>()
+        )
+        processor.processRecord(
             ConsumerRecord(
                 "", 0, 0, "", value
             )

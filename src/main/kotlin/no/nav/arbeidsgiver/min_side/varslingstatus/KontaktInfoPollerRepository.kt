@@ -1,29 +1,31 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.stereotype.Repository
+import no.nav.arbeidsgiver.min_side.Database
 import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
-@Repository
 class KontaktInfoPollerRepository(
-    private val jdbcTemplate: JdbcTemplate,
+    private val database: Database,
 ) {
 
-    fun schedulePoll(virksomheterMedFeil: List<String>, pollTidspunkt: String) {
-        jdbcTemplate.batchUpdate("""
+    suspend fun schedulePoll(virksomheterMedFeil: List<String>, pollTidspunkt: String) {
+        database.batchUpdate(
+            """
                 insert into poll_kontaktinfo (virksomhetsnummer, poll_tidspunkt) values (?, ?)
                     on conflict (virksomhetsnummer) do update set poll_tidspunkt = EXCLUDED.poll_tidspunkt;
-            """, virksomheterMedFeil.map { arrayOf(it, pollTidspunkt) })
+            """,
+            virksomheterMedFeil.map { arrayOf(it, pollTidspunkt) }
+        )
+
     }
 
-    fun updateKontaktInfo(
+    suspend fun updateKontaktInfo(
         virksomhetsnummer: String,
         harEpost: Boolean,
         harTlf: Boolean
     ) {
-        jdbcTemplate.update(
+        database.nonTransactionalExecuteUpdate(
             """
                     insert into kontaktinfo_resultat (virksomhetsnummer, sjekket_tidspunkt, har_epost, har_tlf) 
                     values (?, ?, ?, ?)
@@ -32,15 +34,17 @@ class KontaktInfoPollerRepository(
                                 har_epost = EXCLUDED.har_epost,
                                 har_tlf = EXCLUDED.har_tlf;
                 """,
-            virksomhetsnummer,
-            Instant.now().toString(),
-            harEpost,
-            harTlf
+            {
+                text(virksomhetsnummer)
+                text(Instant.now().toString())
+                boolean(harEpost)
+                boolean(harTlf)
+            }
         )
     }
 
-    fun getAndDeleteForPoll(): String? {
-        val virksomhetsnummer = jdbcTemplate.queryForList(
+    suspend fun getAndDeleteForPoll(): String? {
+        val virksomhetsnummer = database.nonTransactionalExecuteQuery(
             """
                 select virksomhetsnummer
                     from poll_kontaktinfo
@@ -49,20 +53,30 @@ class KontaktInfoPollerRepository(
                     limit 1
                     for update skip locked;
             """,
-            Instant.now().toString()
-        ).firstOrNull()?.let { it["virksomhetsnummer"] as String } ?: return null
+            {
+                text(Instant.now().toString())
+            },
+            {
+                it.getString("virksomhetsnummer")
+            }
+        ).firstOrNull()
 
-        jdbcTemplate.update(
+        if (virksomhetsnummer == null) {
+            return null
+        }
+        database.nonTransactionalExecuteUpdate(
             """
                 delete from poll_kontaktinfo where virksomhetsnummer = ?;
             """,
-            virksomhetsnummer
+            {
+                text(virksomhetsnummer)
+            }
         )
         return virksomhetsnummer
     }
 
-    fun slettKontaktinfoMedOkStatusEllerEldreEnn(retention: Duration) {
-        jdbcTemplate.update(
+    suspend fun slettKontaktinfoMedOkStatusEllerEldreEnn(retention: Duration) {
+        database.nonTransactionalExecuteUpdate(
             """
                 with newest_statuses as (
                     select virksomhetsnummer, max(status_tidspunkt) as newest_status_timestamp
@@ -82,7 +96,9 @@ class KontaktInfoPollerRepository(
                             or status = 'OK'
                     );
             """,
-            Instant.now().minus(retention.toJavaDuration()).toString()
+            {
+                text(Instant.now().minus(retention.toJavaDuration()).toString())
+            }
         )
     }
 }
