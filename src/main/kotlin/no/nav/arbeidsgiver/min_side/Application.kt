@@ -33,7 +33,6 @@ import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabase
 import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
@@ -89,10 +88,6 @@ fun main() {
             startKontaktInfoPollingServices(this)
             startDeleteOldSykmeldingLoop(this)
 
-            // Maskinporten token refresher
-            launch {
-                dependencies.resolve<MaskinportenTokenService>().tokenRefreshingLoop()
-            }
         }.start(wait = false)
     }
 }

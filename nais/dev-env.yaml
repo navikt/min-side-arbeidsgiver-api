@@ -9,22 +9,16 @@ spec:
   image: {{{ image }}}
   resources:
     requests:
-      cpu: 1200m
-      memory: 512Mi
+      cpu: 400m
+      memory: 256Mi
     limits:
-      memory: 2024Mi
+      memory: 1024Mi
   liveness:
     path: /internal/isalive
-    initialDelay: 90
-    timeout: 5
-    periodSeconds: 10
-    failureThreshold: 6
+    initialDelay: 60
   readiness:
     path: /internal/isready
-    initialDelay: 90
-    timeout: 5
-    periodSeconds: 10
-    failureThreshold: 6
+    initialDelay: 60
   prometheus:
     enabled: true
     path: /internal/prometheus
