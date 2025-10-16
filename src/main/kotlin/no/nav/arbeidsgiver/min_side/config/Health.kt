@@ -30,7 +30,7 @@ object Health {
     }
 }
 
-fun Application.registerShutdownListener(callback: () -> Unit = {}) {
+fun Application.registerShutdownListener() {
     monitor.subscribe(ApplicationStopping) {
         log.info("ApplicationStopping: signal Health.terminate()")
         Health.terminate()

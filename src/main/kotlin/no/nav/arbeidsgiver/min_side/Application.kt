@@ -34,8 +34,6 @@ import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabase
 import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
@@ -86,27 +84,11 @@ fun main() {
         configureDependencies()
         configureRoutes()
 
+        startKafkaConsumers(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(3)))
+        startKontaktInfoPollingServices(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(3)))
+        startDeleteOldSykmeldingLoop(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(1)))
 
-        val kafkaScope = Dispatchers.IO.limitedParallelism(1).let { dispatcher ->
-            CoroutineScope(SupervisorJob() + dispatcher)
-        }
-        startKafkaConsumers(kafkaScope)
-
-        val kontaktinfoScope = Dispatchers.IO.limitedParallelism(1).let { dispatcher ->
-            CoroutineScope(SupervisorJob() + dispatcher)
-        }
-        startKontaktInfoPollingServices(kontaktinfoScope)
-
-        val sykmeldingScope = Dispatchers.IO.limitedParallelism(1).let { dispatcher ->
-            CoroutineScope(SupervisorJob() + dispatcher)
-        }
-        startDeleteOldSykmeldingLoop(sykmeldingScope)
-
-        registerShutdownListener {
-            kafkaScope.cancel("Shutdown signal received")
-            kontaktinfoScope.cancel("Shutdown signal received")
-            sykmeldingScope.cancel("Shutdown signal received")
-        }
+        registerShutdownListener()
     }.start(wait = true)
 }
 
