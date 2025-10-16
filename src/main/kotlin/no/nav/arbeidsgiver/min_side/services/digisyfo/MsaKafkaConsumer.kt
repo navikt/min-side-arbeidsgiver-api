@@ -5,8 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.server.application.*
 import io.ktor.server.plugins.di.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.*
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusDto
@@ -49,28 +48,32 @@ class MsaKafkaConsumer(
         }
     }
 
-    suspend fun consume(processor: ConsumerRecordProcessor) {
-        val consumer = KafkaConsumer<String?, String?>(properties)
-        consumer.subscribe(config.topics)
-        while (true) {
-            val records = consumer.poll(java.time.Duration.ofMillis(1000))
-            if (records.any()) {
-                for (record in records) {
-                    processor.processRecord(record)
+    suspend fun consume(processor: ConsumerRecordProcessor) = withContext(Dispatchers.IO) {
+        KafkaConsumer<String?, String?>(properties).use { consumer ->
+            consumer.subscribe(config.topics)
+
+            while (isActive) {
+                val records = consumer.poll(java.time.Duration.ofMillis(1000))
+                if (records.any()) {
+                    for (record in records) {
+                        processor.processRecord(record)
+                    }
+                    consumer.commitSync()
                 }
-                consumer.commitSync()
             }
         }
     }
 
-    suspend fun batchConsume(processor: ConsumerRecordProcessor) {
-        val consumer = KafkaConsumer<String?, String?>(properties)
-        consumer.subscribe(config.topics)
-        while (true) {
-            val records = consumer.poll(java.time.Duration.ofMillis(1000))
-            if (records.any()) {
-                processor.processRecords(records)
-                consumer.commitSync()
+    suspend fun batchConsume(processor: ConsumerRecordProcessor) = withContext(Dispatchers.IO) {
+        KafkaConsumer<String?, String?>(properties).use { consumer ->
+            consumer.subscribe(config.topics)
+
+            while (isActive) {
+                val records = consumer.poll(java.time.Duration.ofMillis(1000))
+                if (records.any()) {
+                    processor.processRecords(records)
+                    consumer.commitSync()
+                }
             }
         }
     }
