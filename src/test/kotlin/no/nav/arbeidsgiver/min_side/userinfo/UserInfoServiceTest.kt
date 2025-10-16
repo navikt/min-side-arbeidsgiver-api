@@ -121,7 +121,7 @@ class UserInfoServiceTest {
             )
         )
 
-        client.get("/api/userInfo/v3") {
+        client.get("ditt-nav-arbeidsgiver-api/api/userInfo/v3") {
             bearerAuth(token)
         }.let {
             assert(it.status == HttpStatusCode.OK)

@@ -100,7 +100,7 @@ class RefusjonStatusIntegrationTest {
         app.processRefusjonStatus("315", "gammel")
 
         // fjernes og erstattes av userinfo-endepunktet under
-        client.get("/api/refusjon_status") {
+        client.get("ditt-nav-arbeidsgiver-api/api/refusjon_status") {
             bearerAuth(token)
         }.also {
             assert(it.status == HttpStatusCode.OK)
@@ -128,7 +128,7 @@ class RefusjonStatusIntegrationTest {
             )
         }
 
-        client.get("/api/userInfo/v3") {
+        client.get("ditt-nav-arbeidsgiver-api/api/userInfo/v3") {
             bearerAuth(token)
         }.also {
             assert(it.status == HttpStatusCode.OK)

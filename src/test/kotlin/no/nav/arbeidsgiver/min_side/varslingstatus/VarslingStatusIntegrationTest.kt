@@ -55,7 +55,7 @@ class VarslingStatusIntegrationTest {
             """
         )
 
-        client.post("/api/varslingStatus/v1") {
+        client.post("ditt-nav-arbeidsgiver-api/api/varslingStatus/v1") {
             setBody("""{"virksomhetsnummer": "314"}""")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
@@ -84,7 +84,7 @@ class VarslingStatusIntegrationTest {
             """
         )
 
-        client.post("/api/varslingStatus/v1") {
+        client.post("ditt-nav-arbeidsgiver-api/api/varslingStatus/v1") {
             setBody("""{"virksomhetsnummer": "314"}""")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
@@ -119,7 +119,7 @@ class VarslingStatusIntegrationTest {
                 """
             )
         }
-        client.post("/api/varslingStatus/v1") {
+        client.post("ditt-nav-arbeidsgiver-api/api/varslingStatus/v1") {
             setBody("""{"virksomhetsnummer": "314"}""")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
@@ -162,7 +162,7 @@ class VarslingStatusIntegrationTest {
             )
         }
 
-        client.post("/api/varslingStatus/v1") {
+        client.post("ditt-nav-arbeidsgiver-api/api/varslingStatus/v1") {
             setBody("""{"virksomhetsnummer": "314"}""")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
@@ -199,7 +199,7 @@ class VarslingStatusIntegrationTest {
         app.getDependency<KontaktInfoPollerRepository>()
             .updateKontaktInfo(virksomhetsnummer = "314", harEpost = true, harTlf = true)
 
-        client.post("/api/varslingStatus/v1") {
+        client.post("ditt-nav-arbeidsgiver-api/api/varslingStatus/v1") {
             setBody("""{"virksomhetsnummer": "314"}""")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)

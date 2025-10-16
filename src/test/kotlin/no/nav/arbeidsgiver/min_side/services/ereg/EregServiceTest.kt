@@ -48,7 +48,7 @@ class EregServiceTest {
             call.respond(overenhetUtenEnDelFelter)
         }
 
-        client.post("/api/ereg/overenhet") {
+        client.post("ditt-nav-arbeidsgiver-api/api/ereg/overenhet") {
             contentType(ContentType.Application.Json)
             setBody("""{"orgnr": "$orgnr"}""")
             bearerAuth(fakeToken(orgnr))
@@ -91,7 +91,7 @@ class EregServiceTest {
             call.respond(underenhetRespons)
         }
 
-        client.post("/api/ereg/overenhet") {
+        client.post("ditt-nav-arbeidsgiver-api/api/ereg/overenhet") {
             contentType(ContentType.Application.Json)
             setBody("""{"orgnr": "$virksomhetsnummer"}""")
             bearerAuth(fakeToken(virksomhetsnummer))
@@ -155,7 +155,7 @@ class EregServiceTest {
             call.respond(underenhetMedOrgleddRespons)
         }
 
-        client.post("/api/ereg/overenhet") {
+        client.post("ditt-nav-arbeidsgiver-api/api/ereg/overenhet") {
             contentType(ContentType.Application.Json)
             setBody("""{"orgnr": "$virksomhetsnummer"}""")
             bearerAuth(fakeToken(virksomhetsnummer))
@@ -219,7 +219,7 @@ class EregServiceTest {
             call.respond(HttpStatusCode.NotFound)
         }
 
-        client.post("/api/ereg/overenhet") {
+        client.post("ditt-nav-arbeidsgiver-api/api/ereg/overenhet") {
             contentType(ContentType.Application.Json)
             setBody("""{"orgnr": "$virksomhetsnummer"}""")
             bearerAuth(fakeToken(virksomhetsnummer))
@@ -242,7 +242,7 @@ class EregServiceTest {
             call.respond(overenhetRespons)
         }
 
-        client.post("/api/ereg/overenhet") {
+        client.post("ditt-nav-arbeidsgiver-api/api/ereg/overenhet") {
             contentType(ContentType.Application.Json)
             setBody("""{"orgnr": "$orgnr"}""")
             bearerAuth(fakeToken(orgnr))
@@ -305,7 +305,7 @@ class EregServiceTest {
             call.respond(orgleddRespons)
         }
 
-        client.post("/api/ereg/overenhet") {
+        client.post("ditt-nav-arbeidsgiver-api/api/ereg/overenhet") {
             contentType(ContentType.Application.Json)
             setBody("""{"orgnr": "$orgnr"}""")
             bearerAuth(fakeToken(orgnr))
@@ -371,7 +371,7 @@ class EregServiceTest {
             call.respond(juridiskEnhetForOrgleddRespons)
         }
 
-        client.post("/api/ereg/overenhet") {
+        client.post("ditt-nav-arbeidsgiver-api/api/ereg/overenhet") {
             contentType(ContentType.Application.Json)
             setBody("""{"orgnr": "$orgnr"}""")
             bearerAuth(fakeToken(orgnr))
@@ -436,7 +436,7 @@ class EregServiceTest {
             call.respond(HttpStatusCode.NotFound, overenhetIkkeFunnetRespons)
         }
 
-        client.post("/api/ereg/overenhet") {
+        client.post("ditt-nav-arbeidsgiver-api/api/ereg/overenhet") {
             contentType(ContentType.Application.Json)
             setBody("""{"orgnr": "$orgnr"}""")
             bearerAuth(fakeToken(orgnr))

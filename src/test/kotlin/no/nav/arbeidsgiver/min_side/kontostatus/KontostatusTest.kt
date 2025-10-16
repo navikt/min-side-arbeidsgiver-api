@@ -69,7 +69,7 @@ class KontostatusTest {
             Assertions.assertEquals("12345678901", it?.kontonr)
         }
 
-        client.post("/api/kontonummerStatus/v1")
+        client.post("ditt-nav-arbeidsgiver-api/api/kontonummerStatus/v1")
         {
             setBody("""{"virksomhetsnummer": "$virksomhetsnummer"}""")
             contentType(ContentType.Application.Json)
@@ -95,7 +95,7 @@ class KontostatusTest {
             Assertions.assertNull(it)
         }
 
-        client.post("/api/kontonummerStatus/v1")
+        client.post("ditt-nav-arbeidsgiver-api/api/kontonummerStatus/v1")
         {
             setBody("""{"virksomhetsnummer": "$virksomhetsnummer"}""")
             contentType(ContentType.Application.Json)
@@ -134,7 +134,7 @@ class KontostatusTest {
         `when`(altinnService.harTilgang(kotlinAny(), kotlinAny(), kotlinAny())).thenReturn(true)
 
 
-        client.post("/api/kontonummer/v1")
+        client.post("ditt-nav-arbeidsgiver-api/api/kontonummer/v1")
         {
             setBody(
                 """
@@ -179,7 +179,7 @@ class KontostatusTest {
         val altinnService = app.getDependency<AltinnService>()
         `when`(altinnService.harTilgang(kotlinAny(), kotlinAny(), kotlinAny())).thenReturn(false)
 
-        client.post("/api/kontonummer/v1")
+        client.post("ditt-nav-arbeidsgiver-api/api/kontonummer/v1")
         {
             setBody(
                 """
@@ -215,7 +215,7 @@ class KontostatusTest {
         val altinnService = app.getDependency<AltinnService>()
         `when`(altinnService.harTilgang(kotlinAny(), kotlinAny(), kotlinAny())).thenReturn(true)
 
-        client.post("/api/kontonummer/v1")
+        client.post("ditt-nav-arbeidsgiver-api/api/kontonummer/v1")
         {
             setBody(
                 """

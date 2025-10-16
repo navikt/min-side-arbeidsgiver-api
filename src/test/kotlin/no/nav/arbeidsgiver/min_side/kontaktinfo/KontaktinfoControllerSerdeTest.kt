@@ -118,7 +118,7 @@ class KontaktInfoServiceSerdeTest {
         token: String = fakeToken("42"),
         accept: ContentType = ContentType.Application.Json,
     ): HttpResponse =
-        post("/api/kontaktinfo/v1") {
+        post("ditt-nav-arbeidsgiver-api/api/kontaktinfo/v1") {
             contentType(contentType)
             setBody(content)
             accept(accept)

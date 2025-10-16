@@ -49,7 +49,7 @@ class AntlinnTilgangSoknadServiceHentTest {
         val altinnTilgangssøknadClient = app.getDependency<AltinnTilgangssøknadClient>()
         `when`(altinnTilgangssøknadClient.hentSøknader("42")).thenReturn(listOf(altinnTilgangssøknad))
 
-        val jsonResponse = client.get("/api/altinn-tilgangssoknad") {
+        val jsonResponse = client.get("ditt-nav-arbeidsgiver-api/api/altinn-tilgangssoknad") {
             bearerAuth(fakeToken("42"))
             accept(ContentType.Application.Json)
         }.let {
@@ -148,7 +148,7 @@ class AltinnTilgangSoknadServiceSendTest {
 
         `when`(altinnService.harOrganisasjon(skjema.orgnr, token)).thenReturn(true)
 
-        val jsonResponse = client.post("/api/altinn-tilgangssoknad") {
+        val jsonResponse = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilgangssoknad") {
             bearerAuth(token)
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
@@ -196,7 +196,7 @@ class AltinnTilgangSoknadServiceSendTest {
 
         `when`(altinnService.harOrganisasjon("314", token)).thenReturn(true)
 
-        client.post("/api/altinn-tilgangssoknad") {
+        client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilgangssoknad") {
             bearerAuth(token)
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)

@@ -86,7 +86,7 @@ class SykefraværstatistikkIntegrationTest {
             """
         )
 
-        client.get("/api/sykefravaerstatistikk/123") {
+        client.get("ditt-nav-arbeidsgiver-api/api/sykefravaerstatistikk/123") {
             bearerAuth(token)
         }.also {
             assert(HttpStatusCode.OK == it.status)
@@ -200,7 +200,7 @@ class SykefraværstatistikkIntegrationTest {
         )
 
 
-        client.get("/api/sykefravaerstatistikk/123") {
+        client.get("ditt-nav-arbeidsgiver-api/api/sykefravaerstatistikk/123") {
             bearerAuth(token)
         }.also {
             assert(HttpStatusCode.OK == it.status)
@@ -269,7 +269,7 @@ class SykefraværstatistikkIntegrationTest {
 
 
 
-        client.get("/api/sykefravaerstatistikk/123") {
+        client.get("ditt-nav-arbeidsgiver-api/api/sykefravaerstatistikk/123") {
             bearerAuth(token)
         }.also {
             assert(HttpStatusCode.OK == it.status)
@@ -391,7 +391,7 @@ class SykefraværstatistikkIntegrationTest {
             """
         )
 
-        client.get("/api/sykefravaerstatistikk/123") {
+        client.get("ditt-nav-arbeidsgiver-api/api/sykefravaerstatistikk/123") {
             bearerAuth(token)
         }.also {
             assert(HttpStatusCode.OK == it.status)
@@ -424,7 +424,7 @@ class SykefraværstatistikkIntegrationTest {
             """
         )
 
-        client.get("/api/sykefravaerstatistikk/123") {
+        client.get("ditt-nav-arbeidsgiver-api/api/sykefravaerstatistikk/123") {
             bearerAuth(token)
         }.also {
             assert(HttpStatusCode.NoContent == it.status)

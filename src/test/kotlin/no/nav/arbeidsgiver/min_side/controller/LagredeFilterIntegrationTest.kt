@@ -29,7 +29,7 @@ class LagredeFilterIntegrationTest {
 
     @Test
     fun `returnerer tomt array når bruker har ingen lagrede filter`() = app.runTest {
-        client.get("/api/lagredeFilter/") {
+        client.get("ditt-nav-arbeidsgiver-api/api/lagredeFilter/") {
             bearerAuth(fakeToken("42"))
         }.let {
             assert(it.status == HttpStatusCode.OK)
@@ -66,20 +66,20 @@ class LagredeFilterIntegrationTest {
                         }
                     """.trimIndent()
 
-        client.put("/api/lagredeFilter") {
+        client.put("ditt-nav-arbeidsgiver-api/api/lagredeFilter") {
             bearerAuth(fakeToken("42"))
             contentType(ContentType.Application.Json)
             setBody(filterJson)
         }
 
-        client.put("/api/lagredeFilter") {
+        client.put("ditt-nav-arbeidsgiver-api/api/lagredeFilter") {
             bearerAuth(fakeToken("42"))
             contentType(ContentType.Application.Json)
             setBody(filterJson2)
         }
 
 
-        client.get("/api/lagredeFilter") {
+        client.get("ditt-nav-arbeidsgiver-api/api/lagredeFilter") {
             bearerAuth(fakeToken("42"))
         }.bodyAsText().also { assertEquals("[${filterJson},${filterJson2}]", it, true) }
 
@@ -96,21 +96,21 @@ class LagredeFilterIntegrationTest {
                         }
                     """.trimIndent()
 
-        client.put("/api/lagredeFilter") {
+        client.put("ditt-nav-arbeidsgiver-api/api/lagredeFilter") {
             bearerAuth(fakeToken("42"))
             contentType(ContentType.Application.Json)
             setBody(oppdatertFilterJson2)
         }
 
-        client.get("/api/lagredeFilter") {
+        client.get("ditt-nav-arbeidsgiver-api/api/lagredeFilter") {
             bearerAuth(fakeToken("42"))
         }.bodyAsText().also { assertEquals("[${filterJson},${oppdatertFilterJson2}]", it, true) }
 
-        client.delete("/api/lagredeFilter/filter1") {
+        client.delete("ditt-nav-arbeidsgiver-api/api/lagredeFilter/filter1") {
             bearerAuth(fakeToken("42"))
         }
 
-        client.get("/api/lagredeFilter") {
+        client.get("ditt-nav-arbeidsgiver-api/api/lagredeFilter") {
             bearerAuth(fakeToken("42"))
         }.bodyAsText().also { assertEquals("[${oppdatertFilterJson2}]", it, true) }
     }
