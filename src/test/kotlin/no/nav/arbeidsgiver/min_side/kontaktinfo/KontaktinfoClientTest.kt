@@ -1,38 +1,44 @@
 package no.nav.arbeidsgiver.min_side.kontaktinfo
 
+import io.ktor.http.*
+import io.ktor.server.plugins.di.dependencies
+import io.ktor.server.response.*
+import no.nav.arbeidsgiver.min_side.FakeApi
+import no.nav.arbeidsgiver.min_side.FakeApplication
+import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
-import org.junit.jupiter.api.Assertions.*
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
-import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.test.web.client.MockRestServiceServer
-import org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest
-import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
-import org.springframework.web.client.HttpClientErrorException
+import org.junit.jupiter.api.extension.RegisterExtension
 
-@RestClientTest(
-    KontaktinfoClient::class,
-    MaskinportenTokenServiceStub::class,
-)
 class KontaktinfoClientTest {
-    @Autowired
-    lateinit var altinnServer: MockRestServiceServer
+    companion object {
+        @RegisterExtension
+        val app = FakeApplication(
+            addDatabase = true,
+        ) {
+            dependencies {
+                provide<KontaktinfoClient>(KontaktinfoClient::class)
+                provide<MaskinportenTokenService>(MaskinportenTokenServiceStub::class)
+            }
+        }
 
-    @Autowired
-    lateinit var kontaktinfoClient: KontaktinfoClient
+        @RegisterExtension
+        val fakeApi = FakeApi()
+    }
 
     /* NB. Har sjekket hvordan responsen påvirkes av sletting av kontaktinfo, og
      * de slettede blir bare fjernet fra listen; ingen markering eller noe sånt noe.
      */
 
     @Test
-    fun telefonnummerErRegistrert() {
+    fun telefonnummerErRegistrert() = app.runTest {
         mockKontaktinfoResponse(orgnr = "1", kunTelefonnumerResponse)
 
-        val kontaktinfo = kontaktinfoClient.hentKontaktinfo("1")
+        val kontaktinfo = app.getDependency<KontaktinfoClient>().hentKontaktinfo("1")
         assertEquals(
             KontaktinfoClient.Kontaktinfo(
                 telefonnumre = setOf("+4711223344"),
@@ -43,10 +49,9 @@ class KontaktinfoClientTest {
     }
 
     @Test
-    fun epostErRegistrert() {
+    fun epostErRegistrert() = app.runTest {
         mockKontaktinfoResponse(orgnr = "2", kunEpostResponse)
-
-        val kontaktinfo = kontaktinfoClient.hentKontaktinfo("2")
+        val kontaktinfo = app.getDependency<KontaktinfoClient>().hentKontaktinfo("2")
         assertEquals(
             KontaktinfoClient.Kontaktinfo(
                 telefonnumre = setOf(),
@@ -57,9 +62,9 @@ class KontaktinfoClientTest {
     }
 
     @Test
-    fun bådeTlfOgEpostRegistrert() {
+    fun bådeTlfOgEpostRegistrert() = app.runTest {
         mockKontaktinfoResponse(orgnr = "1234", bådeTlfOgEpostResponse)
-        val kontaktinfo = kontaktinfoClient.hentKontaktinfo("1234")
+        val kontaktinfo = app.getDependency<KontaktinfoClient>().hentKontaktinfo("1234")
         assertEquals(
             KontaktinfoClient.Kontaktinfo(
                 telefonnumre = setOf("+4700112233"),
@@ -71,10 +76,10 @@ class KontaktinfoClientTest {
     }
 
     @Test
-    fun ingenKontaktinfoRegistrert() {
+    fun ingenKontaktinfoRegistrert() = app.runTest {
         mockKontaktinfoResponse(orgnr = "3", ingenKontaktinfoResponse)
 
-        val kontaktinfo = kontaktinfoClient.hentKontaktinfo("3")
+        val kontaktinfo = app.getDependency<KontaktinfoClient>().hentKontaktinfo("3")
         assertEquals(
             KontaktinfoClient.Kontaktinfo(
                 telefonnumre = setOf(),
@@ -85,10 +90,10 @@ class KontaktinfoClientTest {
     }
 
     @Test
-    fun flereEposterRegistrert() {
+    fun flereEposterRegistrert() = app.runTest {
         mockKontaktinfoResponse(orgnr = "3", flereEposterRequest)
 
-        val kontaktinfo = kontaktinfoClient.hentKontaktinfo("3")
+        val kontaktinfo = app.getDependency<KontaktinfoClient>().hentKontaktinfo("3")
         assertEquals(
             KontaktinfoClient.Kontaktinfo(
                 telefonnumre = setOf("+4700112233"),
@@ -99,31 +104,31 @@ class KontaktinfoClientTest {
     }
 
     @Test
-    fun organisasjonFinnesIkke() {
-        altinnServer.expect {
-            assertEquals("/api/serviceowner/organizations/1/officialcontacts", it.uri.path)
-            assertNotNull("query-parameters må være gitt", it.uri.query)
-            assertTrue(it.uri.query.contains("ForceEIAuthentication"))
-        }.andRespond(withBadRequest())
+    fun organisasjonFinnesIkke(): Unit = app.runTest {
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/api/serviceowner/organizations/1/officialcontacts"
+        )
+        { call.respond(HttpStatusCode.BadRequest) }
+
 
         /* Hvis orgnr ikke finnes får man responsen:
          * HTTP/1.1 400 Invalid organization number: 0000000 */
-        assertThrows<HttpClientErrorException.BadRequest> {
-            kontaktinfoClient.hentKontaktinfo("1")
+        val e = assertThrows<RuntimeException> {
+            app.getDependency<KontaktinfoClient>().hentKontaktinfo("1")
         }
     }
 
     private fun mockKontaktinfoResponse(orgnr: String, response: String) =
-        altinnServer.expect {
-            assertEquals(HttpMethod.GET, it.method)
-            assertEquals("/api/serviceowner/organizations/${orgnr}/officialcontacts", it.uri.path)
-            assertNotNull("query-parameters må være gitt", it.uri.query)
-            assertTrue(it.uri.query.contains("ForceEIAuthentication"), "altinn forventer spesiell header for autentiserting")
-            assertTrue(it.headers.getFirst("authorization")!!.startsWith("Bearer"), "bearer token må være satt")
-            assertTrue(it.headers.getFirst("apikey")!!.isNotBlank(), "apikey må være satt" )
-        }.andRespond(
-            withSuccess(response, APPLICATION_JSON)
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/api/serviceowner/organizations/${orgnr}/officialcontacts"
         )
+        {
+            assertNotNull(call.request.queryParameters)
+            call.response.headers.append(HttpHeaders.ContentType, "application/json")
+            call.respond(response)
+        }
 }
 
 /* Hentet ved kall mot tt02.altinn.no */

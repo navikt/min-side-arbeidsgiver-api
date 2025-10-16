@@ -1,34 +1,30 @@
-package no.nav.arbeidsgiver.min_side.kontaktinfo
+package no.nav.arbeidsgiver.min_side.services.kontaktinfo
 
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
-import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
-import org.springframework.web.bind.annotation.*
 
-@RestController
-class KontaktinfoController(
-    private val authenticatedUserHolder: AuthenticatedUserHolder,
+
+class KontaktInfoService(
     private val altinnRollerClient: AltinnRollerClient,
-    private val eregService: EregService,
+    private val eregClient: EregClient,
     private val kontaktinfoClient: KontaktinfoClient,
 ) {
-
-    @PostMapping("/api/kontaktinfo/v1")
-    fun getKontaktinfo(@RequestBody requestBody: KontaktinfoRequest): KontaktinfoResponse {
+    suspend fun getKontaktinfo(requestBody: KontaktinfoRequest, fnr: String): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
-        val orgnrHovedenhet = eregService.hentUnderenhet(orgnrUnderenhet)
+        val orgnrHovedenhet = eregClient.hentUnderenhet(orgnrUnderenhet)
             ?.orgnummerTilOverenhet()
 
         return KontaktinfoResponse(
-            underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet),
-            hovedenhet = orgnrHovedenhet?.let { tilgangsstyrOgHentKontaktinfo(it) } ,
+            underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet, fnr),
+            hovedenhet = orgnrHovedenhet?.let { tilgangsstyrOgHentKontaktinfo(it, fnr) },
         )
     }
 
-    private fun tilgangsstyrOgHentKontaktinfo(orgnr: String): Kontaktinfo? {
+    private suspend fun tilgangsstyrOgHentKontaktinfo(orgnr: String, fnr: String): Kontaktinfo? {
         val tilgangHovedenhet = altinnRollerClient.harAltinnRolle(
-            fnr = authenticatedUserHolder.fnr,
+            fnr = fnr,
             orgnr = orgnr,
             altinnRoller = ALTINN_ROLLER,
             externalRoller = EXTERNAL_ROLLER,
@@ -92,5 +88,4 @@ class KontaktinfoController(
         )
     }
 }
-
 

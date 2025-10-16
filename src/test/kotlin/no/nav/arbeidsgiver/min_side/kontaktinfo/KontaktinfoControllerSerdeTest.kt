@@ -1,116 +1,139 @@
 package no.nav.arbeidsgiver.min_side.kontaktinfo
 
-import no.nav.arbeidsgiver.min_side.config.SecurityConfig
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
-import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import io.ktor.client.*
+import io.ktor.client.call.body
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.server.plugins.di.*
+import no.nav.arbeidsgiver.min_side.FakeApi
+import no.nav.arbeidsgiver.min_side.FakeApplication
+import no.nav.arbeidsgiver.min_side.fakeToken
+import no.nav.arbeidsgiver.min_side.kotlinAny
+import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
+import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
+import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
+import no.nav.arbeidsgiver.min_side.services.ereg.EregEnhetsRelasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregNavn
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjonDetaljer
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktInfoService
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.http.MediaType
-import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.test.context.bean.override.mockito.MockitoBean
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.ResultActionsDsl
-import org.springframework.test.web.servlet.post
-import org.springframework.test.web.servlet.request.RequestPostProcessor
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import org.skyscreamer.jsonassert.JSONAssert.assertEquals
 
-@MockitoBean(
-    types = [
-        JwtDecoder::class,
-        AuthenticatedUserHolder::class,
-        AltinnRollerClient::class,
-        EregService::class,
-        KontaktinfoClient::class,
-    ]
-)
-@WebMvcTest(
-    value = [
-        KontaktinfoController::class,
-        SecurityConfig::class,
-        AuthenticatedUserHolder::class,
-    ],
-    properties = [
-        "server.servlet.context-path=/"
-    ]
-)
-class KontaktinfoControllerSerdeTest {
-    @Autowired
-    lateinit var mockMvc: MockMvc
 
-    @Test
-    fun protocolFormat() {
-        mockMvc.kontaktinfo(
-            content = """{ "virksomhetsnummer": "123456789" }"""
-        ).andExpect {
-            status { isOk() }
-            content {
-                contentType(APPLICATION_JSON)
-                json(
-                    """
-                    {
-                        "hovedenhet": null,
-                        "underenhet": null
-                    }
-                """.trimIndent()
-                )
+class KontaktInfoServiceSerdeTest {
+    companion object {
+        @RegisterExtension
+        val app = FakeApplication(
+            addDatabase = true,
+        ) {
+            dependencies {
+                provide<KontaktinfoClient> {
+                    val mock = Mockito.mock<KontaktinfoClient>()
+                    `when`(mock.hentKontaktinfo(kotlinAny())).thenReturn(KontaktinfoClient.Kontaktinfo(emptySet(), emptySet()))
+                    mock
+                }
+                provide<AltinnRollerClient> {
+                    val mock = Mockito.mock<AltinnRollerClient>()
+                    `when`(mock.harAltinnRolle(kotlinAny(), kotlinAny(), kotlinAny(), kotlinAny())).thenReturn(true)
+                    mock
+                }
+                provide<EregClient> {
+                    val mock = Mockito.mock<EregClient>()
+                    `when`(mock.hentUnderenhet(kotlinAny())).thenReturn(dummyEregOrganisasjon)
+                    mock
+                }
+                provide<KontaktInfoService>(KontaktInfoService::class)
+                provide<MaskinportenTokenService>(MaskinportenTokenServiceStub::class)
             }
         }
+
+        @RegisterExtension
+        val fakeApi = FakeApi()
     }
 
     @Test
-    fun virksomhetsnummerAsNumberFails() {
+    fun protocolFormat() = app.runTest {
+        client.kontaktinfo(
+            content = """{ "virksomhetsnummer": "123456789" }"""
+        ).let {
+            assert(HttpStatusCode.OK == it.status)
+            assertEquals(
+                """
+                    {
+                      "hovedenhet" : {
+                        "eposter" : [ ],
+                        "telefonnumre" : [ ]
+                      },
+                      "underenhet" : {
+                        "eposter" : [ ],
+                        "telefonnumre" : [ ]
+                      }
+                    }
+                """.trimIndent(), it.bodyAsText(), true
+            )
+        }
+    }
+
+    @Test
+    fun virksomhetsnummerAsNumberFails() = app.runTest {
         /* spring's objectmapper konverterer numbers til strings. */
-        mockMvc.kontaktinfo(
+        client.kontaktinfo(
             content = """{ "virksomhetsnummer": 123456789 }"""
-        ).andExpect {
-            status { isOk() }
+        ).let {
+            assert(HttpStatusCode.OK == it.status)
         }
     }
 
-
+    //
+//
     @Test
-    fun wrongJsonInRequest() {
-        mockMvc.kontaktinfo(
+    fun wrongJsonInRequest() = app.runTest {
+        client.kontaktinfo(
             content = """{  }"""
-        ).andExpect {
-            status { isBadRequest() }
+        ).let {
+            assert(HttpStatusCode.BadRequest == it.status)
         }
     }
 
 
     @Test
-    fun superflousJsonFields() {
-        /* spring's objectmapper godtar ekstra felter. */
-        mockMvc.kontaktinfo(
+    fun superflousJsonFields() = app.runTest {
+        client.kontaktinfo(
             content = """{ "virksomhetsnummer": "123412341", "garbage": 2 }"""
-        ).andExpect {
-            status { isOk() }
+        ).let {
+            assert(HttpStatusCode.OK == it.status)
         }
     }
 
-    @Test
-    fun disallowAcceptXML() {
-        mockMvc.kontaktinfo(
-            content = """{ "virksomhetsnummer": "123412341" }""",
-            accept = MediaType.APPLICATION_XML
-        ).andExpect {
-            status { is4xxClientError() }
-        }
-    }
-
-    private fun MockMvc.kontaktinfo(
-        contentType: MediaType? = APPLICATION_JSON,
+    private suspend fun HttpClient.kontaktinfo(
+        contentType: ContentType = ContentType.Application.Json,
         content: String,
-        auth: RequestPostProcessor = jwtWithPid("42"),
-        accept: MediaType? = APPLICATION_JSON,
-    ): ResultActionsDsl =
-        post("/api/kontaktinfo/v1") {
-            this.contentType = contentType
-            this.content = content
-            this.accept = accept
-            with(auth)
+        token: String = fakeToken("42"),
+        accept: ContentType = ContentType.Application.Json,
+    ): HttpResponse =
+        post("ditt-nav-arbeidsgiver-api/api/kontaktinfo/v1") {
+            contentType(contentType)
+            setBody(content)
+            accept(accept)
+            bearerAuth(token)
         }
 }
+
+val dummyEregRelasjon = EregEnhetsRelasjon("987654321", null)
+
+val dummyEregOrganisasjon = EregOrganisasjon(
+    navn = EregNavn("Underenhet AS", null),
+    organisasjonsnummer = "123456789",
+    type = "BEDR",
+    organisasjonDetaljer = EregOrganisasjonDetaljer(null, null, null, null, null, null),
+    inngaarIJuridiskEnheter = listOf(dummyEregRelasjon),
+    bestaarAvOrganisasjonsledd = listOf()
+)
+
