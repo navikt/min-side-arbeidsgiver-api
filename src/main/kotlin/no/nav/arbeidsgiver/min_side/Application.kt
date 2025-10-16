@@ -39,6 +39,7 @@ import no.nav.arbeidsgiver.min_side.azuread.AzureClient
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.Health
 import no.nav.arbeidsgiver.min_side.config.MsaJwtVerifier
+import no.nav.arbeidsgiver.min_side.config.registerShutdownListener
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolderImpl
 import no.nav.arbeidsgiver.min_side.maskinporten.*
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
@@ -84,14 +85,25 @@ fun main() {
             configureRoutes()
 
 
-            val consumerScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-            startKafkaConsumers(consumerScope)
-            startKontaktInfoPollingServices(consumerScope)
-            startDeleteOldSykmeldingLoop(consumerScope)
+            val kafkaScope = Dispatchers.IO.limitedParallelism(3, "kafka-pool").let { dispatcher ->
+                CoroutineScope(SupervisorJob() + dispatcher)
+            }
+            startKafkaConsumers(kafkaScope)
 
-            monitor.subscribe(ApplicationStopping) {
-                log.info("ApplicationStopping: signal received, shutting down")
-                consumerScope.cancel()
+            val kontaktinfoScope = Dispatchers.IO.limitedParallelism(3, "kontaktinfo-pool").let { dispatcher ->
+                CoroutineScope(SupervisorJob() + dispatcher)
+            }
+            startKontaktInfoPollingServices(kontaktinfoScope)
+
+            val sykmeldingScope = Dispatchers.IO.limitedParallelism(1, "sykmelding-pool").let { dispatcher ->
+                CoroutineScope(SupervisorJob() + dispatcher)
+            }
+            startDeleteOldSykmeldingLoop(sykmeldingScope)
+
+            registerShutdownListener {
+                kafkaScope.cancel("Shutdown signal received")
+                kontaktinfoScope.cancel("Shutdown signal received")
+                sykmeldingScope.cancel("Shutdown signal received")
             }
         }.start(wait = false)
     }

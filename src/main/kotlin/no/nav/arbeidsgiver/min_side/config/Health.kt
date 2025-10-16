@@ -1,7 +1,6 @@
 package no.nav.arbeidsgiver.min_side.config
 
-import no.nav.arbeidsgiver.min_side.logger
-import java.time.Duration
+import io.ktor.server.application.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 interface RequiresReady {
@@ -9,8 +8,6 @@ interface RequiresReady {
 }
 
 object Health {
-    private val log = logger()
-
     private val reaquiredServices = mutableListOf<RequiresReady>()
 
     fun register(requiresReady: RequiresReady) {
@@ -28,23 +25,14 @@ object Health {
     val terminating: Boolean
         get() = !alive || terminatingAtomic.get()
 
-    init {
-        val shutdownTimeout = Miljø.resolve(
-            prod = { Duration.ofSeconds(20) },
-            dev = { Duration.ofSeconds(20) },
-            other = { Duration.ofMillis(0) },
-        )
+    fun terminate() {
+        terminatingAtomic.set(true)
+    }
+}
 
-        Runtime.getRuntime().addShutdownHook(object : Thread() {
-            override fun run() {
-                terminatingAtomic.set(true)
-                log.info("shutdown signal received")
-                try {
-                    sleep(shutdownTimeout.toMillis())
-                } catch (e: Exception) {
-                    // nothing to do
-                }
-            }
-        })
+fun Application.registerShutdownListener(callback: () -> Unit = {}) {
+    monitor.subscribe(ApplicationStopping) {
+        log.info("ApplicationStopping: signal Health.terminate()")
+        Health.terminate()
     }
 }
