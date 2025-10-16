@@ -1,35 +1,27 @@
 package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
-import no.nav.arbeidsgiver.min_side.config.logger
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
+import io.ktor.client.plugins.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import no.nav.arbeidsgiver.min_side.logger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
-import org.springframework.web.client.HttpClientErrorException
 
-@RestController
-@RequestMapping("/api/altinn-tilgangssoknad")
-class AltinnTilgangSoknadController(
+class AltinnTilgangSoknadService(
     private val altinnTilgangssøknadClient: AltinnTilgangssøknadClient,
     private val altinnService: AltinnService,
-    private val authenticatedUserHolder: AuthenticatedUserHolder
 ) {
     private val log = logger()
 
-    @GetMapping
-    fun mineSøknaderOmTilgang(): List<AltinnTilgangssøknad> {
-        val fødselsnummer = authenticatedUserHolder.fnr
-        return altinnTilgangssøknadClient.hentSøknader(fødselsnummer)
+    suspend fun mineSøknaderOmTilgang(fnr: String): List<AltinnTilgangssøknad> {
+        return altinnTilgangssøknadClient.hentSøknader(fnr)
     }
 
-    @PostMapping
-    fun sendSøknadOmTilgang(@RequestBody søknadsskjema: AltinnTilgangssøknadsskjema): ResponseEntity<AltinnTilgangssøknad> {
-        val brukerErIOrg = altinnService.harOrganisasjon(søknadsskjema.orgnr)
+    suspend fun sendSøknadOmTilgang(søknadsskjema: AltinnTilgangssøknadsskjema, token: String, fnr: String): ResponseEntity {
+        val brukerErIOrg = altinnService.harOrganisasjon(søknadsskjema.orgnr, token)
 
         if (!brukerErIOrg) {
             log.error("Bruker forsøker å be om tilgang til org de ikke er med i.")
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+            return ResponseEntity(HttpStatusCode.BadRequest)
         }
 
         if (!tjenester.contains(søknadsskjema.serviceCode to søknadsskjema.serviceEdition)) {
@@ -38,19 +30,19 @@ class AltinnTilgangSoknadController(
                 søknadsskjema.serviceCode,
                 søknadsskjema.serviceEdition
             )
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+            return ResponseEntity(HttpStatusCode.BadRequest)
         }
         val body = try {
-            altinnTilgangssøknadClient.sendSøknad(authenticatedUserHolder.fnr, søknadsskjema)
-        } catch (e: HttpClientErrorException) {
-            if (e.responseBodyAsString.contains("40318")) {
+            altinnTilgangssøknadClient.sendSøknad(fnr, søknadsskjema)
+        } catch (e: ClientRequestException) {
+            if (e.response.bodyAsText().contains("40318")) {
                 // Bruker forsøker å sende en søknad som allerede er sendt.
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+                return ResponseEntity(HttpStatusCode.BadRequest)
             } else {
                 throw e
             }
         }
-        return ResponseEntity.ok(body)
+        return ResponseEntity(HttpStatusCode.OK, body)
     }
 
     companion object {
@@ -77,4 +69,9 @@ class AltinnTilgangSoknadController(
             "5934" to 1,
         )
     }
+
+    data class ResponseEntity(
+        val status: HttpStatusCode,
+        val body: AltinnTilgangssøknad? = null,
+    )
 }

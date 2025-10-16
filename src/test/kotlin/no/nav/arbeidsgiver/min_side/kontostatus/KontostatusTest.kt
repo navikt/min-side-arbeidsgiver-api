@@ -1,222 +1,240 @@
 package no.nav.arbeidsgiver.min_side.kontostatus
 
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.*
+import io.ktor.server.plugins.di.*
+import io.ktor.server.response.respond
+import no.nav.arbeidsgiver.min_side.FakeApi
+import no.nav.arbeidsgiver.min_side.FakeApplication
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
-import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
+import no.nav.arbeidsgiver.min_side.fakeToken
+import no.nav.arbeidsgiver.min_side.kotlinAny
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient
+import no.nav.arbeidsgiver.min_side.services.kontostatus.KontostatusService
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.mockito.Mockito
 import org.mockito.Mockito.`when`
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.http.HttpMethod.POST
-import org.springframework.http.HttpStatus.NOT_FOUND
-import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.test.context.bean.override.mockito.MockitoBean
-import org.springframework.test.web.client.MockRestServiceServer
-import org.springframework.test.web.client.match.MockRestRequestMatchers.method
-import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
-import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
-import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.post
+import org.skyscreamer.jsonassert.JSONAssert.assertEquals
 
-@SpringBootTest(
-    properties = [
-        "server.servlet.context-path=/",
-        "spring.flyway.enabled=false",
-    ]
-)
-@AutoConfigureMockMvc
 class KontostatusTest {
+    companion object {
+        @RegisterExtension
+        val app = FakeApplication(
+            addDatabase = true,
+        ) {
+            dependencies {
+                provide<AzureService> {
+                    val service = Mockito.mock<AzureService>()
+                    `when`(service.getAccessToken(kotlinAny())).thenReturn("token")
+                    service
+                }
+                provide<AltinnService> { Mockito.mock<AltinnService>() }
+                provide<KontoregisterClient>(KontoregisterClient::class)
+                provide<KontostatusService>(KontostatusService::class)
+            }
+        }
 
-    @MockitoBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
-    lateinit var jwtDecoder: JwtDecoder
-
-    @MockitoBean
-    lateinit var azureService: AzureService
-
-    @MockitoBean
-    lateinit var altinnService: AltinnService
-
-    @Autowired
-    lateinit var kontoregisterClient: KontoregisterClient
-
-    lateinit var server: MockRestServiceServer
-
-    @Autowired
-    lateinit var mockMvc: MockMvc
-
-    @BeforeEach
-    fun setUp() {
-        server = MockRestServiceServer.bindTo(kontoregisterClient.restTemplate).build()
+        @RegisterExtension
+        val fakeApi = FakeApi()
     }
 
-
     @Test
-    fun `henter kontonummer fra kontoregister`() {
+    fun `henter kontonummer fra kontoregister`() = app.runTest {
         val virksomhetsnummer = "42"
-        server.expect {
-            requestTo("/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer")
-            method(POST)
-        }.andRespond(
-            withSuccess(
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
+        ) {
+            call.response.headers.append(HttpHeaders.ContentType, "application/json")
+            call.respond(
                 """
                 {
                     "mottaker": "42",
                     "kontonr": "12345678901"
                 }
-                """,
-                APPLICATION_JSON
+                """
             )
-        )
+        }
 
-        kontoregisterClient.hentKontonummer(virksomhetsnummer).let {
+
+        app.getDependency<KontoregisterClient>().hentKontonummer(virksomhetsnummer).let {
             Assertions.assertEquals("42", it?.mottaker)
             Assertions.assertEquals("12345678901", it?.kontonr)
         }
 
-        mockMvc.post("/api/kontonummerStatus/v1") {
-            content = """{"virksomhetsnummer": "$virksomhetsnummer"}"""
-            contentType = APPLICATION_JSON
-            accept = APPLICATION_JSON
-            with(jwtWithPid("42"))
-        }.andExpect {
-            status { isOk() }
-            content { json("""{"status": "OK"}""") }
+        client.post("/api/kontonummerStatus/v1")
+        {
+            setBody("""{"virksomhetsnummer": "$virksomhetsnummer"}""")
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            bearerAuth(fakeToken("42"))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(it.bodyAsText(), """{"status": "OK"}""", true)
         }
     }
 
     @Test
-    fun `finner ikke kontonummer for virksomhet`() {
+    fun `finner ikke kontonummer for virksomhet`() = app.runTest {
         val virksomhetsnummer = "123"
-        server.expect {
-            requestTo("/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer")
-            method(POST)
-        }.andRespond(withStatus(NOT_FOUND))
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
+        ) {
+            call.respond(HttpStatusCode.NotFound)
+        }
 
-        kontoregisterClient.hentKontonummer(virksomhetsnummer).let {
+        app.getDependency<KontoregisterClient>().hentKontonummer(virksomhetsnummer).let { // 404 kaster exception
             Assertions.assertNull(it)
         }
 
-        mockMvc.post("/api/kontonummerStatus/v1") {
-            content = """{"virksomhetsnummer": "$virksomhetsnummer"}"""
-            contentType = APPLICATION_JSON
-            accept = APPLICATION_JSON
-            with(jwtWithPid("42"))
-        }.andExpect {
-            status { isOk() }
-            content { json("""{"status": "MANGLER_KONTONUMMER"}""") }
+        client.post("/api/kontonummerStatus/v1")
+        {
+            setBody("""{"virksomhetsnummer": "$virksomhetsnummer"}""")
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            bearerAuth(fakeToken("42"))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(it.bodyAsText(), """{"status": "MANGLER_KONTONUMMER"}""", true)
         }
     }
 
     @Test
-    fun `henter kontonummer fra kontoregister og returnerer kontonummer og orgnr`() {
+    fun `henter kontonummer fra kontoregister og returnerer kontonummer og orgnr`() = app.runTest {
         val virksomhetsnummer = "42"
-        server.expect {
-            requestTo("/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer")
-            method(POST)
-        }.andRespond(
-            withSuccess(
+
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
+        ) {
+            call.response.headers.append(HttpHeaders.ContentType, "application/json")
+            call.respond(
                 """
                 {
                     "mottaker": "42",
                     "kontonr": "12345678901"
                 }
-                """,
-                APPLICATION_JSON
+                """
             )
-        )
+        }
 
-        kontoregisterClient.hentKontonummer(virksomhetsnummer).let {
+        app.getDependency<KontoregisterClient>().hentKontonummer(virksomhetsnummer).let {
             Assertions.assertEquals("42", it?.mottaker)
             Assertions.assertEquals("12345678901", it?.kontonr)
         }
-        `when`(altinnService.harTilgang(virksomhetsnummer, "2896:87")).thenReturn(true)
-        mockMvc.post("/api/kontonummer/v1") {
-            content = """
+        val altinnService = app.getDependency<AltinnService>()
+        `when`(altinnService.harTilgang(kotlinAny(), kotlinAny(), kotlinAny())).thenReturn(true)
+
+
+        client.post("/api/kontonummer/v1")
+        {
+            setBody(
+                """
                 {
                     "orgnrForOppslag": "$virksomhetsnummer",
                     "orgnrForTilgangstyring": "$virksomhetsnummer"
                 }
                 """.trimIndent()
-            contentType = APPLICATION_JSON
-            accept = APPLICATION_JSON
-            with(jwtWithPid("42"))
-        }.andExpect {
-            status { isOk() }
-            content { json("""{"status": "OK", "orgnr": "42", "kontonummer": "12345678901"}""") }
+            )
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            bearerAuth(fakeToken("42"))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(it.bodyAsText(), """{"status": "OK", "orgnr": "42", "kontonummer": "12345678901"}""", true)
         }
     }
 
     @Test
-    fun `bruker har ikke tilgang til å se kontonummer returnerer unauthorized`() {
+    fun `bruker har ikke tilgang til å se kontonummer returnerer 404`() = app.runTest {
         val virksomhetsnummer = "42"
-        server.expect {
-            requestTo("/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer")
-            method(POST)
-        }.andRespond(
-            withSuccess(
+
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
+        ) {
+            call.response.headers.append(HttpHeaders.ContentType, "application/json")
+            call.respond(
                 """
                 {
                     "mottaker": "42",
                     "kontonr": "12345678901"
                 }
-                """,
-                APPLICATION_JSON
+                """
             )
-        )
+        }
 
-        kontoregisterClient.hentKontonummer(virksomhetsnummer).let {
+        app.getDependency<KontoregisterClient>().hentKontonummer(virksomhetsnummer).let {
             Assertions.assertEquals("42", it?.mottaker)
             Assertions.assertEquals("12345678901", it?.kontonr)
         }
-        `when`(altinnService.harTilgang(virksomhetsnummer, "2896:87")).thenReturn(false)
-        mockMvc.post("/api/kontonummer/v1") {
-            content = """
+        val altinnService = app.getDependency<AltinnService>()
+        `when`(altinnService.harTilgang(kotlinAny(), kotlinAny(), kotlinAny())).thenReturn(false)
+
+        client.post("/api/kontonummer/v1")
+        {
+            setBody(
+                """
                 {
                     "orgnrForOppslag": "$virksomhetsnummer",
                     "orgnrForTilgangstyring": "$virksomhetsnummer"
                 }
                 """.trimIndent()
-            contentType = APPLICATION_JSON
-            accept = APPLICATION_JSON
-            with(jwtWithPid("42"))
-        }.andExpect {
-            status { isOk() }
-            content { null }
+            )
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            bearerAuth(fakeToken("42"))
+        }.let {
+            assert(it.status == HttpStatusCode.NotFound)
         }
     }
 
     @Test
-    fun `kontnummer finnes ikke for virksomhet`() {
+    fun `kontnummer finnes ikke for virksomhet`() = app.runTest {
         val virksomhetsnummer = "123"
-        server.expect {
-            requestTo("/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer")
-            method(POST)
-        }.andRespond(withStatus(NOT_FOUND))
 
-        kontoregisterClient.hentKontonummer(virksomhetsnummer).let {
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/kontoregister/api/v1/hent-kontonummer-for-organisasjon/$virksomhetsnummer"
+        ) {
+            call.respond(HttpStatusCode.NotFound)
+        }
+
+        app.getDependency<KontoregisterClient>().hentKontonummer(virksomhetsnummer).let {
             Assertions.assertNull(it)
         }
 
-        `when`(altinnService.harTilgang(virksomhetsnummer, "2896:87")).thenReturn(true)
+        val altinnService = app.getDependency<AltinnService>()
+        `when`(altinnService.harTilgang(kotlinAny(), kotlinAny(), kotlinAny())).thenReturn(true)
 
-        mockMvc.post("/api/kontonummer/v1") {
-            content = """
+        client.post("/api/kontonummer/v1")
+        {
+            setBody(
+                """
                 {
                     "orgnrForOppslag": "$virksomhetsnummer",
                     "orgnrForTilgangstyring": "$virksomhetsnummer"
                 }
                 """.trimIndent()
-            contentType = APPLICATION_JSON
-            accept = APPLICATION_JSON
-            with(jwtWithPid("123"))
-        }.andExpect {
-            status { isOk() }
-            content { json("""{"status": "MANGLER_KONTONUMMER", "orgnr":  null, "kontonummer": null}""") }
+            )
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            bearerAuth(fakeToken("42"))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(
+                """{"status": "MANGLER_KONTONUMMER", "orgnr":  null, "kontonummer": null}""",
+                it.bodyAsText(),
+                true
+            )
         }
     }
 }

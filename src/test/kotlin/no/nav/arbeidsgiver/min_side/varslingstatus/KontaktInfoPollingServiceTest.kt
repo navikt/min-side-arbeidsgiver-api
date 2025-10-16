@@ -1,84 +1,37 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
-import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient
-import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient.Kontaktinfo
+import io.ktor.server.plugins.di.*
+import kotlinx.coroutines.runBlocking
+import no.nav.arbeidsgiver.min_side.FakeApi
+import no.nav.arbeidsgiver.min_side.FakeApplication
 import no.nav.arbeidsgiver.min_side.services.ereg.*
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Kontaktinfo
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.bean.override.mockito.MockitoBean
 
-@SpringBootTest(
-    classes = [
-        KontaktInfoPollingService::class
-    ],
-    properties = [
-        "spring.flyway.cleanDisabled=false",
-    ]
-)
-@MockitoBean(
-    types = [
-        VarslingStatusRepository::class,
-        KontaktinfoClient::class,
-        EregService::class,
-        KontaktInfoPollerRepository::class,
-    ]
-)
 class KontaktInfoPollingServiceTest {
-    @Autowired
-    lateinit var kontaktInfoPollingService: KontaktInfoPollingService
-
-    @Autowired
-    lateinit var kontaktinfoPollerRepository: KontaktInfoPollerRepository
-
-    @Autowired
-    lateinit var kontaktinfoClient: KontaktinfoClient
-
-    @Autowired
-    lateinit var eregService: EregService
-
-
-    @Test
-    fun `bruker kofuvi for underenhet om den finnes`() {
-        // given
-        `when`(kontaktinfoPollerRepository.getAndDeleteForPoll()).thenReturn(underenhetOrgnr)
-        `when`(eregService.hentUnderenhet(underenhetOrgnr)).thenReturn(underenhet)
-        `when`(kontaktinfoClient.hentKontaktinfo(underenhetOrgnr)).thenReturn(kontaktinfoMedEpost)
-        `when`(kontaktinfoClient.hentKontaktinfo(hovedenhetOrgnr)).thenReturn(kontaktinfoMedTlf)
-
-        // when
-        kontaktInfoPollingService.pollAndPullKontaktInfo()
-
-        // then
-        verify(kontaktinfoPollerRepository).updateKontaktInfo(
-            underenhetOrgnr,
-            harEpost = true,
-            harTlf = false,
-        )
-    }
-
-    @Test
-    fun `henter kofuvi for hovedenhet om det mangler kofuvi på underenhet`() {
-        // given
-        `when`(kontaktinfoPollerRepository.getAndDeleteForPoll()).thenReturn(underenhetOrgnr)
-        `when`(eregService.hentUnderenhet(underenhetOrgnr)).thenReturn(underenhet)
-        `when`(kontaktinfoClient.hentKontaktinfo(underenhetOrgnr)).thenReturn(ingenKontaktinfo)
-        `when`(kontaktinfoClient.hentKontaktinfo(hovedenhetOrgnr)).thenReturn(kontaktinfoMedEpost)
-
-        // when
-        kontaktInfoPollingService.pollAndPullKontaktInfo()
-
-        // then
-        verify(kontaktinfoPollerRepository).updateKontaktInfo(
-            underenhetOrgnr,
-            harEpost = true,
-            harTlf = false,
-        )
-    }
-
     companion object {
+        @RegisterExtension
+        val app = FakeApplication(
+            addDatabase = true,
+        ) {
+            dependencies {
+                provide<KontaktInfoPollingService>(KontaktInfoPollingService::class)
+                provide<VarslingStatusRepository> { Mockito.mock<VarslingStatusRepository>() }
+                provide<KontaktinfoClient> { Mockito.mock<KontaktinfoClient>() }
+                provide<EregClient> { Mockito.mock<EregClient>() }
+                provide<KontaktInfoPollerRepository> { Mockito.mock<KontaktInfoPollerRepository>() }
+            }
+        }
+
+        @RegisterExtension
+        val fakeApi = FakeApi()
+
         val underenhetOrgnr = "1".repeat(9)
 
         val hovedenhetOrgnr = "2".repeat(9)
@@ -116,6 +69,56 @@ class KontaktInfoPollingServiceTest {
         val kontaktinfoMedTlf = Kontaktinfo(
             eposter = setOf(),
             telefonnumre = setOf("00000000"),
+        )
+    }
+
+    @BeforeEach
+    fun setup() {
+        runBlocking {
+            Mockito.reset(
+                app.getDependency<KontaktInfoPollerRepository>(),
+                app.getDependency<KontaktinfoClient>(),
+                app.getDependency<EregClient>(),
+            )
+        }
+    }
+
+
+    @Test
+    fun `bruker kofuvi for underenhet om den finnes`() = app.runTest {
+        // given
+        `when`(app.getDependency<KontaktInfoPollerRepository>().getAndDeleteForPoll()).thenReturn(underenhetOrgnr)
+        `when`(app.getDependency<EregClient>().hentUnderenhet(underenhetOrgnr)).thenReturn(underenhet)
+        `when`(app.getDependency<KontaktinfoClient>().hentKontaktinfo(underenhetOrgnr)).thenReturn(kontaktinfoMedEpost)
+        `when`(app.getDependency<KontaktinfoClient>().hentKontaktinfo(hovedenhetOrgnr)).thenReturn(kontaktinfoMedTlf)
+
+        // when
+        app.getDependency<KontaktInfoPollingService>().pollAndPullKontaktInfo()
+
+        // then
+        verify(app.getDependency<KontaktInfoPollerRepository>()).updateKontaktInfo(
+            underenhetOrgnr,
+            harEpost = true,
+            harTlf = false,
+        )
+    }
+
+    @Test
+    fun `henter kofuvi for hovedenhet om det mangler kofuvi på underenhet`() = app.runTest {
+        // given
+        `when`(app.getDependency<KontaktInfoPollerRepository>().getAndDeleteForPoll()).thenReturn(underenhetOrgnr)
+        `when`(app.getDependency<EregClient>().hentUnderenhet(underenhetOrgnr)).thenReturn(underenhet)
+        `when`(app.getDependency<KontaktinfoClient>().hentKontaktinfo(underenhetOrgnr)).thenReturn(ingenKontaktinfo)
+        `when`(app.getDependency<KontaktinfoClient>().hentKontaktinfo(hovedenhetOrgnr)).thenReturn(kontaktinfoMedEpost)
+
+        // when
+        app.getDependency<KontaktInfoPollingService>().pollAndPullKontaktInfo()
+
+        // then
+        verify(app.getDependency<KontaktInfoPollerRepository>()).updateKontaktInfo(
+            underenhetOrgnr,
+            harEpost = true,
+            harTlf = false,
         )
     }
 }

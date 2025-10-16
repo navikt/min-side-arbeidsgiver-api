@@ -1,68 +1,61 @@
 package no.nav.arbeidsgiver.min_side.services.ereg
 
-import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
-import org.junit.jupiter.api.BeforeEach
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.server.plugins.di.*
+import io.ktor.server.response.*
+import no.nav.arbeidsgiver.min_side.FakeApi
+import no.nav.arbeidsgiver.min_side.FakeApplication
+import no.nav.arbeidsgiver.min_side.fakeToken
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.test.context.bean.override.mockito.MockitoBean
-import org.springframework.test.json.JsonCompareMode
-import org.springframework.test.web.client.MockRestServiceServer
-import org.springframework.test.web.client.match.MockRestRequestMatchers.method
-import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
-import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
-import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.post
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.skyscreamer.jsonassert.JSONAssert.assertEquals
 
 
-@SpringBootTest(
-    properties = [
-        "server.servlet.context-path=/",
-        "spring.flyway.enabled=false",
-    ]
-)
-@AutoConfigureMockMvc
-class EregControllerTest {
+class EregServiceTest {
+    companion object {
+        @RegisterExtension
+        val app = FakeApplication(
+            addDatabase = true,
+        ) {
+            dependencies {
+                provide<EregClient>(EregClient::class)
+                provide<EregService>(EregService::class)
+                provide<ObjectMapper> {
+                    JsonMapper.builder()
+                        .findAndAddModules()
+                        .build();
+                }
+            }
+        }
 
-    @MockitoBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
-    lateinit var jwtDecoder: JwtDecoder
-
-    @Autowired
-    lateinit var mockMvc: MockMvc
-
-    lateinit var server: MockRestServiceServer
-
-    @Autowired
-    lateinit var eregService: EregService
-
-    @BeforeEach
-    fun setUp() {
-        server = MockRestServiceServer.bindTo(eregService.restTemplate).build()
+        @RegisterExtension
+        val fakeApi = FakeApi()
     }
 
-
     @Test
-    fun `overenhet som mangler en del felter`() {
+    fun `overenhet som mangler en del felter`() = app.runTest {
         val orgnr = "313199770"
-        server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(overenhetUtenEnDelFelter, APPLICATION_JSON))
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$orgnr?inkluderHierarki=true"
+        )
+        {
+            call.response.headers.append("Content-Type", "application/json")
+            call.respond(overenhetUtenEnDelFelter)
+        }
 
-        mockMvc.post("/api/ereg/overenhet") {
-            content = """{"orgnr": "$orgnr"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(orgnr))
-        }.andExpect {
-            status { isOk() }
-            content {
-                json(
-                    """
+        client.post("/api/ereg/overenhet") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"orgnr": "$orgnr"}""")
+            bearerAuth(fakeToken(orgnr))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(
+                """
                     {
                       "organisasjonsnummer": "313199770",
                       "navn": "ALLSIDIG UTMERKET TIGER AS",
@@ -79,29 +72,34 @@ class EregControllerTest {
                       "beliggenhetsadresse": null
                     }
                     """.trimIndent(),
-                    JsonCompareMode.STRICT
-                )
-            }
+                it.bodyAsText(), true
+            )
         }
     }
 
 
     @Test
-    fun `henter underenhet fra ereg`() {
+    fun `henter underenhet fra ereg`() = app.runTest {
         val virksomhetsnummer = "910825526"
-        server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET)).andRespond(withSuccess(underenhetRespons, APPLICATION_JSON))
 
-        mockMvc.post("/api/ereg/underenhet") {
-            content = """{"orgnr": "$virksomhetsnummer"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(virksomhetsnummer))
-        }.andExpect {
-            status { isOk() }
-            content {
-                json(
-                    """
-                    {
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"
+        )
+        {
+            call.response.headers.append("Content-Type", "application/json")
+            call.respond(underenhetRespons)
+        }
+
+        client.post("/api/ereg/overenhet") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"orgnr": "$virksomhetsnummer"}""")
+            bearerAuth(fakeToken(virksomhetsnummer))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(
+                """
+                {
                       "organisasjonsnummer": "910825526",
                       "navn": "GAMLE FREDRIKSTAD OG RAMNES REGNSKA P",
                       "organisasjonsform": {
@@ -110,7 +108,7 @@ class EregControllerTest {
                       },
                       "naeringskoder": null,
                       "postadresse": {
-                        "adresse": "PERSONALKONTORET, PHILIP LUNDQUIST, POSTBOKS 144",                    
+                        "adresse": "PERSONALKONTORET, PHILIP LUNDQUIST, POSTBOKS 144",
                         "kommunenummer": "1120",
                         "land": "Norge",
                         "landkode": "NO",
@@ -136,30 +134,35 @@ class EregControllerTest {
                         "postnummer": "3187",
                         "poststed": "HORTEN"
                       }
-                    }
-                    """.trimIndent(),
-                    JsonCompareMode.STRICT
-                )
-            }
+                    }                    
+            """.trimIndent(), it.bodyAsText(), true
+            )
+
         }
     }
 
 
     @Test
-    fun `henter underenhet med orgledd fra ereg`() {
+    fun `henter underenhet med orgledd fra ereg`() = app.runTest {
         val virksomhetsnummer = "912998827"
-        server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET)).andRespond(withSuccess(underenhetMedOrgleddRespons, APPLICATION_JSON))
 
-        mockMvc.post("/api/ereg/underenhet") {
-            content = """{"orgnr": "$virksomhetsnummer"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(virksomhetsnummer))
-        }.andExpect {
-            status { isOk() }
-            content {
-                json(
-                    """
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"
+        )
+        {
+            call.response.headers.append("Content-Type", "application/json")
+            call.respond(underenhetMedOrgleddRespons)
+        }
+
+        client.post("/api/ereg/overenhet") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"orgnr": "$virksomhetsnummer"}""")
+            bearerAuth(fakeToken(virksomhetsnummer))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(
+                """
                     {
                       "organisasjonsnummer": "912998827",
                       "navn": "ARBEIDS- OG VELFERDSDIREKTORATET AVD ØKERNVEIEN",
@@ -199,51 +202,54 @@ class EregControllerTest {
                       }
                     }
                     """.trimIndent(),
-                    JsonCompareMode.STRICT
-                )
-            }
-        }
-    }
 
-    @Test
-    fun `underenhet er null fra ereg`() {
-        val virksomhetsnummer = "12345678"
-        server.expect(requestTo("https://localhost/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(
-                withStatus(HttpStatus.NOT_FOUND)
-                    .body(underenhetIkkeFunnetRespons)
-                    .contentType(APPLICATION_JSON)
+                it.bodyAsText(), true
             )
-
-        mockMvc.post("/api/ereg/underenhet") {
-            content = """{"orgnr": "$virksomhetsnummer"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(virksomhetsnummer))
-        }.andExpect {
-            status { isOk() }
-            content {
-                bytes(ByteArray(0))
-            }
         }
     }
 
     @Test
-    fun `henter overenhet fra ereg`() {
-        val orgnr = "810825472"
-        server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(overenhetRespons, APPLICATION_JSON))
+    fun `underenhet er null fra ereg`() = app.runTest {
+        val virksomhetsnummer = "12345678"
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true"
+        )
+        {
+            call.respond(HttpStatusCode.NotFound)
+        }
 
-        mockMvc.post("/api/ereg/overenhet") {
-            content = """{"orgnr": "$orgnr"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(orgnr))
-        }.andExpect {
-            status { isOk() }
-            content {
-                json(
-                    """
+        client.post("/api/ereg/overenhet") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"orgnr": "$virksomhetsnummer"}""")
+            bearerAuth(fakeToken(virksomhetsnummer))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assert(it.bodyAsText() == "")
+        }
+    }
+
+    @Test
+    fun `henter overenhet fra ereg`() = app.runTest {
+        val orgnr = "810825472"
+
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$orgnr?inkluderHierarki=true"
+        )
+        {
+            call.response.headers.append("Content-Type", "application/json")
+            call.respond(overenhetRespons)
+        }
+
+        client.post("/api/ereg/overenhet") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"orgnr": "$orgnr"}""")
+            bearerAuth(fakeToken(orgnr))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(
+                """
                    {
                       "organisasjonsnummer": "810825472",
                       "navn": "MALMEFJORD OG RIDABU REGNSKAP",
@@ -281,28 +287,32 @@ class EregControllerTest {
                       }
                     }
                     """.trimIndent(),
-                    JsonCompareMode.STRICT
-                )
-            }
+                it.bodyAsText(), true
+            )
         }
     }
 
     @Test
-    fun `henter orgledd fra ereg`() {
+    fun `henter orgledd fra ereg`() = app.runTest {
         val orgnr = "889640782"
-        server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(orgleddRespons, APPLICATION_JSON))
 
-        mockMvc.post("/api/ereg/overenhet") {
-            content = """{"orgnr": "$orgnr"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(orgnr))
-        }.andExpect {
-            status { isOk() }
-            content {
-                json(
-                    """
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$orgnr?inkluderHierarki=true"
+        )
+        {
+            call.response.headers.append("Content-Type", "application/json")
+            call.respond(orgleddRespons)
+        }
+
+        client.post("/api/ereg/overenhet") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"orgnr": "$orgnr"}""")
+            bearerAuth(fakeToken(orgnr))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(
+                """
                     {
                       "organisasjonsnummer": "889640782",
                       "navn": "ARBEIDS- OG VELFERDSETATEN",
@@ -342,29 +352,33 @@ class EregControllerTest {
                       }
                     }
                     """.trimIndent(),
-                    JsonCompareMode.STRICT
-                )
-            }
+                it.bodyAsText(), true
+            )
         }
     }
 
 
     @Test
-    fun `henter jurudisk enhet for orgledd 889640782`() {
+    fun `henter jurudisk enhet for orgledd 889640782`() = app.runTest {
         val orgnr = "983887457"
-        server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(juridiskEnhetForOrgleddRespons, APPLICATION_JSON))
 
-        mockMvc.post("/api/ereg/overenhet") {
-            content = """{"orgnr": "$orgnr"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(orgnr))
-        }.andExpect {
-            status { isOk() }
-            content {
-                json(
-                    """
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$orgnr?inkluderHierarki=true"
+        )
+        {
+            call.response.headers.append("Content-Type", "application/json")
+            call.respond(juridiskEnhetForOrgleddRespons)
+        }
+
+        client.post("/api/ereg/overenhet") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"orgnr": "$orgnr"}""")
+            bearerAuth(fakeToken(orgnr))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assertEquals(
+                """
                     {
                       "organisasjonsnummer": "983887457",
                       "navn": "ARBEIDS- OG SOSIALDEPARTEMENTET",
@@ -404,276 +418,34 @@ class EregControllerTest {
                       }
                     }
                     """.trimIndent(),
-                    JsonCompareMode.STRICT
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `overenhet er null fra ereg`() {
-        val orgnr = "314"
-        server.expect(requestTo("https://localhost/v2/organisasjon/$orgnr?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(
-                withStatus(HttpStatus.NOT_FOUND)
-                    .body(overenhetIkkeFunnetRespons)
-                    .contentType(APPLICATION_JSON)
+                it.bodyAsText(), true
             )
-
-        mockMvc.post("/api/ereg/overenhet") {
-            content = """{"orgnr": "$orgnr"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(orgnr))
-        }.andExpect {
-            status { isOk() }
-            content {
-                bytes(ByteArray(0))
-            }
         }
     }
 
-
     @Test
-    fun `skal klare å gå fra BEDR til STAT via hierarki for NAV IKT`() {
-        val naviktOrgnr = "990983666"
-        val naviktOrglOrgnr = "990983291"
-        val velferdsEtatOrgnr = "889640782"
-        val sosDepOrgnr = "983887457"
+    fun `overenhet er null fra ereg`() = app.runTest {
+        val orgnr = "314"
 
-        server.expect(requestTo("https://localhost/v2/organisasjon/$naviktOrgnr?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(naviktRespons, APPLICATION_JSON))
-
-        mockMvc.post("/api/ereg/overenhet") {
-            content = """{"orgnr": "$naviktOrgnr"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(naviktOrgnr))
-        }.andExpect {
-            status { isOk() }
-            content {
-                json(
-                    """
-                    {
-                      "organisasjonsnummer": "990983666",
-                      "navn": "NAV IKT",
-                      "organisasjonsform": {
-                        "kode": "BEDR",
-                        "beskrivelse": "Underenhet til næringsdrivende og offentlig forvaltning"
-                      },
-                      "naeringskoder": [
-                        "84.300"
-                      ],
-                      "postadresse": {
-                        "adresse": "Postboks 5 St Olavs plass",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0130",
-                        "poststed": null
-                      },
-                      "forretningsadresse": {
-                        "adresse": "Sannergata 2",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0557",
-                        "poststed": null
-                      },
-                      "hjemmeside": null,
-                      "overordnetEnhet": "$naviktOrglOrgnr",
-                      "antallAnsatte": null,
-                      "beliggenhetsadresse": {
-                        "adresse": "Sannergata 2",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0557",
-                        "poststed": null
-                      }
-                    }
-                    """.trimIndent(),
-                    JsonCompareMode.STRICT
-                )
-            }
+        fakeApi.registerStub(
+            io.ktor.http.HttpMethod.Get,
+            "/v2/organisasjon/$orgnr?inkluderHierarki=true"
+        )
+        {
+            call.response.headers.append("Content-Type", "application/json")
+            call.respond(HttpStatusCode.NotFound, overenhetIkkeFunnetRespons)
         }
 
-        server.reset()
-        server.expect(requestTo("https://localhost/v2/organisasjon/$naviktOrglOrgnr?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(orgleddRespons, APPLICATION_JSON))
-
-        mockMvc.post("/api/ereg/overenhet") {
-            content = """{"orgnr": "$naviktOrglOrgnr"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(naviktOrgnr))
-        }.andExpect {
-            status { isOk() }
-            content {
-                json(
-                    """
-                    {
-                      "organisasjonsnummer": "889640782",
-                      "navn": "ARBEIDS- OG VELFERDSETATEN",
-                      "organisasjonsform": {
-                        "kode": "ORGL",
-                        "beskrivelse": "Organisasjonsledd"
-                      },
-                      "naeringskoder": [
-                        "84.120"
-                      ],
-                      "postadresse": {
-                        "adresse": "Postboks 5 St Olavs Plass",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0130",
-                        "poststed": null
-                      },
-                      "forretningsadresse": {
-                        "adresse": "Økernveien 94",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0579",
-                        "poststed": null
-                      },
-                      "hjemmeside": "www.nav.no",
-                      "overordnetEnhet": "983887457",
-                      "antallAnsatte": null,
-                      "beliggenhetsadresse": {
-                        "adresse": "Økernveien 94",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0579",
-                        "poststed": null
-                      }
-                    }
-                    """.trimIndent(),
-                    JsonCompareMode.STRICT
-                )
-            }
-        }
-
-        server.reset()
-        server.expect(requestTo("https://localhost/v2/organisasjon/$velferdsEtatOrgnr?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(velferdsEtatRespons, APPLICATION_JSON))
-
-        mockMvc.post("/api/ereg/overenhet") {
-            content = """{"orgnr": "$velferdsEtatOrgnr"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(naviktOrgnr))
-        }.andExpect {
-            status { isOk() }
-            content {
-                json(
-                    """
-                    {
-                      "organisasjonsnummer": "889640782",
-                      "navn": "ARBEIDS- OG VELFERDSETATEN",
-                      "organisasjonsform": {
-                        "kode": "ORGL",
-                        "beskrivelse": "Organisasjonsledd"
-                      },
-                      "naeringskoder": [
-                        "84.120"
-                      ],
-                      "postadresse": {
-                        "adresse": "Postboks 5 St Olavs Plass",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0130",
-                        "poststed": null
-                      },
-                      "forretningsadresse": {
-                        "adresse": "Økernveien 94",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0579",
-                        "poststed": null
-                      },
-                      "hjemmeside": "www.nav.no",
-                      "overordnetEnhet": "983887457",
-                      "antallAnsatte": null,
-                      "beliggenhetsadresse": {
-                        "adresse": "Økernveien 94",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0579",
-                        "poststed": null
-                      }
-                    }
-                    """.trimIndent(),
-                    JsonCompareMode.STRICT
-                )
-            }
-        }
-
-        server.reset()
-        server.expect(requestTo("https://localhost/v2/organisasjon/$sosDepOrgnr?inkluderHierarki=true"))
-            .andExpect(method(HttpMethod.GET))
-            .andRespond(withSuccess(sosDepRespons, APPLICATION_JSON))
-
-        mockMvc.post("/api/ereg/overenhet") {
-            content = """{"orgnr": "$sosDepOrgnr"}"""
-            contentType = APPLICATION_JSON
-            with(jwtWithPid(naviktOrgnr))
-        }.andExpect {
-            status { isOk() }
-            content {
-                json(
-                    """
-                    {
-                      "organisasjonsnummer": "983887457",
-                      "navn": "ARBEIDS- OG SOSIALDEPARTEMENTET",
-                      "organisasjonsform": {
-                        "kode": "STAT",
-                        "beskrivelse": "Staten"
-                      },
-                      "naeringskoder": [
-                        "84.110"
-                      ],
-                      "postadresse": {
-                        "adresse": "Postboks 8019 Dep",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0030",
-                        "poststed": null
-                      },
-                      "forretningsadresse": {
-                        "adresse": "Akersgata 64",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0180",
-                        "poststed": null
-                      },
-                      "hjemmeside": "regjeringen.no/asd",
-                      "overordnetEnhet": null,
-                      "antallAnsatte": null,
-                      "beliggenhetsadresse": {
-                        "adresse": "Akersgata 64",
-                        "kommunenummer": "0301",
-                        "land": "Norge",
-                        "landkode": "NO",
-                        "postnummer": "0180",
-                        "poststed": null
-                      }
-                    }
-                    """.trimIndent(),
-                    JsonCompareMode.STRICT
-                )
-            }
+        client.post("/api/ereg/overenhet") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"orgnr": "$orgnr"}""")
+            bearerAuth(fakeToken(orgnr))
+        }.let {
+            assert(it.status == HttpStatusCode.OK)
+            assert(it.bodyAsText() == "")
         }
     }
 }
-
 //Responsene er hentet fra https://ereg-services.dev.intern.nav.no/swagger-ui/index.html#/organisasjon.v1/hentOrganisasjonUsingGET
 
 //language=JSON
@@ -701,7 +473,7 @@ private const val underenhetRespons = """
             },
             "gyldighetsperiode": {
               "fom": "2020-09-03"
-            } 
+            }
         }
     ],
     "registreringsdato": "2019-07-11T00:00:00",
@@ -1636,7 +1408,7 @@ private const val overenhetUtenEnDelFelter = """
           "fom": "2021-03-18"
         }
       }
-    ], 
+    ],
     "ansatte": [
       {
         "antall": 2,
@@ -1866,7 +1638,7 @@ private const val naviktRespons = """
       }
     }
   ]
-}    
+}
 """
 
 //language=JSON

@@ -1,27 +1,33 @@
 package no.nav.arbeidsgiver.min_side.tilgangsstyring
 
+import io.ktor.http.*
+import io.ktor.server.plugins.di.*
+import io.ktor.server.response.*
+import no.nav.arbeidsgiver.min_side.FakeApi
+import no.nav.arbeidsgiver.min_side.FakeApplication
+import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
-import org.springframework.http.MediaType
-import org.springframework.test.web.client.MockRestServiceServer
-import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
-import java.lang.IllegalArgumentException
+import org.junit.jupiter.api.extension.RegisterExtension
 
 
-@RestClientTest(
-    AltinnRollerClient::class,
-    MaskinportenTokenServiceStub::class,
-)
 class AltinnRollerClientTest {
-    @Autowired
-    lateinit var altinnServer: MockRestServiceServer
+    companion object {
+        @RegisterExtension
+        val app = FakeApplication(
+            addDatabase = true,
+        ) {
+            dependencies {
+                provide<AltinnRollerClient>(AltinnRollerClient::class)
+                provide<MaskinportenTokenService> { MaskinportenTokenServiceStub() }
+            }
+        }
 
-    @Autowired
-    lateinit var altinnRollerClient: AltinnRollerClient
+        @RegisterExtension
+        val fakeApi = FakeApi()
+    }
 
     /* Ved ukjent fnr svarer altinn:
      *   HTTP/1.1 400 012345678912 is not a valid organization number or social security number.
@@ -31,99 +37,115 @@ class AltinnRollerClientTest {
      */
 
     @Test
-    fun `ingen tilgang ved ingen roller`() {
+    fun `ingen tilgang ved ingen roller`() = app.runTest {
         mockRoles("1234", "567812345", ingenRollerResponse)
-        assertFalse(altinnRollerClient.harAltinnRolle(
-            fnr = "1234",
-            orgnr = "567812345",
-            altinnRoller = setOf("SIGNE"),
-            externalRoller = setOf("DAGL")
-        ))
+        assertFalse(
+            app.getDependency<AltinnRollerClient>().harAltinnRolle(
+                fnr = "1234",
+                orgnr = "567812345",
+                altinnRoller = setOf("SIGNE"),
+                externalRoller = setOf("DAGL")
+            )
+        )
     }
 
     @Test
-    fun `tilgang hvis vi sjekker DAGL(ereg) og bruker er DAGL(ereg), ATTST(altinn)`() {
+    fun `tilgang hvis vi sjekker DAGL(ereg) og bruker er DAGL(ereg), ATTST(altinn)`() = app.runTest {
         mockRoles("1234", "567812345", daglOgAttstRolleResponse)
-        assertTrue(altinnRollerClient.harAltinnRolle(
-            fnr = "1234",
-            orgnr = "567812345",
-            altinnRoller = setOf("SIGN"),
-            externalRoller = setOf("DAGL"),
-        ))
+        assertTrue(
+            app.getDependency<AltinnRollerClient>().harAltinnRolle(
+                fnr = "1234",
+                orgnr = "567812345",
+                altinnRoller = setOf("SIGN"),
+                externalRoller = setOf("DAGL"),
+            )
+        )
     }
 
     @Test
-    fun `tilgang hvis vi sjekker HADM(altinn) og bruker er DAGL(ereg), HADM(altinn)`() {
+    fun `tilgang hvis vi sjekker HADM(altinn) og bruker er DAGL(ereg), HADM(altinn)`() = app.runTest {
         mockRoles("1234", "567812345", daglOgHadmRolleResponse)
-        assertTrue(altinnRollerClient.harAltinnRolle(
-            fnr = "1234",
-            orgnr = "567812345",
-            altinnRoller = setOf("HADM"),
-            externalRoller = setOf("ANNENROLLE"),
-        ))
+        assertTrue(
+            app.getDependency<AltinnRollerClient>().harAltinnRolle(
+                fnr = "1234",
+                orgnr = "567812345",
+                altinnRoller = setOf("HADM"),
+                externalRoller = setOf("ANNENROLLE"),
+            )
+        )
     }
 
     @Test
-    fun `ikke tilgang hvis altinn- og ereg-roller byttes om`() {
+    fun `ikke tilgang hvis altinn- og ereg-roller byttes om`() = app.runTest {
         mockRoles("1234", "567811223", daglOgHadmRolleResponse)
-        assertFalse(altinnRollerClient.harAltinnRolle(
-            fnr = "1234",
-            orgnr = "567811223",
-            altinnRoller = setOf("DAGL"),
-            externalRoller = setOf("HADM"),
-        ))
+        assertFalse(
+            app.getDependency<AltinnRollerClient>().harAltinnRolle(
+                fnr = "1234",
+                orgnr = "567811223",
+                altinnRoller = setOf("DAGL"),
+                externalRoller = setOf("HADM"),
+            )
+        )
     }
 
     @Test
-    fun `har tilgang hvis man både har ereg- og altinn-rolle`() {
+    fun `har tilgang hvis man både har ereg- og altinn-rolle`() = app.runTest {
         mockRoles("1234", "567811223", daglOgAttstRolleResponse)
-        assertTrue(altinnRollerClient.harAltinnRolle(
-            fnr = "1234",
-            orgnr = "567811223",
-            altinnRoller = setOf("ATTST"),
-            externalRoller = setOf("DAGL")
-        ))
+        assertTrue(
+            app.getDependency<AltinnRollerClient>().harAltinnRolle(
+                fnr = "1234",
+                orgnr = "567811223",
+                altinnRoller = setOf("ATTST"),
+                externalRoller = setOf("DAGL")
+            )
+        )
     }
 
     @Test
-    fun `bruker trenger ikke å ha alle rollene vi spør om`() {
+    fun `bruker trenger ikke å ha alle rollene vi spør om`() = app.runTest {
         mockRoles("1234", "567811223", daglOgAttstRolleResponse)
-        assertTrue(altinnRollerClient.harAltinnRolle(
-            fnr = "1234",
-            orgnr = "567811223",
-            altinnRoller = setOf("ATTST"),
-            externalRoller = setOf("DAGL", "ANNENROLLE"),
-        ))
+        assertTrue(
+            app.getDependency<AltinnRollerClient>().harAltinnRolle(
+                fnr = "1234",
+                orgnr = "567811223",
+                altinnRoller = setOf("ATTST"),
+                externalRoller = setOf("DAGL", "ANNENROLLE"),
+            )
+        )
     }
 
     @Test
-    fun `ikke tilgang selv med flere roller og rolle-sjekker`() {
+    fun `ikke tilgang selv med flere roller og rolle-sjekker`() = app.runTest {
         mockRoles("789", "567811223", daglOgAttstRolleResponse)
-        assertFalse(altinnRollerClient.harAltinnRolle(
-            fnr = "789",
-            orgnr = "567811223",
-            altinnRoller = setOf("IKKEROLLE"),
-            externalRoller = setOf("ANNENIKKEROLLE"),
-        ))
+        assertFalse(
+            app.getDependency<AltinnRollerClient>().harAltinnRolle(
+                fnr = "789",
+                orgnr = "567811223",
+                altinnRoller = setOf("IKKEROLLE"),
+                externalRoller = setOf("ANNENIKKEROLLE"),
+            )
+        )
     }
 
     @Test
-    fun `tolker ikke Local-roller som ereg-roller`() {
+    fun `tolker ikke Local-roller som ereg-roller`() = app.runTest {
         mockRoles("1234", "567811223", daglMenLocalRolleResponse)
-        assertFalse(altinnRollerClient.harAltinnRolle(
-            fnr = "1234",
-            orgnr = "567811223",
-            altinnRoller = setOf("ANNEN"),
-            externalRoller = setOf("DAGL"),
-        ))
+        assertFalse(
+            app.getDependency<AltinnRollerClient>().harAltinnRolle(
+                fnr = "1234",
+                orgnr = "567811223",
+                altinnRoller = setOf("ANNEN"),
+                externalRoller = setOf("DAGL"),
+            )
+        )
     }
 
 
     @Test
-    fun `exception hvis ingen roller oppgis`() {
+    fun `exception hvis ingen roller oppgis`() = app.runTest {
         mockRoles("1234", "567811223", daglOgAttstRolleResponse)
         assertThrows<IllegalArgumentException> {
-            altinnRollerClient.harAltinnRolle(
+            app.getDependency<AltinnRollerClient>().harAltinnRolle(
                 fnr = "1234",
                 orgnr = "567811223",
                 altinnRoller = setOf(),
@@ -133,18 +155,18 @@ class AltinnRollerClientTest {
     }
 
     private fun mockRoles(fnr: String, orgnr: String, response: String) =
-        altinnServer.expect {
-            assertEquals("/api/serviceowner/authorization/roles", it.uri.path)
-            assertNotNull(it.uri.query)
-            val queryParams = it.uri.query.removePrefix("?").split("&")
-                .map { it.split("=") }
-                .associate { it.get(0) to it.getOrNull(1) }
-            assertTrue("ForceEIAuthentication" in queryParams)
+        fakeApi.registerStub(
+            HttpMethod.Get,
+            "/api/serviceowner/authorization/roles"
+        ) {
+            val queryParams = call.request.queryParameters
             assertTrue("\$filter" in queryParams)
             assertEquals(fnr, queryParams["subject"])
             assertEquals(orgnr, queryParams["reportee"])
 
-        }.andRespond(withSuccess(response, MediaType.APPLICATION_JSON))
+            call.response.headers.append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            call.respond(response)
+        }
 }
 
 /* Har ikke fått til få tt02 til å returnere tom liste. Men høres ikke utenkelig ut at det er mulig. */

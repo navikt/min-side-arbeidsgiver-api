@@ -7,32 +7,27 @@ import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RestController
 
-@RestController
-class UserInfoController(
+class UserInfoService(
     private val altinnService: AltinnService,
     private val digisyfoService: DigisyfoService,
     private val refusjonStatusService: RefusjonStatusService,
-    private val authenticatedUserHolder: AuthenticatedUserHolder,
 ) {
-    @GetMapping("/api/userInfo/v3")
-    suspend fun getUserInfoV3() = supervisorScope {
+    suspend fun getUserInfoV3(fnr: String, token: String) = supervisorScope {
         val tilganger = async {
             runCatching {
-                altinnService.hentAltinnTilganger()
+                altinnService.hentAltinnTilganger(token)
             }
         }
 
         val syfoVirksomheter = async {
             runCatching {
-                digisyfoService.hentVirksomheterOgSykmeldte(authenticatedUserHolder.fnr)
+                digisyfoService.hentVirksomheterOgSykmeldte(fnr)
             }
         }
         val refusjoner = async {
             runCatching {
-                refusjonStatusService.statusoversikt(authenticatedUserHolder.fnr)
+                refusjonStatusService.statusoversikt(token)
             }
         }
         UserInfoV3.from(tilganger.await(), syfoVirksomheter.await(), refusjoner.await())
