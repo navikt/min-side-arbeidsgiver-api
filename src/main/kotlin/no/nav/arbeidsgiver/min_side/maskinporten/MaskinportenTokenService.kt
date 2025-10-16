@@ -21,13 +21,22 @@ class MaskinportenTokenServiceImpl(
 
     override suspend fun currentAccessToken(): String {
         val storedToken = tokenStore.get()
-        val token = if (storedToken != null && storedToken.percentageRemaining() > 20.0) {
-            storedToken
-        } else {
-            logger.error("maskinporten access token almost expired. is refresh loop running? doing emergency fetch.")
-            /* this shouldn't happen, as refresh loop above refreshes often */
-            maskinportenClient.fetchNewAccessToken().also {
-                tokenStore.set(it)
+        val token = when {
+            storedToken == null -> {
+                logger.warn("maskinporten access token not found. fetching one.")
+                maskinportenClient.fetchNewAccessToken().also {
+                    tokenStore.set(it)
+                }
+            }
+            storedToken.percentageRemaining() > 20.0 -> {
+                storedToken
+            }
+            else -> {
+                logger.error("maskinporten access token almost expired. is refresh loop running? doing emergency fetch.")
+                /* this shouldn't happen, as refresh loop above refreshes often */
+                maskinportenClient.fetchNewAccessToken().also {
+                    tokenStore.set(it)
+                }
             }
         }
 
