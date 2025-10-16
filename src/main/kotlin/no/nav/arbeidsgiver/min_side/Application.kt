@@ -32,15 +32,15 @@ import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabase
 import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
 import no.nav.arbeidsgiver.min_side.azuread.AzureService
 import no.nav.arbeidsgiver.min_side.config.Health
 import no.nav.arbeidsgiver.min_side.config.MsaJwtVerifier
+import no.nav.arbeidsgiver.min_side.config.registerShutdownListener
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolderImpl
 import no.nav.arbeidsgiver.min_side.maskinporten.*
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
@@ -69,32 +69,27 @@ import org.slf4j.event.Level
 import java.util.*
 
 fun main() {
-    runBlocking(Dispatchers.Default) {
-        embeddedServer(
-            CIO,
-            configure = {
-                connector {
-                    port = 8080
-                    host = "0.0.0.0"
-                }
-                shutdownGracePeriod = 20_000
-                shutdownTimeout = 30_000
+    embeddedServer(
+        CIO,
+        configure = {
+            connector {
+                port = 8080
+                host = "0.0.0.0"
             }
-        ) {
-            ktorConfig()
-            configureDependencies()
-            configureRoutes()
+            shutdownGracePeriod = 20_000
+            shutdownTimeout = 30_000
+        }
+    ) {
+        ktorConfig()
+        configureDependencies()
+        configureRoutes()
 
-            startKafkaConsumers(this)
-            startKontaktInfoPollingServices(this)
-            startDeleteOldSykmeldingLoop(this)
+        startKafkaConsumers(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(3)))
+        startKontaktInfoPollingServices(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(3)))
+        startDeleteOldSykmeldingLoop(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(1)))
 
-            // Maskinporten token refresher
-            launch {
-                dependencies.resolve<MaskinportenTokenService>().tokenRefreshingLoop()
-            }
-        }.start(wait = false)
-    }
+        registerShutdownListener()
+    }.start(wait = true)
 }
 
 fun Application.configureRoutes() {

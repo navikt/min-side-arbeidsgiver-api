@@ -5,8 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.server.application.*
 import io.ktor.server.plugins.di.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.*
+import no.nav.arbeidsgiver.min_side.logger
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.*
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusDto
@@ -30,6 +31,8 @@ data class KafkaConsumerConfig(
 class MsaKafkaConsumer(
     private val config: KafkaConsumerConfig,
 ) {
+    private val log = logger()
+
     private val properties = Properties().apply {
         put(ConsumerConfig.GROUP_ID_CONFIG, config.groupId)
         put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, (getenv("KAFKA_BROKERS") ?: "localhost:9092"))
@@ -49,28 +52,46 @@ class MsaKafkaConsumer(
         }
     }
 
-    suspend fun consume(processor: ConsumerRecordProcessor) {
-        val consumer = KafkaConsumer<String?, String?>(properties)
-        consumer.subscribe(config.topics)
-        while (true) {
-            val records = consumer.poll(java.time.Duration.ofMillis(1000))
-            if (records.any()) {
-                for (record in records) {
-                    processor.processRecord(record)
+    suspend fun consume(processor: ConsumerRecordProcessor) = withContext(Dispatchers.IO) {
+        KafkaConsumer<String?, String?>(properties).use { consumer ->
+            consumer.subscribe(config.topics)
+
+            while (isActive) {
+                try {
+                    val records = consumer.poll(java.time.Duration.ofMillis(1000))
+                    if (records.any()) {
+                        for (record in records) {
+                            processor.processRecord(record)
+                        }
+                        consumer.commitSync()
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    log.error("Feil ved prosessering av kafka-melding", e)
+                    delay(5000) // TODO: backoff
                 }
-                consumer.commitSync()
             }
         }
     }
 
-    suspend fun batchConsume(processor: ConsumerRecordProcessor) {
-        val consumer = KafkaConsumer<String?, String?>(properties)
-        consumer.subscribe(config.topics)
-        while (true) {
-            val records = consumer.poll(java.time.Duration.ofMillis(1000))
-            if (records.any()) {
-                processor.processRecords(records)
-                consumer.commitSync()
+    suspend fun batchConsume(processor: ConsumerRecordProcessor) = withContext(Dispatchers.IO) {
+        KafkaConsumer<String?, String?>(properties).use { consumer ->
+            consumer.subscribe(config.topics)
+
+            while (isActive) {
+                try {
+                    val records = consumer.poll(java.time.Duration.ofMillis(1000))
+                    if (records.any()) {
+                        processor.processRecords(records)
+                        consumer.commitSync()
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    log.error("Feil ved prosessering av kafka-melding", e)
+                    delay(5000) // TODO: backoff
+                }
             }
         }
     }
