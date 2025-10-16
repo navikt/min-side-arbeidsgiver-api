@@ -1,44 +1,55 @@
 package no.nav.arbeidsgiver.min_side.userinfo
 
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.server.plugins.di.*
-import no.nav.arbeidsgiver.min_side.FakeApi
-import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.fakeToken
+import no.nav.arbeidsgiver.min_side.config.GittMiljø
+import no.nav.arbeidsgiver.min_side.config.SecurityConfig
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
+import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
-import org.skyscreamer.jsonassert.JSONAssert.assertEquals
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.json.JsonCompareMode
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
+import org.springframework.web.filter.CharacterEncodingFilter
 
-class UserInfoServiceTest {
-    companion object {
-        @RegisterExtension
-        val app = FakeApplication(
-            addDatabase = true,
-        ) {
-            dependencies {
-                provide<UserInfoService>(UserInfoService::class)
-                provide<AltinnService> { Mockito.mock<AltinnService>() }
-                provide<DigisyfoService> { Mockito.mock<DigisyfoService>() }
-                provide<RefusjonStatusService> { Mockito.mock<RefusjonStatusService>() }
-            }
-        }
+@MockitoBean(types= [JwtDecoder::class])
+@WebMvcTest(
+    value = [
+        UserInfoController::class,
+        SecurityConfig::class,
+        AuthenticatedUserHolder::class,
+        GittMiljø::class,
+    ],
+    properties = [
+        "server.servlet.context-path=/"
+    ]
+)
+@Import(UserInfoControllerTest.ForceUTF8Encoding::class)
+class UserInfoControllerTest {
+    @Autowired
+    lateinit var mockMvc: MockMvc
 
-        @RegisterExtension
-        val fakeApi = FakeApi()
-    }
+    @MockitoBean
+    lateinit var altinnService: AltinnService
+
+    @MockitoBean
+    lateinit var digisyfoService: DigisyfoService
+
+    @MockitoBean
+    lateinit var refusjonStatusService: RefusjonStatusService
 
     @Test
-    fun `returnerer organisasjoner og rettigheter for innlogget bruker`() = app.runTest {
-        val token = fakeToken("42")
-        `when`(app.getDependency<AltinnService>().hentAltinnTilganger(token)).thenReturn(
+    fun `returnerer organisasjoner og rettigheter for innlogget bruker`() {
+        `when`(altinnService.hentAltinnTilganger()).thenReturn(
             AltinnTilganger(
                 isError = false,
                 hierarki = listOf(
@@ -64,7 +75,7 @@ class UserInfoServiceTest {
                 tilgangTilOrgNr = mapOf("3403:1" to setOf("10"))
             )
         )
-        `when`(app.getDependency<DigisyfoService>().hentVirksomheterOgSykmeldte("42")).thenReturn(
+        `when`(digisyfoService.hentVirksomheterOgSykmeldte("42")).thenReturn(
             listOf(
                 DigisyfoService.VirksomhetOgAntallSykmeldte(
                     navn = "overenhet",
@@ -102,7 +113,7 @@ class UserInfoServiceTest {
                 )
             )
         )
-        `when`(app.getDependency<RefusjonStatusService>().statusoversikt(token)).thenReturn(
+        `when`(refusjonStatusService.statusoversikt("42")).thenReturn(
             listOf(
                 RefusjonStatusService.Statusoversikt(
                     "314",
@@ -121,12 +132,13 @@ class UserInfoServiceTest {
             )
         )
 
-        client.get("/api/userInfo/v3") {
-            bearerAuth(token)
-        }.let {
-            assert(it.status == HttpStatusCode.OK)
-            assertEquals(
-                """
+        mockMvc.get("/api/userInfo/v3") {
+            with(jwtWithPid("42"))
+        }.asyncDispatch().andExpect {
+            status { isOk() }
+            content {
+                json(
+                    """
                     {
                       "altinnError": false,
                       "digisyfoError": false,
@@ -206,10 +218,21 @@ class UserInfoServiceTest {
                           "tilgang": true
                         }
                       ]
-                    }
+                    }  
                     """,
-                it.bodyAsText(), true
-            )
+                    JsonCompareMode.STRICT
+                )
+            }
         }
     }
+
+
+    /**
+     * Force utf 8 encoding siden AppConfig ikke benyttes i @WebMvcTest
+     */
+    class ForceUTF8Encoding {
+        @Bean
+        fun characterEncodingFilter() = CharacterEncodingFilter("UTF-8", true)
+    }
+
 }

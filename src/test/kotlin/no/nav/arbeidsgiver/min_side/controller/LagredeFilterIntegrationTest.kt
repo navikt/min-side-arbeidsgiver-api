@@ -1,45 +1,58 @@
 package no.nav.arbeidsgiver.min_side.controller
 
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.server.plugins.di.dependencies
-import no.nav.arbeidsgiver.min_side.FakeApi
-import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.fakeToken
-import no.nav.arbeidsgiver.min_side.services.lagredefilter.LagredeFilterService
+import no.nav.arbeidsgiver.min_side.controller.SecurityMockMvcUtil.Companion.jwtWithPid
+import org.flywaydb.core.Flyway
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
 import org.skyscreamer.jsonassert.JSONAssert.assertEquals
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-
+@SpringBootTest(
+    properties = [
+        "server.servlet.context-path=/",
+        "spring.flyway.cleanDisabled=false",
+    ]
+)
+@AutoConfigureMockMvc
 class LagredeFilterIntegrationTest {
-    companion object {
-        @RegisterExtension
-        val app = FakeApplication(addDatabase = true) {
-            dependencies {
-                provide<LagredeFilterService>(LagredeFilterService::class)
+    @Autowired
+    lateinit var mockMvc: MockMvc
+
+    @MockitoBean // the real jwt decoder is bypassed by SecurityMockMvcRequestPostProcessors.jwt
+    lateinit var jwtDecoder: JwtDecoder
+
+    @Autowired
+    lateinit var flyway: Flyway
+
+    @BeforeEach
+    fun setup() {
+        flyway.clean()
+        flyway.migrate()
+    }
+
+    @Test
+    fun `returnerer tomt array når bruker har ingen lagrede filter`() {
+        mockMvc
+            .perform(
+                get("/api/lagredeFilter/")
+                    .with(jwtWithPid("42"))
+            )
+            .andExpect(status().isOk)
+            .andReturn().response.contentAsString.also {
+                assertEquals("[]", it, true)
             }
-        }
-
-        @RegisterExtension
-        val fakeApi = FakeApi() // Brukes som mock token introspection server
     }
 
-
     @Test
-    fun `returnerer tomt array når bruker har ingen lagrede filter`() = app.runTest {
-        client.get("/api/lagredeFilter/") {
-            bearerAuth(fakeToken("42"))
-        }.let {
-            assert(it.status == HttpStatusCode.OK)
-            assertEquals("[]", it.bodyAsText(), true)
-        }
-    }
-
-
-    @Test
-    fun `lagrer, returnerer, oppdaterer og sletter filter`() = app.runTest {
+    fun `lagrer, returnerer, oppdaterer og sletter filter`() {
         val filterJson = """
                         {
                             "filterId": "filter1",
@@ -49,7 +62,7 @@ class LagredeFilterIntegrationTest {
                             "virksomheter": [],
                             "sortering": "NYESTE",
                             "sakstyper": [],
-                            "oppgaveFilter": ["TILSTAND_NY"]
+                            "oppgaveFilter": ["TILSTAND_NY"] 
                         }
                     """.trimIndent()
 
@@ -62,26 +75,38 @@ class LagredeFilterIntegrationTest {
                             "virksomheter": ["123456789"],
                             "sortering": "NYESTE",
                             "sakstyper": [],
-                            "oppgaveFilter": ["TILSTAND_NY_MED_PÅMINNELSE"]
+                            "oppgaveFilter": ["TILSTAND_NY_MED_PÅMINNELSE"] 
                         }
                     """.trimIndent()
 
-        client.put("/api/lagredeFilter") {
-            bearerAuth(fakeToken("42"))
-            contentType(ContentType.Application.Json)
-            setBody(filterJson)
-        }
-
-        client.put("/api/lagredeFilter") {
-            bearerAuth(fakeToken("42"))
-            contentType(ContentType.Application.Json)
-            setBody(filterJson2)
-        }
+        mockMvc
+            .perform(
+                put("/api/lagredeFilter")
+                    .with(jwtWithPid("42"))
+                    .content(filterJson)
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andExpect(status().isOk)
 
 
-        client.get("/api/lagredeFilter") {
-            bearerAuth(fakeToken("42"))
-        }.bodyAsText().also { assertEquals("[${filterJson},${filterJson2}]", it, true) }
+        mockMvc
+            .perform(
+                put("/api/lagredeFilter")
+                    .with(jwtWithPid("42"))
+                    .content(filterJson2)
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                get("/api/lagredeFilter")
+                    .with(jwtWithPid("42"))
+            )
+            .andExpect(status().isOk)
+            .andReturn().response.contentAsString.also {
+                assertEquals("[${filterJson},${filterJson2}]", it, true)
+            }
 
         val oppdatertFilterJson2 = """
                         {
@@ -92,26 +117,44 @@ class LagredeFilterIntegrationTest {
                             "virksomheter": [],
                             "sortering": "ELDSTE",
                             "sakstyper": [],
-                            "oppgaveFilter": ["TILSTAND_NY_MED_PÅMINNELSE"]
+                            "oppgaveFilter": ["TILSTAND_NY_MED_PÅMINNELSE"] 
                         }
                     """.trimIndent()
 
-        client.put("/api/lagredeFilter") {
-            bearerAuth(fakeToken("42"))
-            contentType(ContentType.Application.Json)
-            setBody(oppdatertFilterJson2)
-        }
+        mockMvc
+            .perform(
+                put("/api/lagredeFilter")
+                    .with(jwtWithPid("42"))
+                    .content(oppdatertFilterJson2)
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andExpect(status().isOk)
 
-        client.get("/api/lagredeFilter") {
-            bearerAuth(fakeToken("42"))
-        }.bodyAsText().also { assertEquals("[${filterJson},${oppdatertFilterJson2}]", it, true) }
+        mockMvc
+            .perform(
+                get("/api/lagredeFilter")
+                    .with(jwtWithPid("42"))
+            )
+            .andExpect(status().isOk)
+            .andReturn().response.contentAsString.also {
+                assertEquals("[${filterJson},${oppdatertFilterJson2}]", it, true)
+            }
 
-        client.delete("/api/lagredeFilter/filter1") {
-            bearerAuth(fakeToken("42"))
-        }
+        mockMvc
+            .perform(
+                delete("/api/lagredeFilter/filter1")
+                    .with(jwtWithPid("42"))
+            )
+            .andExpect(status().isOk)
 
-        client.get("/api/lagredeFilter") {
-            bearerAuth(fakeToken("42"))
-        }.bodyAsText().also { assertEquals("[${oppdatertFilterJson2}]", it, true) }
+        mockMvc
+            .perform(
+                get("/api/lagredeFilter")
+                    .with(jwtWithPid("42"))
+            )
+            .andExpect(status().isOk)
+            .andReturn().response.contentAsString.also {
+                assertEquals("[${oppdatertFilterJson2}]", it, true)
+            }
     }
 }

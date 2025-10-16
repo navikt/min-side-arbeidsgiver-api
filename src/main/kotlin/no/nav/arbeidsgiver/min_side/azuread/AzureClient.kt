@@ -1,32 +1,51 @@
 package no.nav.arbeidsgiver.min_side.azuread
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.FormDataContent
-import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.defaultHttpClient
+import no.nav.arbeidsgiver.min_side.config.retryInterceptor
+import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.stereotype.Component
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
+import org.springframework.web.client.ResourceAccessException
+import java.net.SocketException
+import javax.net.ssl.SSLHandshakeException
 
+@Component
 class AzureClient(
-    private val azureAdConfig: AzureAdConfig,
+    restTemplateBuilder: RestTemplateBuilder,
+    private val azureADProperties: AzureADProperties,
 ) {
-    private val client = defaultHttpClient()
-
-    suspend fun fetchToken(scope: String): TokenResponse {
-        return client.request(azureAdConfig.openidTokenEndpoint) {
-            method = HttpMethod.Post
-            contentType(ContentType.Application.FormUrlEncoded)
-            setBody(
-                FormDataContent(
-                    Parameters.build {
-                        append("grant_type", "client_credentials")
-                        append("client_id", azureAdConfig.clientId)
-                        append("client_secret", azureAdConfig.clientSecret)
-                        append("scope", scope)
-                    }
-                )
+    private val restTemplate = restTemplateBuilder
+        .additionalInterceptors(
+            retryInterceptor(
+                maxAttempts = 3,
+                backoffPeriod = 250L,
+                SocketException::class.java,
+                SSLHandshakeException::class.java,
+                ResourceAccessException::class.java,
             )
-        }.body<TokenResponse>()
+        )
+        .build()
+
+    fun fetchToken(scope: String): TokenResponse {
+        val request = HttpEntity(
+                multiValueMapOf(
+                    "grant_type" to "client_credentials",
+                    "client_id" to azureADProperties.clientId,
+                    "client_secret" to azureADProperties.clientSecret,
+                    "scope" to scope,
+                ),
+                HttpHeaders().apply { contentType = MediaType.APPLICATION_FORM_URLENCODED }
+            )
+
+        return restTemplate.postForEntity(
+            azureADProperties.openidTokenEndpoint,
+            request,
+            TokenResponse::class.java
+        ).body!!
     }
 }
 
@@ -36,3 +55,10 @@ data class TokenResponse(
     @JsonProperty("expires_in") val expiresIn: Int,
     @JsonProperty("ext_expires_in") val extExpiresIn: Int
 )
+
+fun <K : Any, V>multiValueMapOf(vararg bindings: Pair<K, V>): MultiValueMap<K, V> =
+    LinkedMultiValueMap<K, V>().apply {
+        bindings.forEach { (key, value) ->
+            add(key, value)
+        }
+    }

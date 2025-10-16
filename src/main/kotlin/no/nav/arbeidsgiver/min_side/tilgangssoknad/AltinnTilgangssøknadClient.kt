@@ -3,115 +3,86 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import io.ktor.client.HttpClient
-import io.ktor.client.call.*
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.network.sockets.ConnectTimeoutException
-import io.ktor.client.network.sockets.SocketTimeoutException
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.jackson
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import no.nav.arbeidsgiver.min_side.HttpClientMetricsFeature
-import no.nav.arbeidsgiver.min_side.Metrics
-import no.nav.arbeidsgiver.min_side.config.Miljø
-import no.nav.arbeidsgiver.min_side.defaultConfiguration
-import no.nav.arbeidsgiver.min_side.logger
+import no.nav.arbeidsgiver.min_side.config.logger
+import no.nav.arbeidsgiver.min_side.config.retryInterceptor
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.DelegationRequest.RequestResource
-import java.io.EOFException
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.http.HttpHeaders
+import org.springframework.http.RequestEntity
+import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpClientErrorException.BadRequest
+import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.ResourceAccessException
+import org.springframework.web.client.exchange
+import org.springframework.web.util.UriComponentsBuilder
+import java.net.SocketException
 import javax.net.ssl.SSLHandshakeException
 
-
+@Suppress("UastIncorrectHttpHeaderInspection")
+@Component
 class AltinnTilgangssøknadClient(
+    restTemplateBuilder: RestTemplateBuilder,
+    @Value("\${altinn.apiBaseUrl}") altinnApiBaseUrl: String,
+    @Value("\${altinn.altinnHeader}") private val altinnApiKey: String,
     private val maskinportenTokenService: MaskinportenTokenService,
 ) {
-    private val altinnApiBaseUrl = Miljø.Altinn.baseUrl
-    private val altinnApiKey = Miljø.Altinn.altinnHeader
-
     private val log = logger()
 
-    private val client = HttpClient(CIO) {
-        expectSuccess = true
+    private val restTemplate = restTemplateBuilder
+        .rootUri(altinnApiBaseUrl)
+        .additionalInterceptors(
+            retryInterceptor(
+                maxAttempts = 3,
+                backoffPeriod = 250L,
+                HttpServerErrorException.BadGateway::class.java,
+                HttpServerErrorException.ServiceUnavailable::class.java,
+                HttpServerErrorException.GatewayTimeout::class.java,
+                SocketException::class.java,
+                SSLHandshakeException::class.java,
+                ResourceAccessException::class.java,
+            )
+        )
+        .build()
 
-        install(ContentNegotiation) {
-            jackson(contentType = ContentType.Application.HalJson) {
-                defaultConfiguration()
-            }
-        }
+    private val delegationRequestApiPath = UriComponentsBuilder
+        .fromUriString(altinnApiBaseUrl)
+        .path("/api/serviceowner/delegationRequests")
+        .build()
+        .toUriString()
 
-        install(HttpClientMetricsFeature) {
-            registry = Metrics.meterRegistry
-        }
-
-        install(HttpRequestRetry) {
-            retryOnServerErrors(3)
-            retryOnExceptionIf(3) { _, cause ->
-                when (cause) {
-                    is SocketTimeoutException,
-                    is ConnectTimeoutException,
-                    is EOFException,
-                    is SSLHandshakeException,
-                    is ClosedReceiveChannelException,
-                    is HttpRequestTimeoutException -> true
-
-                    else -> false
-                }
-            }
-
-            delayMillis { 250L }
-        }
-
-        install(Logging) {
-            sanitizeHeader {
-                true
-            }
-        }
-    }
-
-    private val delegationRequestApiPath = "$altinnApiBaseUrl/api/serviceowner/delegationRequests"
-
-    suspend fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad> {
-        val filter = "CoveredBy eq '$fødselsnummer'".replace(" ", "%20") // URL encode space as %20
+    fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad> {
+        val filter = "CoveredBy eq '$fødselsnummer'"
         var shouldContinue = true
         var continuationtoken: String? = null
         val resultat = ArrayList<AltinnTilgangssøknad>()
         while (shouldContinue) {
             val uri =
-                "$delegationRequestApiPath?${
+                "$delegationRequestApiPath?ForceEIAuthentication&${
                     if (continuationtoken == null) {
-                        "\$filter=$filter"
+                        "\$filter={filter}"
                     } else {
-                        "\$filter=$filter&continuation=$continuationtoken"
+                        "\$filter={filter}&continuation={continuation}"
                     }
                 }"
 
-
             val body = try {
-                val response = client.get(uri) {
-                    header("apikey", altinnApiKey)
-                    accept(ContentType.Application.HalJson)
-                    contentType(ContentType.Application.HalJson)
-                    bearerAuth(maskinportenTokenService.currentAccessToken())
-                }
-                log.info("Altinn delegation response: ${response.status} ${response.bodyAsText()}")
-                response.body<Søknadsstatus?>()
-            } catch (e: ClientRequestException) {
-                if (e.response.status == HttpStatusCode.BadRequest) {
-                    if (e.response.bodyAsText().contains("User profile")) {
-                        null
-                    } else {
-                        throw e
-                    }
+                restTemplate.exchange<Søknadsstatus?>(
+                    RequestEntity.get(uri, filter, continuationtoken)
+                        .headers(HttpHeaders().apply {
+                            set("accept", "application/hal+json")
+                            set("apikey", altinnApiKey)
+                            setBearerAuth(maskinportenTokenService.currentAccessToken())
+                        }).build()
+                ).body
+            } catch (e: BadRequest) {
+                if (e.message!!.contains("User profile")) { // Altinn returns 400 if user does not exist
+                    null
                 } else {
                     throw e
                 }
             }
-
 
             if (body == null) {
                 log.error("Altinn delegation requests: body missing")
@@ -124,8 +95,7 @@ class AltinnTilgangssøknadClient(
                 continuationtoken = body.continuationtoken
             }
 
-            body.embedded.delegationRequests!!.mapTo(resultat)
-            { søknadDTO: DelegationRequest ->
+            body.embedded.delegationRequests!!.mapTo(resultat) { søknadDTO: DelegationRequest ->
                 AltinnTilgangssøknad(
                     orgnr = søknadDTO.OfferedBy,
                     status = søknadDTO.RequestStatus,
@@ -140,31 +110,30 @@ class AltinnTilgangssøknadClient(
         return resultat
     }
 
-    suspend fun sendSøknad(fødselsnummer: String, søknadsskjema: AltinnTilgangssøknadsskjema): AltinnTilgangssøknad {
-        val response = client.post("$delegationRequestApiPath") {
-            accept(ContentType.Application.HalJson)
-            header("apikey", altinnApiKey)
-            contentType(ContentType.Application.HalJson)
-            bearerAuth(maskinportenTokenService.currentAccessToken())
-
-            setBody(
-                DelegationRequest(
-                    CoveredBy = fødselsnummer,
-                    OfferedBy = søknadsskjema.orgnr,
-                    RedirectUrl = søknadsskjema.redirectUrl,
-                    RequestResources = listOf(
-                        RequestResource(
-                            ServiceCode = søknadsskjema.serviceCode,
-                            ServiceEditionCode = søknadsskjema.serviceEdition,
-                        )
-                    ),
+    fun sendSøknad(fødselsnummer: String, søknadsskjema: AltinnTilgangssøknadsskjema): AltinnTilgangssøknad {
+        val response = restTemplate.exchange<DelegationRequest?>(
+            RequestEntity
+                .post("$delegationRequestApiPath?ForceEIAuthentication")
+                .headers(HttpHeaders().apply {
+                    set("accept", "application/hal+json")
+                    set("apikey", altinnApiKey)
+                    setBearerAuth(maskinportenTokenService.currentAccessToken())
+                })
+                .body(
+                    DelegationRequest(
+                        CoveredBy = fødselsnummer,
+                        OfferedBy = søknadsskjema.orgnr,
+                        RedirectUrl = søknadsskjema.redirectUrl,
+                        RequestResources = listOf(
+                            RequestResource(
+                                ServiceCode = søknadsskjema.serviceCode,
+                                ServiceEditionCode = søknadsskjema.serviceEdition,
+                            )
+                        ),
+                    )
                 )
-            )
-        }
-
-        println("Altinn response: ${response.status}, ${response.bodyAsText()}")
-
-        return response.body<DelegationRequest?>().let {
+        )
+        return response.body.let {
             AltinnTilgangssøknad(
                 status = it!!.RequestStatus,
                 submitUrl = it.links!!.sendRequest!!.href,

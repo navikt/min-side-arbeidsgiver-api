@@ -5,8 +5,12 @@ import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import org.springframework.context.annotation.Profile
+import org.springframework.stereotype.Component
 import java.util.*
 
+@Profile("local", "dev-gcp", "prod-gcp")
+@Component
 class ClientAssertionTokenFactory(val properties: TokenXProperties) {
     val clientAssertion: String
         get() {

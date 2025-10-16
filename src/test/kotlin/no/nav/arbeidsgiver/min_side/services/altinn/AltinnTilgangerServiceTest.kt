@@ -1,56 +1,54 @@
 package no.nav.arbeidsgiver.min_side.services.altinn
 
-import io.ktor.http.*
-import io.ktor.server.plugins.di.*
-import io.ktor.server.response.*
-import no.nav.arbeidsgiver.min_side.FakeApi
-import no.nav.arbeidsgiver.min_side.FakeApplication
 import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenXToken
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
+import org.springframework.http.HttpMethod.POST
+import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers.*
+import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
+
+@RestClientTest(
+    AltinnService::class,
+)
 class AltinnTilgangerServiceTest {
-    companion object {
-        @RegisterExtension
-        val app = FakeApplication(
-            addDatabase = true,
-        ) {
-            dependencies {
-                provide<AltinnService>(AltinnService::class)
-                provide<TokenExchangeClient> { Mockito.mock<TokenExchangeClient>() }
-            }
-        }
+    @Autowired
+    lateinit var altinnServer: MockRestServiceServer
 
-        @RegisterExtension
-        val fakeApi = FakeApi()
-    }
+    @Autowired
+    lateinit var altinnTilgangerService: AltinnService
+
+    @MockitoBean
+    lateinit var tokenXClient: TokenExchangeClient
+
+    @MockitoBean
+    lateinit var authenticatedUserHolder: AuthenticatedUserHolder
 
     @Test
-    fun `henter organisasjoner fra altinn tilganger proxy`() = app.runTest {
-        val tokenXClient = app.getDependency<TokenExchangeClient>()
+    fun `henter organisasjoner fra altinn tilganger proxy`() {
         `when`(tokenXClient.exchange(anyString(), anyString()))
             .thenReturn(TokenXToken(access_token = "access_token2"))
 
-        fakeApi.registerStub(
-            HttpMethod.Post,
-            "/altinn-tilganger",
-        ) {
-            assertEquals(call.request.headers["Authorization"], "Bearer access_token2")
-            call.respondText(
-                altinnTilgangerResponse,
-                ContentType.Application.Json
+        `when`(authenticatedUserHolder.token).thenReturn("access_token1")
+
+        altinnServer.expect(requestTo("http://arbeidsgiver-altinn-tilganger/altinn-tilganger"))
+            .andExpect(method(POST))
+            .andExpect(header("Authorization", "Bearer access_token2"))
+            .andRespond(
+                withSuccess(altinnTilgangerResponse, APPLICATION_JSON)
             )
-        }
 
-
-        val tilganger = app.getDependency<AltinnService>().hentAltinnTilganger("access_token1")
+        val tilganger = altinnTilgangerService.hentAltinnTilganger()
 
         assertFalse(tilganger.isError)
         assertTrue(tilganger.hierarki.size == 1)
@@ -89,24 +87,20 @@ class AltinnTilgangerServiceTest {
     }
 
     @Test
-    fun `henter altinn tilganger basert på rettigheter`() = app.runTest {
-        val tokenXClient = app.getDependency<TokenExchangeClient>()
+    fun `henter altinn tilganger basert på rettigheter`() {
         `when`(tokenXClient.exchange(anyString(), anyString()))
             .thenReturn(TokenXToken(access_token = "access_token2"))
 
-        fakeApi.registerStub(
-            HttpMethod.Post,
-            "/altinn-tilganger"
-        ) {
-            assertEquals(call.request.headers["Authorization"], "Bearer access_token2")
-            call.respondText(
-                altinnTilgangerResponse,
-                ContentType.Application.Json
+        `when`(authenticatedUserHolder.token).thenReturn("access_token1")
+
+        altinnServer.expect(requestTo("http://arbeidsgiver-altinn-tilganger/altinn-tilganger"))
+            .andExpect(method(POST))
+            .andExpect(header("Authorization", "Bearer access_token2"))
+            .andRespond(
+                withSuccess(altinnTilgangerResponse, APPLICATION_JSON)
             )
-        }
 
-
-        val organisasjoner = app.getDependency<AltinnService>().hentAltinnTilganger("access_token1")
+        val organisasjoner = altinnTilgangerService.hentAltinnTilganger()
         assertTrue(organisasjoner.tilgangTilOrgNr.containsKey("4936:1"))
     }
 }

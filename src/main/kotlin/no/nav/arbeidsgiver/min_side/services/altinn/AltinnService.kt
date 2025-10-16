@@ -4,57 +4,74 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.config.Miljø
-import no.nav.arbeidsgiver.min_side.defaultHttpClient
-import no.nav.arbeidsgiver.min_side.getOrCompute
+import no.nav.arbeidsgiver.min_side.config.retryInterceptor
+import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
 import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
+import org.springframework.http.RequestEntity
+import org.springframework.stereotype.Component
+import org.springframework.web.client.ResourceAccessException
+import java.net.SocketException
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLHandshakeException
 
+@Component
 class AltinnService(
+    restTemplateBuilder: RestTemplateBuilder,
     private val tokenExchangeClient: TokenExchangeClient,
+    private val authenticatedUserHolder: AuthenticatedUserHolder,
+    @Value("\${nais.cluster.name}") private val naisCluster: String,
 ) {
 
-    private val client = defaultHttpClient()
-    private val audience = "${
-        Miljø.resolve(
-            prod = { System.getenv("NAIS_CLUSTER_NAME") },
-            dev = { System.getenv("NAIS_CLUSTER_NAME") },
-            other = { "local" }
-        )
-    }:fager:arbeidsgiver-altinn-tilganger"
+    private val cache: Cache<String, AltinnTilganger> = Caffeine.newBuilder()
+        .maximumSize(10000)
+        .expireAfterWrite(10, TimeUnit.MINUTES)
+        .recordStats()
+        .build()
 
-    private val cache: Cache<String, AltinnTilganger> =
-        Caffeine.newBuilder()
-            .maximumSize(10000)
-            .expireAfterWrite(10, TimeUnit.MINUTES)
-            .recordStats()
-            .build()
+    private val restTemplate = restTemplateBuilder
+        .additionalInterceptors(
+            retryInterceptor(
+                maxAttempts = 5,
+                backoffPeriod = 250L,
+                SocketException::class.java,
+                SSLHandshakeException::class.java,
+                ResourceAccessException::class.java,
+            )
+        ).build()
 
-    suspend fun hentAltinnTilganger(token: String) = // TODO: enable caching after testing
-//        cache.getOrCompute(token) {
-            hentAltinnTilgangerFraProxy(token)
-//        }
+    fun hentAltinnTilganger() =
+        cache.getIfPresent(authenticatedUserHolder.token) ?: run {
+            hentAltinnTilgangerFraProxy().also {
+                cache.put(authenticatedUserHolder.token, it)
+            }
+        }
 
-    suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) =
-        hentAltinnTilganger(token).harTilgang(orgnr, tjeneste)
+    fun harTilgang(orgnr: String, tjeneste: String) = hentAltinnTilganger().harTilgang(orgnr, tjeneste)
 
-    suspend fun harOrganisasjon(orgnr: String, token: String) = hentAltinnTilganger(token).harOrganisasjon(orgnr)
+    fun harOrganisasjon(orgnr: String) = hentAltinnTilganger().harOrganisasjon(orgnr)
 
-    private suspend fun hentAltinnTilgangerFraProxy(token: String): AltinnTilganger {
+    private fun hentAltinnTilgangerFraProxy(): AltinnTilganger {
         val token = tokenExchangeClient.exchange(
-            subjectToken = token,
-            audience = audience,
+            authenticatedUserHolder.token,
+            "$naisCluster:fager:arbeidsgiver-altinn-tilganger"
         ).access_token!!
 
-        return client.post(Miljø.AltinnTilgangerProxy.url) {
-            contentType(ContentType.Application.Json)
-            accept(ContentType.Application.Json)
-            bearerAuth(token)
-        }.body()
+        val response = restTemplate.exchange(
+            RequestEntity
+                .method(HttpMethod.POST, "http://arbeidsgiver-altinn-tilganger/altinn-tilganger")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer $token")
+                .build(),
+            AltinnTilganger::class.java
+        )
+
+        return response.body!! // response != 200 => throws
     }
 }
 

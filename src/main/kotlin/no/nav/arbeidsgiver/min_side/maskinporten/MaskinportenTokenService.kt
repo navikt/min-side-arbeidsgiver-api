@@ -1,25 +1,28 @@
 package no.nav.arbeidsgiver.min_side.maskinporten
 
 import io.micrometer.core.instrument.MeterRegistry
-import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.InitializingBean
+import org.springframework.context.annotation.Profile
+import org.springframework.stereotype.Component
 import java.lang.management.ManagementFactory
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
 
 interface MaskinportenTokenService {
-    suspend fun currentAccessToken(): String
-    suspend fun tokenRefreshingLoop()
+    fun currentAccessToken(): String
 }
 
+@Component
+@Profile("dev-gcp", "prod-gcp")
 class MaskinportenTokenServiceImpl(
     private val maskinportenClient: MaskinportenClient,
     private val meterRegistry: MeterRegistry,
-) : MaskinportenTokenService {
+): MaskinportenTokenService, InitializingBean {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val tokenStore = AtomicReference<TokenResponseWrapper?>()
 
-    override suspend fun currentAccessToken(): String {
+    override fun currentAccessToken(): String {
         val storedToken = tokenStore.get()
         val token = if (storedToken != null && storedToken.percentageRemaining() > 20.0) {
             storedToken
@@ -34,26 +37,28 @@ class MaskinportenTokenServiceImpl(
         return token.tokenResponse.accessToken
     }
 
-    override suspend fun tokenRefreshingLoop() {
+    override fun afterPropertiesSet() {
         meterRegistry.gauge(
             "maskinporten.token.expiry.seconds", tokenStore
         ) {
             it.get()?.expiresIn()?.seconds?.toDouble() ?: Double.NaN
         }
 
-        while (true) {
-            try {
-                logger.info("sjekker om accesstoken er i ferd med å utløpe..")
-                val token = tokenStore.get()
-                if (token == null || token.percentageRemaining() < 50.0) {
-                    val newToken = maskinportenClient.fetchNewAccessToken()
-                    tokenStore.set(newToken)
+        Thread {
+            while (true) {
+                try {
+                    logger.info("sjekker om accesstoken er i ferd med å utløpe..")
+                    val token = tokenStore.get()
+                    if (token == null || token.percentageRemaining() < 50.0) {
+                        val newToken = maskinportenClient.fetchNewAccessToken()
+                        tokenStore.set(newToken)
+                    }
+                } catch (e: Exception) {
+                    logger.error("refreshing maskinporten token failed with exception {}.", e.message, e)
                 }
-            } catch (e: Exception) {
-                logger.error("refreshing maskinporten token failed with exception {}.", e.message, e)
+                Thread.sleep(Duration.ofSeconds(30).toMillis())
             }
-            delay(Duration.ofSeconds(30).toMillis())
-        }
+        }.start()
     }
 
     fun ready(): Boolean =
