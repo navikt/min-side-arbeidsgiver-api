@@ -70,7 +70,17 @@ import java.util.*
 
 fun main() {
     runBlocking(Dispatchers.Default) {
-        embeddedServer(CIO, port = 8080, host = "0.0.0.0") {
+        embeddedServer(
+            CIO,
+            configure = {
+                connector {
+                    port = 8080
+                    host = "0.0.0.0"
+                }
+                shutdownGracePeriod = 20_000
+                shutdownTimeout = 30_000
+            }
+        ) {
             ktorConfig()
             configureDependencies()
             configureRoutes()
