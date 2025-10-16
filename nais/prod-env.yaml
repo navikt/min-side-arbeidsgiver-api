@@ -15,11 +15,17 @@ spec:
       cpu: 5000m # https://home.robusta.dev/blog/stop-using-cpu-limits/
       memory: 1024Mi
   liveness:
+<<<<<<< Updated upstream
     path: /internal/isalive
-    initialDelay: 60
   readiness:
     path: /internal/isready
+=======
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
     initialDelay: 60
+  readiness:
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
+    initialDelay: 60
+>>>>>>> Stashed changes
   prometheus:
     enabled: true
     path: /internal/prometheus
