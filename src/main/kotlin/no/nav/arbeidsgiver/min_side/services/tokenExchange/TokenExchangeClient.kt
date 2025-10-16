@@ -1,50 +1,60 @@
 package no.nav.arbeidsgiver.min_side.services.tokenExchange
 
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.FormDataContent
-import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.defaultHttpClient
+import no.nav.arbeidsgiver.min_side.config.retryInterceptor
+import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.context.annotation.Profile
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.stereotype.Component
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
+import org.springframework.web.client.HttpServerErrorException
+import java.io.IOException
+import java.net.SocketException
+import javax.net.ssl.SSLHandshakeException
 
 interface TokenExchangeClient {
-    suspend fun exchange(subjectToken: String, audience: String): TokenXToken
+    fun exchange(subjectToken: String, audience: String): TokenXToken
 }
 
+@Profile("local", "dev-gcp", "prod-gcp")
+@Component
 class TokenExchangeClientImpl(
     private val properties: TokenXProperties,
     private val clientAssertionTokenFactory: ClientAssertionTokenFactory,
+    restTemplateBuilder: RestTemplateBuilder
 ) : TokenExchangeClient {
 
-    private val client = defaultHttpClient()
+    private val restTemplate = restTemplateBuilder.additionalInterceptors(
+        retryInterceptor(
+            3,
+            250L,
+            IOException::class.java, // lately been getting "GOAWAY received" as IOException, retry this as well
+            SocketException::class.java,
+            SSLHandshakeException::class.java,
+            HttpServerErrorException.GatewayTimeout::class.java,
+            HttpServerErrorException.ServiceUnavailable::class.java,
+        )
+    ).build()
 
-    override suspend fun exchange(subjectToken: String, audience: String): TokenXToken {
-        val response = client.post(properties.tokenEndpoint) {
-            contentType(ContentType.Application.FormUrlEncoded)
-            setBody(
-                FormDataContent(
-                    Parameters.build {
-                        append("grant_type", TokenXProperties.GRANT_TYPE)
-                        append("client_assertion_type", TokenXProperties.CLIENT_ASSERTION_TYPE)
-                        append("subject_token_type", TokenXProperties.SUBJECT_TOKEN_TYPE)
-                        append("subject_token", subjectToken)
-                        append("client_assertion", clientAssertionTokenFactory.clientAssertion)
-                        append("audience", audience)
-                        append("client_id", properties.clientId)
-                    }
+    override fun exchange(subjectToken: String, audience: String): TokenXToken {
+        val request = HttpEntity<MultiValueMap<String, String>>(
+            LinkedMultiValueMap(
+                mapOf(
+                    "grant_type" to listOf(TokenXProperties.GRANT_TYPE),
+                    "client_assertion_type" to listOf(TokenXProperties.CLIENT_ASSERTION_TYPE),
+                    "subject_token_type" to listOf(TokenXProperties.SUBJECT_TOKEN_TYPE),
+                    "subject_token" to listOf(subjectToken),
+                    "client_assertion" to listOf(clientAssertionTokenFactory.clientAssertion),
+                    "audience" to listOf(audience),
+                    "client_id" to listOf(properties.clientId)
                 )
-            )
-        }
-        if (response.status != HttpStatusCode.OK) {
-            throw RuntimeException("Feil ved token exchange mot TokenX. Status=${response.status}")
-        }
-
-        return response.body()
+            ),
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_FORM_URLENCODED
+            }
+        )
+        return restTemplate.postForEntity(properties.tokenEndpoint, request, TokenXToken::class.java).body!!
     }
 }
-
-data class TokenXToken(
-    var access_token: String? = null,
-    var issued_token_type: String? = null,
-    var token_type: String? = null,
-    var expires_in: Int = 0
-)

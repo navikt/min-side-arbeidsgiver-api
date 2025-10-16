@@ -1,16 +1,17 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import io.ktor.server.application.*
-import io.ktor.server.plugins.di.*
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.MeterRegistry
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.time.delay
-import no.nav.arbeidsgiver.min_side.Database
-import java.time.Duration
+import org.springframework.context.annotation.Profile
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Repository
+import java.sql.Date
+import java.sql.PreparedStatement
+import java.sql.ResultSet
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.concurrent.TimeUnit
 import java.util.function.Function
 import java.util.stream.Collector
 import java.util.stream.Collectors
@@ -21,14 +22,15 @@ interface DigisyfoRepository {
         val antallSykmeldte: Int = 0
     )
 
-    suspend fun virksomheterOgSykmeldte(nærmestelederFnr: String): List<Virksomhetsinfo>
-    suspend fun processNærmesteLederEvent(hendelse: NarmesteLederHendelse)
-    suspend fun processSykmeldingEvent(records: List<Pair<String?, SykmeldingHendelse?>>)
-    suspend fun deleteOldSykmelding(today: LocalDate)
+    fun virksomheterOgSykmeldte(nærmestelederFnr: String): List<Virksomhetsinfo>
+    fun processNærmesteLederEvent(hendelse: NarmesteLederHendelse)
+    fun processSykmeldingEvent(records: List<Pair<String?, SykmeldingHendelse?>>)
 }
 
+@Profile("dev-gcp", "prod-gcp")
+@Repository
 class DigisyfoRepositoryImpl(
-    private val database: Database,
+    private val jdbcTemplate: JdbcTemplate,
     meterRegistry: MeterRegistry,
 ) : DigisyfoRepository {
     private val tombstoneCounter: Counter
@@ -47,29 +49,29 @@ class DigisyfoRepositoryImpl(
             .register(meterRegistry)
     }
 
-    override suspend fun processNærmesteLederEvent(hendelse: NarmesteLederHendelse) {
+    override fun processNærmesteLederEvent(hendelse: NarmesteLederHendelse) {
         if (hendelse.aktivTom != null) {
-            database.nonTransactionalExecuteUpdate("delete from naermeste_leder where id = ?") {
-                uuid(hendelse.narmesteLederId)
+            jdbcTemplate.update("delete from naermeste_leder where id = ?") { ps: PreparedStatement ->
+                ps.setObject(1, hendelse.narmesteLederId)
             }
         } else {
-            database.nonTransactionalExecuteUpdate(
+            jdbcTemplate.update(
                 """
                 insert into naermeste_leder(id, naermeste_leder_fnr, virksomhetsnummer, ansatt_fnr)  
                 values(?, ?, ?, ?)  
                 on conflict (id) 
                 do nothing;
                 """.trimIndent()
-            ) {
-                uuid(hendelse.narmesteLederId)
-                text(hendelse.narmesteLederFnr)
-                text(hendelse.virksomhetsnummer)
-                text(hendelse.ansattFnr)
+            ) { ps: PreparedStatement ->
+                ps.setObject(1, hendelse.narmesteLederId)
+                ps.setString(2, hendelse.narmesteLederFnr)
+                ps.setString(3, hendelse.virksomhetsnummer)
+                ps.setString(4, hendelse.ansattFnr)
             }
         }
     }
 
-    override suspend fun processSykmeldingEvent(records: List<Pair<String?, SykmeldingHendelse?>>) {
+    override fun processSykmeldingEvent(records: List<Pair<String?, SykmeldingHendelse?>>) {
         val deduplicated = records.stream().collect(latestBy(Pair<String?, SykmeldingHendelse?>::first))
 
         val tombstones = deduplicated
@@ -81,7 +83,7 @@ class DigisyfoRepositoryImpl(
                 )
             }
             .collect(Collectors.toList())
-        database.batchUpdate("delete from sykmelding where id = ?", tombstones)
+        jdbcTemplate.batchUpdate("delete from sykmelding where id = ?", tombstones)
         tombstoneCounter.increment(tombstones.size.toDouble())
         val upserts = deduplicated
             .filter { (_, value): Pair<String?, SykmeldingHendelse?> -> value != null }
@@ -95,7 +97,7 @@ class DigisyfoRepositoryImpl(
                         .maxOfOrNull { it!! }
                 )
             }
-        database.batchUpdate(
+        jdbcTemplate.batchUpdate(
             """
             insert into sykmelding
             (id, virksomhetsnummer, ansatt_fnr, sykmeldingsperiode_slutt)
@@ -110,19 +112,22 @@ class DigisyfoRepositoryImpl(
         updateCounter.increment(upserts.size.toDouble())
     }
 
-    override suspend fun deleteOldSykmelding(today: LocalDate) {
-        val rowsAffected: Int = database.nonTransactionalExecuteUpdate(
+    @Scheduled(fixedDelay = 3, timeUnit = TimeUnit.MINUTES)
+    fun deleteOldSykmelding() {
+        deleteOldSykmelding(LocalDate.now(ZoneId.of("Europe/Oslo")))
+    }
+
+    fun deleteOldSykmelding(today: LocalDate) {
+        val rowsAffected: Int = jdbcTemplate.update(
             """
             delete from sykmelding where sykmeldingsperiode_slutt < ?
             """,
-            {
-                date(today.minusMonths(4))
-            }
+            today.minusMonths(4)
         )
         expiredCounter.increment(rowsAffected.toDouble())
     }
 
-    override suspend fun virksomheterOgSykmeldte(nærmestelederFnr: String): List<DigisyfoRepository.Virksomhetsinfo> {
+    override fun virksomheterOgSykmeldte(nærmestelederFnr: String): List<DigisyfoRepository.Virksomhetsinfo> {
         return virksomheterOgSykmeldte(
             nærmestelederFnr, LocalDate.now(
                 ZoneId.of("Europe/Oslo")
@@ -130,11 +135,8 @@ class DigisyfoRepositoryImpl(
         )
     }
 
-    suspend fun virksomheterOgSykmeldte(
-        nærmestelederFnr: String,
-        sykmeldingSlutt: LocalDate
-    ): List<DigisyfoRepository.Virksomhetsinfo> {
-        return database.nonTransactionalExecuteQuery(
+    fun virksomheterOgSykmeldte(nærmestelederFnr: String?, sykmeldingSlutt: LocalDate?): List<DigisyfoRepository.Virksomhetsinfo> {
+        jdbcTemplate.queryForStream(
             """
             with
             nl_koblinger as (
@@ -166,17 +168,17 @@ class DigisyfoRepositoryImpl(
             from virksomheter v
             left join sykmeldte s using (virksomhetsnummer)
             """,
-            {
-                text(nærmestelederFnr)
-                date(sykmeldingSlutt)
+            { ps: PreparedStatement ->
+                ps.setString(1, nærmestelederFnr)
+                ps.setDate(2, Date.valueOf(sykmeldingSlutt))
             },
-            {
+            { rs: ResultSet, _: Int ->
                 DigisyfoRepository.Virksomhetsinfo(
-                    it.getString("virksomhetsnummer"),
-                    it.getInt("antall_sykmeldte")
+                    rs.getString("virksomhetsnummer"),
+                    rs.getInt("antall_sykmeldte")
                 )
             }
-        )
+        ).use { stream -> return stream.toList() }
     }
 
     companion object {
@@ -196,24 +198,13 @@ class DigisyfoRepositoryImpl(
     }
 }
 
-suspend fun Application.startDeleteOldSykmeldingLoop(scope: CoroutineScope) {
-    val digisyfoRepository = dependencies.resolve<DigisyfoRepository>()
-    scope.launch {
-        while (true) {
-            digisyfoRepository.deleteOldSykmelding(LocalDate.now(ZoneId.of("Europe/Oslo")))
-            delay(Duration.ofMinutes(3))
-        }
-    }
-}
-
+@Profile("local")
+@Repository
 class DigisyfoRepositoryStub : DigisyfoRepository {
-    override suspend fun virksomheterOgSykmeldte(nærmestelederFnr: String): List<DigisyfoRepository.Virksomhetsinfo> {
+    override fun virksomheterOgSykmeldte(nærmestelederFnr: String): List<DigisyfoRepository.Virksomhetsinfo> {
         return listOf(DigisyfoRepository.Virksomhetsinfo("910825526", 4))
     }
 
-    override suspend fun processNærmesteLederEvent(hendelse: NarmesteLederHendelse) {}
-    override suspend fun processSykmeldingEvent(records: List<Pair<String?, SykmeldingHendelse?>>) {}
-    override suspend fun deleteOldSykmelding(today: LocalDate) {
-        TODO("Not yet implemented")
-    }
+    override fun processNærmesteLederEvent(hendelse: NarmesteLederHendelse) {}
+    override fun processSykmeldingEvent(records: List<Pair<String?, SykmeldingHendelse?>>) {}
 }

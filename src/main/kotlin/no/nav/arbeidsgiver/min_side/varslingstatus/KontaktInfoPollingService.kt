@@ -1,84 +1,71 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
-import io.ktor.server.application.*
-import io.ktor.server.plugins.di.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import no.nav.arbeidsgiver.min_side.Database
-import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
+import no.nav.arbeidsgiver.min_side.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
-import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
+import no.nav.arbeidsgiver.min_side.services.ereg.EregService
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
+@Service
 class KontaktInfoPollingService(
     private val varslingStatusRepository: VarslingStatusRepository,
     private val kontaktinfoClient: KontaktinfoClient,
-    private val eregClient: EregClient,
+    private val eregService: EregService,
     private val kontaktInfoPollerRepository: KontaktInfoPollerRepository,
-    private val database: Database
 ) {
+
     val retention = 90.days
 
-    suspend fun schedulePolling() {
+    @Scheduled(
+        initialDelayString = "PT1M",
+        fixedDelayString = "PT60M",
+    )
+    fun schedulePolling() {
         val virksomheterMedFeil = varslingStatusRepository.hentVirksomheterMedFeil(retention)
         kontaktInfoPollerRepository.schedulePoll(
             virksomheterMedFeil,
             Instant.now().toString()
         )
-        delay(Duration.parse("PT60M"))
-    }
-
-    suspend fun pollAndPullKontaktInfo() {
-        database.transactional { //TODO: skriv om kontakginforpollerrepo
-            val virksomhetsnummer = kontaktInfoPollerRepository.getAndDeleteForPoll() ?: return@transactional
-            val kontaktInfo = finnKontaktinfoIOrgTre(virksomhetsnummer) ?: return@transactional
-
-            kontaktInfoPollerRepository.updateKontaktInfo(
-                virksomhetsnummer,
-                kontaktInfo.eposter.isNotEmpty(),
-                kontaktInfo.telefonnumre.isNotEmpty()
-            )
-        }
-        delay(Duration.parse("PT1S"))
     }
 
 
-    suspend fun cleanup() {
-        database.transactional { //TODO: skriv om kontakginforpollerrepo
-            varslingStatusRepository.slettVarslingStatuserEldreEnn(retention)
-            kontaktInfoPollerRepository.slettKontaktinfoMedOkStatusEllerEldreEnn(retention)
-        }
-        delay(Duration.parse("PT1H"))
+    @Scheduled(
+        initialDelayString = "PT1M",
+        fixedDelayString = "PT1S",
+    )
+    @Transactional
+    fun pollAndPullKontaktInfo() {
+        val virksomhetsnummer = kontaktInfoPollerRepository.getAndDeleteForPoll() ?: return
+        val kontaktInfo = finnKontaktinfoIOrgTre(virksomhetsnummer) ?: return
+
+        kontaktInfoPollerRepository.updateKontaktInfo(
+            virksomhetsnummer,
+            kontaktInfo.eposter.isNotEmpty(),
+            kontaktInfo.telefonnumre.isNotEmpty()
+        )
     }
 
-    private suspend fun finnKontaktinfoIOrgTre(virksomhetsnummer: String): KontaktinfoClient.Kontaktinfo? {
+    @Scheduled(
+        initialDelayString = "PT1M",
+        fixedDelayString = "PT1H",
+    )
+    @Transactional
+    fun cleanup() {
+        varslingStatusRepository.slettVarslingStatuserEldreEnn(retention)
+        kontaktInfoPollerRepository.slettKontaktinfoMedOkStatusEllerEldreEnn(retention)
+    }
+
+    private fun finnKontaktinfoIOrgTre(virksomhetsnummer: String): KontaktinfoClient.Kontaktinfo? {
         val kontaktinfoUnderenhet = kontaktinfoClient.hentKontaktinfo(virksomhetsnummer)
         if (kontaktinfoUnderenhet.harKontaktinfo) {
             return kontaktinfoUnderenhet
         }
 
-        return eregClient.hentUnderenhet(virksomhetsnummer)?.orgnummerTilOverenhet()
+        return eregService.hentUnderenhet(virksomhetsnummer)?.orgnummerTilOverenhet()
             ?.let { kontaktinfoClient.hentKontaktinfo(it) }
     }
-}
 
-suspend fun Application.startKontaktInfoPollingServices(
-    scope: CoroutineScope,
-) {
-    val kontaktInfoPollingService = dependencies.resolve<KontaktInfoPollingService>()
-
-    scope.launch {
-        kontaktInfoPollingService.schedulePolling()
-    }
-
-    scope.launch {
-        kontaktInfoPollingService.pollAndPullKontaktInfo()
-    }
-
-    scope.launch {
-        kontaktInfoPollingService.cleanup()
-    }
 }

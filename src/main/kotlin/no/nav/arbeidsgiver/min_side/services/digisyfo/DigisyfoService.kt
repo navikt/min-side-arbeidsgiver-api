@@ -2,41 +2,35 @@ package no.nav.arbeidsgiver.min_side.services.digisyfo
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
-import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
+import no.nav.arbeidsgiver.min_side.services.ereg.EregService
 import no.nav.arbeidsgiver.min_side.services.ereg.GyldighetsPeriode.Companion.erGyldig
+import org.springframework.stereotype.Component
 
+@Component
 class DigisyfoService(
     private val digisyfoRepository: DigisyfoRepository,
-    private val eregClient: EregClient,
+    private val eregService: EregService,
     private val meterRegistry: MeterRegistry
 ) {
 
-    suspend fun hentVirksomheterOgSykmeldte(fnr: String): List<VirksomhetOgAntallSykmeldte> {
+    fun hentVirksomheterOgSykmeldte(fnr: String): List<VirksomhetOgAntallSykmeldte> {
         val virksomheterOgSykmeldte = digisyfoRepository.virksomheterOgSykmeldte(fnr)
 
         val orgs = mutableMapOf<String, VirksomhetOgAntallSykmeldte>()
 
         for (virksomhetOgSykmeldt in virksomheterOgSykmeldte) {
-            val virksomhet = orgs[virksomhetOgSykmeldt.virksomhetsnummer].let {
-                if (it == null) {
-                    val eregOrg = eregClient.hentUnderenhet(virksomhetOgSykmeldt.virksomhetsnummer)
-                        ?: throw RuntimeException("Fant ikke underenhet for $virksomhetOgSykmeldt.virksomhetsnummer")
-                    orgs[virksomhetOgSykmeldt.virksomhetsnummer] =
-                        VirksomhetOgAntallSykmeldte.from(eregOrg, virksomhetOgSykmeldt.antallSykmeldte)
-                    orgs[virksomhetOgSykmeldt.virksomhetsnummer]!!
-                }
-                else{
-                    it
-                }
+            val virksomhet = orgs.computeIfAbsent(virksomhetOgSykmeldt.virksomhetsnummer) {
+                val eregOrg = eregService.hentUnderenhet(it) ?: throw RuntimeException("Fant ikke underenhet for $it")
+                VirksomhetOgAntallSykmeldte.from(eregOrg, virksomhetOgSykmeldt.antallSykmeldte)
             }
+            orgs[virksomhet.orgnr] = virksomhet
             berikOverenheter(orgs, virksomhet)
         }
 
-        val underenheter = orgs.values.filter { it.underenheter.isEmpty() }
-        val overenheter = orgs.values.filter { it.orgnrOverenhet == null }
+        val underenheter = orgs.values.filter {it.underenheter.isEmpty() }
+        val overenheter = orgs.values.filter {it.orgnrOverenhet == null }
 
         meterRegistry.counter(
             "msa.digisyfo.tilgang",
@@ -47,24 +41,14 @@ class DigisyfoService(
         return overenheter
     }
 
-    private suspend fun berikOverenheter(
-        orgs: MutableMap<String, VirksomhetOgAntallSykmeldte>,
-        virksomhet: VirksomhetOgAntallSykmeldte
-    ) {
+    private fun berikOverenheter(orgs: MutableMap<String, VirksomhetOgAntallSykmeldte>, virksomhet: VirksomhetOgAntallSykmeldte) {
         val orgnummerTilOverenhet = virksomhet.orgnrOverenhet ?: return
 
-        val overenhet = orgs[orgnummerTilOverenhet].let {
-            if (it == null) {
-                val eregOrg = eregClient.hentUnderenhet(orgnummerTilOverenhet)
-                    ?: throw RuntimeException("Fant ikke underenhet for $orgnummerTilOverenhet")
-                orgs[orgnummerTilOverenhet] = VirksomhetOgAntallSykmeldte.from(eregOrg)
-                orgs[orgnummerTilOverenhet]!!
-            }
-            else{
-                it
-            }
+        val overenhet = orgs.computeIfAbsent(orgnummerTilOverenhet) {
+            val eregOrg = eregService.hentOverenhet(it) ?: throw RuntimeException("Fant ikke overenhet for $it")
+            VirksomhetOgAntallSykmeldte.from(eregOrg)
         }
-
+        orgs[overenhet.orgnr] = overenhet
         overenhet.leggTilUnderenhet(virksomhet)
         berikOverenheter(orgs, overenhet)
     }

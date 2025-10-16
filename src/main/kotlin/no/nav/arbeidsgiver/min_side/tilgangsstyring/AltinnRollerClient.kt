@@ -2,25 +2,42 @@ package no.nav.arbeidsgiver.min_side.tilgangsstyring
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.config.Miljø
-import no.nav.arbeidsgiver.min_side.defaultHttpClient
+import no.nav.arbeidsgiver.min_side.config.retryInterceptor
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod.GET
+import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpClientErrorException.BadRequest
+import java.net.SocketException
+import javax.net.ssl.SSLHandshakeException
 
+@Component
 class AltinnRollerClient(
+    restTemplateBuilder: RestTemplateBuilder,
+    @Value("\${altinn.apiBaseUrl}") altinnApiBaseUrl: String,
+    @Value("\${altinn.altinnHeader}") private val altinnApiKey: String,
     private val maskinportenTokenService: MaskinportenTokenService,
 ) {
-    private val altinnApiBaseUrl = Miljø.Altinn.baseUrl
-    private val altinnApiKey = Miljø.Altinn.altinnHeader
-
-    private val client = defaultHttpClient()
+    private val restTemplate = restTemplateBuilder
+        .rootUri(altinnApiBaseUrl)
+        .additionalInterceptors(
+            retryInterceptor(
+                3,
+                250L,
+                SocketException::class.java,
+                SSLHandshakeException::class.java,
+            )
+        )
+        .build()
 
     private val safeRoleName = Regex("^[A-ZÆØÅ]+$")
     private val orgnrRegex = Regex("^[0-9]{9}$")
 
-    suspend fun harAltinnRolle(
+    fun harAltinnRolle(
         fnr: String,
         orgnr: String,
         altinnRoller: Set<String>,
@@ -31,6 +48,11 @@ class AltinnRollerClient(
             "skrevet under antagelse om at både altinnRoller og externalRoller er non-empty"
         }
 
+        val headers = HttpHeaders().apply {
+            set("apikey", altinnApiKey)
+            setBearerAuth(maskinportenTokenService.currentAccessToken())
+        }
+
         fun roleDefintionFilter(roller: Iterable<String>) =
             roller.joinToString(separator = "+or+") {
                 require(it.matches(safeRoleName))
@@ -39,29 +61,26 @@ class AltinnRollerClient(
 
         val altinnRolleFilter = roleDefintionFilter(altinnRoller)
         val eregRolleFilter = roleDefintionFilter(externalRoller)
-        val filter =
-            "(RoleType+eq+'Altinn'+and+($altinnRolleFilter))+or+(RoleType+eq+'External'+and+($eregRolleFilter))"
+        val filter = "(RoleType+eq+'Altinn'+and+($altinnRolleFilter))+or+(RoleType+eq+'External'+and+($eregRolleFilter))"
 
-        val rollerResponse =
-            client.get("$altinnApiBaseUrl/api/serviceowner/authorization/roles?subject=$fnr&reportee=$orgnr&${'$'}filter=$filter") {
-                header("apikey", altinnApiKey)
-                bearerAuth(maskinportenTokenService.currentAccessToken())
+        val roller = try {
+            restTemplate.exchange(
+                "/api/serviceowner/authorization/roles?subject={subject}&reportee={reportee}&${'$'}filter={filter}&ForceEIAuthentication",
+                GET,
+                HttpEntity<Nothing>(headers),
+                roleListType,
+                mapOf<String, Any>(
+                    "subject" to fnr,
+                    "reportee" to orgnr,
+                    "filter" to filter,
+                )
+            ).body ?: throw RuntimeException("serviceowner/authorization/roles missing body")
+        } catch (e: BadRequest) {
+            if (e.message!!.contains("User profile")) { // Altinn returns 400 if user does not exist
+                emptyList()
+            } else {
+                throw e
             }
-
-        val roller = when (rollerResponse.status) {
-            HttpStatusCode.OK -> rollerResponse.body<List<RoleDTO>?>()
-                ?: throw RuntimeException("serviceowner/authorization/roles missing body")
-
-            HttpStatusCode.BadRequest -> {
-                val body = rollerResponse.body<String>()
-                if (body.contains("User profile")) { // Altinn returns 400 if user does not exist
-                    emptyList()
-                } else {
-                    throw RuntimeException("serviceowner/authorization/roles BadRequest: $body")
-                }
-            }
-
-            else -> throw RuntimeException("serviceowner/authorization/roles unexpected status: ${rollerResponse.status}")
         }
 
         /* Kanskje litt paranoid, men da er vi korrekte uavhengig av om $filter er implementert
@@ -75,4 +94,8 @@ class AltinnRollerClient(
         @JsonProperty("RoleType") val roleType: String,
         @JsonProperty("RoleDefinitionCode") val roleDefinitionCode: String,
     )
+
+    companion object {
+        private val roleListType = object : ParameterizedTypeReference<List<RoleDTO>>() {}
+    }
 }

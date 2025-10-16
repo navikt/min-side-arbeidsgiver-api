@@ -1,67 +1,57 @@
 package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
-import io.ktor.http.*
-import io.ktor.server.plugins.di.*
-import io.ktor.server.request.header
-import io.ktor.server.response.*
-import no.nav.arbeidsgiver.min_side.FakeApi
-import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
 import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
+import no.nav.arbeidsgiver.min_side.services.tokenExchange.ClientAssertionTokenFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
+import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers.*
+import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
+@MockitoBean(
+    types = [
+        ClientAssertionTokenFactory::class,
+        MaskinportenTokenServiceStub::class,
+    ]
+)
+@RestClientTest(AltinnTilgangssøknadClient::class)
 class AltinnTilgangssøknadClientTest {
-    companion object {
-        @RegisterExtension
-        val app = FakeApplication(
-            addDatabase = true,
-        ) {
-            dependencies {
-                provide<AltinnTilgangssøknadClient>(AltinnTilgangssøknadClient::class)
-                provide<MaskinportenTokenService> { MaskinportenTokenServiceStub() }
-            }
-        }
+    @Autowired
+    lateinit var server: MockRestServiceServer
 
-        @RegisterExtension
-        val fakeApi = FakeApi()
-    }
+    @Autowired
+    lateinit var client: AltinnTilgangssøknadClient
 
     /**
      * se: https://www.altinn.no/api/serviceowner/Help/Api/GET-serviceowner-delegationRequests_serviceCode_serviceEditionCode_status[0]_status[1]_continuation_coveredby_offeredby
      */
     @Test
-    fun hentSøknader() = app.runTest {
+    fun hentSøknader() {
         val fnr = "42"
-        fakeApi.registerStub(
-            HttpMethod.Get,
-            "/api/serviceowner/delegationRequests",
-            parametersOf(
-                "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
-            ),
-            {
-                if (call.request.header("accept")!!.contains("application/json")){
-                    call.respond(HttpStatusCode.BadRequest, "Feil i accept header: ${call.request.header("accept")!!}")
-                }
-                call.response.header(HttpHeaders.ContentType, "application/hal+json")
-                call.respond(altinnHentSøknadResponse)
-            }
+        server.expect(
+            requestToUriTemplate(
+                "/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter={filter}",
+                "CoveredBy eq '$fnr'"
+            )
         )
-        fakeApi.registerStub(
-            HttpMethod.Get,
-            "/api/serviceowner/delegationRequests",
-            parametersOf(
-                "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
-                "continuation" to listOf(continuationtoken)
-            ),
-            {
-                call.response.header(HttpHeaders.ContentType, "application/hal+json")
-                call.respond(altinnHentSøknadTomResponse)
-            }
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess(altinnHentSøknadResponse, MediaType.APPLICATION_JSON))
+        server.expect(
+            requestToUriTemplate(
+                "/api/serviceowner/delegationRequests?ForceEIAuthentication&\$filter={filter}&continuation={continuation}",
+                "CoveredBy eq '$fnr'",
+                continuationtoken
+            )
         )
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess(altinnHentSøknadTomResponse, MediaType.APPLICATION_JSON))
 
-        val result = app.getDependency<AltinnTilgangssøknadClient>().hentSøknader(fnr)
+        val result = client.hentSøknader(fnr)
         assertThat(result).isNotEmpty
     }
 
@@ -69,7 +59,7 @@ class AltinnTilgangssøknadClientTest {
      * se https://www.altinn.no/api/serviceowner/Help/Api/POST-serviceowner-delegationRequests
      */
     @Test
-    fun sendSøknad() = app.runTest {
+    fun sendSøknad() {
         val fnr = "42"
         val skjema = AltinnTilgangssøknadsskjema(
             orgnr = "314",
@@ -78,15 +68,12 @@ class AltinnTilgangssøknadClientTest {
             serviceEdition = 7,
         )
 
-        fakeApi.registerStub(
-            HttpMethod.Post,
-            "/api/serviceowner/delegationRequests",
-        ) {
-            call.response.header(HttpHeaders.ContentType, "application/hal+json")
-            call.respond(altinnSendSøknadResponse)
-        }
+        server.expect(requestToUriTemplate("/api/serviceowner/delegationRequests?ForceEIAuthentication"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(content().json(altinnSendSøknadRequest, true))
+            .andRespond(withSuccess(altinnSendSøknadResponse, MediaType.APPLICATION_JSON))
 
-        val result = app.getDependency<AltinnTilgangssøknadClient>().sendSøknad(fnr, skjema)
+        val result = client.sendSøknad(fnr, skjema)
         assertThat(result.status).isNotBlank
         assertThat(result.submitUrl).isNotBlank
     }

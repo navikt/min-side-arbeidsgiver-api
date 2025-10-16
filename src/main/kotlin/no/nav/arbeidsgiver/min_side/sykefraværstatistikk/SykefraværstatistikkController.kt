@@ -1,22 +1,24 @@
 package no.nav.arbeidsgiver.min_side.sykefraværstatistikk
 
-import io.ktor.http.HttpStatusCode
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssøknad
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RestController
 
-
-class SykefraværstatistikkService(
+@RestController
+class SykefraværstatistikkController(
     private val altinnService: AltinnService,
     private val sykefraværstatistikkRepository: SykefraværstatistikkRepository,
 ) {
 
     val altinnRessursId = "nav_forebygge-og-redusere-sykefravar_sykefravarsstatistikk"
 
-    suspend fun getStatistikk(
-        orgnr: String,
-        token: String
-    ): ResponseEntity {
-        val harTilgang = altinnService.harTilgang(orgnr, altinnRessursId, token)
+    @GetMapping("/api/sykefravaerstatistikk/{orgnr}")
+    fun getStatistikk(
+        @PathVariable orgnr: String,
+    ): ResponseEntity<StatistikkRespons> {
+        val harTilgang = altinnService.harTilgang(orgnr, altinnRessursId)
 
         return if (harTilgang) {
             val statistikk = sykefraværstatistikkRepository.virksomhetstatistikk(orgnr)?.let {
@@ -44,23 +46,17 @@ class SykefraværstatistikkService(
         }
     }
 
-
     // DTO som matcher tidligere respons fra sykefraværsstatistikk-apiet
     data class StatistikkRespons(
         val type: String,
         val label: String,
         val prosent: Double,
     )
-    data class ResponseEntity(
-        val status: HttpStatusCode,
-        val body: StatistikkRespons? = null,
-    )
 }
 
-
-private fun SykefraværstatistikkService.StatistikkRespons?.asResponseEntity(): SykefraværstatistikkService.ResponseEntity =
+private fun SykefraværstatistikkController.StatistikkRespons?.asResponseEntity(): ResponseEntity<SykefraværstatistikkController.StatistikkRespons> =
     if (this == null) {
-        SykefraværstatistikkService.ResponseEntity(HttpStatusCode.NoContent)
+        ResponseEntity.noContent().build()
     } else {
-        SykefraværstatistikkService.ResponseEntity(HttpStatusCode.OK, this)
+        ResponseEntity.ok().body(this)
     }

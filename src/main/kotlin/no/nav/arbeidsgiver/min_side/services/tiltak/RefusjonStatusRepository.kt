@@ -3,11 +3,22 @@ package no.nav.arbeidsgiver.min_side.services.tiltak
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.arbeidsgiver.min_side.Database
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.springframework.context.annotation.Profile
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
+import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
+import java.sql.PreparedStatement
 
 
+@Repository
 class RefusjonStatusRepository(
-    private val database: Database,
+    private val jdbcTemplate: JdbcTemplate,
+    private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate
 ) {
     data class Statusoversikt(
         val virksomhetsnummer: String = "",
@@ -18,8 +29,8 @@ class RefusjonStatusRepository(
         val statusoversikt: Map<String, Int> = mapOf()
     )
 
-    suspend fun processHendelse(hendelse: RefusjonStatusHendelse) {
-        database.nonTransactionalExecuteUpdate(
+    fun processHendelse(hendelse: RefusjonStatusHendelse) {
+        jdbcTemplate.update(
             """
             insert into refusjon_status(refusjon_id, virksomhetsnummer, avtale_id, status) 
                 values(?, ?, ?, ?) 
@@ -29,35 +40,26 @@ class RefusjonStatusRepository(
                     avtale_id = EXCLUDED.avtale_id,        
                     status = EXCLUDED.status;
             """.trimIndent()
-        ) {
-            text(hendelse.refusjonId)
-            text(hendelse.virksomhetsnummer)
-            text(hendelse.avtaleId)
-            text(hendelse.status)
+        ) { ps: PreparedStatement ->
+            ps.setString(1, hendelse.refusjonId)
+            ps.setString(2, hendelse.virksomhetsnummer)
+            ps.setString(3, hendelse.avtaleId)
+            ps.setString(4, hendelse.status)
         }
     }
 
-    suspend fun statusoversikt(virksomhetsnummer: Collection<String>): List<Statusoversikt> {
+    fun statusoversikt(virksomhetsnummer: Collection<String>): List<Statusoversikt> {
         if (virksomhetsnummer.isEmpty()) {
             return listOf()
         }
-        val virksomhetsnummere = virksomhetsnummer.joinToString(",") { "?" }
-
-        val grouped = database.nonTransactionalExecuteQuery(
+        val grouped = namedParameterJdbcTemplate.queryForList(
             """
-        select virksomhetsnummer, status, count(*) as count 
-            from refusjon_status 
-            where virksomhetsnummer in ($virksomhetsnummere) 
-            group by virksomhetsnummer, status
-        """.trimIndent(),
-            { virksomhetsnummer.forEach { text(it) } },
-            { rs ->
-                mapOf(
-                    "virksomhetsnummer" to rs.getString("virksomhetsnummer"),
-                    "status" to rs.getString("status"),
-                    "count" to rs.getLong("count")
-                )
-            }
+            select virksomhetsnummer, status, count(*) as count 
+                from refusjon_status 
+                where virksomhetsnummer in (:virksomhetsnumre) 
+                group by virksomhetsnummer, status
+            """.trimIndent(),
+            mapOf("virksomhetsnumre" to virksomhetsnummer)
         )
             .groupBy { it["virksomhetsnummer"] }
             .mapValues {
@@ -68,6 +70,24 @@ class RefusjonStatusRepository(
         return grouped.map { Statusoversikt(it.key as String, it.value) }
     }
 }
+
+@Profile("dev-gcp", "prod-gcp")
+@Service
+class RefusjonStatusKafkaListener(
+    private val objectMapper: ObjectMapper,
+    private val refusjonStatusRepository: RefusjonStatusRepository,
+) {
+
+    @Profile("dev-gcp", "prod-gcp")
+    @KafkaListener(
+        id = "min-side-arbeidsgiver-1",
+        topics = ["arbeidsgiver.tiltak-refusjon-endret-status"],
+        containerFactory = "errorLoggingKafkaListenerContainerFactory"
+    )
+    fun processConsumerRecord(record: ConsumerRecord<String, String>) =
+        refusjonStatusRepository.processHendelse(objectMapper.readValue(record.value()))
+}
+
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)

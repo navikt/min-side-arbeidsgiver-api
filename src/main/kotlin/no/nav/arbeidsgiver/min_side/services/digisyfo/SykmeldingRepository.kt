@@ -1,17 +1,23 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import no.nav.arbeidsgiver.min_side.Database
+import org.springframework.context.annotation.Profile
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.stereotype.Repository
+import java.sql.PreparedStatement
 import java.sql.ResultSet
+import java.util.stream.Stream
 
 interface SykmeldingRepository {
-    suspend fun oversiktSykmeldinger(nærmestelederFnr: String): Map<String, Int>
+    fun oversiktSykmeldinger(nærmestelederFnr: String): Map<String, Int>
 }
 
+@Profile("dev-gcp", "prod-gcp")
+@Repository
 class SykmeldingRepositoryImpl(
-    private val database: Database
+    private val jdbcTemplate: JdbcTemplate,
 ) : SykmeldingRepository {
-    override suspend fun oversiktSykmeldinger(nærmestelederFnr: String): Map<String, Int> {
-        return database.nonTransactionalExecuteQuery(
+    override fun oversiktSykmeldinger(nærmestelederFnr: String): Map<String, Int> {
+        jdbcTemplate.queryForStream<Pair<String, Int>>(
             """
                 with nl as (
                     select virksomhetsnummer, ansatt_fnr from naermeste_leder where naermeste_leder_fnr = ?
@@ -23,17 +29,21 @@ class SykmeldingRepositoryImpl(
                 nl.ansatt_fnr = s.ansatt_fnr
                 group by s.virksomhetsnummer
             """,
-            { text(nærmestelederFnr) },
-            { rs: ResultSet ->
+            { ps: PreparedStatement -> ps.setString(1, nærmestelederFnr) },
+            { rs: ResultSet, _: Int ->
                 rs.getString("virksomhetsnummer") to rs.getInt("antall")
             }
-        ).toMap()
+        ).use { stream : Stream<Pair<String, Int>> ->
+            return stream.toList().toMap()
+        }
     }
 }
 
 
+@Profile("local")
+@Repository
 class SykmeldingRepositoryStub : SykmeldingRepository {
-    override suspend fun oversiktSykmeldinger(nærmestelederFnr: String): Map<String, Int> {
+    override fun oversiktSykmeldinger(nærmestelederFnr: String): Map<String, Int> {
         return mapOf("910825526" to 4)
     }
 }

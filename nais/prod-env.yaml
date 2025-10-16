@@ -15,12 +15,12 @@ spec:
       cpu: 5000m # https://home.robusta.dev/blog/stop-using-cpu-limits/
       memory: 1024Mi
   liveness:
-    path: /internal/isalive
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
   readiness:
-    path: /internal/isready
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/health
   prometheus:
     enabled: true
-    path: /internal/prometheus
+    path: /ditt-nav-arbeidsgiver-api/internal/actuator/prometheus
   observability:
     autoInstrumentation:
       enabled: true
@@ -47,6 +47,9 @@ spec:
             envVarPrefix: DB
   envFrom:
     - secret: min-side-ag-secrets
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: prod-gcp
   tokenx:
     enabled: true
   azure:
