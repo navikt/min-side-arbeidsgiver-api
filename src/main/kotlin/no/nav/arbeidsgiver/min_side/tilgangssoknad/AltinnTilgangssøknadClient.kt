@@ -162,8 +162,6 @@ class AltinnTilgangssøknadClient(
             )
         }
 
-        println("Altinn response: ${response.status}, ${response.bodyAsText()}")
-
         return response.body<DelegationRequest?>().let {
             AltinnTilgangssøknad(
                 status = it!!.RequestStatus,
