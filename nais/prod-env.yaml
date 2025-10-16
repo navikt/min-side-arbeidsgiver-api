@@ -16,8 +16,10 @@ spec:
       memory: 1024Mi
   liveness:
     path: /internal/isalive
+    initialDelay: 30
   readiness:
     path: /internal/isready
+    initialDelay: 30
   prometheus:
     enabled: true
     path: /internal/prometheus
