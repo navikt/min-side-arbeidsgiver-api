@@ -9,11 +9,10 @@ spec:
   image: {{{image}}}
   resources:
     requests:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 400m
+      memory: 1024Mi
     limits:
-      cpu: 5000m # https://home.robusta.dev/blog/stop-using-cpu-limits/
-      memory: 2048Mi
+      memory: 4096Mi
   liveness:
     path: /internal/isalive
     initialDelay: 30
