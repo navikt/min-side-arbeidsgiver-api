@@ -113,7 +113,7 @@ fun Application.configureRoutes() {
         }
 
         authenticate("jwt") {
-            route("api") {
+            route("ditt-nav-arbeidsgiver-api/api") {
                 // Kontaktinfo
                 post("kontaktinfo/v1") {
                     call.respond(
