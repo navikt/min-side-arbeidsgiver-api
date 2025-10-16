@@ -32,7 +32,10 @@ import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import no.nav.arbeidsgiver.min_side.Database.Companion.openDatabase
 import no.nav.arbeidsgiver.min_side.azuread.AzureAdConfig
 import no.nav.arbeidsgiver.min_side.azuread.AzureClient
@@ -68,45 +71,43 @@ import org.slf4j.event.Level
 import java.util.*
 
 fun main() {
-    runBlocking(Dispatchers.Default) {
-        embeddedServer(
-            CIO,
-            configure = {
-                connector {
-                    port = 8080
-                    host = "0.0.0.0"
-                }
-                shutdownGracePeriod = 20_000
-                shutdownTimeout = 30_000
+    embeddedServer(
+        CIO,
+        configure = {
+            connector {
+                port = 8080
+                host = "0.0.0.0"
             }
-        ) {
-            ktorConfig()
-            configureDependencies()
-            configureRoutes()
+            shutdownGracePeriod = 20_000
+            shutdownTimeout = 30_000
+        }
+    ) {
+        ktorConfig()
+        configureDependencies()
+        configureRoutes()
 
 
-            val kafkaScope = Dispatchers.IO.limitedParallelism(1, "kafka-pool").let { dispatcher ->
-                CoroutineScope(SupervisorJob() + dispatcher)
-            }
-            startKafkaConsumers(kafkaScope)
+        val kafkaScope = Dispatchers.IO.limitedParallelism(1).let { dispatcher ->
+            CoroutineScope(SupervisorJob() + dispatcher)
+        }
+        startKafkaConsumers(kafkaScope)
 
-            val kontaktinfoScope = Dispatchers.IO.limitedParallelism(1, "kontaktinfo-pool").let { dispatcher ->
-                CoroutineScope(SupervisorJob() + dispatcher)
-            }
-            startKontaktInfoPollingServices(kontaktinfoScope)
+        val kontaktinfoScope = Dispatchers.IO.limitedParallelism(1).let { dispatcher ->
+            CoroutineScope(SupervisorJob() + dispatcher)
+        }
+        startKontaktInfoPollingServices(kontaktinfoScope)
 
-            val sykmeldingScope = Dispatchers.IO.limitedParallelism(1, "sykmelding-pool").let { dispatcher ->
-                CoroutineScope(SupervisorJob() + dispatcher)
-            }
-            startDeleteOldSykmeldingLoop(sykmeldingScope)
+        val sykmeldingScope = Dispatchers.IO.limitedParallelism(1).let { dispatcher ->
+            CoroutineScope(SupervisorJob() + dispatcher)
+        }
+        startDeleteOldSykmeldingLoop(sykmeldingScope)
 
-            registerShutdownListener {
-                kafkaScope.cancel("Shutdown signal received")
-                kontaktinfoScope.cancel("Shutdown signal received")
-                sykmeldingScope.cancel("Shutdown signal received")
-            }
-        }.start(wait = false)
-    }
+        registerShutdownListener {
+            kafkaScope.cancel("Shutdown signal received")
+            kontaktinfoScope.cancel("Shutdown signal received")
+            sykmeldingScope.cancel("Shutdown signal received")
+        }
+    }.start(wait = true)
 }
 
 fun Application.configureRoutes() {
