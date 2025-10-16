@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.maskinporten
 
+import io.ktor.utils.io.*
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
@@ -58,6 +59,9 @@ class MaskinportenTokenServiceImpl(
                     val newToken = maskinportenClient.fetchNewAccessToken()
                     tokenStore.set(newToken)
                 }
+
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 logger.error("refreshing maskinporten token failed with exception {}.", e.message, e)
             }
