@@ -85,12 +85,12 @@ fun main() {
             configureRoutes()
 
 
-            val kafkaScope = Dispatchers.IO.limitedParallelism(3, "kafka-pool").let { dispatcher ->
+            val kafkaScope = Dispatchers.IO.limitedParallelism(1, "kafka-pool").let { dispatcher ->
                 CoroutineScope(SupervisorJob() + dispatcher)
             }
             startKafkaConsumers(kafkaScope)
 
-            val kontaktinfoScope = Dispatchers.IO.limitedParallelism(3, "kontaktinfo-pool").let { dispatcher ->
+            val kontaktinfoScope = Dispatchers.IO.limitedParallelism(1, "kontaktinfo-pool").let { dispatcher ->
                 CoroutineScope(SupervisorJob() + dispatcher)
             }
             startKontaktInfoPollingServices(kontaktinfoScope)
