@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.server.application.*
 import io.ktor.server.plugins.di.*
+import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
+import no.nav.arbeidsgiver.min_side.logger
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.sykefraværstatistikk.*
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusDto
@@ -29,6 +31,8 @@ data class KafkaConsumerConfig(
 class MsaKafkaConsumer(
     private val config: KafkaConsumerConfig,
 ) {
+    private val log = logger()
+
     private val properties = Properties().apply {
         put(ConsumerConfig.GROUP_ID_CONFIG, config.groupId)
         put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, (getenv("KAFKA_BROKERS") ?: "localhost:9092"))
@@ -53,12 +57,19 @@ class MsaKafkaConsumer(
             consumer.subscribe(config.topics)
 
             while (isActive) {
-                val records = consumer.poll(java.time.Duration.ofMillis(1000))
-                if (records.any()) {
-                    for (record in records) {
-                        processor.processRecord(record)
+                try {
+                    val records = consumer.poll(java.time.Duration.ofMillis(1000))
+                    if (records.any()) {
+                        for (record in records) {
+                            processor.processRecord(record)
+                        }
+                        consumer.commitSync()
                     }
-                    consumer.commitSync()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    log.error("Feil ved prosessering av kafka-melding", e)
+                    delay(5000) // TODO: backoff
                 }
             }
         }
@@ -69,10 +80,17 @@ class MsaKafkaConsumer(
             consumer.subscribe(config.topics)
 
             while (isActive) {
-                val records = consumer.poll(java.time.Duration.ofMillis(1000))
-                if (records.any()) {
-                    processor.processRecords(records)
-                    consumer.commitSync()
+                try {
+                    val records = consumer.poll(java.time.Duration.ofMillis(1000))
+                    if (records.any()) {
+                        processor.processRecords(records)
+                        consumer.commitSync()
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    log.error("Feil ved prosessering av kafka-melding", e)
+                    delay(5000) // TODO: backoff
                 }
             }
         }
