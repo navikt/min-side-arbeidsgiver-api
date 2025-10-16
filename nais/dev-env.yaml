@@ -7,6 +7,12 @@ metadata:
     team: fager
 spec:
   image: {{{ image }}}
+  resources:
+    requests:
+      cpu: 400m
+      memory: 256Mi
+    limits:
+      memory: 1024Mi
   liveness:
     path: /internal/isalive
     initialDelay: 30
