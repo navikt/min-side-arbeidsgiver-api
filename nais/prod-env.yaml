@@ -10,9 +10,9 @@ spec:
   resources:
     requests:
       cpu: 400m
-      memory: 1024Mi
-    limits:
-      memory: 4096Mi
+      memory: 256Mi
+      limits:
+        memory: 1024Mi
   liveness:
     path: /internal/isalive
     initialDelay: 30
