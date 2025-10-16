@@ -13,7 +13,7 @@ spec:
       memory: 256Mi
     limits:
       cpu: 5000m # https://home.robusta.dev/blog/stop-using-cpu-limits/
-      memory: 1024Mi
+      memory: 2048Mi
   liveness:
     path: /internal/isalive
     initialDelay: 30
