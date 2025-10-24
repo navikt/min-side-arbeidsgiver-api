@@ -57,7 +57,6 @@ class AltinnTilgangSoknadService(
             "5332" to 1,
             "5332" to 2,
             "5384" to 1,
-            "5441" to 1,
             "5516" to 1,
             "5516" to 2,
             "5516" to 3,
