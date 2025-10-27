@@ -49,6 +49,7 @@ class AltinnTilgangSoknadService(
         val tjenester = setOf(
             "3403" to 2,
             "4936" to 1,
+            "5078" to 1,
             "5159" to 1,
             "5212" to 1,
             "5216" to 1,
