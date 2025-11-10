@@ -1,6 +1,5 @@
 package no.nav.arbeidsgiver.min_side.services.tiltak
 
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
 
 
@@ -10,8 +9,7 @@ class RefusjonStatusService(
 ) {
 
     suspend fun statusoversikt(token: String): List<Statusoversikt> {
-        val orgnr = altinnService.hentAltinnTilganger(token)
-            .tilgangTilOrgNr["$TJENESTEKODE:$TJENESTEVERSJON"] ?: emptySet()
+        val orgnr = altinnService.hentAltinnTilganger(token).tilgangTilOrgNr[RESSURS_ID] ?: emptySet()
 
         return refusjonStatusRepository
             .statusoversikt(orgnr)
@@ -34,7 +32,6 @@ class RefusjonStatusService(
     }
 
     companion object {
-        const val TJENESTEKODE = "4936"
-        const val TJENESTEVERSJON = "1"
+        const val RESSURS_ID = "nav_tiltak_tiltaksrefusjon"
     }
 }

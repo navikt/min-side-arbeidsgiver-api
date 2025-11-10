@@ -15,8 +15,7 @@ import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.RefusjonStatusRecordProcessor
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
-import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService.Companion.TJENESTEKODE
-import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService.Companion.TJENESTEVERSJON
+import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService.Companion.RESSURS_ID
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.jupiter.api.Test
@@ -65,7 +64,7 @@ class RefusjonStatusIntegrationTest {
                             AltinnTilganger.AltinnTilgang(
                                 orgnr = "314",
                                 altinn3Tilganger = setOf(),
-                                altinn2Tilganger = setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
+                                altinn2Tilganger = setOf(RESSURS_ID),
                                 underenheter = listOf(),
                                 navn = "Foo & Co",
                                 organisasjonsform = "BEDR"
@@ -73,7 +72,7 @@ class RefusjonStatusIntegrationTest {
                             AltinnTilganger.AltinnTilgang(
                                 orgnr = "315",
                                 altinn3Tilganger = setOf(),
-                                altinn2Tilganger = setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
+                                altinn2Tilganger = setOf(RESSURS_ID),
                                 underenheter = listOf(),
                                 navn = "Bar ltd.",
                                 organisasjonsform = "BEDR"
@@ -84,11 +83,11 @@ class RefusjonStatusIntegrationTest {
                     ),
                 ),
                 orgNrTilTilganger = mapOf(
-                    "314" to setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
-                    "315" to setOf("$TJENESTEKODE:$TJENESTEVERSJON"),
+                    "314" to setOf(RESSURS_ID),
+                    "315" to setOf(RESSURS_ID),
                 ),
                 tilgangTilOrgNr = mapOf(
-                    "$TJENESTEKODE:$TJENESTEVERSJON" to setOf("314", "315"),
+                    RESSURS_ID to setOf("314", "315"),
                 )
             )
         )
