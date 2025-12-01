@@ -254,11 +254,11 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
     // sykefraværstatistikk virksomhet, næring, bransje
     scope.launch {
         val config = KafkaConsumerConfig(
-            groupId = "min-side-arbeidsgiver-sfstats-2",
+            groupId = "min-side-arbeidsgiver-sfstats-3",
             topics = setOf(
-                "arbeidsgiver.sykefravarsstatistikk-virksomhet-v1",
-                "arbeidsgiver.sykefravarsstatistikk-naring-v1",
-                "arbeidsgiver.sykefravarsstatistikk-bransje-v1",
+                "pia.sykefravarsstatistikk-virksomhet-v1",
+                "pia.sykefravarsstatistikk-naring-v1",
+                "pia.sykefravarsstatistikk-bransje-v1",
             )
         )
         MsaKafkaConsumer(config).consume(
