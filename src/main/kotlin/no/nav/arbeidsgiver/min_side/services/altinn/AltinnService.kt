@@ -35,9 +35,9 @@ class AltinnService(
             .build()
 
     suspend fun hentAltinnTilganger(token: String) = // TODO: enable caching after testing
-//        cache.getOrCompute(token) {
+        cache.getOrCompute(token) {
             hentAltinnTilgangerFraProxy(token)
-//        }
+        }
 
     suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) =
         hentAltinnTilganger(token).harTilgang(orgnr, tjeneste)
