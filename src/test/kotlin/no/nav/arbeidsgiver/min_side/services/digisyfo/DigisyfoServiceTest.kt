@@ -1,42 +1,15 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import io.ktor.server.plugins.di.*
-import io.micrometer.core.instrument.MeterRegistry
-import kotlinx.coroutines.runBlocking
-import no.nav.arbeidsgiver.min_side.FakeApi
-import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.kotlinCapture
+import kotlinx.coroutines.test.runTest
+import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoRepository.Virksomhetsinfo
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
 import no.nav.arbeidsgiver.min_side.services.ereg.*
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
-import org.mockito.Answers
-import org.mockito.ArgumentCaptor
-import org.mockito.Captor
-import org.mockito.Mockito
+import java.time.LocalDate
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class DigisyfoServiceTest {
-    companion object {
-        @RegisterExtension
-        val app = FakeApplication(
-            addDatabase = true,
-        ) {
-            dependencies {
-                provide<DigisyfoRepository> { Mockito.mock<DigisyfoRepositoryImpl>() }
-                provide<EregClient> { Mockito.mock<EregClient>() }
-                provide<DigisyfoService>(DigisyfoService::class)
-                provide<MeterRegistry> { Mockito.mock(MeterRegistry::class.java, Answers.RETURNS_DEEP_STUBS) }
-            }
-        }
-
-        @RegisterExtension
-        val fakeApi = FakeApi()
-    }
-
-    @Captor
-    lateinit var orgnrCaptor: ArgumentCaptor<String>
 
     val enhetsregisteret = mapOf(
         "1" to mkOverenhet("1"),
@@ -51,102 +24,117 @@ class DigisyfoServiceTest {
         "301" to mkUnderenhet("301", "30"),
     )
 
-    @BeforeEach
-    fun setUp() {
-        orgnrCaptor = ArgumentCaptor.forClass(String::class.java)
-        runBlocking {
-            Mockito.`when`(
-                app.getDependency<EregClient>().hentOverenhet(orgnrCaptor.kotlinCapture())
-            ).thenAnswer {
-                enhetsregisteret[orgnrCaptor.value]
-            }
+    val eregClientMock = object : EregClient {
+        override suspend fun hentOrganisasjon(orgnummer: String): EregOrganisasjon? {
+            return enhetsregisteret[orgnummer]
+        }
+    }
 
-            Mockito.`when`(
-                app.getDependency<EregClient>().hentUnderenhet(orgnrCaptor.kotlinCapture())
-            ).thenAnswer {
-                enhetsregisteret[orgnrCaptor.value]
-            }
+
+    @Test
+    fun `Ingen rettigheter`() {
+        runTest {
+            val service = DigisyfoServiceImpl(
+                DigisyfoRepositoryMock(
+                    mapOf("42" to emptyList())
+                ),
+                eregClientMock,
+            )
+            val result = service.hentVirksomheterOgSykmeldte("42")
+            assertTrue(result.isEmpty())
         }
     }
 
     @Test
-    fun `Ingen rettigheter`() = app.runTest {
-        Mockito.`when`(app.getDependency<DigisyfoRepository>().virksomheterOgSykmeldte("42")).thenReturn(listOf())
-        val result = app.getDependency<DigisyfoService>().hentVirksomheterOgSykmeldte("42")
-        assertThat(result).isEmpty()
-    }
-
-    @Test
-    fun `noen rettigheter`() = app.runTest {
-        Mockito.`when`(app.getDependency<DigisyfoRepository>().virksomheterOgSykmeldte("42")).thenReturn(
-            listOf(
-                DigisyfoRepository.Virksomhetsinfo("10", 0),
-                DigisyfoRepository.Virksomhetsinfo("11", 1),
-                DigisyfoRepository.Virksomhetsinfo("20", 2),
-            )
-        )
-
-        val result = app.getDependency<DigisyfoService>().hentVirksomheterOgSykmeldte("42")
-        assertThat(result).containsExactly(
-            VirksomhetOgAntallSykmeldte(
-                orgnr = "1",
-                navn = "overenhet",
-                organisasjonsform = "AS",
-                antallSykmeldte = 1,
-                orgnrOverenhet = null,
-                underenheter = mutableListOf(
-                    VirksomhetOgAntallSykmeldte(
-                        orgnr = "10",
-                        navn = "underenhet",
-                        organisasjonsform = "BEDR",
-                        antallSykmeldte = 0,
-                        orgnrOverenhet = "1",
-                        underenheter = mutableListOf()
-                    ),
-                    VirksomhetOgAntallSykmeldte(
-                        orgnr = "11",
-                        navn = "underenhet",
-                        organisasjonsform = "BEDR",
-                        antallSykmeldte = 1,
-                        orgnrOverenhet = "1",
-                        underenheter = mutableListOf()
+    fun `noen rettigheter`() = runTest {
+        val service = DigisyfoServiceImpl(
+            DigisyfoRepositoryMock(
+                mapOf(
+                    "42" to listOf(
+                        Virksomhetsinfo("10", 0),
+                        Virksomhetsinfo("11", 1),
+                        Virksomhetsinfo("20", 2),
                     )
                 )
             ),
-            VirksomhetOgAntallSykmeldte(
-                orgnr = "2",
-                navn = "overenhet",
-                organisasjonsform = "AS",
-                antallSykmeldte = 2,
-                orgnrOverenhet = null,
-                underenheter = mutableListOf(
-                    VirksomhetOgAntallSykmeldte(
-                        orgnr = "20",
-                        navn = "underenhet",
-                        organisasjonsform = "BEDR",
-                        antallSykmeldte = 2,
-                        orgnrOverenhet = "2",
-                        underenheter = mutableListOf()
+            eregClientMock,
+        )
+
+        val result = service.hentVirksomheterOgSykmeldte("42")
+        assertEquals(
+            listOf(
+                VirksomhetOgAntallSykmeldte(
+                    orgnr = "1",
+                    navn = "overenhet",
+                    organisasjonsform = "AS",
+                    antallSykmeldte = 1,
+                    orgnrOverenhet = null,
+                    underenheter = mutableListOf(
+                        VirksomhetOgAntallSykmeldte(
+                            orgnr = "10",
+                            navn = "underenhet",
+                            organisasjonsform = "BEDR",
+                            antallSykmeldte = 0,
+                            orgnrOverenhet = "1",
+                            underenheter = mutableListOf()
+                        ),
+                        VirksomhetOgAntallSykmeldte(
+                            orgnr = "11",
+                            navn = "underenhet",
+                            organisasjonsform = "BEDR",
+                            antallSykmeldte = 1,
+                            orgnrOverenhet = "1",
+                            underenheter = mutableListOf()
+                        )
+                    )
+                ),
+                VirksomhetOgAntallSykmeldte(
+                    orgnr = "2",
+                    navn = "overenhet",
+                    organisasjonsform = "AS",
+                    antallSykmeldte = 2,
+                    orgnrOverenhet = null,
+                    underenheter = mutableListOf(
+                        VirksomhetOgAntallSykmeldte(
+                            orgnr = "20",
+                            navn = "underenhet",
+                            organisasjonsform = "BEDR",
+                            antallSykmeldte = 2,
+                            orgnrOverenhet = "2",
+                            underenheter = mutableListOf()
+                        )
                     )
                 )
-            )
+            ),
+            result
         )
     }
 
     @Test
-    fun `nestede rettigheter`() = app.runTest {
-        Mockito.`when`(app.getDependency<DigisyfoRepository>().virksomheterOgSykmeldte("42")).thenReturn(
-            listOf(
-                DigisyfoRepository.Virksomhetsinfo("3000", 2),
-                DigisyfoRepository.Virksomhetsinfo("301", 1),
-                DigisyfoRepository.Virksomhetsinfo("20", 1),
-                DigisyfoRepository.Virksomhetsinfo("10", 1),
-                DigisyfoRepository.Virksomhetsinfo("11", 1),
-            )
-        )
+    fun `nestede rettigheter`() = runTest {
+//        Mockito.`when`(app.getDependency<DigisyfoRepository>().virksomheterOgSykmeldte("42")).thenReturn(
 
-        val result = app.getDependency<DigisyfoService>().hentVirksomheterOgSykmeldte("42")
-        assertThat(result).isEqualTo(
+//        )
+
+//        val result = app.getDependency<DigisyfoService>().hentVirksomheterOgSykmeldte("42")
+//        assertThat(result).isEqualTo(
+//        )
+        val service = DigisyfoServiceImpl(
+            DigisyfoRepositoryMock(
+                mapOf(
+                    "42" to listOf(
+                        Virksomhetsinfo("3000", 2),
+                        Virksomhetsinfo("301", 1),
+                        Virksomhetsinfo("20", 1),
+                        Virksomhetsinfo("10", 1),
+                        Virksomhetsinfo("11", 1),
+                    )
+                )
+            ),
+            eregClientMock,
+        )
+        val result = service.hentVirksomheterOgSykmeldte("42")
+        assertEquals(
             listOf(
                 VirksomhetOgAntallSykmeldte(
                     orgnr = "3",
@@ -233,7 +221,8 @@ class DigisyfoServiceTest {
                         )
                     )
                 )
-            )
+            ),
+            result,
         )
     }
 
@@ -275,5 +264,21 @@ class DigisyfoServiceTest {
             type = "organisasjonsledd",
             navn = EregNavn("overenhet", null)
         )
+}
+
+private class DigisyfoRepositoryMock(val mock: Map<String, List<Virksomhetsinfo>>) : DigisyfoRepository {
+    override suspend fun virksomheterOgSykmeldte(nærmestelederFnr: String) =
+        mock[nærmestelederFnr] ?: emptyList()
+
+
+    override suspend fun processNærmesteLederEvent(hendelse: NarmesteLederHendelse) =
+        TODO("Not yet implemented")
+
+    override suspend fun processSykmeldingEvent(records: List<Pair<String?, SykmeldingHendelse?>>) =
+        TODO("Not yet implemented")
+
+    override suspend fun deleteOldSykmelding(today: LocalDate) =
+        TODO("Not yet implemented")
+
 }
 

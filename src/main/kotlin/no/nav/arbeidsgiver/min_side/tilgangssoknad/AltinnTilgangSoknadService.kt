@@ -3,21 +3,21 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 import io.ktor.client.plugins.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.logger
-import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import no.nav.arbeidsgiver.min_side.infrastruktur.logger
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 
 class AltinnTilgangSoknadService(
-    private val altinnTilgangssøknadClient: AltinnTilgangssøknadClient,
-    private val altinnService: AltinnService,
+    private val altinnTilgangssoknadClient: AltinnTilgangssoknadClient,
+    private val altinnTilgangerService: AltinnTilgangerService,
 ) {
     private val log = logger()
 
     suspend fun mineSøknaderOmTilgang(fnr: String): List<AltinnTilgangssøknad> {
-        return altinnTilgangssøknadClient.hentSøknader(fnr)
+        return altinnTilgangssoknadClient.hentSøknader(fnr)
     }
 
     suspend fun sendSøknadOmTilgang(søknadsskjema: AltinnTilgangssøknadsskjema, token: String, fnr: String): ResponseEntity {
-        val brukerErIOrg = altinnService.harOrganisasjon(søknadsskjema.orgnr, token)
+        val brukerErIOrg = altinnTilgangerService.harOrganisasjon(søknadsskjema.orgnr, token)
 
         if (!brukerErIOrg) {
             log.error("Bruker forsøker å be om tilgang til org de ikke er med i.")
@@ -33,7 +33,7 @@ class AltinnTilgangSoknadService(
             return ResponseEntity(HttpStatusCode.BadRequest)
         }
         val body = try {
-            altinnTilgangssøknadClient.sendSøknad(fnr, søknadsskjema)
+            altinnTilgangssoknadClient.sendSøknad(fnr, søknadsskjema)
         } catch (e: ClientRequestException) {
             if (e.response.bodyAsText().contains("40318")) {
                 // Bruker forsøker å sende en søknad som allerede er sendt.

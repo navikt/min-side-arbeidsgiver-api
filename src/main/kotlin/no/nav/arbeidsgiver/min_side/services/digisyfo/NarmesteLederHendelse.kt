@@ -1,15 +1,14 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
-import java.util.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import no.nav.arbeidsgiver.min_side.infrastruktur.SerializableUUID
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-class NarmesteLederHendelse @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
-    @param:JsonProperty("narmesteLederId") val narmesteLederId: UUID,
-    @param:JsonProperty("narmesteLederFnr") val narmesteLederFnr: String,
-    @param:JsonProperty("aktivTom") val aktivTom: String?,
-    @param:JsonProperty("orgnummer") val virksomhetsnummer: String,
-    @param:JsonProperty("fnr") val ansattFnr: String
+@Serializable
+class NarmesteLederHendelse(
+    @SerialName("narmesteLederId")  val narmesteLederId: SerializableUUID,
+    @SerialName("narmesteLederFnr") val narmesteLederFnr: String,
+    @SerialName("aktivTom") val aktivTom: String? = null,
+    @SerialName("orgnummer") val virksomhetsnummer: String,
+    @SerialName("fnr") val ansattFnr: String
 )

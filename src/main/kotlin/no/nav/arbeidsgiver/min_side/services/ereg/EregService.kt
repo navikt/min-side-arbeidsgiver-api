@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.ereg
 
+import kotlinx.serialization.Serializable
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.ereg.GyldighetsPeriode.Companion.erGyldig
 
@@ -7,16 +8,16 @@ class EregService(
     private val eregClient: EregClient
 ) {
 
+    @Serializable
     data class Request(
         val orgnr: String
     )
 
-    suspend fun underenhet(request: Request): EregOrganisasjonDto? =
-        EregOrganisasjonDto.fraEregOrganisasjon(eregClient.hentUnderenhet(request.orgnr))
+    suspend fun hentOrganisasjon(request: Request): EregOrganisasjonDto? =
+        EregOrganisasjonDto.fraEregOrganisasjon(eregClient.hentOrganisasjon(request.orgnr))
 
-    suspend fun overenhet(request: Request): EregOrganisasjonDto? =
-        EregOrganisasjonDto.fraEregOrganisasjon(eregClient.hentOverenhet(request.orgnr))
 
+    @Serializable
     data class EregOrganisasjonDto(
         val organisasjonsnummer: String,
         val navn: String,
@@ -37,7 +38,7 @@ class EregService(
                 return EregOrganisasjonDto(
                     organisasjonsnummer = org.organisasjonsnummer,
                     navn = org.navn.sammensattnavn,
-                    organisasjonsform = org.organisasjonDetaljer.enhetstyper?.firstOrNull() { it.gyldighetsperiode.erGyldig() }
+                    organisasjonsform = org.organisasjonDetaljer.enhetstyper?.firstOrNull { it.gyldighetsperiode.erGyldig() }
                         .let { OrganisasjonsformDto.fraOrganisasjonsform(it?.enhetstype) },
                     naeringskoder = org.organisasjonDetaljer.naeringer?.filter { it.gyldighetsperiode.erGyldig() }
                         ?.mapNotNull { it.naeringskode },
@@ -55,6 +56,7 @@ class EregService(
         }
     }
 
+    @Serializable
     data class EregAdresseDto(
         val adresse: String? = null,
         val kommunenummer: String? = null,
@@ -86,6 +88,7 @@ class EregService(
     }
 }
 
+@Serializable
 data class OrganisasjonsformDto(
     val kode: String,
     val beskrivelse: String

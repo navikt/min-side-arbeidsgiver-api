@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import no.nav.arbeidsgiver.min_side.Database
+import no.nav.arbeidsgiver.min_side.infrastruktur.Database
 import java.sql.ResultSet
 
 interface SykmeldingRepository {
@@ -28,12 +28,5 @@ class SykmeldingRepositoryImpl(
                 rs.getString("virksomhetsnummer") to rs.getInt("antall")
             }
         ).toMap()
-    }
-}
-
-
-class SykmeldingRepositoryStub : SykmeldingRepository {
-    override suspend fun oversiktSykmeldinger(nærmestelederFnr: String): Map<String, Int> {
-        return mapOf("910825526" to 4)
     }
 }

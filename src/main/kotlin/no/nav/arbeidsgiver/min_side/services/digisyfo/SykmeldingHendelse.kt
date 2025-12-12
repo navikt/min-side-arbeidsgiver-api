@@ -1,34 +1,36 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import no.nav.arbeidsgiver.min_side.infrastruktur.SerializableLocalDate
 import java.time.LocalDate
 import java.util.stream.Collectors
 
 /**
  * Se [...](https://github.com/navikt/sykmeldinger-arbeidsgiver/blob/main/src/main/kotlin/no/nav/syfo/sykmelding/kafka/model/SykmeldingArbeidsgiverKafkaMessage.kt)
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+
+@Serializable
 data class SykmeldingHendelse(
     var sykmelding: ArbeidsgiverSykmelding? = null,
     var kafkaMetadata: KafkaMetadataDTO? = null,
     var event: SykmeldingStatusKafkaEventDTO? = null
 ) {
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Serializable
     data class ArbeidsgiverSykmelding(var sykmeldingsperioder: List<SykmeldingsperiodeAGDTO>? = null)
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class SykmeldingsperiodeAGDTO(var tom: LocalDate? = null)
+    @Serializable
+    data class SykmeldingsperiodeAGDTO(var tom: SerializableLocalDate? = null)
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class KafkaMetadataDTO(@field:JsonProperty("fnr") var fnrAnsatt: String? = null)
+    @Serializable
+    data class KafkaMetadataDTO(@SerialName("fnr") var fnrAnsatt: String? = null)
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Serializable
     data class SykmeldingStatusKafkaEventDTO(var arbeidsgiver: ArbeidsgiverStatusDTO? = null)
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class ArbeidsgiverStatusDTO(@field:JsonProperty("orgnummer") var virksomhetsnummer: String? = null)
+    @Serializable
+    data class ArbeidsgiverStatusDTO(@SerialName("orgnummer") var virksomhetsnummer: String? = null)
 
     companion object {
         fun create(

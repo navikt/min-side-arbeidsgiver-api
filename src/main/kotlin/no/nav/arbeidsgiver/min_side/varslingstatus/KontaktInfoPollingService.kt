@@ -5,10 +5,11 @@ import io.ktor.server.plugins.di.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import no.nav.arbeidsgiver.min_side.Database
+import no.nav.arbeidsgiver.min_side.infrastruktur.Database
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Kontaktinfo
 import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -54,13 +55,13 @@ class KontaktInfoPollingService(
         delay(Duration.parse("PT1H"))
     }
 
-    private suspend fun finnKontaktinfoIOrgTre(virksomhetsnummer: String): KontaktinfoClient.Kontaktinfo? {
+    private suspend fun finnKontaktinfoIOrgTre(virksomhetsnummer: String): Kontaktinfo? {
         val kontaktinfoUnderenhet = kontaktinfoClient.hentKontaktinfo(virksomhetsnummer)
         if (kontaktinfoUnderenhet.harKontaktinfo) {
             return kontaktinfoUnderenhet
         }
 
-        return eregClient.hentUnderenhet(virksomhetsnummer)?.orgnummerTilOverenhet()
+        return eregClient.hentOrganisasjon(virksomhetsnummer)?.orgnummerTilOverenhet()
             ?.let { kontaktinfoClient.hentKontaktinfo(it) }
     }
 }

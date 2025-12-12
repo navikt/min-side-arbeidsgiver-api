@@ -1,13 +1,13 @@
 package no.nav.arbeidsgiver.min_side.services.kontostatus
 
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
-import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import kotlinx.serialization.Serializable
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 
 const val kontonummerTilgangTjenesetekode = "2896:87"
 
 class KontostatusService(
     val kontoregisterClient: KontoregisterClient,
-    val altinnService: AltinnService
+    val altinnTilgangerService: AltinnTilgangerService
 ) {
 
     suspend fun getKontonummerStatus(
@@ -26,7 +26,7 @@ class KontostatusService(
         body: OppslagRequest,
         token: String
     ): OppslagResponse? {
-        val harTilgang = altinnService.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgangTjenesetekode, token)
+        val harTilgang = altinnTilgangerService.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgangTjenesetekode, token)
         if (!harTilgang) {
             return null
         }
@@ -40,12 +40,16 @@ class KontostatusService(
         }
     }
 
+    @Serializable
     data class StatusRequest(val virksomhetsnummer: String)
+    @Serializable
     data class StatusResponse(val status: KontonummerStatus)
 
 
+    @Serializable
     data class OppslagRequest(val orgnrForTilgangstyring: String, val orgnrForOppslag: String)
 
+    @Serializable
     data class OppslagResponse(
         val status: KontonummerStatus,
         val kontonummer: String? = null,

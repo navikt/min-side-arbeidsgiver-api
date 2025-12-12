@@ -1,8 +1,8 @@
 package no.nav.arbeidsgiver.min_side.services.kontaktinfo
 
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
-import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
+import kotlinx.serialization.Serializable
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
+import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
 
 
@@ -13,7 +13,7 @@ class KontaktInfoService(
 ) {
     suspend fun getKontaktinfo(requestBody: KontaktinfoRequest, fnr: String): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
-        val orgnrHovedenhet = eregClient.hentUnderenhet(orgnrUnderenhet)
+        val orgnrHovedenhet = eregClient.hentOrganisasjon(orgnrUnderenhet)
             ?.orgnummerTilOverenhet()
 
         return KontaktinfoResponse(
@@ -42,6 +42,7 @@ class KontaktInfoService(
         }
     }
 
+    @Serializable
     class KontaktinfoRequest(
         val virksomhetsnummer: String,
     ) {
@@ -55,12 +56,14 @@ class KontaktInfoService(
     }
 
     @Suppress("unused") // DTO
+    @Serializable
     class Kontaktinfo(
         val eposter: List<String>,
         val telefonnumre: List<String>,
     )
 
     @Suppress("unused") // DTO
+    @Serializable
     class KontaktinfoResponse(
         /* null hvis ingen tilgang */
         val hovedenhet: Kontaktinfo?,

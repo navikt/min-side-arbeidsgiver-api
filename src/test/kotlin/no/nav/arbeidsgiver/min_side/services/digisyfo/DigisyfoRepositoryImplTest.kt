@@ -1,12 +1,11 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import no.nav.arbeidsgiver.min_side.TestDatabase
-import io.micrometer.core.instrument.logging.LoggingMeterRegistry
-import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.Test
+import no.nav.arbeidsgiver.min_side.infrastruktur.TestDatabase
+import no.nav.arbeidsgiver.min_side.infrastruktur.testApplicationWithDatabase
 import java.time.LocalDate
 import java.util.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class DigisyfoRepositoryImplTest {
     private val leder1 = "10011223344"
@@ -22,316 +21,330 @@ class DigisyfoRepositoryImplTest {
     private val uuid3 = "3608d78e-10a3-4179-9cac-000000000003"
 
     @Test
-    fun `sletter ikke dagens sykmeldinger`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2020-01-01",
-                nærmasteLedere = listOf(NL(uuid1, leder1, ansatt1, vnr1)),
-                sykmeldinger = listOf(SM("1", EV(ansatt1, vnr1, listOf("2020-01-01")))),
-            )
+    fun `sletter ikke dagens sykmeldinger`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2020-01-01",
+            nærmasteLedere = listOf(NL(uuid1, leder1, ansatt1, vnr1)),
+            sykmeldinger = listOf(SM("1", EV(ansatt1, vnr1, listOf("2020-01-01")))),
+        )
 
-            Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 1))
-        }
+        assertEquals(
+            mapOf(vnr1 to 1),
+            lookup(leder1)
+        )
     }
 
     @Test
-    fun `sletter gamle sykmeldinger`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2020-05-02",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                    NL(uuid2, leder1, ansatt2, vnr2),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr1, listOf("2020-01-01"))),
-                    SM("2", EV(ansatt2, vnr2, listOf("2020-01-02"))),
-                ),
-            )
+    fun `sletter gamle sykmeldinger`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2020-05-02",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+                NL(uuid2, leder1, ansatt2, vnr2),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr1, listOf("2020-01-01"))),
+                SM("2", EV(ansatt2, vnr2, listOf("2020-01-02"))),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0, vnr2 to 0))
-        }
+        assertEquals(
+            mapOf(vnr1 to 0, vnr2 to 0),
+            lookup(leder1)
+        )
     }
 
     @Test
-    fun `upsert bruker siste versjon`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2020-01-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                    NL(uuid2, leder1, ansatt1, vnr2),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr1, listOf("2020-01-01"))),
-                    SM("1", EV(ansatt1, vnr2, listOf("2020-01-01"))),
-                ),
-            )
+    fun `upsert bruker siste versjon`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2020-01-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+                NL(uuid2, leder1, ansatt1, vnr2),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr1, listOf("2020-01-01"))),
+                SM("1", EV(ansatt1, vnr2, listOf("2020-01-01"))),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0, vnr2 to 1))
-        }
+        assertEquals(
+            mapOf(vnr1 to 0, vnr2 to 1),
+            lookup(leder1)
+        )
     }
 
     @Test
-    fun `tombstones fjerner sykmeldinger`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2020-01-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr1, listOf("2020-01-01"))),
-                    SM("1", null),
-                ),
-            )
+    fun `tombstones fjerner sykmeldinger`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2020-01-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr1, listOf("2020-01-01"))),
+                SM("1", null),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0))
-        }
+        assertEquals(
+            mapOf(vnr1 to 0),
+            lookup(leder1)
+        )
     }
 
     @Test
-    fun `bruker eldste tom-dato`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2020-05-02",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr1, listOf("2020-01-01", "2020-05-02"))),
-                ),
-            )
+    fun `bruker eldste tom-dato`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2020-05-02",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr1, listOf("2020-01-01", "2020-05-02"))),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 1))
-        }
+        assertEquals(
+            mapOf(vnr1 to 1),
+            lookup(leder1)
+        )
     }
 
     @Test
-    fun `tilgang selv uten aktiv sykmeldt`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2022-06-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                    NL(uuid2, leder1, ansatt2, vnr2),
-                    NL(uuid3, leder1, ansatt3, vnr3),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr1, listOf("2022-01-01"))),
-                    SM("2", EV(ansatt2, vnr2, listOf("2022-03-01"))),
-                    SM("3", EV(ansatt3, vnr3, listOf("2022-07-01"))),
-                ),
-            )
+    fun `tilgang selv uten aktiv sykmeldt`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2022-06-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+                NL(uuid2, leder1, ansatt2, vnr2),
+                NL(uuid3, leder1, ansatt3, vnr3),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr1, listOf("2022-01-01"))),
+                SM("2", EV(ansatt2, vnr2, listOf("2022-03-01"))),
+                SM("3", EV(ansatt3, vnr3, listOf("2022-07-01"))),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1))
-                .containsExactlyEntriesOf(mapOf(vnr1 to 0, vnr2 to 0, vnr3 to 1))
-        }
+        assertEquals(
+            mapOf(vnr1 to 0, vnr2 to 0, vnr3 to 1),
+            lookup(leder1)
+        )
     }
 
     @Test
-    fun `tilgang som nærmeste leder uten sykmeldte`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2022-06-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                ),
-                sykmeldinger = listOf(),
-            )
+    fun `tilgang som nærmeste leder uten sykmeldte`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2022-06-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+            ),
+            sykmeldinger = listOf(),
+        )
 
-            Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0))
-        }
+        assertEquals(
+            mapOf(vnr1 to 0),
+            lookup(leder1)
+        )
     }
 
     @Test
-    fun `ser ikke ansatt som er sykmeldt i annen bedrift`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2020-01-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                    NL(uuid2, leder2, ansatt1, vnr2),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr2, listOf("2020-01-01"))),
-                ),
-            )
+    fun `ser ikke ansatt som er sykmeldt i annen bedrift`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2020-01-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+                NL(uuid2, leder2, ansatt1, vnr2),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr2, listOf("2020-01-01"))),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0))
-            Assertions.assertThat(lookup(leder2)).containsExactlyEntriesOf(mapOf(vnr2 to 1))
-        }
+        assertEquals(
+            mapOf(vnr1 to 0),
+            lookup(leder1)
+        )
+        assertEquals(
+            mapOf(vnr2 to 1),
+            lookup(leder2)
+        )
     }
 
     @Test
-    fun `ser ikke ansatt i samme bedrift man ikke er leder for`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2020-01-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                    NL(uuid2, leder2, ansatt1, vnr2),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr2, listOf("2020-01-01"))),
-                ),
-            )
+    fun `ser ikke ansatt i samme bedrift man ikke er leder for`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2020-01-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+                NL(uuid2, leder2, ansatt1, vnr2),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr2, listOf("2020-01-01"))),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1)).containsExactlyEntriesOf(mapOf(vnr1 to 0))
-            Assertions.assertThat(lookup(leder2)).containsExactlyEntriesOf(mapOf(vnr2 to 1))
-        }
+        assertEquals(
+            mapOf(vnr1 to 0),
+            lookup(leder1)
+        )
+        assertEquals(
+            mapOf(vnr2 to 1),
+            lookup(leder2)
+        )
     }
 
     @Test
-    fun `finner kun ansatt med aktiv sykmelding`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2022-11-07",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                    NL(uuid2, leder1, ansatt2, vnr1),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr1, listOf("2022-11-01"))),
-                    SM("2", EV(ansatt2, vnr1, listOf("2022-11-21"))),
-                ),
-            )
+    fun `finner kun ansatt med aktiv sykmelding`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2022-11-07",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+                NL(uuid2, leder1, ansatt2, vnr1),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr1, listOf("2022-11-01"))),
+                SM("2", EV(ansatt2, vnr1, listOf("2022-11-21"))),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1))
-                .containsExactlyEntriesOf(mapOf(vnr1 to 1))
-        }
+        assertEquals(
+            mapOf(vnr1 to 1),
+            lookup(leder1)
+        )
     }
 
     @Test
-    fun `to aktive sykmeldinger på en person gir en sykmeldt`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2022-11-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr1, listOf("2022-11-01"))),
-                    SM("2", EV(ansatt1, vnr1, listOf("2022-11-21"))),
-                ),
-            )
+    fun `to aktive sykmeldinger på en person gir en sykmeldt`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2022-11-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr1, listOf("2022-11-01"))),
+                SM("2", EV(ansatt1, vnr1, listOf("2022-11-21"))),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1))
-                .containsExactlyEntriesOf(mapOf(vnr1 to 1))
-        }
+        assertEquals(
+            mapOf(vnr1 to 1),
+            lookup(leder1)
+        )
     }
 
     @Test
-    fun `aktive sykmeldinger på forskjellige person holdes seperat`() {
-        runBlocking {
-            val lookup = prepareDatabaseSingletonBatches(
-                today = "2022-11-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                    NL(uuid2, leder1, ansatt2, vnr1),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr1, listOf("2022-11-01"))),
-                    SM("2", EV(ansatt1, vnr1, listOf("2022-11-21"))),
-                    SM("3", EV(ansatt2, vnr1, listOf("2022-11-01"))),
-                ),
-            )
+    fun `aktive sykmeldinger på forskjellige person holdes seperat`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareSingletonBatches(
+            today = "2022-11-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+                NL(uuid2, leder1, ansatt2, vnr1),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr1, listOf("2022-11-01"))),
+                SM("2", EV(ansatt1, vnr1, listOf("2022-11-21"))),
+                SM("3", EV(ansatt2, vnr1, listOf("2022-11-01"))),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1))
-                .containsExactlyEntriesOf(mapOf(vnr1 to 2))
-        }
+        assertEquals(
+            mapOf(vnr1 to 2),
+            lookup(leder1)
+        )
     }
 
     @Test
-    fun `batch upsert – tombstone`() {
-        runBlocking {
-            val lookup = prepareDatabaseBatched(
-                today = "2020-01-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr1, listOf("2020-01-01"))),
-                    SM("1", null),
-                ),
-            )
+    fun `batch upsert – tombstone`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareBatched(
+            today = "2020-01-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr1, listOf("2020-01-01"))),
+                SM("1", null),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1))
-                .containsExactlyEntriesOf(mapOf(vnr1 to 0))
-        }
+        assertEquals(
+            mapOf(vnr1 to 0),
+            lookup(leder1)
+        )
     }
 
     @Test
-    fun `batch upsert – upsert`() {
-        runBlocking {
-            val lookup = prepareDatabaseBatched(
-                today = "2020-01-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                    NL(uuid2, leder1, ansatt1, vnr2),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", EV(ansatt1, vnr1, listOf("2020-01-01"))),
-                    SM("1", EV(ansatt1, vnr2, listOf("2020-01-01"))),
-                ),
-            )
+    fun `batch upsert – upsert`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareBatched(
+            today = "2020-01-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+                NL(uuid2, leder1, ansatt1, vnr2),
+            ),
+            sykmeldinger = listOf(
+                SM("1", EV(ansatt1, vnr1, listOf("2020-01-01"))),
+                SM("1", EV(ansatt1, vnr2, listOf("2020-01-01"))),
+            ),
+        )
 
-            Assertions.assertThat(lookup(leder1))
-                .containsExactlyEntriesOf(mapOf(vnr1 to 0, vnr2 to 1))
-        }
+        assertEquals(
+            mapOf(vnr1 to 0, vnr2 to 1),
+            lookup(leder1)
+        )
     }
 
-    @Test
-    fun `batch tombstone – upsert`() {
-        runBlocking {
-            val lookup = prepareDatabaseBatched(
-                today = "2020-01-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                ),
-                sykmeldinger = listOf(
-                    SM("1", null),
-                    SM(
-                        "1",
-                        EV(ansatt1, vnr1, listOf("2020-01-01"))
-                    ),
-                ),
-            )
 
-            Assertions.assertThat(lookup(leder1))
-                .containsExactlyEntriesOf(mapOf(vnr1 to 1))
-        }
+    @Test
+    fun `batch tombstone – upsert`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareBatched(
+            today = "2020-01-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+            ),
+            sykmeldinger = listOf(
+                SM("1", null),
+                SM(
+                    "1",
+                    EV(ansatt1, vnr1, listOf("2020-01-01"))
+                ),
+            ),
+        )
+
+        assertEquals(
+            mapOf(vnr1 to 1),
+            lookup(leder1)
+        )
     }
 
+
     @Test
-    fun `batch upsert – tombstone – upsert`() {
-        runBlocking {
-            val lookup = prepareDatabaseBatched(
-                today = "2020-01-01",
-                nærmasteLedere = listOf(
-                    NL(uuid1, leder1, ansatt1, vnr1),
-                    NL(uuid2, leder1, ansatt1, vnr2),
+    fun `batch upsert – tombstone – upsert`() = testApplicationWithDatabase { db ->
+        val lookup = db.prepareBatched(
+            today = "2020-01-01",
+            nærmasteLedere = listOf(
+                NL(uuid1, leder1, ansatt1, vnr1),
+                NL(uuid2, leder1, ansatt1, vnr2),
+            ),
+            sykmeldinger = listOf(
+                SM(
+                    "1",
+                    EV(ansatt1, vnr1, listOf("2020-01-01"))
                 ),
-                sykmeldinger = listOf(
-                    SM(
-                        "1",
-                        EV(ansatt1, vnr1, listOf("2020-01-01"))
-                    ),
-                    SM("1", null),
-                    SM(
-                        "1",
-                        EV(ansatt1, vnr2, listOf("2020-01-01"))
-                    ),
+                SM("1", null),
+                SM(
+                    "1",
+                    EV(ansatt1, vnr2, listOf("2020-01-01"))
                 ),
-            )
-            Assertions.assertThat(lookup(leder1))
-                .containsExactlyEntriesOf(
-                    mapOf(
-                        vnr1 to 0,
-                        vnr2 to 1
-                    )
-                )
-        }
+            ),
+        )
+        assertEquals(
+            mapOf(
+                vnr1 to 0,
+                vnr2 to 1
+            ),
+            lookup(leder1)
+        )
     }
 
 
@@ -349,12 +362,12 @@ class DigisyfoRepositoryImplTest {
         val dates: List<String>
     )
 
-    private suspend fun prepareDatabaseSingletonBatches(
+    private suspend fun TestDatabase.prepareSingletonBatches(
         today: String,
         nærmasteLedere: List<NL>,
         sykmeldinger: List<SM>
     ) =
-        prepareDatabase(
+        prepare(
             nærmasteLedere,
             sykmeldinger.map {
                 if (it.event == null) {
@@ -372,12 +385,12 @@ class DigisyfoRepositoryImplTest {
             today
         )
 
-    private suspend fun prepareDatabaseBatched(
+    private suspend fun TestDatabase.prepareBatched(
         today: String,
         nærmasteLedere: List<NL>,
         sykmeldinger: List<SM>
     ) =
-        prepareDatabase(
+        prepare(
             nærmasteLedere,
             listOf(
                 sykmeldinger.map {
@@ -394,31 +407,12 @@ class DigisyfoRepositoryImplTest {
             today
         )
 
-    private suspend fun prepareDatabase(
+    private suspend fun TestDatabase.prepare(
         nærmesteLedere: List<NL>,
         batches: List<List<Pair<String, SykmeldingHendelse?>>>,
         today: String
     ): suspend (String) -> Map<String, Int> {
-        val database = TestDatabase()
-        database.clean()
-        database.migrate()
-
-//        val ds = PGSimpleDataSource()
-//        ds.setUrl("jdbc:postgresql://localhost:2345/postgres?user=postgres&password=postgres")
-//
-//
-//        val flyway = Flyway.configure()
-//            .dataSource(ds)
-//            .cleanDisabled(false)
-//            .load()
-//        flyway.clean()
-//        flyway.migrate()
-//        val jdbcTemplate = JdbcTemplate(ds)
-
-        val digisyfoRepository = DigisyfoRepositoryImpl(
-            database,
-            LoggingMeterRegistry()
-        )
+        val digisyfoRepository = DigisyfoRepositoryImpl(this)
 
         nærmesteLedere.forEach {
             digisyfoRepository.processNærmesteLederEvent(
@@ -441,14 +435,11 @@ class DigisyfoRepositoryImplTest {
             )
         )
 
-
-
         return { fnr: String ->
             digisyfoRepository.virksomheterOgSykmeldte(
                 fnr,
                 LocalDate.parse(today)
-            )
-                .associate { it.virksomhetsnummer to it.antallSykmeldte }
+            ).associate { it.virksomhetsnummer to it.antallSykmeldte }
         }
     }
 }

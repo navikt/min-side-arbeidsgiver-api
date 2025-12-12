@@ -1,6 +1,6 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
-import no.nav.arbeidsgiver.min_side.Database
+import no.nav.arbeidsgiver.min_side.infrastruktur.Database
 import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
@@ -33,14 +33,13 @@ class KontaktInfoPollerRepository(
                             set sjekket_tidspunkt = EXCLUDED.sjekket_tidspunkt,
                                 har_epost = EXCLUDED.har_epost,
                                 har_tlf = EXCLUDED.har_tlf;
-                """,
-            {
-                text(virksomhetsnummer)
-                text(Instant.now().toString())
-                boolean(harEpost)
-                boolean(harTlf)
-            }
-        )
+                """
+        ) {
+            text(virksomhetsnummer)
+            text(Instant.now().toString())
+            boolean(harEpost)
+            boolean(harTlf)
+        }
     }
 
     suspend fun getAndDeleteForPoll(): String? {
@@ -67,11 +66,10 @@ class KontaktInfoPollerRepository(
         database.nonTransactionalExecuteUpdate(
             """
                 delete from poll_kontaktinfo where virksomhetsnummer = ?;
-            """,
-            {
-                text(virksomhetsnummer)
-            }
-        )
+            """
+        ) {
+            text(virksomhetsnummer)
+        }
         return virksomhetsnummer
     }
 
@@ -95,10 +93,9 @@ class KontaktInfoPollerRepository(
                         where status_tidspunkt < ?
                             or status = 'OK'
                     );
-            """,
-            {
-                text(Instant.now().minus(retention.toJavaDuration()).toString())
-            }
-        )
+            """
+        ) {
+            text(Instant.now().minus(retention.toJavaDuration()).toString())
+        }
     }
 }

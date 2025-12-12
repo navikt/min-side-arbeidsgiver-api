@@ -1,20 +1,19 @@
 package no.nav.arbeidsgiver.min_side.services.kontaktinfo
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.config.Miljø
-import no.nav.arbeidsgiver.min_side.defaultHttpClient
-import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonIgnoreUnknownKeys
+import no.nav.arbeidsgiver.min_side.infrastruktur.MaskinportenTokenProvider
+import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Kontaktinfo
 
-class KontaktinfoClient(
-    private val maskinportenTokenService: MaskinportenTokenService,
-) {
-    private val client = defaultHttpClient()
-    private val altinnApiBaseUrl = Miljø.Altinn.baseUrl
-    private val altinnApiKey = Miljø.Altinn.altinnHeader
+interface KontaktinfoClient {
+    suspend fun hentKontaktinfo(orgnr: String): Kontaktinfo
 
     data class Kontaktinfo(
         val eposter: Set<String>,
@@ -23,14 +22,38 @@ class KontaktinfoClient(
         val harKontaktinfo: Boolean
             get() = eposter.isNotEmpty() || telefonnumre.isNotEmpty()
     }
+}
 
-    suspend fun hentKontaktinfo(orgnr: String): Kontaktinfo {
-        val officialContactsResponse = client.request(
-            "$altinnApiBaseUrl/api/serviceowner/organizations/${orgnr}/officialcontacts"
-        ) {
-            method = HttpMethod.Get
+class KontaktinfoClientImpl(
+    private val httpClient: HttpClient,
+    private val tokenProvider: MaskinportenTokenProvider,
+) : KontaktinfoClient {
+    companion object {
+        val ingress = Miljø.Altinn.baseUrl
+        val altinnApiKey = Miljø.Altinn.altinnHeader
+        val targetScope = "altinn:serviceowner/organizations"
+        val targetResource = Miljø.resolve(
+            prod = { "https://www.altinn.no/" },
+            other = { "https://tt02.altinn.no/" }
+        )
+    }
+
+
+
+
+    override suspend fun hentKontaktinfo(orgnr: String): Kontaktinfo {
+        val officialContactsResponse = httpClient.get {
+            url {
+                takeFrom(ingress)
+                path("/api/serviceowner/organizations/${orgnr}/officialcontacts")
+            }
             header("apiKey", altinnApiKey)
-            bearerAuth(maskinportenTokenService.currentAccessToken())
+            bearerAuth(
+                tokenProvider.token(targetScope, mapOf("resource" to targetResource)).fold(
+                    onSuccess = { it.accessToken },
+                    onError = { throw Exception("Failed to fetch token: ${it.status} ${it.error}") }
+                )
+            )
         }
         if (officialContactsResponse.status != HttpStatusCode.OK) {
             throw RuntimeException("serviceowner/organizations/{$orgnr}/officialcontacts returned ${officialContactsResponse.status}")
@@ -55,11 +78,13 @@ class KontaktinfoClient(
         )
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
+    @OptIn(ExperimentalSerializationApi::class)
+    @Serializable
+    @JsonIgnoreUnknownKeys
     private class ContactInfoDTO(
-        @JsonProperty("MobileNumber")
+        @SerialName("MobileNumber")
         val mobileNumber: String,
-        @JsonProperty("EMailAddress")
+        @SerialName("EMailAddress")
         val emailAddress: String,
     )
 }

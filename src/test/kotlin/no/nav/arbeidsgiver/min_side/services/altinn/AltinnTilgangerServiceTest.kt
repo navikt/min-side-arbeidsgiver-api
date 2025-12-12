@@ -1,59 +1,46 @@
 package no.nav.arbeidsgiver.min_side.services.altinn
 
 import io.ktor.http.*
-import io.ktor.server.plugins.di.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
-import no.nav.arbeidsgiver.min_side.FakeApi
-import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
+import no.nav.arbeidsgiver.min_side.infrastruktur.TokenResponse
+import no.nav.arbeidsgiver.min_side.infrastruktur.TokenXTokenExchanger
+import no.nav.arbeidsgiver.min_side.infrastruktur.resolve
+import no.nav.arbeidsgiver.min_side.infrastruktur.runTestApplication
+import no.nav.arbeidsgiver.min_side.mockAltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
-import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenExchangeClient
-import no.nav.arbeidsgiver.min_side.services.tokenExchange.TokenXToken
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito
-import org.mockito.Mockito.`when`
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
 
 class AltinnTilgangerServiceTest {
-    companion object {
-        @RegisterExtension
-        val app = FakeApplication(
-            addDatabase = true,
-        ) {
-            dependencies {
-                provide<AltinnService>(AltinnService::class)
-                provide<TokenExchangeClient> { Mockito.mock<TokenExchangeClient>() }
-            }
-        }
-
-        @RegisterExtension
-        val fakeApi = FakeApi()
-    }
 
     @Test
-    fun `henter organisasjoner fra altinn tilganger proxy`() = app.runTest {
-        val tokenXClient = app.getDependency<TokenExchangeClient>()
-        `when`(tokenXClient.exchange(anyString(), anyString()))
-            .thenReturn(TokenXToken(access_token = "access_token2"))
-
-        fakeApi.registerStub(
-            HttpMethod.Post,
-            "/altinn-tilganger",
-        ) {
-            assertEquals(call.request.headers["Authorization"], "Bearer access_token2")
-            call.respondText(
-                altinnTilgangerResponse,
-                ContentType.Application.Json
-            )
+    fun `henter organisasjoner fra altinn tilganger proxy`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger {
+                require(call.request.authorization() == "Bearer user-token-x") {
+                    // verify token is exchanged and forwarded?
+                    "Ugyldig token i kall til altinn tilganger proxy"
+                }
+                call.respondText(altinnTilgangerResponse, ContentType.Application.Json)
+            }
+        },
+        dependenciesCfg = {
+            provide<TokenXTokenExchanger> { object : TokenXTokenExchanger {
+                override suspend fun exchange(
+                    target: String, userToken: String
+                ) = TokenResponse.Success("$userToken-x", 3600)
+            } }
+            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
         }
-
-
-        val tilganger = app.getDependency<AltinnService>().hentAltinnTilganger("access_token1")
-
+    ) {
+        val altinnService = resolve<AltinnTilgangerService>()
+        val tilganger = altinnService.hentAltinnTilganger("user-token")
         assertFalse(tilganger.isError)
-        assertTrue(tilganger.hierarki.size == 1)
+        assertEquals(tilganger.hierarki.size, 1)
         assertEquals(
             AltinnTilganger(
                 isError = false,
@@ -86,28 +73,7 @@ class AltinnTilgangerServiceTest {
             ),
             tilganger,
         )
-    }
-
-    @Test
-    fun `henter altinn tilganger basert på rettigheter`() = app.runTest {
-        val tokenXClient = app.getDependency<TokenExchangeClient>()
-        `when`(tokenXClient.exchange(anyString(), anyString()))
-            .thenReturn(TokenXToken(access_token = "access_token2"))
-
-        fakeApi.registerStub(
-            HttpMethod.Post,
-            "/altinn-tilganger"
-        ) {
-            assertEquals(call.request.headers["Authorization"], "Bearer access_token2")
-            call.respondText(
-                altinnTilgangerResponse,
-                ContentType.Application.Json
-            )
-        }
-
-
-        val organisasjoner = app.getDependency<AltinnService>().hentAltinnTilganger("access_token1")
-        assertTrue(organisasjoner.tilgangTilOrgNr.containsKey("4936:1"))
+        assertTrue(tilganger.tilgangTilOrgNr.containsKey("4936:1"))
     }
 }
 
