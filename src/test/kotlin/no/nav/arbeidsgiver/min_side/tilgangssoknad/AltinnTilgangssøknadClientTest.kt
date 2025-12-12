@@ -1,94 +1,123 @@
 package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
 import io.ktor.http.*
-import io.ktor.server.plugins.di.*
-import io.ktor.server.request.header
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
-import no.nav.arbeidsgiver.min_side.FakeApi
-import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
-import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
+import io.ktor.server.routing.*
+import no.nav.arbeidsgiver.min_side.infrastruktur.MaskinportenTokenProvider
+import no.nav.arbeidsgiver.min_side.infrastruktur.resolve
+import no.nav.arbeidsgiver.min_side.infrastruktur.runTestApplication
+import no.nav.arbeidsgiver.min_side.infrastruktur.successMaskinportenTokenProvider
+import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.clientJsonConfig
+import org.skyscreamer.jsonassert.JSONAssert
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.test.Test
+import kotlin.test.assertTrue
 
 class AltinnTilgangssøknadClientTest {
-    companion object {
-        @RegisterExtension
-        val app = FakeApplication(
-            addDatabase = true,
-        ) {
-            dependencies {
-                provide<AltinnTilgangssøknadClient>(AltinnTilgangssøknadClient::class)
-                provide<MaskinportenTokenService> { MaskinportenTokenServiceStub() }
-            }
-        }
-
-        @RegisterExtension
-        val fakeApi = FakeApi()
-    }
+    val fnr = "42"
+    val orgnr = "314159265"
 
     /**
      * se: https://www.altinn.no/api/serviceowner/Help/Api/GET-serviceowner-delegationRequests_serviceCode_serviceEditionCode_status[0]_status[1]_continuation_coveredby_offeredby
      */
     @Test
-    fun hentSøknader() = app.runTest {
-        val fnr = "42"
-        fakeApi.registerStub(
-            HttpMethod.Get,
-            "/api/serviceowner/delegationRequests",
-            parametersOf(
-                "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
-            ),
-            {
-                if (call.request.header("accept")!!.contains("application/json")){
-                    call.respond(HttpStatusCode.BadRequest, "Feil i accept header: ${call.request.header("accept")!!}")
-                }
-                call.response.header(HttpHeaders.ContentType, "application/hal+json")
-                call.respond(altinnHentSøknadResponse)
-            }
-        )
-        fakeApi.registerStub(
-            HttpMethod.Get,
-            "/api/serviceowner/delegationRequests",
-            parametersOf(
-                "\$filter" to listOf("CoveredBy%20eq%20'$fnr'"),
-                "continuation" to listOf(continuationtoken)
-            ),
-            {
-                call.response.header(HttpHeaders.ContentType, "application/hal+json")
-                call.respond(altinnHentSøknadTomResponse)
-            }
-        )
+    fun hentSøknader() = runTestApplication(
+        externalServicesCfg = {
+            hosts(AltinnTilgangssoknadClient.ingress) {
+                routing {
+                    install(ContentNegotiation) {
+                        clientJsonConfig()
+                    }
 
-        val result = app.getDependency<AltinnTilgangssøknadClient>().hentSøknader(fnr)
-        assertThat(result).isNotEmpty
+                    get(AltinnTilgangssoknadClient.apiPath) {
+                        if (call.request.header("accept")!!.contains("application/json")) {
+                            // dersom application/json er med i listen vil Altinn ikke returnere HAL+JSON selv om den er med
+                            // for unngå å måtte skrive om klienten nå, så returnerer vi feil her i testen og passer på at klienten
+                            // ikke sender med application/json i accept-headeren
+                            call.respond(
+                                HttpStatusCode.BadRequest,
+                                "Feil i accept header: ${call.request.header("accept")!!}"
+                            )
+                        }
+
+                        if (call.parameters[$$"$filter"] == "CoveredBy%20eq%20'$fnr'") {
+                            call.respondText(
+                                if (call.parameters["continuation"] == null)
+                                    altinnHentSøknadResponse
+                                else
+                                    altinnHentSøknadTomResponse,
+                                ContentType.Application.HalJson
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        dependenciesCfg = {
+            provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+            provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+        },
+        httpClientCfg = {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                clientJsonConfig()
+            }
+        }
+    ) {
+        val result = resolve<AltinnTilgangssoknadClient>().hentSøknader(fnr)
+        assertTrue(result.isNotEmpty())
     }
 
     /**
      * se https://www.altinn.no/api/serviceowner/Help/Api/POST-serviceowner-delegationRequests
      */
     @Test
-    fun sendSøknad() = app.runTest {
-        val fnr = "42"
-        val skjema = AltinnTilgangssøknadsskjema(
-            orgnr = "314",
-            redirectUrl = "https://yolo.com",
-            serviceCode = "1337",
-            serviceEdition = 7,
-        )
+    fun sendSøknad() {
+        val capturedRequestBody = AtomicReference<String>()
+        runTestApplication(
+            externalServicesCfg = {
+                hosts(AltinnTilgangssoknadClient.ingress) {
+                    routing {
+                        install(ContentNegotiation) {
+                            clientJsonConfig()
+                        }
 
-        fakeApi.registerStub(
-            HttpMethod.Post,
-            "/api/serviceowner/delegationRequests",
+                        post(AltinnTilgangssoknadClient.apiPath) {
+                            capturedRequestBody.set(call.receiveText())
+                            call.response.header(HttpHeaders.ContentType, "application/hal+json")
+                            call.respond(altinnSendSøknadResponse)
+                        }
+                    }
+                }
+            },
+            dependenciesCfg = {
+                provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+                provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+            },
+            httpClientCfg = {
+                install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                    clientJsonConfig()
+                }
+            }
         ) {
-            call.response.header(HttpHeaders.ContentType, "application/hal+json")
-            call.respond(altinnSendSøknadResponse)
-        }
+            val fnr = "42"
+            val skjema = AltinnTilgangssøknadsskjema(
+                orgnr = "314",
+                redirectUrl = "https://yolo.com",
+                serviceCode = "1337",
+                serviceEdition = 7,
+            )
 
-        val result = app.getDependency<AltinnTilgangssøknadClient>().sendSøknad(fnr, skjema)
-        assertThat(result.status).isNotBlank
-        assertThat(result.submitUrl).isNotBlank
+            val result = resolve<AltinnTilgangssoknadClient>().sendSøknad(fnr, skjema)
+            assertTrue(result.status!!.isNotBlank())
+            assertTrue(result.submitUrl!!.isNotBlank())
+            JSONAssert.assertEquals(
+                altinnSendSøknadRequest,
+                capturedRequestBody.get(),
+                true
+            )
+        }
     }
 
     private val continuationtoken = "hohoho"
@@ -152,14 +181,14 @@ class AltinnTilgangssøknadClientTest {
 
     private val altinnSendSøknadRequest = """
         {
-          "coveredBy": "42",
-          "offeredBy": "314",
-          "redirectUrl": "https://yolo.com",
-          "keepSessionAlive": true,
-          "requestResources": [
+          "CoveredBy": "42",
+          "OfferedBy": "314",
+          "RedirectUrl": "https://yolo.com",
+          "KeepSessionAlive": true,
+          "RequestResources": [
             {
-              "serviceCode": "1337",
-              "serviceEditionCode": 7
+              "ServiceCode": "1337",
+              "ServiceEditionCode": 7
             }
           ]
         }

@@ -1,12 +1,12 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import no.nav.arbeidsgiver.min_side.TestDatabase
-import io.micrometer.core.instrument.logging.LoggingMeterRegistry
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
+import no.nav.arbeidsgiver.min_side.infrastruktur.TestDatabase
+import no.nav.arbeidsgiver.min_side.infrastruktur.testApplicationWithDatabase
 import java.time.LocalDate
 import java.util.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class SykmeldingRepositoryImplTest {
     private val leder1 = "10011223344"
@@ -19,23 +19,26 @@ class SykmeldingRepositoryImplTest {
     private val uuid2 = "3608d78e-10a3-4179-9cac-000000000002"
 
     @Test
-    fun `sletter ikke dagens sykmeldinger`() {
+    fun `sletter ikke dagens sykmeldinger`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseSingletonBatches(
+            val sykmeldingRepository = db.prepareSingletonBatches(
                 nærmasteLedere = listOf(NL(uuid1, leder1, ansatt1, vnr1)),
                 sykmeldinger = listOf(SM("1", EV(ansatt1, vnr1, listOf("2020-01-01")))),
                 deleteFrom = LocalDate.parse("2020-01-01"),
             )
 
             val result = sykmeldingRepository.oversiktSykmeldinger(leder1)
-            assertThat(result).containsExactlyEntriesOf(mapOf(vnr1 to 1))
+            assertEquals(
+                mapOf(vnr1 to 1),
+                result
+            )
         }
     }
 
     @Test
-    fun `sletter gamle sykmeldinger`() {
+    fun `sletter gamle sykmeldinger`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseSingletonBatches(
+            val sykmeldingRepository = db.prepareSingletonBatches(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                     NL(uuid2, leder1, ansatt2, vnr2),
@@ -48,14 +51,17 @@ class SykmeldingRepositoryImplTest {
             )
 
             val result = sykmeldingRepository.oversiktSykmeldinger(leder1)
-            assertThat(result).containsExactlyEntriesOf(mapOf(vnr2 to 1))
+            assertEquals(
+                mapOf(vnr2 to 1),
+                result
+            )
         }
     }
 
     @Test
-    fun `upsert bruker siste versjon`() {
+    fun `upsert bruker siste versjon`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseSingletonBatches(
+            val sykmeldingRepository = db.prepareSingletonBatches(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                     NL(uuid2, leder1, ansatt1, vnr2),
@@ -67,14 +73,17 @@ class SykmeldingRepositoryImplTest {
             )
 
             val result = sykmeldingRepository.oversiktSykmeldinger(leder1)
-            assertThat(result).containsExactlyEntriesOf(mapOf(vnr2 to 1))
+            assertEquals(
+                mapOf(vnr2 to 1),
+                result
+            )
         }
     }
 
     @Test
-    fun `tombstones fjerner sykmeldinger`() {
+    fun `tombstones fjerner sykmeldinger`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseSingletonBatches(
+            val sykmeldingRepository = db.prepareSingletonBatches(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                 ),
@@ -85,14 +94,17 @@ class SykmeldingRepositoryImplTest {
             )
 
             val result = sykmeldingRepository.oversiktSykmeldinger(leder1)
-            assertThat(result).containsExactlyEntriesOf(mapOf())
+            assertEquals(
+                mapOf(),
+                result
+            )
         }
     }
 
     @Test
-    fun `bruker eldste tom-dato`() {
+    fun `bruker eldste tom-dato`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseSingletonBatches(
+            val sykmeldingRepository = db.prepareSingletonBatches(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                 ),
@@ -103,15 +115,18 @@ class SykmeldingRepositoryImplTest {
             )
 
             val result = sykmeldingRepository.oversiktSykmeldinger(leder1)
-            assertThat(result).containsExactlyEntriesOf(mapOf(vnr1 to 1))
+            assertEquals(
+                mapOf(vnr1 to 1),
+                result
+            )
         }
     }
 
 
     @Test
-    fun `ser ikke ansatt som er sykmeldt i annen bedrift`() {
+    fun `ser ikke ansatt som er sykmeldt i annen bedrift`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseSingletonBatches(
+            val sykmeldingRepository = db.prepareSingletonBatches(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                     NL(uuid2, leder2, ansatt1, vnr2),
@@ -122,19 +137,25 @@ class SykmeldingRepositoryImplTest {
             )
 
             sykmeldingRepository.oversiktSykmeldinger(leder1).also {
-                assertThat(it).containsExactlyEntriesOf(mapOf())
+                assertEquals(
+                    mapOf(),
+                    it
+                )
             }
 
             sykmeldingRepository.oversiktSykmeldinger(leder2).also {
-                assertThat(it).containsExactlyEntriesOf(mapOf(vnr2 to 1))
+                assertEquals(
+                    mapOf(vnr2 to 1),
+                    it
+                )
             }
         }
     }
 
     @Test
-    fun `ser ikke ansatt i samme bedrift man ikke er leder for`() {
+    fun `ser ikke ansatt i samme bedrift man ikke er leder for`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseSingletonBatches(
+            val sykmeldingRepository = db.prepareSingletonBatches(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                     NL(uuid2, leder2, ansatt1, vnr2),
@@ -145,19 +166,25 @@ class SykmeldingRepositoryImplTest {
             )
 
             sykmeldingRepository.oversiktSykmeldinger(leder1).also {
-                assertThat(it).containsExactlyEntriesOf(mapOf())
+                assertEquals(
+                    mapOf(),
+                    it
+                )
             }
 
             sykmeldingRepository.oversiktSykmeldinger(leder2).also {
-                assertThat(it).containsExactlyEntriesOf(mapOf(vnr2 to 1))
+                assertEquals(
+                    mapOf(vnr2 to 1),
+                    it
+                )
             }
         }
     }
 
     @Test
-    fun `to aktive sykmeldinger på en person gir en sykmeldt`() {
+    fun `to aktive sykmeldinger på en person gir en sykmeldt`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseSingletonBatches(
+            val sykmeldingRepository = db.prepareSingletonBatches(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                 ),
@@ -168,15 +195,18 @@ class SykmeldingRepositoryImplTest {
             )
 
             sykmeldingRepository.oversiktSykmeldinger(leder1).also {
-                assertThat(it).containsExactlyEntriesOf(mapOf(vnr1 to 2))
+                assertEquals(
+                    mapOf(vnr1 to 2),
+                    it
+                )
             }
         }
     }
 
     @Test
-    fun `aktive sykmeldinger på forskjellige person holdes seperat`() {
+    fun `aktive sykmeldinger på forskjellige person holdes seperat`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseSingletonBatches(
+            val sykmeldingRepository = db.prepareSingletonBatches(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                     NL(uuid2, leder1, ansatt2, vnr1),
@@ -189,15 +219,18 @@ class SykmeldingRepositoryImplTest {
             )
 
             sykmeldingRepository.oversiktSykmeldinger(leder1).also {
-                assertThat(it).containsExactlyEntriesOf(mapOf(vnr1 to 3))
+                assertEquals(
+                    mapOf(vnr1 to 3),
+                    it
+                )
             }
         }
     }
 
     @Test
-    fun `batch upsert – tombstone`() {
+    fun `batch upsert – tombstone`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseBatched(
+            val sykmeldingRepository = db.prepareBatched(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                 ),
@@ -208,15 +241,18 @@ class SykmeldingRepositoryImplTest {
             )
 
             sykmeldingRepository.oversiktSykmeldinger(leder1).also {
-                assertThat(it).containsExactlyEntriesOf(mapOf())
+                assertEquals(
+                    mapOf(),
+                    it
+                )
             }
         }
     }
 
     @Test
-    fun `batch upsert – upsert`() {
+    fun `batch upsert – upsert`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseBatched(
+            val sykmeldingRepository = db.prepareBatched(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                     NL(uuid2, leder1, ansatt1, vnr2),
@@ -228,15 +264,18 @@ class SykmeldingRepositoryImplTest {
             )
 
             sykmeldingRepository.oversiktSykmeldinger(leder1).also {
-                assertThat(it).containsExactlyEntriesOf(mapOf(vnr2 to 1))
+                assertEquals(
+                    mapOf(vnr2 to 1),
+                    it
+                )
             }
         }
     }
 
     @Test
-    fun `batch tombstone – upsert`() {
+    fun `batch tombstone – upsert`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseBatched(
+            val sykmeldingRepository = db.prepareBatched(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                 ),
@@ -247,15 +286,18 @@ class SykmeldingRepositoryImplTest {
             )
 
             sykmeldingRepository.oversiktSykmeldinger(leder1).also {
-                assertThat(it).containsExactlyEntriesOf(mapOf(vnr1 to 1))
+                assertEquals(
+                    mapOf(vnr1 to 1),
+                    it
+                )
             }
         }
     }
 
     @Test
-    fun `batch upsert – tombstone – upsert`() {
+    fun `batch upsert – tombstone – upsert`() = testApplicationWithDatabase { db ->
         runBlocking {
-            val sykmeldingRepository = prepareDatabaseBatched(
+            val sykmeldingRepository = db.prepareBatched(
                 nærmasteLedere = listOf(
                     NL(uuid1, leder1, ansatt1, vnr1),
                     NL(uuid2, leder1, ansatt1, vnr2),
@@ -268,7 +310,10 @@ class SykmeldingRepositoryImplTest {
             )
 
             sykmeldingRepository.oversiktSykmeldinger(leder1).also {
-                assertThat(it).containsExactlyEntriesOf(mapOf(vnr2 to 1))
+                assertEquals(
+                    mapOf(vnr2 to 1),
+                    it
+                )
             }
         }
     }
@@ -283,12 +328,12 @@ class SykmeldingRepositoryImplTest {
     private data class SM(val key: String, val event: EV?)
     private data class EV(val fnr: String, val vnr: String, val dates: List<String>)
 
-    private suspend fun prepareDatabaseSingletonBatches(
+    private suspend fun TestDatabase.prepareSingletonBatches(
         nærmasteLedere: List<NL>,
         sykmeldinger: List<SM>,
         deleteFrom: LocalDate? = null
     ) =
-        prepareDatabase(
+        prepare(
             nærmasteLedere,
             sykmeldinger.map {
                 if (it.event == null) {
@@ -306,8 +351,8 @@ class SykmeldingRepositoryImplTest {
             deleteFrom
         )
 
-    private suspend fun prepareDatabaseBatched(nærmasteLedere: List<NL>, sykmeldinger: List<SM>) =
-        prepareDatabase(
+    private suspend fun TestDatabase.prepareBatched(nærmasteLedere: List<NL>, sykmeldinger: List<SM>) =
+        prepare(
             nærmasteLedere,
             listOf(
                 sykmeldinger.map {
@@ -324,17 +369,13 @@ class SykmeldingRepositoryImplTest {
             null
         )
 
-    private suspend fun prepareDatabase(
+    private suspend fun TestDatabase.prepare(
         nærmesteLedere: List<NL>,
         batches: List<List<Pair<String, SykmeldingHendelse?>>>,
         deleteFrom: LocalDate?
     ): SykmeldingRepositoryImpl {
-        val database = TestDatabase()
-        database.clean()
-        database.migrate()
-
-        val digisyfoRepository = DigisyfoRepositoryImpl(database, LoggingMeterRegistry())
-        val sykmeldingRepository = SykmeldingRepositoryImpl(database)
+        val digisyfoRepository = DigisyfoRepositoryImpl(this)
+        val sykmeldingRepository = SykmeldingRepositoryImpl(this)
 
         nærmesteLedere.forEach {
             digisyfoRepository.processNærmesteLederEvent(

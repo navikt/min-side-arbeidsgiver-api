@@ -3,11 +3,11 @@ package no.nav.arbeidsgiver.min_side.services.digisyfo
 import io.ktor.server.application.*
 import io.ktor.server.plugins.di.*
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
-import no.nav.arbeidsgiver.min_side.Database
+import no.nav.arbeidsgiver.min_side.infrastruktur.Database
+import no.nav.arbeidsgiver.min_side.infrastruktur.Metrics
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneId
@@ -29,23 +29,16 @@ interface DigisyfoRepository {
 
 class DigisyfoRepositoryImpl(
     private val database: Database,
-    meterRegistry: MeterRegistry,
 ) : DigisyfoRepository {
-    private val tombstoneCounter: Counter
-    private val expiredCounter: Counter
-    private val updateCounter: Counter
-
-    init {
-        tombstoneCounter = Counter.builder("fager.msa.sykmelding.tombstones")
-            .description("antall sykmelding-tombstones prosessert")
-            .register(meterRegistry)
-        expiredCounter = Counter.builder("fager.msa.sykmelding.expired")
-            .description("antall sykmeldinger som er slettet fordi de er utløpt")
-            .register(meterRegistry)
-        updateCounter = Counter.builder("fager.msa.sykmelding.updated")
-            .description("antall sykmeldinger som er opprettet/oppdatert")
-            .register(meterRegistry)
-    }
+    private val tombstoneCounter: Counter = Counter.builder("fager.msa.sykmelding.tombstones")
+        .description("antall sykmelding-tombstones prosessert")
+        .register(Metrics.meterRegistry)
+    private val expiredCounter: Counter = Counter.builder("fager.msa.sykmelding.expired")
+        .description("antall sykmeldinger som er slettet fordi de er utløpt")
+        .register(Metrics.meterRegistry)
+    private val updateCounter: Counter = Counter.builder("fager.msa.sykmelding.updated")
+        .description("antall sykmeldinger som er opprettet/oppdatert")
+        .register(Metrics.meterRegistry)
 
     override suspend fun processNærmesteLederEvent(hendelse: NarmesteLederHendelse) {
         if (hendelse.aktivTom != null) {
@@ -114,11 +107,10 @@ class DigisyfoRepositoryImpl(
         val rowsAffected: Int = database.nonTransactionalExecuteUpdate(
             """
             delete from sykmelding where sykmeldingsperiode_slutt < ?
-            """,
-            {
-                date(today.minusMonths(4))
-            }
-        )
+            """
+        ) {
+            date(today.minusMonths(4))
+        }
         expiredCounter.increment(rowsAffected.toDouble())
     }
 
@@ -203,17 +195,5 @@ suspend fun Application.startDeleteOldSykmeldingLoop(scope: CoroutineScope) {
             digisyfoRepository.deleteOldSykmelding(LocalDate.now(ZoneId.of("Europe/Oslo")))
             delay(Duration.ofMinutes(3))
         }
-    }
-}
-
-class DigisyfoRepositoryStub : DigisyfoRepository {
-    override suspend fun virksomheterOgSykmeldte(nærmestelederFnr: String): List<DigisyfoRepository.Virksomhetsinfo> {
-        return listOf(DigisyfoRepository.Virksomhetsinfo("910825526", 4))
-    }
-
-    override suspend fun processNærmesteLederEvent(hendelse: NarmesteLederHendelse) {}
-    override suspend fun processSykmeldingEvent(records: List<Pair<String?, SykmeldingHendelse?>>) {}
-    override suspend fun deleteOldSykmelding(today: LocalDate) {
-        TODO("Not yet implemented")
     }
 }

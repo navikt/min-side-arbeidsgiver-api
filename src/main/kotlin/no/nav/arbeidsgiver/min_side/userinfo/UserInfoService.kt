@@ -2,21 +2,21 @@ package no.nav.arbeidsgiver.min_side.userinfo
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
-import no.nav.arbeidsgiver.min_side.services.altinn.AltinnService
+import kotlinx.serialization.Serializable
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
 
 class UserInfoService(
-    private val altinnService: AltinnService,
+    private val altinnTilgangerService: AltinnTilgangerService,
     private val digisyfoService: DigisyfoService,
     private val refusjonStatusService: RefusjonStatusService,
 ) {
     suspend fun getUserInfoV3(fnr: String, token: String) = supervisorScope {
         val tilganger = async {
             runCatching {
-                altinnService.hentAltinnTilganger(token)
+                altinnTilgangerService.hentAltinnTilganger(token)
             }
         }
 
@@ -34,6 +34,7 @@ class UserInfoService(
     }
 }
 
+@Serializable
 data class UserInfoV3(
     val altinnError: Boolean,
     val digisyfoError: Boolean,

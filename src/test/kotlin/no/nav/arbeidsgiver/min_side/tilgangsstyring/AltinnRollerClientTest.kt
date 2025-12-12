@@ -1,34 +1,16 @@
 package no.nav.arbeidsgiver.min_side.tilgangsstyring
 
 import io.ktor.http.*
-import io.ktor.server.plugins.di.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
-import no.nav.arbeidsgiver.min_side.FakeApi
-import no.nav.arbeidsgiver.min_side.FakeApplication
-import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
-import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenServiceStub
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.extension.RegisterExtension
+import io.ktor.server.routing.*
+import no.nav.arbeidsgiver.min_side.infrastruktur.*
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.test.*
 
 
 class AltinnRollerClientTest {
-    companion object {
-        @RegisterExtension
-        val app = FakeApplication(
-            addDatabase = true,
-        ) {
-            dependencies {
-                provide<AltinnRollerClient>(AltinnRollerClient::class)
-                provide<MaskinportenTokenService> { MaskinportenTokenServiceStub() }
-            }
-        }
-
-        @RegisterExtension
-        val fakeApi = FakeApi()
-    }
-
     /* Ved ukjent fnr svarer altinn:
      *   HTTP/1.1 400 012345678912 is not a valid organization number or social security number.
      *
@@ -37,115 +19,404 @@ class AltinnRollerClientTest {
      */
 
     @Test
-    fun `ingen tilgang ved ingen roller`() = app.runTest {
-        mockRoles("1234", "567812345", ingenRollerResponse)
-        assertFalse(
-            app.getDependency<AltinnRollerClient>().harAltinnRolle(
-                fnr = "1234",
-                orgnr = "567812345",
-                altinnRoller = setOf("SIGNE"),
-                externalRoller = setOf("DAGL")
+    fun `ingen tilgang ved ingen roller`() {
+        val queryParameters = AtomicReference<Parameters>()
+        runTestApplication(
+            externalServicesCfg = {
+                hosts(AltinnRollerClient.ingress) {
+                    routing {
+                        install(ContentNegotiation) {
+                            json(defaultJson)
+                        }
+
+                        get(AltinnRollerClient.apiPath) {
+                            queryParameters.set(call.request.queryParameters)
+                            call.respondText(ingenRollerResponse, ContentType.Application.Json)
+                        }
+                    }
+                }
+            },
+            dependenciesCfg = {
+                provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+                provide<AltinnRollerClient> {
+                    AltinnRollerClientImpl(
+                        httpClient = resolve(),
+                        tokenProvider = resolve()
+                    )
+                }
+            }
+        ) {
+            assertFalse(
+                resolve<AltinnRollerClient>().harAltinnRolle(
+                    fnr = "1234",
+                    orgnr = "567812345",
+                    altinnRoller = setOf("SIGNE"),
+                    externalRoller = setOf("DAGL")
+                )
             )
-        )
+            queryParameters.get().let { queryParams ->
+                assertTrue($$"$filter" in queryParams)
+                assertEquals("1234", queryParams["subject"])
+                assertEquals("567812345", queryParams["reportee"])
+            }
+        }
     }
 
     @Test
-    fun `tilgang hvis vi sjekker DAGL(ereg) og bruker er DAGL(ereg), ATTST(altinn)`() = app.runTest {
-        mockRoles("1234", "567812345", daglOgAttstRolleResponse)
-        assertTrue(
-            app.getDependency<AltinnRollerClient>().harAltinnRolle(
-                fnr = "1234",
-                orgnr = "567812345",
-                altinnRoller = setOf("SIGN"),
-                externalRoller = setOf("DAGL"),
+    fun `tilgang hvis vi sjekker DAGL(ereg) og bruker er DAGL(ereg), ATTST(altinn)`() {
+        val queryParameters = AtomicReference<Parameters>()
+        runTestApplication(
+            externalServicesCfg = {
+                hosts(AltinnRollerClient.ingress) {
+                    routing {
+                        install(ContentNegotiation) {
+                            json(defaultJson)
+                        }
+
+                        get(AltinnRollerClient.apiPath) {
+                            queryParameters.set(call.request.queryParameters)
+                            call.respondText(daglOgAttstRolleResponse, ContentType.Application.Json)
+
+                        }
+                    }
+                }
+            },
+            dependenciesCfg = {
+                provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+                provide<AltinnRollerClient> {
+                    AltinnRollerClientImpl(
+                        httpClient = resolve(),
+                        tokenProvider = resolve()
+                    )
+                }
+            }
+        ) {
+            assertTrue(
+                resolve<AltinnRollerClient>().harAltinnRolle(
+                    fnr = "1234",
+                    orgnr = "567812345",
+                    altinnRoller = setOf("SIGN"),
+                    externalRoller = setOf("DAGL"),
+                )
             )
-        )
+            queryParameters.get().let { queryParams ->
+                assertTrue($$"$filter" in queryParams)
+                assertEquals("1234", queryParams["subject"])
+                assertEquals("567812345", queryParams["reportee"])
+            }
+        }
     }
 
     @Test
-    fun `tilgang hvis vi sjekker HADM(altinn) og bruker er DAGL(ereg), HADM(altinn)`() = app.runTest {
-        mockRoles("1234", "567812345", daglOgHadmRolleResponse)
-        assertTrue(
-            app.getDependency<AltinnRollerClient>().harAltinnRolle(
-                fnr = "1234",
-                orgnr = "567812345",
-                altinnRoller = setOf("HADM"),
-                externalRoller = setOf("ANNENROLLE"),
+    fun `tilgang hvis vi sjekker HADM(altinn) og bruker er DAGL(ereg), HADM(altinn)`() {
+        val queryParameters = AtomicReference<Parameters>()
+        runTestApplication(
+            externalServicesCfg = {
+                hosts(AltinnRollerClient.ingress) {
+                    routing {
+                        install(ContentNegotiation) {
+                            json(defaultJson)
+                        }
+
+                        get(AltinnRollerClient.apiPath) {
+                            queryParameters.set(call.request.queryParameters)
+
+                            call.response.headers.append(
+                                HttpHeaders.ContentType,
+                                ContentType.Application.Json.toString()
+                            )
+                            call.respondText(daglOgHadmRolleResponse, ContentType.Application.Json)
+
+                        }
+                    }
+                }
+            },
+            dependenciesCfg = {
+                provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+                provide<AltinnRollerClient> {
+                    AltinnRollerClientImpl(
+                        httpClient = resolve(),
+                        tokenProvider = resolve()
+                    )
+                }
+            }
+        ) {
+            assertTrue(
+                resolve<AltinnRollerClient>().harAltinnRolle(
+                    fnr = "1234",
+                    orgnr = "567812345",
+                    altinnRoller = setOf("HADM"),
+                    externalRoller = setOf("ANNENROLLE"),
+                )
             )
-        )
+            queryParameters.get().let { queryParams ->
+                assertTrue($$"$filter" in queryParams)
+                assertEquals("1234", queryParams["subject"])
+                assertEquals("567812345", queryParams["reportee"])
+            }
+        }
     }
 
     @Test
-    fun `ikke tilgang hvis altinn- og ereg-roller byttes om`() = app.runTest {
-        mockRoles("1234", "567811223", daglOgHadmRolleResponse)
-        assertFalse(
-            app.getDependency<AltinnRollerClient>().harAltinnRolle(
-                fnr = "1234",
-                orgnr = "567811223",
-                altinnRoller = setOf("DAGL"),
-                externalRoller = setOf("HADM"),
+    fun `ikke tilgang hvis altinn- og ereg-roller byttes om`() {
+        val queryParameters = AtomicReference<Parameters>()
+        runTestApplication(
+            externalServicesCfg = {
+                hosts(AltinnRollerClient.ingress) {
+                    routing {
+                        install(ContentNegotiation) {
+                            json(defaultJson)
+                        }
+
+                        get(AltinnRollerClient.apiPath) {
+                            queryParameters.set(call.request.queryParameters)
+
+                            call.response.headers.append(
+                                HttpHeaders.ContentType,
+                                ContentType.Application.Json.toString()
+                            )
+                            call.respondText(daglOgHadmRolleResponse, ContentType.Application.Json)
+                        }
+                    }
+                }
+            },
+            dependenciesCfg = {
+                provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+                provide<AltinnRollerClient> {
+                    AltinnRollerClientImpl(
+                        httpClient = resolve(),
+                        tokenProvider = resolve()
+                    )
+                }
+            }
+        ) {
+            assertFalse(
+                resolve<AltinnRollerClient>().harAltinnRolle(
+                    fnr = "1234",
+                    orgnr = "567811223",
+                    altinnRoller = setOf("DAGL"),
+                    externalRoller = setOf("HADM"),
+                )
             )
-        )
+            queryParameters.get().let { queryParams ->
+                assertTrue($$"$filter" in queryParams)
+                assertEquals("1234", queryParams["subject"])
+                assertEquals("567811223", queryParams["reportee"])
+            }
+        }
     }
 
     @Test
-    fun `har tilgang hvis man både har ereg- og altinn-rolle`() = app.runTest {
-        mockRoles("1234", "567811223", daglOgAttstRolleResponse)
-        assertTrue(
-            app.getDependency<AltinnRollerClient>().harAltinnRolle(
-                fnr = "1234",
-                orgnr = "567811223",
-                altinnRoller = setOf("ATTST"),
-                externalRoller = setOf("DAGL")
+    fun `har tilgang hvis man både har ereg- og altinn-rolle`() {
+        val queryParameters = AtomicReference<Parameters>()
+        runTestApplication(
+            externalServicesCfg = {
+                hosts(AltinnRollerClient.ingress) {
+                    routing {
+                        install(ContentNegotiation) {
+                            json(defaultJson)
+                        }
+
+                        get(AltinnRollerClient.apiPath) {
+                            queryParameters.set(call.request.queryParameters)
+
+                            call.response.headers.append(
+                                HttpHeaders.ContentType,
+                                ContentType.Application.Json.toString()
+                            )
+                            call.respondText(daglOgAttstRolleResponse, ContentType.Application.Json)
+                        }
+                    }
+                }
+            },
+            dependenciesCfg = {
+                provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+                provide<AltinnRollerClient> {
+                    AltinnRollerClientImpl(
+                        httpClient = resolve(),
+                        tokenProvider = resolve()
+                    )
+                }
+            }
+        ) {
+            assertTrue(
+                resolve<AltinnRollerClient>().harAltinnRolle(
+                    fnr = "1234",
+                    orgnr = "567811223",
+                    altinnRoller = setOf("ATTST"),
+                    externalRoller = setOf("DAGL")
+                )
             )
-        )
+            queryParameters.get().let { queryParams ->
+                assertTrue($$"$filter" in queryParams)
+                assertEquals("1234", queryParams["subject"])
+                assertEquals("567811223", queryParams["reportee"])
+            }
+        }
     }
 
     @Test
-    fun `bruker trenger ikke å ha alle rollene vi spør om`() = app.runTest {
-        mockRoles("1234", "567811223", daglOgAttstRolleResponse)
-        assertTrue(
-            app.getDependency<AltinnRollerClient>().harAltinnRolle(
-                fnr = "1234",
-                orgnr = "567811223",
-                altinnRoller = setOf("ATTST"),
-                externalRoller = setOf("DAGL", "ANNENROLLE"),
+    fun `bruker trenger ikke å ha alle rollene vi spør om`() {
+        val queryParameters = AtomicReference<Parameters>()
+        runTestApplication(
+            externalServicesCfg = {
+                hosts(AltinnRollerClient.ingress) {
+                    routing {
+                        install(ContentNegotiation) {
+                            json(defaultJson)
+                        }
+
+                        get(AltinnRollerClient.apiPath) {
+                            queryParameters.set(call.request.queryParameters)
+
+                            call.response.headers.append(
+                                HttpHeaders.ContentType,
+                                ContentType.Application.Json.toString()
+                            )
+                            call.respondText(daglOgAttstRolleResponse, ContentType.Application.Json)
+                        }
+                    }
+                }
+            },
+            dependenciesCfg = {
+                provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+                provide<AltinnRollerClient> {
+                    AltinnRollerClientImpl(
+                        httpClient = resolve(),
+                        tokenProvider = resolve()
+                    )
+                }
+            }
+        ) {
+            assertTrue(
+                resolve<AltinnRollerClient>().harAltinnRolle(
+                    fnr = "1234",
+                    orgnr = "567811223",
+                    altinnRoller = setOf("ATTST"),
+                    externalRoller = setOf("DAGL", "ANNENROLLE"),
+                )
             )
-        )
+            queryParameters.get().let { queryParams ->
+                assertTrue($$"$filter" in queryParams)
+                assertEquals("1234", queryParams["subject"])
+                assertEquals("567811223", queryParams["reportee"])
+            }
+        }
     }
 
     @Test
-    fun `ikke tilgang selv med flere roller og rolle-sjekker`() = app.runTest {
-        mockRoles("789", "567811223", daglOgAttstRolleResponse)
-        assertFalse(
-            app.getDependency<AltinnRollerClient>().harAltinnRolle(
-                fnr = "789",
-                orgnr = "567811223",
-                altinnRoller = setOf("IKKEROLLE"),
-                externalRoller = setOf("ANNENIKKEROLLE"),
+    fun `ikke tilgang selv med flere roller og rolle-sjekker`() {
+        val queryParameters = AtomicReference<Parameters>()
+        runTestApplication(
+            externalServicesCfg = {
+                hosts(AltinnRollerClient.ingress) {
+                    routing {
+                        install(ContentNegotiation) {
+                            json(defaultJson)
+                        }
+
+                        get(AltinnRollerClient.apiPath) {
+                            queryParameters.set(call.request.queryParameters)
+
+                            call.response.headers.append(
+                                HttpHeaders.ContentType,
+                                ContentType.Application.Json.toString()
+                            )
+                            call.respondText(daglOgAttstRolleResponse, ContentType.Application.Json)
+                        }
+                    }
+                }
+            },
+            dependenciesCfg = {
+                provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+                provide<AltinnRollerClient> {
+                    AltinnRollerClientImpl(
+                        httpClient = resolve(),
+                        tokenProvider = resolve()
+                    )
+                }
+            }
+        ) {
+            assertFalse(
+                resolve<AltinnRollerClient>().harAltinnRolle(
+                    fnr = "789",
+                    orgnr = "567811223",
+                    altinnRoller = setOf("IKKEROLLE"),
+                    externalRoller = setOf("ANNENIKKEROLLE"),
+                )
             )
-        )
+            queryParameters.get().let { queryParams ->
+                assertTrue($$"$filter" in queryParams)
+                assertEquals("789", queryParams["subject"])
+                assertEquals("567811223", queryParams["reportee"])
+            }
+        }
     }
 
     @Test
-    fun `tolker ikke Local-roller som ereg-roller`() = app.runTest {
-        mockRoles("1234", "567811223", daglMenLocalRolleResponse)
-        assertFalse(
-            app.getDependency<AltinnRollerClient>().harAltinnRolle(
-                fnr = "1234",
-                orgnr = "567811223",
-                altinnRoller = setOf("ANNEN"),
-                externalRoller = setOf("DAGL"),
+    fun `tolker ikke Local-roller som ereg-roller`() {
+        val queryParameters = AtomicReference<Parameters>()
+        runTestApplication(
+            externalServicesCfg = {
+                hosts(AltinnRollerClient.ingress) {
+                    routing {
+                        install(ContentNegotiation) {
+                            json(defaultJson)
+                        }
+
+                        get(AltinnRollerClient.apiPath) {
+                            queryParameters.set(call.request.queryParameters)
+
+                            call.response.headers.append(
+                                HttpHeaders.ContentType,
+                                ContentType.Application.Json.toString()
+                            )
+                            call.respondText(daglMenLocalRolleResponse, ContentType.Application.Json)
+                        }
+                    }
+                }
+            },
+            dependenciesCfg = {
+                provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+                provide<AltinnRollerClient> {
+                    AltinnRollerClientImpl(
+                        httpClient = resolve(),
+                        tokenProvider = resolve()
+                    )
+                }
+            }
+        ) {
+            assertFalse(
+                resolve<AltinnRollerClient>().harAltinnRolle(
+                    fnr = "1234",
+                    orgnr = "567811223",
+                    altinnRoller = setOf("ANNEN"),
+                    externalRoller = setOf("DAGL"),
+                )
             )
-        )
+            queryParameters.get().let { queryParams ->
+                assertTrue($$"$filter" in queryParams)
+                assertEquals("1234", queryParams["subject"])
+                assertEquals("567811223", queryParams["reportee"])
+            }
+        }
     }
 
 
     @Test
-    fun `exception hvis ingen roller oppgis`() = app.runTest {
-        mockRoles("1234", "567811223", daglOgAttstRolleResponse)
-        assertThrows<IllegalArgumentException> {
-            app.getDependency<AltinnRollerClient>().harAltinnRolle(
+    fun `exception hvis ingen roller oppgis`() = runTestApplication(
+        dependenciesCfg = {
+            provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+            provide<AltinnRollerClient> {
+                    AltinnRollerClientImpl(
+                        httpClient = resolve(),
+                        tokenProvider = resolve()
+                    )
+                }
+        }
+    ) {
+        assertFailsWith<IllegalArgumentException> {
+            resolve<AltinnRollerClient>().harAltinnRolle(
                 fnr = "1234",
                 orgnr = "567811223",
                 altinnRoller = setOf(),
@@ -154,19 +425,6 @@ class AltinnRollerClientTest {
         }
     }
 
-    private fun mockRoles(fnr: String, orgnr: String, response: String) =
-        fakeApi.registerStub(
-            HttpMethod.Get,
-            "/api/serviceowner/authorization/roles"
-        ) {
-            val queryParams = call.request.queryParameters
-            assertTrue("\$filter" in queryParams)
-            assertEquals(fnr, queryParams["subject"])
-            assertEquals(orgnr, queryParams["reportee"])
-
-            call.response.headers.append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            call.respond(response)
-        }
 }
 
 /* Har ikke fått til få tt02 til å returnere tom liste. Men høres ikke utenkelig ut at det er mulig. */
