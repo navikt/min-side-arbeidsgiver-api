@@ -2,31 +2,26 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import no.nav.arbeidsgiver.min_side.infrastruktur.*
+import no.nav.arbeidsgiver.min_side.infrastruktur.MaskinportenTokenProvider
+import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø
+import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
+import no.nav.arbeidsgiver.min_side.infrastruktur.logger
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.altinnApiKey
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.apiPath
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.halJsonHttpClient
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.ingress
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.targetResource
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.targetScope
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.DelegationRequest.RequestResource
-import java.io.EOFException
-import javax.net.ssl.SSLHandshakeException
 
 interface AltinnTilgangssoknadClient {
     suspend fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad>
@@ -44,10 +39,6 @@ interface AltinnTilgangssoknadClient {
             prod = { "https://www.altinn.no/" },
             other = { "https://tt02.altinn.no/" }
         )
-
-        val halJsonHttpClient = HttpClient(CIO) {
-            halJsonHttpClientConfig()
-        }
     }
 }
 
@@ -60,50 +51,36 @@ fun Configuration.halJsonConfiguration() {
     )
 }
 
-fun HttpClientConfig<out HttpClientEngineConfig>.halJsonHttpClientConfig() {
-    expectSuccess = true
-
-    install(ContentNegotiation) { halJsonConfiguration() }
-
-    install(HttpClientMetricsFeature) {
-        registry = Metrics.meterRegistry
-    }
-
-    install(HttpRequestRetry) {
-        retryOnServerErrors(3)
-        retryOnExceptionIf(3) { _, cause ->
-            when (cause) {
-                is SocketTimeoutException,
-                is ConnectTimeoutException,
-                is EOFException,
-                is SSLHandshakeException,
-                is ClosedReceiveChannelException,
-                is HttpRequestTimeoutException -> true
-
-                else -> false
-            }
-        }
-
-        delayMillis { 250L }
-    }
-
-    install(Logging) {
-        sanitizeHeader {
-            true
-        }
-    }
-}
-
 class AltinnTilgangssoknadClientImpl(
     private val tokenProvider: MaskinportenTokenProvider,
-    /**
-     * do not autowire default HttpClient,
-     * use [AltinnTilgangssoknadClient.Companion.halJsonHttpClient] to configure the client
-     */
-    private val httpClient: HttpClient = halJsonHttpClient,
+    defaultHttpClient: HttpClient,
 ) : AltinnTilgangssoknadClient {
 
     private val log = logger()
+    private val httpClient = defaultHttpClient.config {
+        expectSuccess = true
+        install(ContentNegotiation) {
+            /**
+             * Hack: force remove application/json from accept header by setting q=0.0
+             * We then set hal+json with q=1.0 in each request.
+             * This is because Altinn seems to prefer application/json even when hal+json is requested.
+             */
+            defaultAcceptHeaderQValue = 0.0
+            halJsonConfiguration()
+        }
+        defaultRequest {
+            header("apikey", altinnApiKey)
+            header(
+                HttpHeaders.Accept,
+                ContentType.Application.HalJson.withParameter("q", "1.0").toString()
+            )
+            header(
+                HttpHeaders.ContentType,
+                ContentType.Application.HalJson.withParameter("q", "1.0").toString()
+            )
+        }
+
+    }
 
     override suspend fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad> {
         var shouldContinue = true
@@ -120,15 +97,12 @@ class AltinnTilgangssoknadClientImpl(
                             parameter("continuation", continuationtoken)
                         }
                     }
-                    header("apikey", altinnApiKey)
                     bearerAuth(
                         tokenProvider.token(targetScope, mapOf("resource" to targetResource)).fold(
                             onSuccess = { it.accessToken },
                             onError = { throw Exception("Failed to fetch token: ${it.status} ${it.error}") }
                         )
                     )
-                    accept(ContentType.Application.HalJson)
-                    contentType(ContentType.Application.HalJson)
                 }
                 log.info("Altinn delegation response: ${response.status} ${response.bodyAsText()}")
                 response.body<Søknadsstatus?>()
@@ -185,9 +159,6 @@ class AltinnTilgangssoknadClientImpl(
                     onError = { throw Exception("Failed to fetch token: ${it.status} ${it.error}") }
                 )
             )
-
-            contentType(ContentType.Application.HalJson)
-            accept(ContentType.Application.HalJson)
 
             setBody(
                 DelegationRequest(

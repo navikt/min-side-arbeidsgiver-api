@@ -7,7 +7,10 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import no.nav.arbeidsgiver.min_side.infrastruktur.*
+import no.nav.arbeidsgiver.min_side.infrastruktur.AzureAdTokenProvider
+import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø
+import no.nav.arbeidsgiver.min_side.infrastruktur.Nullable
+import no.nav.arbeidsgiver.min_side.infrastruktur.getOrComputeNullable
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient.Companion.apiPath
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient.Companion.ingress
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient.Companion.targetScope
@@ -28,11 +31,13 @@ interface KontoregisterClient {
 }
 
 class KontoregisterClientImpl(
-    private val httpClient: HttpClient = defaultHttpClient {
-        expectSuccess = true
-    },
+    defaultHttpClient: HttpClient,
     private val tokenProvider: AzureAdTokenProvider,
 ) : KontoregisterClient {
+
+    private val httpClient = defaultHttpClient.config {
+        expectSuccess = true
+    }
 
     private val cache = Caffeine.newBuilder()
         .maximumSize(600000)

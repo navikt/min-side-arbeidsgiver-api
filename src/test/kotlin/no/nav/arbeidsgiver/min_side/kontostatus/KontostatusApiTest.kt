@@ -48,24 +48,14 @@ class KontostatusApiTest {
                 }
             }
         },
-        dependenciesCfg = { builder ->
+        dependenciesCfg = {
             provide<TokenXTokenIntrospector> {
                 MockTokenIntrospector {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
                 }
             }
             provide<AzureAdTokenProvider> { successAzureAdTokenProvider }
-            provide<KontoregisterClient> {
-                KontoregisterClientImpl(
-                    tokenProvider = resolve(),
-                    httpClient = builder.createClient {
-                        expectSuccess = true
-                        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                            json(defaultJson)
-                        }
-                    }
-                )
-            }
+            provide<KontoregisterClient>(KontoregisterClientImpl::class)
             provide<AltinnTilgangerService> {
                 object : AltinnTilgangerService {
                     override suspend fun hentAltinnTilganger(token: String) =
@@ -110,24 +100,14 @@ class KontostatusApiTest {
                 call.respond(HttpStatusCode.NotFound)
             }
         },
-        dependenciesCfg = { builder ->
+        dependenciesCfg = {
             provide<TokenXTokenIntrospector> {
                 MockTokenIntrospector {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
                 }
             }
             provide<AzureAdTokenProvider> { successAzureAdTokenProvider }
-            provide<KontoregisterClient> {
-                KontoregisterClientImpl(
-                    tokenProvider = resolve(),
-                    httpClient = builder.createClient {
-                        expectSuccess = true
-                        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                            json(defaultJson)
-                        }
-                    }
-                )
-            }
+            provide<KontoregisterClient>(KontoregisterClientImpl::class)
             provide<AltinnTilgangerService> {
                 object : AltinnTilgangerService {
                     override suspend fun hentAltinnTilganger(token: String) =
@@ -182,7 +162,7 @@ class KontostatusApiTest {
             }
             mockAltinnTilganger(AltinnTilgangerMock.medTilganger(orgnr = "42", tjeneste = kontonummerTilgangTjenesetekode))
         },
-        dependenciesCfg = { builder ->
+        dependenciesCfg = {
             provide<TokenXTokenIntrospector> {
                 MockTokenIntrospector {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
@@ -190,17 +170,7 @@ class KontostatusApiTest {
             }
             provide<AzureAdTokenProvider> { successAzureAdTokenProvider }
             provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<KontoregisterClient> {
-                KontoregisterClientImpl(
-                    tokenProvider = resolve(),
-                    httpClient = builder.createClient {
-                        expectSuccess = true
-                        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                            json(defaultJson)
-                        }
-                    }
-                )
-            }
+            provide<KontoregisterClient>(KontoregisterClientImpl::class)
             provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
             provide(KontostatusService::class)
         },
@@ -256,7 +226,7 @@ class KontostatusApiTest {
             }
             mockAltinnTilganger(AltinnTilgangerMock.empty)
         },
-        dependenciesCfg = { builder ->
+        dependenciesCfg = {
             provide<TokenXTokenIntrospector> {
                 MockTokenIntrospector {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
@@ -264,17 +234,7 @@ class KontostatusApiTest {
             }
             provide<AzureAdTokenProvider> { successAzureAdTokenProvider }
             provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<KontoregisterClient> {
-                KontoregisterClientImpl(
-                    tokenProvider = resolve(),
-                    httpClient = builder.createClient {
-                        expectSuccess = true
-                        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                            json(defaultJson)
-                        }
-                    }
-                )
-            }
+            provide<KontoregisterClient>(KontoregisterClientImpl::class)
             provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
             provide(KontostatusService::class)
         },
@@ -319,7 +279,7 @@ class KontostatusApiTest {
                 AltinnTilgangerMock.medTilganger(orgnr = "42", tjeneste = kontonummerTilgangTjenesetekode)
             )
         },
-        dependenciesCfg = { builder ->
+        dependenciesCfg = {
             provide<TokenXTokenIntrospector> {
                 MockTokenIntrospector {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
@@ -327,17 +287,7 @@ class KontostatusApiTest {
             }
             provide<AzureAdTokenProvider> { successAzureAdTokenProvider }
             provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<KontoregisterClient> {
-                KontoregisterClientImpl(
-                    tokenProvider = resolve(),
-                    httpClient = builder.createClient {
-                        expectSuccess = true
-                        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                            json(defaultJson)
-                        }
-                    }
-                )
-            }
+            provide<KontoregisterClient>(KontoregisterClientImpl::class)
             provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
             provide(KontostatusService::class)
         },

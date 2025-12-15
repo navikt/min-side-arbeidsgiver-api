@@ -82,7 +82,7 @@ class AntlinnTilgangSoknadApiTest {
                 }
             }
         },
-        dependenciesCfg = { builder ->
+        dependenciesCfg = {
             provide<TokenXTokenIntrospector> {
                 MockTokenIntrospector {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
@@ -91,18 +91,7 @@ class AntlinnTilgangSoknadApiTest {
             provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
             provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
             provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
-            provide<AltinnTilgangssoknadClient> {
-                AltinnTilgangssoknadClientImpl(
-                    tokenProvider = resolve(),
-
-                    /**
-                     * explicitly configure httpClient for hal+json to avoid conflicts
-                     */
-                    httpClient = builder.createClient {
-                        halJsonHttpClientConfig()
-                    },
-                )
-            }
+            provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -186,7 +175,7 @@ class AntlinnTilgangSoknadApiTest {
                 }
             }
         },
-        dependenciesCfg = { builder ->
+        dependenciesCfg = {
             provide<TokenXTokenIntrospector> {
                 MockTokenIntrospector {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
@@ -195,17 +184,7 @@ class AntlinnTilgangSoknadApiTest {
             provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
             provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
             provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
-            provide<AltinnTilgangssoknadClient> {
-                AltinnTilgangssoknadClientImpl(
-                    tokenProvider = resolve(),
-                    /**
-                     * explicitly configure httpClient for hal+json to avoid conflicts
-                     */
-                    httpClient = builder.createClient {
-                        halJsonHttpClientConfig()
-                    },
-                )
-            }
+            provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -287,7 +266,7 @@ class AntlinnTilgangSoknadApiTest {
                 }
             }
         },
-        dependenciesCfg = { builder ->
+        dependenciesCfg = {
             provide<TokenXTokenIntrospector> {
                 MockTokenIntrospector {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
@@ -296,18 +275,7 @@ class AntlinnTilgangSoknadApiTest {
             provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
             provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
             provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
-            provide<AltinnTilgangssoknadClient> {
-                AltinnTilgangssoknadClientImpl(
-                    tokenProvider = resolve(),
-
-                    /**
-                     * explicitly configure httpClient for hal+json to avoid conflicts
-                     */
-                    httpClient = builder.createClient {
-                        halJsonHttpClientConfig()
-                    },
-                )
-            }
+            provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
