@@ -74,6 +74,7 @@ private fun ApplicationTestBuilder.configureTestApp(
     externalServices {
         externalServicesCfg()
     }
+    // the client used in tests to call the application, not the same as the httpClient inside the application
     client = createClient {
         install(ContentNegotiation) {
             json(defaultJson)
@@ -81,7 +82,12 @@ private fun ApplicationTestBuilder.configureTestApp(
     }
     application {
         dependencies {
-            provide<HttpClient> { this@configureTestApp.client }
+            provide<HttpClient> {
+                // the client used in the application to call external services. This is the one provided via DI
+                this@configureTestApp.createClient {
+                    // TODO: should we copy some or all of the config from the defaultHttpClient?
+                }
+            }
             dependenciesCfg(this@configureTestApp)
         }
         applicationCfg()

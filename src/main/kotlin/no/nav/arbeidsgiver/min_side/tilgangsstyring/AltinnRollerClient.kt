@@ -2,12 +2,15 @@ package no.nav.arbeidsgiver.min_side.tilgangsstyring
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nav.arbeidsgiver.min_side.infrastruktur.MaskinportenTokenProvider
 import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø
+import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient.Companion.altinnApiKey
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient.Companion.apiPath
 import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient.Companion.ingress
@@ -35,10 +38,15 @@ interface AltinnRollerClient {
 }
 
 class AltinnRollerClientImpl(
-    private val httpClient: HttpClient,
+    defaultHttpClient: HttpClient,
     private val tokenProvider: MaskinportenTokenProvider,
 ) : AltinnRollerClient {
 
+    private val httpClient = defaultHttpClient.config {
+        install(ContentNegotiation) {
+            json(defaultJson)
+        }
+    }
 
     private val safeRoleName = Regex("^[A-ZÆØÅ]+$")
     private val orgnrRegex = Regex("^[0-9]{9}$")

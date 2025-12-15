@@ -5,6 +5,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.arbeidsgiver.min_side.infrastruktur.runTestApplication
 import no.nav.arbeidsgiver.min_side.infrastruktur.successMaskinportenTokenProvider
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Kontaktinfo
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClientImpl
 import kotlin.test.Test
@@ -20,7 +21,7 @@ class KontaktinfoClientTest {
     @Test
     fun telefonnummerErRegistrert() = runTestApplication(
         externalServicesCfg = {
-            hosts(KontaktinfoClientImpl.ingress) {
+            hosts(KontaktinfoClient.ingress) {
                 routing {
                     get("/api/serviceowner/organizations/1/officialcontacts") {
                         call.respondText(kunTelefonnumerResponse, ContentType.Application.Json)
@@ -42,7 +43,7 @@ class KontaktinfoClientTest {
     @Test
     fun epostErRegistrert() = runTestApplication(
         externalServicesCfg = {
-            hosts(KontaktinfoClientImpl.ingress) {
+            hosts(KontaktinfoClient.ingress) {
                 routing {
                     get("/api/serviceowner/organizations/2/officialcontacts") {
                         call.respondText(kunEpostResponse, ContentType.Application.Json)
@@ -64,7 +65,7 @@ class KontaktinfoClientTest {
     @Test
     fun bådeTlfOgEpostRegistrert() = runTestApplication(
         externalServicesCfg = {
-            hosts(KontaktinfoClientImpl.ingress) {
+            hosts(KontaktinfoClient.ingress) {
                 routing {
                     get("/api/serviceowner/organizations/1234/officialcontacts") {
                         call.respondText(bådeTlfOgEpostResponse, ContentType.Application.Json)
@@ -87,7 +88,7 @@ class KontaktinfoClientTest {
     @Test
     fun ingenKontaktinfoRegistrert() = runTestApplication(
         externalServicesCfg = {
-            hosts(KontaktinfoClientImpl.ingress) {
+            hosts(KontaktinfoClient.ingress) {
                 routing {
                     get("/api/serviceowner/organizations/3/officialcontacts") {
                         call.respondText(ingenKontaktinfoResponse, ContentType.Application.Json)
@@ -109,7 +110,7 @@ class KontaktinfoClientTest {
     @Test
     fun flereEposterRegistrert() = runTestApplication(
         externalServicesCfg = {
-            hosts(KontaktinfoClientImpl.ingress) {
+            hosts(KontaktinfoClient.ingress) {
                 routing {
                     get("/api/serviceowner/organizations/3/officialcontacts") {
                         call.respondText(flereEposterResponse, ContentType.Application.Json)
@@ -131,7 +132,7 @@ class KontaktinfoClientTest {
     @Test
     fun organisasjonFinnesIkke() = runTestApplication(
         externalServicesCfg = {
-            hosts(KontaktinfoClientImpl.ingress) {
+            hosts(KontaktinfoClient.ingress) {
                 routing {
                     get("/api/serviceowner/organizations/{orgnr}/officialcontacts") {
                         call.respond(

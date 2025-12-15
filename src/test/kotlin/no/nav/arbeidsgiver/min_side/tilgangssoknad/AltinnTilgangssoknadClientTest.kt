@@ -31,9 +31,8 @@ class AltinnTilgangssoknadClientTest {
                     }
 
                     get(AltinnTilgangssoknadClient.apiPath) {
-                        if (call.request.acceptItems().maxBy { it.quality }.value == ContentType.Application.Json.toString()) {
-                            // tester at hal+json prioriteres fremfor application/json,
-                            // dersom application/json er lik pri vil Altinn ikke returnere HAL+JSON selv om den er med
+                        if (call.request.header("accept")!!.contains("application/json")) {
+                            // dersom application/json er med i listen vil Altinn ikke returnere HAL+JSON selv om den er med
                             // for unngå å måtte skrive om klienten nå, så returnerer vi feil her i testen og passer på at klienten
                             // ikke sender med application/json i accept-headeren
                             call.respond(
@@ -105,7 +104,7 @@ class AltinnTilgangssoknadClientTest {
             JSONAssert.assertEquals(
                 altinnSendSøknadRequest,
                 capturedRequestBody.get(),
-                false
+                true
             )
         }
     }

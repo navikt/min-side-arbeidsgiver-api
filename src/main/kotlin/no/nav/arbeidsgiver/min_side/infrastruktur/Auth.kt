@@ -3,8 +3,10 @@ package no.nav.arbeidsgiver.min_side.infrastruktur
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.plugins.di.*
@@ -140,8 +142,13 @@ class AzureAdAuthClient(
 abstract class AuthClient(
     private val config: AuthConfig,
     private val provider: IdentityProvider,
-    private val httpClient: HttpClient,
+    defaultHttpClient: HttpClient,
 ): TokenProvider, TokenExchanger, TokenIntrospector {
+    protected val httpClient = defaultHttpClient.config {
+        install(ContentNegotiation) {
+            json(defaultJson)
+        }
+    }
 
     override suspend fun token(target: String, additionalParameters: Map<String, String>) = try {
         httpClient.submitForm(config.tokenEndpoint, parameters {

@@ -2,14 +2,21 @@ package no.nav.arbeidsgiver.min_side.services.kontaktinfo
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 import no.nav.arbeidsgiver.min_side.infrastruktur.MaskinportenTokenProvider
 import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø
+import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Companion.altinnApiKey
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Companion.ingress
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Companion.targetResource
+import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Companion.targetScope
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Kontaktinfo
 
 interface KontaktinfoClient {
@@ -22,12 +29,7 @@ interface KontaktinfoClient {
         val harKontaktinfo: Boolean
             get() = eposter.isNotEmpty() || telefonnumre.isNotEmpty()
     }
-}
 
-class KontaktinfoClientImpl(
-    private val httpClient: HttpClient,
-    private val tokenProvider: MaskinportenTokenProvider,
-) : KontaktinfoClient {
     companion object {
         val ingress = Miljø.Altinn.baseUrl
         val altinnApiKey = Miljø.Altinn.altinnHeader
@@ -36,6 +38,18 @@ class KontaktinfoClientImpl(
             prod = { "https://www.altinn.no/" },
             other = { "https://tt02.altinn.no/" }
         )
+    }
+}
+
+class KontaktinfoClientImpl(
+    defaultHttpClient: HttpClient,
+    private val tokenProvider: MaskinportenTokenProvider,
+) : KontaktinfoClient {
+
+    private val httpClient = defaultHttpClient.config {
+        install(ContentNegotiation) {
+            json(defaultJson)
+        }
     }
 
 

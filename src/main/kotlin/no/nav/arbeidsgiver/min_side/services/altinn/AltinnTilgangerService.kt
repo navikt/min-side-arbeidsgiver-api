@@ -4,11 +4,14 @@ import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø.Companion.clusterName
 import no.nav.arbeidsgiver.min_side.infrastruktur.TokenXTokenExchanger
+import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
 import no.nav.arbeidsgiver.min_side.infrastruktur.getOrCompute
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService.Companion.audience
@@ -27,9 +30,15 @@ interface AltinnTilgangerService {
 }
 
 class AltinnTilgangerServiceImpl(
-    private val httpClient : HttpClient,
+    defaultHttpClient : HttpClient,
     private val tokenExchanger: TokenXTokenExchanger,
 ) : AltinnTilgangerService {
+
+    private val httpClient = defaultHttpClient.config {
+        install(ContentNegotiation) {
+            json(defaultJson)
+        }
+    }
 
     /**
      * TODO:

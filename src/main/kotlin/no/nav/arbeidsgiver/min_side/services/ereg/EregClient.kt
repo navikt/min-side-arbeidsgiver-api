@@ -4,13 +4,12 @@ package no.nav.arbeidsgiver.min_side.services.ereg
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
-import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø
-import no.nav.arbeidsgiver.min_side.infrastruktur.Nullable
-import no.nav.arbeidsgiver.min_side.infrastruktur.SerializableLocalDate
-import no.nav.arbeidsgiver.min_side.infrastruktur.getOrComputeNullable
+import no.nav.arbeidsgiver.min_side.infrastruktur.*
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient.Companion.EREG_CACHE_NAME
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient.Companion.ingress
 import java.time.LocalDate
@@ -25,9 +24,14 @@ interface EregClient {
 }
 
 class EregClientImpl(
-    private val httpClient: HttpClient,
+    defaultHttpClient: HttpClient,
 ) : EregClient {
 
+    private val httpClient = defaultHttpClient.config {
+        install(ContentNegotiation) {
+            json(defaultJson)
+        }
+    }
     private val cache =
         Caffeine.newBuilder()
             .maximumSize(600000)

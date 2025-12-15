@@ -4,13 +4,12 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
-import no.nav.arbeidsgiver.min_side.infrastruktur.AzureAdTokenProvider
-import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø
-import no.nav.arbeidsgiver.min_side.infrastruktur.Nullable
-import no.nav.arbeidsgiver.min_side.infrastruktur.getOrComputeNullable
+import no.nav.arbeidsgiver.min_side.infrastruktur.*
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient.Companion.apiPath
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient.Companion.ingress
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient.Companion.targetScope
@@ -37,6 +36,10 @@ class KontoregisterClientImpl(
 
     private val httpClient = defaultHttpClient.config {
         expectSuccess = true
+
+        install(ContentNegotiation) {
+            json(defaultJson)
+        }
     }
 
     private val cache = Caffeine.newBuilder()

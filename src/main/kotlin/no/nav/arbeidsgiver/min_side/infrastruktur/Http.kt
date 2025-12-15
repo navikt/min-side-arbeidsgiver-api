@@ -6,11 +6,9 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
@@ -35,10 +33,6 @@ fun defaultHttpClient(
 
     return HttpClient(CIO) {
         expectSuccess = false
-
-        install(ContentNegotiation) {
-            json(defaultJson)
-        }
 
         install(HttpClientMetricsFeature) {
             registry = Metrics.meterRegistry

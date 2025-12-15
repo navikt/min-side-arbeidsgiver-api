@@ -38,12 +38,7 @@ class AltinnRollerClientTest {
             },
             dependenciesCfg = {
                 provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-                provide<AltinnRollerClient> {
-                    AltinnRollerClientImpl(
-                        httpClient = resolve(),
-                        tokenProvider = resolve()
-                    )
-                }
+                provide<AltinnRollerClient>(AltinnRollerClientImpl::class)
             }
         ) {
             assertFalse(
@@ -83,12 +78,7 @@ class AltinnRollerClientTest {
             },
             dependenciesCfg = {
                 provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-                provide<AltinnRollerClient> {
-                    AltinnRollerClientImpl(
-                        httpClient = resolve(),
-                        tokenProvider = resolve()
-                    )
-                }
+                provide<AltinnRollerClient>(AltinnRollerClientImpl::class)
             }
         ) {
             assertTrue(
@@ -133,12 +123,7 @@ class AltinnRollerClientTest {
             },
             dependenciesCfg = {
                 provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-                provide<AltinnRollerClient> {
-                    AltinnRollerClientImpl(
-                        httpClient = resolve(),
-                        tokenProvider = resolve()
-                    )
-                }
+                provide<AltinnRollerClient>(AltinnRollerClientImpl::class)
             }
         ) {
             assertTrue(
@@ -182,12 +167,7 @@ class AltinnRollerClientTest {
             },
             dependenciesCfg = {
                 provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-                provide<AltinnRollerClient> {
-                    AltinnRollerClientImpl(
-                        httpClient = resolve(),
-                        tokenProvider = resolve()
-                    )
-                }
+                provide<AltinnRollerClient>(AltinnRollerClientImpl::class)
             }
         ) {
             assertFalse(
@@ -231,12 +211,7 @@ class AltinnRollerClientTest {
             },
             dependenciesCfg = {
                 provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-                provide<AltinnRollerClient> {
-                    AltinnRollerClientImpl(
-                        httpClient = resolve(),
-                        tokenProvider = resolve()
-                    )
-                }
+                provide<AltinnRollerClient>(AltinnRollerClientImpl::class)
             }
         ) {
             assertTrue(
@@ -280,12 +255,7 @@ class AltinnRollerClientTest {
             },
             dependenciesCfg = {
                 provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-                provide<AltinnRollerClient> {
-                    AltinnRollerClientImpl(
-                        httpClient = resolve(),
-                        tokenProvider = resolve()
-                    )
-                }
+                provide<AltinnRollerClient>(AltinnRollerClientImpl::class)
             }
         ) {
             assertTrue(
@@ -329,12 +299,7 @@ class AltinnRollerClientTest {
             },
             dependenciesCfg = {
                 provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-                provide<AltinnRollerClient> {
-                    AltinnRollerClientImpl(
-                        httpClient = resolve(),
-                        tokenProvider = resolve()
-                    )
-                }
+                provide<AltinnRollerClient>(AltinnRollerClientImpl::class)
             }
         ) {
             assertFalse(
@@ -378,12 +343,7 @@ class AltinnRollerClientTest {
             },
             dependenciesCfg = {
                 provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-                provide<AltinnRollerClient> {
-                    AltinnRollerClientImpl(
-                        httpClient = resolve(),
-                        tokenProvider = resolve()
-                    )
-                }
+                provide<AltinnRollerClient>(AltinnRollerClientImpl::class)
             }
         ) {
             assertFalse(
@@ -407,12 +367,7 @@ class AltinnRollerClientTest {
     fun `exception hvis ingen roller oppgis`() = runTestApplication(
         dependenciesCfg = {
             provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-            provide<AltinnRollerClient> {
-                    AltinnRollerClientImpl(
-                        httpClient = resolve(),
-                        tokenProvider = resolve()
-                    )
-                }
+            provide<AltinnRollerClient>(AltinnRollerClientImpl::class)
         }
     ) {
         assertFailsWith<IllegalArgumentException> {

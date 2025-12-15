@@ -59,25 +59,15 @@ class AltinnTilgangssoknadClientImpl(
     private val log = logger()
     private val httpClient = defaultHttpClient.config {
         expectSuccess = true
+
         install(ContentNegotiation) {
-            /**
-             * Hack: force remove application/json from accept header by setting q=0.0
-             * We then set hal+json with q=1.0 in each request.
-             * This is because Altinn seems to prefer application/json even when hal+json is requested.
-             */
-            defaultAcceptHeaderQValue = 0.0
             halJsonConfiguration()
         }
+
         defaultRequest {
             header("apikey", altinnApiKey)
-            header(
-                HttpHeaders.Accept,
-                ContentType.Application.HalJson.withParameter("q", "1.0").toString()
-            )
-            header(
-                HttpHeaders.ContentType,
-                ContentType.Application.HalJson.withParameter("q", "1.0").toString()
-            )
+            accept(ContentType.Application.HalJson)
+            contentType(ContentType.Application.HalJson)
         }
 
     }
