@@ -37,7 +37,7 @@ class AntlinnTilgangSoknadApiTest {
                     }
 
                     get(AltinnTilgangssoknadClient.apiPath) {
-                        if (call.parameters[$$"$filter"] == "CoveredBy%20eq%20'42'") {
+                        if (call.parameters[$$"$filter"] == "CoveredBy eq '42'") {
                             if (call.parameters["continuation"] != null) {
                                 call.respondText(altinnHentSoknadTomResponse, ContentType.Application.HalJson)
                             } else {

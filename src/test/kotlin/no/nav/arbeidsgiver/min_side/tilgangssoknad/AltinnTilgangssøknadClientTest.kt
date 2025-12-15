@@ -42,7 +42,7 @@ class AltinnTilgangssøknadClientTest {
                             )
                         }
 
-                        if (call.parameters[$$"$filter"] == "CoveredBy%20eq%20'$fnr'") {
+                        if (call.parameters[$$"$filter"] == "CoveredBy eq '$fnr'") {
                             call.respondText(
                                 if (call.parameters["continuation"] == null)
                                     altinnHentSøknadResponse

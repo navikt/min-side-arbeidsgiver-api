@@ -60,7 +60,6 @@ class AltinnTilgangssoknadClientImpl(
     private val log = logger()
 
     override suspend fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad> {
-        val filter = "CoveredBy eq '$fødselsnummer'".replace(" ", "%20") // URL encode space as %20
         var shouldContinue = true
         var continuationtoken: String? = null
         val resultat = ArrayList<AltinnTilgangssøknad>()
@@ -70,7 +69,7 @@ class AltinnTilgangssoknadClientImpl(
                     url {
                         takeFrom(ingress)
                         path(apiPath)
-                        parameter($$"$filter", filter)
+                        parameter($$"$filter", "CoveredBy eq '$fødselsnummer'")
                         if (continuationtoken != null) {
                             parameter("continuation", continuationtoken)
                         }
