@@ -2,13 +2,17 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -20,6 +24,8 @@ import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Co
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.targetResource
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.targetScope
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.DelegationRequest.RequestResource
+import java.io.EOFException
+import javax.net.ssl.SSLHandshakeException
 
 interface AltinnTilgangssoknadClient {
     suspend fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad>
@@ -50,9 +56,38 @@ interface AltinnTilgangssoknadClient {
 
 class AltinnTilgangssoknadClientImpl(
     private val tokenProvider: MaskinportenTokenProvider,
-    private val httpClient: HttpClient = defaultHttpClient {
+    private val httpClient: HttpClient = HttpClient(CIO) {
+        expectSuccess = true
+
         install(ContentNegotiation) {
             clientJsonConfig()
+        }
+
+        install(HttpClientMetricsFeature) {
+            registry = Metrics.meterRegistry
+        }
+
+        install(HttpRequestRetry) {
+            retryOnServerErrors(3)
+            retryOnExceptionIf(3) { _, cause ->
+                when (cause) {
+                    is SocketTimeoutException,
+                    is ConnectTimeoutException,
+                    is EOFException,
+                    is SSLHandshakeException,
+                    is ClosedReceiveChannelException -> true
+
+                    else -> false
+                }
+            }
+
+            delayMillis { 250L }
+        }
+
+        install(Logging) {
+            sanitizeHeader {
+                true
+            }
         }
     },
 ) : AltinnTilgangssoknadClient {
@@ -81,11 +116,8 @@ class AltinnTilgangssoknadClientImpl(
                             onError = { throw Exception("Failed to fetch token: ${it.status} ${it.error}") }
                         )
                     )
-
-                    // hack to avoid Ktor adding default headers that affect altinn serialization
                     headers.remove(HttpHeaders.Accept)
                     headers.remove(HttpHeaders.ContentType)
-
                     accept(ContentType.Application.HalJson)
                     contentType(ContentType.Application.HalJson)
                 }
@@ -145,10 +177,8 @@ class AltinnTilgangssoknadClientImpl(
                 )
             )
 
-            // hack to avoid Ktor adding default headers that affect altinn serialization
             headers.remove(HttpHeaders.Accept)
             headers.remove(HttpHeaders.ContentType)
-
             contentType(ContentType.Application.HalJson)
             accept(ContentType.Application.HalJson)
 
