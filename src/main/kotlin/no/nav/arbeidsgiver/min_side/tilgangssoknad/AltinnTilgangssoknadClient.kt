@@ -85,8 +85,10 @@ class AltinnTilgangssoknadClientImpl(
         }
 
         install(Logging) {
-            sanitizeHeader {
-                true
+            level = LogLevel.BODY
+
+            sanitizeHeader { header ->
+                header !in setOf(HttpHeaders.ContentType, HttpHeaders.Accept)
             }
         }
     },
