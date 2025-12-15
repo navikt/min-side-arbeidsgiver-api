@@ -81,6 +81,11 @@ class AltinnTilgangssoknadClientImpl(
                             onError = { throw Exception("Failed to fetch token: ${it.status} ${it.error}") }
                         )
                     )
+
+                    // hack to avoid Ktor adding default headers that affect altinn serialization
+                    headers.remove(HttpHeaders.Accept)
+                    headers.remove(HttpHeaders.ContentType)
+
                     accept(ContentType.Application.HalJson)
                     contentType(ContentType.Application.HalJson)
                 }
@@ -132,15 +137,20 @@ class AltinnTilgangssoknadClientImpl(
                 takeFrom(ingress)
                 path(apiPath)
             }
-            accept(ContentType.Application.HalJson)
             header("apikey", altinnApiKey)
-            contentType(ContentType.Application.HalJson)
             bearerAuth(
                 tokenProvider.token(targetScope, mapOf("resource" to targetResource)).fold(
                     onSuccess = { it.accessToken },
                     onError = { throw Exception("Failed to fetch token: ${it.status} ${it.error}") }
                 )
             )
+
+            // hack to avoid Ktor adding default headers that affect altinn serialization
+            headers.remove(HttpHeaders.Accept)
+            headers.remove(HttpHeaders.ContentType)
+
+            contentType(ContentType.Application.HalJson)
+            accept(ContentType.Application.HalJson)
 
             setBody(
                 DelegationRequest(
