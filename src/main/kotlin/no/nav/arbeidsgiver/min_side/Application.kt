@@ -112,12 +112,13 @@ fun Application.configureDependencies() {
     dependencies {
         provide<Database> { openDatabase(databaseConfig) }
 
+        provide<AuthConfig> { AuthConfig.nais }
         provide<HttpClient> { defaultHttpClient() }
 
-        provide<TokenXTokenIntrospector> { TokenXAuthClient(AuthConfig.nais) }
-        provide<TokenXTokenExchanger> { TokenXAuthClient(AuthConfig.nais) }
-        provide<MaskinportenTokenProvider> { MaskinportenAuthClient(AuthConfig.nais) }
-        provide<AzureAdTokenProvider> { AzureAdAuthClient(AuthConfig.nais) }
+        provide<TokenXTokenIntrospector>(TokenXAuthClient::class)
+        provide<TokenXTokenExchanger>(TokenXAuthClient::class)
+        provide<MaskinportenTokenProvider>(MaskinportenAuthClient::class)
+        provide<AzureAdTokenProvider>(AzureAdAuthClient::class)
 
         provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
 

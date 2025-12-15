@@ -124,25 +124,23 @@ interface TokenXTokenIntrospector : TokenIntrospector
 
 class TokenXAuthClient(
     config: AuthConfig,
-    httpClient: HttpClient = defaultHttpClient()
+    httpClient: HttpClient,
 ) : AuthClient(config, IdentityProvider.TOKEN_X, httpClient), TokenXTokenExchanger, TokenXTokenIntrospector
 
 class MaskinportenAuthClient(
     config: AuthConfig,
-    httpClient: HttpClient = defaultHttpClient()
+    httpClient: HttpClient,
 ) : AuthClient(config, IdentityProvider.MASKINPORTEN, httpClient), MaskinportenTokenProvider
 
 class AzureAdAuthClient(
     config: AuthConfig,
-    httpClient: HttpClient = defaultHttpClient()
+    httpClient: HttpClient,
 ) : AuthClient(config, IdentityProvider.AZURE_AD, httpClient), AzureAdTokenProvider
 
 abstract class AuthClient(
     private val config: AuthConfig,
     private val provider: IdentityProvider,
-    private val httpClient: HttpClient = defaultHttpClient(customizeMetrics = {
-        clientName = "texas.client"
-    }),
+    private val httpClient: HttpClient,
 ): TokenProvider, TokenExchanger, TokenIntrospector {
 
     override suspend fun token(target: String, additionalParameters: Map<String, String>) = try {
