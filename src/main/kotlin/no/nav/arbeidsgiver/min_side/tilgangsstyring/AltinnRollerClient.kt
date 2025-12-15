@@ -63,15 +63,15 @@ class AltinnRollerClientImpl(
         }
 
         fun roleDefintionFilter(roller: Iterable<String>) =
-            roller.joinToString(separator = "+or+") {
+            roller.joinToString(separator = " or ") {
                 require(it.matches(safeRoleName))
-                "RoleDefinitionCode+eq+'$it'"
+                "RoleDefinitionCode eq '$it'"
             }
 
         val altinnRolleFilter = roleDefintionFilter(altinnRoller)
         val eregRolleFilter = roleDefintionFilter(externalRoller)
         val filter =
-            "(RoleType+eq+'Altinn'+and+($altinnRolleFilter))+or+(RoleType+eq+'External'+and+($eregRolleFilter))"
+            "(RoleType eq 'Altinn' and ($altinnRolleFilter)) or (RoleType eq 'External' and ($eregRolleFilter))"
 
         val rollerResponse =
             httpClient.get {
