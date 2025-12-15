@@ -9,13 +9,12 @@ import no.nav.arbeidsgiver.min_side.infrastruktur.MaskinportenTokenProvider
 import no.nav.arbeidsgiver.min_side.infrastruktur.resolve
 import no.nav.arbeidsgiver.min_side.infrastruktur.runTestApplication
 import no.nav.arbeidsgiver.min_side.infrastruktur.successMaskinportenTokenProvider
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.clientJsonConfig
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-class AltinnTilgangssøknadClientTest {
+class AltinnTilgangssoknadClientTest {
     val fnr = "42"
     val orgnr = "314159265"
 
@@ -28,7 +27,7 @@ class AltinnTilgangssøknadClientTest {
             hosts(AltinnTilgangssoknadClient.ingress) {
                 routing {
                     install(ContentNegotiation) {
-                        clientJsonConfig()
+                        halJsonConfiguration()
                     }
 
                     get(AltinnTilgangssoknadClient.apiPath) {
@@ -55,15 +54,17 @@ class AltinnTilgangssøknadClientTest {
                 }
             }
         },
-        dependenciesCfg = {
+        dependenciesCfg = { builder ->
             provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-            provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
-        },
-        httpClientCfg = {
-            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                clientJsonConfig()
+            provide<AltinnTilgangssoknadClient> {
+                AltinnTilgangssoknadClientImpl(
+                    tokenProvider = resolve(),
+                    httpClient = builder.createClient {
+                        halJsonHttpClientConfig()
+                    }
+                )
             }
-        }
+        },
     ) {
         val result = resolve<AltinnTilgangssoknadClient>().hentSøknader(fnr)
         assertTrue(result.isNotEmpty())
@@ -80,7 +81,7 @@ class AltinnTilgangssøknadClientTest {
                 hosts(AltinnTilgangssoknadClient.ingress) {
                     routing {
                         install(ContentNegotiation) {
-                            clientJsonConfig()
+                            halJsonConfiguration()
                         }
 
                         post(AltinnTilgangssoknadClient.apiPath) {
@@ -91,15 +92,17 @@ class AltinnTilgangssøknadClientTest {
                     }
                 }
             },
-            dependenciesCfg = {
+            dependenciesCfg = { builder ->
                 provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-                provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
-            },
-            httpClientCfg = {
-                install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                    clientJsonConfig()
+                provide<AltinnTilgangssoknadClient> {
+                    AltinnTilgangssoknadClientImpl(
+                        tokenProvider = resolve(),
+                        httpClient = builder.createClient {
+                            halJsonHttpClientConfig()
+                        }
+                    )
                 }
-            }
+            },
         ) {
             val fnr = "42"
             val skjema = AltinnTilgangssøknadsskjema(

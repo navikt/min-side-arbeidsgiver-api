@@ -149,7 +149,16 @@ fun Application.configureDependencies() {
         provide<SykefraværstatistikkService>(SykefraværstatistikkService::class)
         provide<SykefravarstatistikkRepository>(SykefravarstatistikkRepository::class)
 
-        provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+        provide<AltinnTilgangssoknadClient> {
+            AltinnTilgangssoknadClientImpl(
+                tokenProvider = resolve(),
+                /**
+                 * Do not autowire the default HttpClient here, as it would break contentnegotiation
+                 * configured with Hal+JSON in AltinnTilgangssoknadClientImpl.
+                 */
+                httpClient = AltinnTilgangssoknadClient.halJsonHttpClient
+            )
+        }
         provide<AltinnTilgangSoknadService>(AltinnTilgangSoknadService::class)
 
         provide<KontaktInfoPollerRepository>(KontaktInfoPollerRepository::class)

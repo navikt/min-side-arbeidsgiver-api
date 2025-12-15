@@ -2,6 +2,7 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
@@ -19,7 +20,7 @@ import kotlinx.serialization.json.Json
 import no.nav.arbeidsgiver.min_side.infrastruktur.*
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.altinnApiKey
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.apiPath
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.clientJsonConfig
+import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.halJsonHttpClient
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.ingress
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.targetResource
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.targetScope
@@ -43,55 +44,63 @@ interface AltinnTilgangssoknadClient {
             prod = { "https://www.altinn.no/" },
             other = { "https://tt02.altinn.no/" }
         )
-        fun Configuration.clientJsonConfig() {
-            json(
-                json = Json(defaultJson) {
-                    explicitNulls = false
-                },
-                contentType = ContentType.Application.HalJson
-            )
+
+        val halJsonHttpClient = HttpClient(CIO) {
+            halJsonHttpClientConfig()
+        }
+    }
+}
+
+fun Configuration.halJsonConfiguration() {
+    json(
+        json = Json(defaultJson) {
+            explicitNulls = false
+        },
+        contentType = ContentType.Application.HalJson
+    )
+}
+
+fun HttpClientConfig<out HttpClientEngineConfig>.halJsonHttpClientConfig() {
+    expectSuccess = true
+
+    install(ContentNegotiation) { halJsonConfiguration() }
+
+    install(HttpClientMetricsFeature) {
+        registry = Metrics.meterRegistry
+    }
+
+    install(HttpRequestRetry) {
+        retryOnServerErrors(3)
+        retryOnExceptionIf(3) { _, cause ->
+            when (cause) {
+                is SocketTimeoutException,
+                is ConnectTimeoutException,
+                is EOFException,
+                is SSLHandshakeException,
+                is ClosedReceiveChannelException,
+                is HttpRequestTimeoutException -> true
+
+                else -> false
+            }
+        }
+
+        delayMillis { 250L }
+    }
+
+    install(Logging) {
+        sanitizeHeader {
+            true
         }
     }
 }
 
 class AltinnTilgangssoknadClientImpl(
     private val tokenProvider: MaskinportenTokenProvider,
-    private val httpClient: HttpClient = HttpClient(CIO) {
-        expectSuccess = true
-
-        install(ContentNegotiation) {
-            clientJsonConfig()
-        }
-
-        install(HttpClientMetricsFeature) {
-            registry = Metrics.meterRegistry
-        }
-
-        install(HttpRequestRetry) {
-            retryOnServerErrors(3)
-            retryOnExceptionIf(3) { _, cause ->
-                when (cause) {
-                    is SocketTimeoutException,
-                    is ConnectTimeoutException,
-                    is EOFException,
-                    is SSLHandshakeException,
-                    is ClosedReceiveChannelException -> true
-
-                    else -> false
-                }
-            }
-
-            delayMillis { 250L }
-        }
-
-        install(Logging) {
-            level = LogLevel.BODY
-
-            sanitizeHeader { header ->
-                header !in setOf(HttpHeaders.ContentType, HttpHeaders.Accept)
-            }
-        }
-    },
+    /**
+     * do not autowire default HttpClient,
+     * use [AltinnTilgangssoknadClient.Companion.halJsonHttpClient] to configure the client
+     */
+    private val httpClient: HttpClient = halJsonHttpClient,
 ) : AltinnTilgangssoknadClient {
 
     private val log = logger()
@@ -118,8 +127,6 @@ class AltinnTilgangssoknadClientImpl(
                             onError = { throw Exception("Failed to fetch token: ${it.status} ${it.error}") }
                         )
                     )
-                    headers.remove(HttpHeaders.Accept)
-                    headers.remove(HttpHeaders.ContentType)
                     accept(ContentType.Application.HalJson)
                     contentType(ContentType.Application.HalJson)
                 }
@@ -179,8 +186,6 @@ class AltinnTilgangssoknadClientImpl(
                 )
             )
 
-            headers.remove(HttpHeaders.Accept)
-            headers.remove(HttpHeaders.ContentType)
             contentType(ContentType.Application.HalJson)
             accept(ContentType.Application.HalJson)
 
@@ -207,6 +212,8 @@ class AltinnTilgangssoknadClientImpl(
         }
     }
 }
+
+
 
 @Suppress("PropertyName")
 @Serializable

@@ -3,7 +3,6 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -14,7 +13,6 @@ import no.nav.arbeidsgiver.min_side.ktorConfig
 import no.nav.arbeidsgiver.min_side.mockAltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerServiceImpl
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.clientJsonConfig
 import org.intellij.lang.annotations.Language
 import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.Test
@@ -33,7 +31,7 @@ class AntlinnTilgangSoknadApiTest {
             hosts(AltinnTilgangssoknadClient.ingress) {
                 routing {
                     install(ContentNegotiation) {
-                        clientJsonConfig()
+                        halJsonConfiguration()
                     }
 
                     get(AltinnTilgangssoknadClient.apiPath) {
@@ -84,7 +82,7 @@ class AntlinnTilgangSoknadApiTest {
                 }
             }
         },
-        dependenciesCfg = {
+        dependenciesCfg = { builder ->
             provide<TokenXTokenIntrospector> {
                 MockTokenIntrospector {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
@@ -93,7 +91,18 @@ class AntlinnTilgangSoknadApiTest {
             provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
             provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
             provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
-            provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+            provide<AltinnTilgangssoknadClient> {
+                AltinnTilgangssoknadClientImpl(
+                    tokenProvider = resolve(),
+
+                    /**
+                     * explicitly configure httpClient for hal+json to avoid conflicts
+                     */
+                    httpClient = builder.createClient {
+                        halJsonHttpClientConfig()
+                    },
+                )
+            }
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -101,11 +110,6 @@ class AntlinnTilgangSoknadApiTest {
             configureTokenXAuth()
             configureTilgangssoknadRoutes()
         },
-        httpClientCfg = {
-            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                clientJsonConfig()
-            }
-        }
     ) {
 
         val jsonResponse = client.get("ditt-nav-arbeidsgiver-api/api/altinn-tilgangssoknad") {
@@ -140,7 +144,7 @@ class AntlinnTilgangSoknadApiTest {
             hosts(AltinnTilgangssoknadClient.ingress) {
                 routing {
                     install(ContentNegotiation) {
-                        clientJsonConfig()
+                        halJsonConfiguration()
                     }
 
                     post(AltinnTilgangssoknadClient.apiPath) {
@@ -190,34 +194,15 @@ class AntlinnTilgangSoknadApiTest {
             }
             provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
             provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-            provide<AltinnTilgangerService> {
-                AltinnTilgangerServiceImpl(
-                    tokenExchanger = resolve(),
-
-                    /**
-                     * we need to create a separate httpClient since the httpTestClient used in the test application
-                     * is configured for hal+json
-                     *
-                     * could reuse builder.client, but explicit config is more robust to changes
-                     */
-                    httpClient = builder.createClient {
-                        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                            json(defaultJson)
-                        }
-                    },
-                )
-            }
+            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
             provide<AltinnTilgangssoknadClient> {
                 AltinnTilgangssoknadClientImpl(
                     tokenProvider = resolve(),
-
                     /**
                      * explicitly configure httpClient for hal+json to avoid conflicts
                      */
                     httpClient = builder.createClient {
-                        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                            clientJsonConfig()
-                        }
+                        halJsonHttpClientConfig()
                     },
                 )
             }
@@ -286,7 +271,7 @@ class AntlinnTilgangSoknadApiTest {
             hosts(AltinnTilgangssoknadClient.ingress) {
                 routing {
                     install(ContentNegotiation) {
-                        clientJsonConfig()
+                        halJsonConfiguration()
                     }
 
                     post(AltinnTilgangssoknadClient.apiPath) {
@@ -310,23 +295,7 @@ class AntlinnTilgangSoknadApiTest {
             }
             provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
             provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-            provide<AltinnTilgangerService> {
-                AltinnTilgangerServiceImpl(
-                    tokenExchanger = resolve(),
-
-                    /**
-                     * we need to create a separate httpClient since the httpTestClient used in the test application
-                     * is configured for hal+json
-                     *
-                     * could reuse builder.client, but explicit config is more robust to changes
-                     */
-                    httpClient = builder.createClient {
-                        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                            json(defaultJson)
-                        }
-                    },
-                )
-            }
+            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
             provide<AltinnTilgangssoknadClient> {
                 AltinnTilgangssoknadClientImpl(
                     tokenProvider = resolve(),
@@ -335,9 +304,7 @@ class AntlinnTilgangSoknadApiTest {
                      * explicitly configure httpClient for hal+json to avoid conflicts
                      */
                     httpClient = builder.createClient {
-                        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                            clientJsonConfig()
-                        }
+                        halJsonHttpClientConfig()
                     },
                 )
             }
@@ -348,11 +315,6 @@ class AntlinnTilgangSoknadApiTest {
             configureTokenXAuth()
             configureTilgangssoknadRoutes()
         },
-        httpClientCfg = {
-            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                clientJsonConfig()
-            }
-        }
     ) {
         val skjema = AltinnTilgangssøknadsskjema(
             orgnr = "314",

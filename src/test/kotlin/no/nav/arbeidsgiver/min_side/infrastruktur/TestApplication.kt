@@ -17,23 +17,17 @@ import org.intellij.lang.annotations.Language
  * Sets up and runs a test application without a test database.
  * Allows configuration of external services, dependencies, and application setup.
  * The provided test block is executed with an HttpClient for making requests to the test application.
- * There is a separate httpClient supplied to the application dependencies, this client can be configured via [httpClientCfg].
- * The client available in the [testBlock] is configured with default JSON settings and is meant for calling the test application.
- * The httpClient provided to the application dependencies can be used to call external services. This is the client that will be mocked in tests.
- * By default, the clients are setup identically, but the httpclient provided to the application dependencies can be customized separately.
  */
 fun runTestApplication(
     externalServicesCfg: ExternalServicesBuilder.() -> Unit = {},
     dependenciesCfg: DependencyRegistry.(ApplicationTestBuilder) -> Unit = {},
     applicationCfg: suspend Application.() -> Unit = {},
-    httpClientCfg: (HttpClientConfig<*>.() -> Unit)? = null,
     testBlock: suspend ApplicationTestBuilder.() -> Unit
 ) = testApplication {
     configureTestApp(
         externalServicesCfg = externalServicesCfg,
         dependenciesCfg = dependenciesCfg,
         applicationCfg = applicationCfg,
-        httpClientCfg = httpClientCfg,
     )
     startApplication()
     testBlock()
@@ -45,16 +39,11 @@ fun runTestApplication(
  * After the test block is executed, the test database is cleaned up.
  * Allows configuration of external services, dependencies, and application setup.
  * The provided test block is executed with an HttpClient for making requests to the test application.
- * There is a separate httpClient supplied to the application dependencies, this client can be configured via [httpClientCfg].
- * The client available in the [testBlock] is configured with default JSON settings and is meant for calling the test application.
- * The httpClient provided to the application dependencies can be used to call external services. This is the client that will be mocked in tests.
- * By default, the clients are setup identically, but the httpclient provided to the application dependencies can be customized separately.
  */
 fun runTestApplicationWithDatabase(
     externalServicesCfg: ExternalServicesBuilder.() -> Unit = {},
     dependenciesCfg: DependencyRegistry.(ApplicationTestBuilder) -> Unit = {},
     applicationCfg: suspend Application.() -> Unit = {},
-    httpClientCfg: (HttpClientConfig<*>.() -> Unit)? = null,
     testBlock: suspend ApplicationTestBuilder.() -> Unit
 ) = testApplicationWithDatabase { testDatabase ->
     configureTestApp(
@@ -64,7 +53,6 @@ fun runTestApplicationWithDatabase(
             dependenciesCfg(this@testApplicationWithDatabase)
         },
         applicationCfg = applicationCfg,
-        httpClientCfg = httpClientCfg,
     )
     startApplication()
     testBlock()
@@ -82,7 +70,6 @@ private fun ApplicationTestBuilder.configureTestApp(
     externalServicesCfg: ExternalServicesBuilder.() -> Unit,
     dependenciesCfg: DependencyRegistry.(ApplicationTestBuilder) -> Unit,
     applicationCfg: suspend Application.() -> Unit,
-    httpClientCfg: (HttpClientConfig<*>.() -> Unit)?,
 ) {
     externalServices {
         externalServicesCfg()
@@ -92,18 +79,9 @@ private fun ApplicationTestBuilder.configureTestApp(
             json(defaultJson)
         }
     }
-    val httpClient = createClient {
-        if (httpClientCfg != null) {
-            httpClientCfg()
-        } else {
-            install(ContentNegotiation) {
-                json(defaultJson)
-            }
-        }
-    }
     application {
         dependencies {
-            provide<HttpClient> { httpClient }
+            provide<HttpClient> { this@configureTestApp.client }
             dependenciesCfg(this@configureTestApp)
         }
         applicationCfg()
