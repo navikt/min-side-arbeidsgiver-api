@@ -107,7 +107,7 @@ class SykefravarstatistikkRepository(
 data class MetadataVirksomhetDto(
     @SerialName("orgnr") val virksomhetsnummer: String,
     @SerialName("naring") val naring: String,
-    @SerialName("bransje") val bransje: String?,
+    @SerialName("bransje") val bransje: String? = null,
     @SerialName("arstall") val arstall: Int,
     @SerialName("kvartal") val kvartal: Int,
 )
@@ -127,7 +127,7 @@ data class MetadataVirksomhetKafkaKeyDto(
 data class StatistikkategoriDto(
     @SerialName("kategori") val kategori: String,
     @SerialName("kode") val kode: String, // orgnr dersom kategori er VIRKSOMHET, bransje dersom kategori er BRANSJE, osv
-    @SerialName("siste4Kvartal") val siste4Kvartal: ProsentWrapper?,
+    @SerialName("siste4Kvartal") val siste4Kvartal: ProsentWrapper? = null,
     @SerialName("sistePubliserteKvartal") val sistePubliserteKvartal: ÅrstallKvartalWrapper,
 ) {
     val prosent: Double
@@ -141,7 +141,7 @@ data class StatistikkategoriDto(
 
     @Serializable
     data class ProsentWrapper(
-        @SerialName("prosent") val prosent: Double,
+        @SerialName("prosent") val prosent: Double? = null,
     )
 
     @Serializable
