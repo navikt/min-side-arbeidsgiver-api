@@ -206,11 +206,12 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
     val sykefravarstatistikkRepository = dependencies.resolve<SykefravarstatistikkRepository>()
     val varslingStatusRepository = dependencies.resolve<VarslingStatusRepository>()
 
+    val rebuild = "-rebuild-161225"
 
     // Nærmeste leder
     scope.launch {
         val config = KafkaConsumerConfig(
-            groupId = "min-side-arbeidsgiver-narmesteleder-model-builder-1",
+            groupId = "min-side-arbeidsgiver-narmesteleder-model-builder-1$rebuild",
             topics = setOf("teamsykmelding.syfo-narmesteleder-leesah"),
         )
         MsaKafkaConsumer(config).consume(NaermesteLederRecordProcessor(digisyfoRepository))
@@ -219,7 +220,7 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
     // Sykemelding
     scope.launch {
         val config = KafkaConsumerConfig(
-            groupId = "min-side-arbeidsgiver-sykmelding-1",
+            groupId = "min-side-arbeidsgiver-sykmelding-1$rebuild",
             topics = setOf("teamsykmelding.syfo-sendt-sykmelding"),
         )
         MsaKafkaConsumer(config).batchConsume(SykmeldingRecordProcessor(digisyfoRepository))
@@ -229,7 +230,7 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
     // Refusjon status
     scope.launch {
         val config = KafkaConsumerConfig(
-            groupId = "min-side-arbeidsgiver-1",
+            groupId = "min-side-arbeidsgiver-1$rebuild",
             topics = setOf("arbeidsgiver.tiltak-refusjon-endret-status"),
         )
         MsaKafkaConsumer(config).consume(RefusjonStatusRecordProcessor(refusjonStatusRepository))
@@ -238,7 +239,7 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
     // sykefraværstatistikk metadata
     scope.launch {
         val config = KafkaConsumerConfig(
-            groupId = "min-side-arbeidsgiver-sfmeta-3",
+            groupId = "min-side-arbeidsgiver-sfmeta-3$rebuild",
             topics = setOf("pia.sykefravarsstatistikk-metadata-virksomhet-v1"),
         )
         MsaKafkaConsumer(config).consume(
@@ -251,7 +252,7 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
     // sykefraværstatistikk virksomhet, næring, bransje
     scope.launch {
         val config = KafkaConsumerConfig(
-            groupId = "min-side-arbeidsgiver-sfstats-3",
+            groupId = "min-side-arbeidsgiver-sfstats-3$rebuild",
             topics = setOf(
                 "pia.sykefravarsstatistikk-virksomhet-v1",
                 "pia.sykefravarsstatistikk-naring-v1",
@@ -268,7 +269,7 @@ suspend fun Application.startKafkaConsumers(scope: CoroutineScope) {
     // Varsling status
     scope.launch {
         val config = KafkaConsumerConfig(
-            groupId = "min-side-arbeidsgiver-varsling-status-1",
+            groupId = "min-side-arbeidsgiver-varsling-status-1$rebuild",
             topics = setOf("fager.ekstern-varsling-status")
         )
         MsaKafkaConsumer(config).consume(VarslingStatusRecordProcessor(varslingStatusRepository))
