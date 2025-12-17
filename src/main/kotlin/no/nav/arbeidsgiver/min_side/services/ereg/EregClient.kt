@@ -1,130 +1,125 @@
 package no.nav.arbeidsgiver.min_side.services.ereg
 
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.github.benmanes.caffeine.cache.Caffeine
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import no.nav.arbeidsgiver.min_side.config.Miljø
-import no.nav.arbeidsgiver.min_side.defaultHttpClient
-import no.nav.arbeidsgiver.min_side.getOrCompute
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.Serializable
+import no.nav.arbeidsgiver.min_side.infrastruktur.*
+import no.nav.arbeidsgiver.min_side.services.ereg.EregClient.Companion.EREG_CACHE_NAME
+import no.nav.arbeidsgiver.min_side.services.ereg.EregClient.Companion.ingress
 import java.time.LocalDate
-import java.util.*
 
-class EregClient {
-    private val client = defaultHttpClient(configure = {
+interface EregClient {
+    companion object {
+        const val EREG_CACHE_NAME = "ereg_cache"
+        val ingress = Miljø.Ereg.baseUrl
+    }
+
+    suspend fun hentOrganisasjon(orgnummer: String): EregOrganisasjon?
+}
+
+class EregClientImpl(
+    defaultHttpClient: HttpClient,
+) : EregClient {
+
+    private val httpClient = defaultHttpClient.config {
         install(ContentNegotiation) {
-            jackson { findAndRegisterModules() }
+            json(defaultJson)
         }
-    })
-    private val baseUrl = Miljø.Ereg.baseUrl
-
+    }
     private val cache =
         Caffeine.newBuilder()
             .maximumSize(600000)
             .recordStats()
-            .build<String, Optional<EregOrganisasjon>>()
+            .build<String, Nullable<EregOrganisasjon>>()
 
-
-    suspend fun hentUnderenhet(virksomhetsnummer: String): EregOrganisasjon? {
-        val value = cache.getOrCompute("$EREG_CACHE_NAME-$virksomhetsnummer") {
-            val response = client.get("$baseUrl/v2/organisasjon/$virksomhetsnummer?inkluderHierarki=true") {
+    override suspend fun hentOrganisasjon(orgnummer: String): EregOrganisasjon? {
+        val value = cache.getOrComputeNullable("$EREG_CACHE_NAME-$orgnummer") {
+            val response = httpClient.get {
+                url {
+                    takeFrom(ingress)
+                    path("/v2/organisasjon/$orgnummer")
+                    parameter("inkluderHierarki", "true")
+                }
             }
 
             when (response.status) {
                 HttpStatusCode.OK -> {
-                    Optional.of(response.body<EregOrganisasjon>())
+                    response.body<EregOrganisasjon>()
                 }
 
-                HttpStatusCode.NotFound -> Optional.empty()
+                HttpStatusCode.NotFound -> null
 
                 else -> throw RuntimeException("Feil ved henting av organisasjon fra Ereg: ${response.status}")
             }
         }
-        return value.orElse(null)
-    }
-
-    suspend fun hentOverenhet(orgnummer: String): EregOrganisasjon? {
-        val value = cache.getOrCompute("$EREG_CACHE_NAME-$orgnummer") {
-            val response = client.get("$baseUrl/v2/organisasjon/$orgnummer?inkluderHierarki=true") {
-            }
-
-            when (response.status) {
-                HttpStatusCode.OK -> {
-                    Optional.of(response.body<EregOrganisasjon>())
-                }
-
-                HttpStatusCode.NotFound -> Optional.empty()
-
-                else -> throw RuntimeException("Feil ved henting av organisasjon fra Ereg: ${response.status}")
-            }
-        }
-        return value.orElse(null)
+        return value
     }
 }
 
-const val EREG_CACHE_NAME = "ereg_cache"
 
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Serializable
 data class EregAdresse(
     val type: String,
-    val adresselinje1: String?,
-    val adresselinje2: String?,
-    val adresselinje3: String?,
-    val kommunenummer: String?,
-    val landkode: String?,
-    val postnummer: String?,
-    val poststed: String?,
-    val gyldighetsperiode: GyldighetsPeriode?
+    val adresselinje1: String? = null,
+    val adresselinje2: String? = null,
+    val adresselinje3: String? = null,
+    val kommunenummer: String? = null,
+    val landkode: String? = null,
+    val postnummer: String? = null,
+    val poststed: String? = null,
+    val gyldighetsperiode: GyldighetsPeriode? = null
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Serializable
 data class EregOrganisasjonDetaljer(
-    val enhetstyper: List<EregEnhetstype>?,
-    val naeringer: List<EregNaering>?,
-    val ansatte: List<EregAnsatte>?,
-    val forretningsadresser: List<EregAdresse>?,
-    val postadresser: List<EregAdresse>?,
-    val internettadresser: List<EregNettAdresse>?,
+    val enhetstyper: List<EregEnhetstype>? = null,
+    val naeringer: List<EregNaering>? = null,
+    val ansatte: List<EregAnsatte>? = null,
+    val forretningsadresser: List<EregAdresse>? = null,
+    val postadresser: List<EregAdresse>? = null,
+    val internettadresser: List<EregNettAdresse>? = null,
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Serializable
 class EregEnhetstype(
-    val enhetstype: String?,
-    val gyldighetsperiode: GyldighetsPeriode?
+    val enhetstype: String? = null,
+    val gyldighetsperiode: GyldighetsPeriode? = null
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Serializable
 class EregNettAdresse(
-    val adresse: String?,
-    val gyldighetsperiode: GyldighetsPeriode?
+    val adresse: String? = null,
+    val gyldighetsperiode: GyldighetsPeriode? = null
 )
 
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Serializable
 data class EregNaering(
-    val naeringskode: String?,
-    val gyldighetsperiode: GyldighetsPeriode?
+    val naeringskode: String? = null,
+    val gyldighetsperiode: GyldighetsPeriode? = null
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Serializable
 data class EregAnsatte(
-    val antall: Int?,
-    val gyldighetsperiode: GyldighetsPeriode?
+    val antall: Int? = null,
+    val gyldighetsperiode: GyldighetsPeriode? = null
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Serializable
 data class EregOrganisasjon(
     val organisasjonsnummer: String,
     val navn: EregNavn,
     val organisasjonDetaljer: EregOrganisasjonDetaljer,
     val type: String,
-    val inngaarIJuridiskEnheter: List<EregEnhetsRelasjon>?,
-    val bestaarAvOrganisasjonsledd: List<OrganisasjonsLedd>?
+    val inngaarIJuridiskEnheter: List<EregEnhetsRelasjon>? = null,
+    val bestaarAvOrganisasjonsledd: List<OrganisasjonsLedd>? = null
 ) {
     companion object {
         fun EregOrganisasjon.orgnummerTilOverenhet(): String? =
@@ -138,28 +133,28 @@ data class EregOrganisasjon(
     }
 }
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Serializable
 data class EregEnhetsRelasjon(
     val organisasjonsnummer: String,
-    val gyldighetsperiode: GyldighetsPeriode?
+    val gyldighetsperiode: GyldighetsPeriode? = null
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Serializable
 data class OrganisasjonsLedd(
-    val organisasjonsledd: EregEnhetsRelasjon?,
+    val organisasjonsledd: EregEnhetsRelasjon? = null,
     val gyldighetsperiode: GyldighetsPeriode?
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Serializable
 data class EregNavn(
     val sammensattnavn: String,
-    val gyldighetsperiode: GyldighetsPeriode?
+    val gyldighetsperiode: GyldighetsPeriode? = null
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Serializable
 data class GyldighetsPeriode(
-    val fom: LocalDate?,
-    val tom: LocalDate?
+    val fom: SerializableLocalDate? = null,
+    val tom: SerializableLocalDate? = null
 ) {
     companion object {
         fun GyldighetsPeriode?.erGyldig(): Boolean {

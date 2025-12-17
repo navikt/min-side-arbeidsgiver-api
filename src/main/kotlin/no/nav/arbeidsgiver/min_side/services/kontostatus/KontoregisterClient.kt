@@ -1,30 +1,46 @@
 package no.nav.arbeidsgiver.min_side.services.kontostatus
 
 import com.github.benmanes.caffeine.cache.Caffeine
+import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.Nullable
-import no.nav.arbeidsgiver.min_side.azuread.AzureService
-import no.nav.arbeidsgiver.min_side.config.Miljø
-import no.nav.arbeidsgiver.min_side.defaultHttpClient
-import no.nav.arbeidsgiver.min_side.getOrComputeNullable
-import no.nav.arbeidsgiver.min_side.logger
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.Serializable
+import no.nav.arbeidsgiver.min_side.infrastruktur.*
+import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient.Companion.apiPath
+import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient.Companion.ingress
+import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient.Companion.targetScope
 import java.util.concurrent.TimeUnit
 
-class KontoregisterClient(
-    private val azureService: AzureService,
-) {
-    private val client = defaultHttpClient(configure = {
+interface KontoregisterClient {
+    suspend fun hentKontonummer(virksomhetsnummer: String): Kontooppslag?
+
+    companion object {
+        val ingress = Miljø.Sokos.kontoregisterBaseUrl
+        val apiPath = "/kontoregister/api/v1/hent-kontonummer-for-organisasjon"
+        val targetScope = Miljø.resolve(
+            prod = { "api://prod-fss.okonomi.sokos-kontoregister/.default" },
+            dev = { "api://dev-fss.okonomi.sokos-kontoregister-q2/.default" },
+            other = { "" }
+        )
+    }
+}
+
+class KontoregisterClientImpl(
+    defaultHttpClient: HttpClient,
+    private val tokenProvider: AzureAdTokenProvider,
+) : KontoregisterClient {
+
+    private val httpClient = defaultHttpClient.config {
         expectSuccess = true
-    })
-    private val tokenScope = Miljø.resolve(
-        prod = { "api://prod-fss.okonomi.sokos-kontoregister/.default" },
-        dev = { "api://dev-fss.okonomi.sokos-kontoregister-q2/.default" },
-        other = { "" }
-    )
-    private val logger = logger()
+
+        install(ContentNegotiation) {
+            json(defaultJson)
+        }
+    }
 
     private val cache = Caffeine.newBuilder()
         .maximumSize(600000)
@@ -32,18 +48,21 @@ class KontoregisterClient(
         .recordStats()
         .build<String, Nullable<Kontooppslag>>()
 
-    suspend fun hentKontonummer(virksomhetsnummer: String): Kontooppslag? {
+    override suspend fun hentKontonummer(virksomhetsnummer: String): Kontooppslag? {
         return cache.getOrComputeNullable("$KONTOREGISTER_CACHE_NAME-$virksomhetsnummer") {
             try {
-                client.request("${Miljø.Sokos.kontoregisterBaseUrl}/kontoregister/api/v1/hent-kontonummer-for-organisasjon/${virksomhetsnummer}") {
-                    method = HttpMethod.Get
-                    bearerAuth(azureService.getAccessToken(tokenScope))
-                }.let { response ->
-                    if (response.status == HttpStatusCode.NotFound) {
-                        null
+                httpClient.get {
+                    url {
+                        takeFrom(ingress)
+                        path(apiPath, virksomhetsnummer)
                     }
-                    response.body<Kontooppslag>()
-                }
+                    bearerAuth(
+                        tokenProvider.token(targetScope).fold(
+                            onSuccess = { it.accessToken },
+                            onError = { throw RuntimeException("Failed to fetch token: ${it.status} ${it.error}") }
+                        )
+                    )
+                }.body<Kontooppslag>()
             } catch (e: ClientRequestException) {
                 if (e.response.status == HttpStatusCode.NotFound) {
                     return@getOrComputeNullable null
@@ -57,6 +76,7 @@ class KontoregisterClient(
 /**
  * ref: https://github.com/navikt/sokos-kontoregister/blob/1ccc9c205a9b4e8f66dbe9c865383b256bcac26b/spec/kontoregister-v1-swagger2.json
  */
+@Serializable
 data class Kontooppslag(
     /**
      * Organisasjonsnummer

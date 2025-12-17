@@ -1,0 +1,121 @@
+package no.nav.arbeidsgiver.min_side.infrastruktur
+
+import io.ktor.client.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.di.*
+import io.ktor.server.testing.*
+import kotlinx.coroutines.runBlocking
+import no.nav.arbeidsgiver.min_side.services.digisyfo.ConsumerRecordProcessor
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.apache.kafka.common.TopicPartition
+import org.intellij.lang.annotations.Language
+
+/**
+ * Sets up and runs a test application without a test database.
+ * Allows configuration of external services, dependencies, and application setup.
+ * The provided test block is executed with an HttpClient for making requests to the test application.
+ */
+fun runTestApplication(
+    externalServicesCfg: ExternalServicesBuilder.() -> Unit = {},
+    dependenciesCfg: DependencyRegistry.(ApplicationTestBuilder) -> Unit = {},
+    applicationCfg: suspend Application.() -> Unit = {},
+    testBlock: suspend ApplicationTestBuilder.() -> Unit
+) = testApplication {
+    configureTestApp(
+        externalServicesCfg = externalServicesCfg,
+        dependenciesCfg = dependenciesCfg,
+        applicationCfg = applicationCfg,
+    )
+    startApplication()
+    testBlock()
+}
+
+/**
+ * Sets up and runs a test application with a test database.
+ * The test database is created, migrated, and provided to the application dependencies.
+ * After the test block is executed, the test database is cleaned up.
+ * Allows configuration of external services, dependencies, and application setup.
+ * The provided test block is executed with an HttpClient for making requests to the test application.
+ */
+fun runTestApplicationWithDatabase(
+    externalServicesCfg: ExternalServicesBuilder.() -> Unit = {},
+    dependenciesCfg: DependencyRegistry.(ApplicationTestBuilder) -> Unit = {},
+    applicationCfg: suspend Application.() -> Unit = {},
+    testBlock: suspend ApplicationTestBuilder.() -> Unit
+) = testApplicationWithDatabase { testDatabase ->
+    configureTestApp(
+        externalServicesCfg = externalServicesCfg,
+        dependenciesCfg = {
+            provide<Database> { testDatabase }
+            dependenciesCfg(this@testApplicationWithDatabase)
+        },
+        applicationCfg = applicationCfg,
+    )
+    startApplication()
+    testBlock()
+}
+
+val ApplicationTestBuilder.database: Database
+    get() = runBlocking {
+        application.dependencies.resolve()
+    }
+
+suspend inline fun <reified T> ApplicationTestBuilder.resolve(key: String? = null): T =
+    application.dependencies.resolve(key)
+
+private fun ApplicationTestBuilder.configureTestApp(
+    externalServicesCfg: ExternalServicesBuilder.() -> Unit,
+    dependenciesCfg: DependencyRegistry.(ApplicationTestBuilder) -> Unit,
+    applicationCfg: suspend Application.() -> Unit,
+) {
+    externalServices {
+        externalServicesCfg()
+    }
+    // the client used in tests to call the application, not the same as the httpClient inside the application
+    client = createClient {
+        install(ContentNegotiation) {
+            json(defaultJson)
+        }
+    }
+    application {
+        dependencies {
+            provide<HttpClient> {
+                // the client used in the application to call external services. This is the one provided via DI
+                this@configureTestApp.createClient {
+                    // TODO: should we copy some or all of the config from the defaultHttpClient?
+                }
+            }
+            dependenciesCfg(this@configureTestApp)
+        }
+        applicationCfg()
+    }
+}
+
+suspend fun ConsumerRecordProcessor.processRecordValue(@Language("JSON") value: String) = processRecord(
+    ConsumerRecord("", 0, 0, "", value)
+)
+
+suspend fun ConsumerRecordProcessor.processRecordsValue(@Language("JSON") value: String) =
+    processRecordsValues(listOf(value))
+
+suspend fun ConsumerRecordProcessor.processRecordsValues(
+    @Language("JSON") values: List<String>
+) = processRecords(
+    ConsumerRecords(
+        mapOf(
+            TopicPartition("topic", 1) to values.map {
+                ConsumerRecord("topic", 1, 0, "someid", it)
+            }
+        )
+    )
+)
+
+suspend fun ConsumerRecordProcessor.processRecordKeyValue(
+    @Language("JSON") key: String,
+    @Language("JSON") value: String
+) = processRecord(
+    ConsumerRecord("", 0, 0, key, value)
+)

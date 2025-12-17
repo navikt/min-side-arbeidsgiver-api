@@ -1,81 +1,24 @@
 package no.nav.arbeidsgiver.min_side.services.digisyfo
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import io.micrometer.core.instrument.MeterRegistry
-import no.nav.arbeidsgiver.min_side.controller.AuthenticatedUserHolder
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService.VirksomhetOgAntallSykmeldte
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
 import no.nav.arbeidsgiver.min_side.services.ereg.GyldighetsPeriode.Companion.erGyldig
 
-class DigisyfoService(
-    private val digisyfoRepository: DigisyfoRepository,
-    private val eregClient: EregClient,
-    private val meterRegistry: MeterRegistry
-) {
+interface DigisyfoService {
+    suspend fun hentVirksomheterOgSykmeldte(fnr: String): List<VirksomhetOgAntallSykmeldte>
 
-    suspend fun hentVirksomheterOgSykmeldte(fnr: String): List<VirksomhetOgAntallSykmeldte> {
-        val virksomheterOgSykmeldte = digisyfoRepository.virksomheterOgSykmeldte(fnr)
-
-        val orgs = mutableMapOf<String, VirksomhetOgAntallSykmeldte>()
-
-        for (virksomhetOgSykmeldt in virksomheterOgSykmeldte) {
-            val virksomhet = orgs[virksomhetOgSykmeldt.virksomhetsnummer].let {
-                if (it == null) {
-                    val eregOrg = eregClient.hentUnderenhet(virksomhetOgSykmeldt.virksomhetsnummer)
-                        ?: throw RuntimeException("Fant ikke underenhet for $virksomhetOgSykmeldt.virksomhetsnummer")
-                    orgs[virksomhetOgSykmeldt.virksomhetsnummer] =
-                        VirksomhetOgAntallSykmeldte.from(eregOrg, virksomhetOgSykmeldt.antallSykmeldte)
-                    orgs[virksomhetOgSykmeldt.virksomhetsnummer]!!
-                }
-                else{
-                    it
-                }
-            }
-            berikOverenheter(orgs, virksomhet)
-        }
-
-        val underenheter = orgs.values.filter { it.underenheter.isEmpty() }
-        val overenheter = orgs.values.filter { it.orgnrOverenhet == null }
-
-        meterRegistry.counter(
-            "msa.digisyfo.tilgang",
-            "virksomheter",
-            underenheter.size.toString()
-        ).increment()
-
-        return overenheter
-    }
-
-    private suspend fun berikOverenheter(
-        orgs: MutableMap<String, VirksomhetOgAntallSykmeldte>,
-        virksomhet: VirksomhetOgAntallSykmeldte
-    ) {
-        val orgnummerTilOverenhet = virksomhet.orgnrOverenhet ?: return
-
-        val overenhet = orgs[orgnummerTilOverenhet].let {
-            if (it == null) {
-                val eregOrg = eregClient.hentUnderenhet(orgnummerTilOverenhet)
-                    ?: throw RuntimeException("Fant ikke underenhet for $orgnummerTilOverenhet")
-                orgs[orgnummerTilOverenhet] = VirksomhetOgAntallSykmeldte.from(eregOrg)
-                orgs[orgnummerTilOverenhet]!!
-            }
-            else{
-                it
-            }
-        }
-
-        overenhet.leggTilUnderenhet(virksomhet)
-        berikOverenheter(orgs, overenhet)
-    }
-
+    @Serializable
     data class VirksomhetOgAntallSykmeldte(
         val orgnr: String,
         val navn: String,
         val organisasjonsform: String,
         var antallSykmeldte: Int,
         val underenheter: MutableList<VirksomhetOgAntallSykmeldte>,
-        @JsonIgnore val orgnrOverenhet: String?,
+        @Transient val orgnrOverenhet: String? = null,
     ) {
         fun leggTilUnderenhet(underenhet: VirksomhetOgAntallSykmeldte) {
             val eksisterende = underenheter.firstOrNull { it.orgnr == underenhet.orgnr }
@@ -103,5 +46,58 @@ class DigisyfoService(
                     underenheter = mutableListOf(),
                 )
         }
+    }
+}
+
+class DigisyfoServiceImpl(
+    private val digisyfoRepository: DigisyfoRepository,
+    private val eregClient: EregClient,
+) : DigisyfoService {
+
+    override suspend fun hentVirksomheterOgSykmeldte(fnr: String): List<VirksomhetOgAntallSykmeldte> {
+        val virksomheterOgSykmeldte = digisyfoRepository.virksomheterOgSykmeldte(fnr)
+
+        val orgs = mutableMapOf<String, VirksomhetOgAntallSykmeldte>()
+
+        for (virksomhetOgSykmeldt in virksomheterOgSykmeldte) {
+            val virksomhet = orgs[virksomhetOgSykmeldt.virksomhetsnummer].let {
+                if (it == null) {
+                    val eregOrg = eregClient.hentOrganisasjon(virksomhetOgSykmeldt.virksomhetsnummer)
+                        ?: throw RuntimeException("Fant ikke organisasjon for ${virksomhetOgSykmeldt.virksomhetsnummer}")
+                    orgs[virksomhetOgSykmeldt.virksomhetsnummer] =
+                        VirksomhetOgAntallSykmeldte.from(eregOrg, virksomhetOgSykmeldt.antallSykmeldte)
+                    orgs[virksomhetOgSykmeldt.virksomhetsnummer]!!
+                }
+                else{
+                    it
+                }
+            }
+            berikOverenheter(orgs, virksomhet)
+        }
+
+        val overenheter = orgs.values.filter { it.orgnrOverenhet == null }
+        return overenheter
+    }
+
+    private suspend fun berikOverenheter(
+        orgs: MutableMap<String, VirksomhetOgAntallSykmeldte>,
+        virksomhet: VirksomhetOgAntallSykmeldte
+    ) {
+        val orgnummerTilOverenhet = virksomhet.orgnrOverenhet ?: return
+
+        val overenhet = orgs[orgnummerTilOverenhet].let {
+            if (it == null) {
+                val eregOrg = eregClient.hentOrganisasjon(orgnummerTilOverenhet)
+                    ?: throw RuntimeException("Fant ikke underenhet for $orgnummerTilOverenhet")
+                orgs[orgnummerTilOverenhet] = VirksomhetOgAntallSykmeldte.from(eregOrg)
+                orgs[orgnummerTilOverenhet]!!
+            }
+            else{
+                it
+            }
+        }
+
+        overenhet.leggTilUnderenhet(virksomhet)
+        berikOverenheter(orgs, overenhet)
     }
 }

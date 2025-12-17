@@ -1,26 +1,57 @@
 package no.nav.arbeidsgiver.min_side.tilgangsstyring
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
+import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.arbeidsgiver.min_side.config.Miljø
-import no.nav.arbeidsgiver.min_side.defaultHttpClient
-import no.nav.arbeidsgiver.min_side.maskinporten.MaskinportenTokenService
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import no.nav.arbeidsgiver.min_side.infrastruktur.MaskinportenTokenProvider
+import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø
+import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
+import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient.Companion.altinnApiKey
+import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient.Companion.apiPath
+import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient.Companion.ingress
+import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient.Companion.targetResource
+import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient.Companion.targetScope
 
-class AltinnRollerClient(
-    private val maskinportenTokenService: MaskinportenTokenService,
-) {
-    private val altinnApiBaseUrl = Miljø.Altinn.baseUrl
-    private val altinnApiKey = Miljø.Altinn.altinnHeader
+interface AltinnRollerClient {
+    suspend fun harAltinnRolle(
+        fnr: String,
+        orgnr: String,
+        altinnRoller: Set<String>,
+        externalRoller: Set<String>,
+    ): Boolean
 
-    private val client = defaultHttpClient()
+    companion object {
+        val ingress = Miljø.Altinn.baseUrl
+        val apiPath = "/api/serviceowner/authorization/roles"
+        val altinnApiKey = Miljø.Altinn.altinnHeader
+        val targetScope = "altinn:serviceowner/rolesandrights"
+        val targetResource = Miljø.resolve(
+            prod = { "https://www.altinn.no/" },
+            other = { "https://tt02.altinn.no/" }
+        )
+    }
+}
+
+class AltinnRollerClientImpl(
+    defaultHttpClient: HttpClient,
+    private val tokenProvider: MaskinportenTokenProvider,
+) : AltinnRollerClient {
+
+    private val httpClient = defaultHttpClient.config {
+        install(ContentNegotiation) {
+            json(defaultJson)
+        }
+    }
 
     private val safeRoleName = Regex("^[A-ZÆØÅ]+$")
     private val orgnrRegex = Regex("^[0-9]{9}$")
 
-    suspend fun harAltinnRolle(
+    override suspend fun harAltinnRolle(
         fnr: String,
         orgnr: String,
         altinnRoller: Set<String>,
@@ -32,20 +63,30 @@ class AltinnRollerClient(
         }
 
         fun roleDefintionFilter(roller: Iterable<String>) =
-            roller.joinToString(separator = "+or+") {
+            roller.joinToString(separator = " or ") {
                 require(it.matches(safeRoleName))
-                "RoleDefinitionCode+eq+'$it'"
+                "RoleDefinitionCode eq '$it'"
             }
 
         val altinnRolleFilter = roleDefintionFilter(altinnRoller)
         val eregRolleFilter = roleDefintionFilter(externalRoller)
         val filter =
-            "(RoleType+eq+'Altinn'+and+($altinnRolleFilter))+or+(RoleType+eq+'External'+and+($eregRolleFilter))"
+            "(RoleType eq 'Altinn' and ($altinnRolleFilter)) or (RoleType eq 'External' and ($eregRolleFilter))"
 
         val rollerResponse =
-            client.get("$altinnApiBaseUrl/api/serviceowner/authorization/roles?subject=$fnr&reportee=$orgnr&${'$'}filter=$filter") {
+            httpClient.get {
+                url {
+                    takeFrom(ingress)
+                    path(apiPath)
+                    parameters.append("subject", fnr)
+                    parameters.append("reportee", orgnr)
+                    parameters.append($$"$filter", filter)
+                }
                 header("apikey", altinnApiKey)
-                bearerAuth(maskinportenTokenService.currentAccessToken())
+                bearerAuth(tokenProvider.token(targetScope, mapOf("resource" to targetResource)).fold(
+                    onSuccess = { it.accessToken },
+                    onError = { throw Exception("Failed to fetch token: ${it.status} ${it.error}") }
+                ))
             }
 
         val roller = when (rollerResponse.status) {
@@ -70,9 +111,9 @@ class AltinnRollerClient(
                 || roller.any { it.roleType == "External" && it.roleDefinitionCode in externalRoller }
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Serializable
     private class RoleDTO(
-        @JsonProperty("RoleType") val roleType: String,
-        @JsonProperty("RoleDefinitionCode") val roleDefinitionCode: String,
+        @SerialName("RoleType") val roleType: String,
+        @SerialName("RoleDefinitionCode") val roleDefinitionCode: String,
     )
 }

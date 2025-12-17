@@ -1,19 +1,21 @@
 package no.nav.arbeidsgiver.min_side.varslingstatus
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.arbeidsgiver.min_side.Database
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import no.nav.arbeidsgiver.min_side.infrastruktur.Database
+import no.nav.arbeidsgiver.min_side.infrastruktur.SerializableInstant
+import no.nav.arbeidsgiver.min_side.infrastruktur.SerializableLocalDateTime
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusDto.Status
 import java.time.Instant
 import java.time.LocalDateTime
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
+@Serializable
 data class VarslingStatus(
     val status: Status,
-    val varselTimestamp: LocalDateTime,
-    val kvittertEventTimestamp: Instant,
+    val varselTimestamp: SerializableLocalDateTime,
+    val kvittertEventTimestamp: SerializableInstant,
 )
 
 class VarslingStatusRepository(
@@ -100,23 +102,22 @@ class VarslingStatusRepository(
         database.nonTransactionalExecuteUpdate(
             """
             delete from varsling_status where varsling_status.status_tidspunkt < ?
-            """,
-            {
-                text(Instant.now().minus(retention.toJavaDuration()).toString())
-            }
-        )
+            """
+        ) {
+            text(Instant.now().minus(retention.toJavaDuration()).toString())
+        }
     }
 }
 
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class VarslingStatusDto @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
-    @param:JsonProperty("virksomhetsnummer") val virksomhetsnummer: String,
-    @param:JsonProperty("varselId") val varselId: String,
-    @param:JsonProperty("varselTimestamp") val varselTimestamp: LocalDateTime,
-    @param:JsonProperty("kvittertEventTimestamp") val eventTimestamp: Instant,
-    @param:JsonProperty("status") val status: Status,
-    @param:JsonProperty("version") val version: String,
+@Serializable
+data class VarslingStatusDto(
+    @SerialName("virksomhetsnummer") val virksomhetsnummer: String,
+    @SerialName("varselId") val varselId: String,
+    @SerialName("varselTimestamp") val varselTimestamp: SerializableLocalDateTime,
+    @SerialName("kvittertEventTimestamp") val eventTimestamp: SerializableInstant,
+    @SerialName("status") val status: Status,
+    @SerialName("version") val version: String,
 ) {
     enum class Status {
         OK,

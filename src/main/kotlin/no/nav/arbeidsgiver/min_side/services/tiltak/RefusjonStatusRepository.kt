@@ -1,9 +1,8 @@
 package no.nav.arbeidsgiver.min_side.services.tiltak
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
-import no.nav.arbeidsgiver.min_side.Database
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import no.nav.arbeidsgiver.min_side.infrastruktur.Database
 
 
 class RefusjonStatusRepository(
@@ -70,10 +69,10 @@ class RefusjonStatusRepository(
 }
 
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class RefusjonStatusHendelse @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
-    @param:JsonProperty("refusjonId") val refusjonId: String,
-    @param:JsonProperty("bedriftNr") val virksomhetsnummer: String,
-    @param:JsonProperty("avtaleId") val avtaleId: String,
-    @param:JsonProperty("status") val status: String
+@Serializable
+data class RefusjonStatusHendelse(
+    @SerialName("refusjonId") val refusjonId: String,
+    @SerialName("bedriftNr") val virksomhetsnummer: String,
+    @SerialName("avtaleId") val avtaleId: String,
+    @SerialName("status") val status: String
 )
