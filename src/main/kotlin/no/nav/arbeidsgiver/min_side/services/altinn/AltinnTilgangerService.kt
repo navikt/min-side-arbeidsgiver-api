@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -37,6 +38,10 @@ class AltinnTilgangerServiceImpl(
     private val httpClient = defaultHttpClient.config {
         install(ContentNegotiation) {
             json(defaultJson)
+        }
+
+        install(HttpTimeout) {
+            this.requestTimeoutMillis = 120_000
         }
     }
 
