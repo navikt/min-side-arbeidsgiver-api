@@ -16,6 +16,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.lang.System.getenv
@@ -54,21 +55,34 @@ class MsaKafkaConsumer(
     suspend fun consume(processor: ConsumerRecordProcessor) = withContext(Dispatchers.IO) {
         KafkaConsumer<String?, String?>(properties).use { consumer ->
             consumer.subscribe(config.topics)
+            log.info("Successfully subscribed to $config")
 
             while (isActive) {
                 try {
                     val records = consumer.poll(java.time.Duration.ofMillis(1000))
+                    log.info("polled {} records {}", records.count(), config)
+
                     if (records.any()) {
                         for (record in records) {
-                            processor.processRecord(record)
+                            try {
+                                processor.processRecord(record)
+                            } catch (e: Exception) {
+                                log.error("Feil ved prosessering av kafka-melding.", e)
+
+                                // without seek next poll will advance the offset, regardless of autocommit=false
+                                consumer.seek(TopicPartition(record.topic(), record.partition()), record.offset())
+
+                                throw Exception("Feil ved prosessering av kafka-melding. partition=${record.partition()} offset=${record.offset()} $config", e)
+                            }
                         }
+                        log.info("committing offsets: {} {}", records.partitions().associateWith { tp -> records.records(tp).last().offset() }, config)
                         consumer.commitSync()
                     }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    log.error("Feil ved prosessering av kafka-melding", e)
-                    delay(5000) // TODO: backoff
+                    log.error("Feil ved prosessering av kafka-melding. $config", e)
+                    delay(5000)
                 }
             }
         }
@@ -77,19 +91,34 @@ class MsaKafkaConsumer(
     suspend fun batchConsume(processor: ConsumerRecordProcessor) = withContext(Dispatchers.IO) {
         KafkaConsumer<String?, String?>(properties).use { consumer ->
             consumer.subscribe(config.topics)
+            log.info("Successfully subscribed to $config")
 
             while (isActive) {
                 try {
                     val records = consumer.poll(java.time.Duration.ofMillis(1000))
+                    log.info("polled {} records {}", records.count(), config)
+
                     if (records.any()) {
-                        processor.processRecords(records)
+                        try {
+                            processor.processRecords(records)
+                        } catch (e: Exception) {
+                            log.error("Feil ved prosessering av kafka-melding.", e)
+
+                            // without seek next poll will advance the offset, regardless of autocommit=false
+                            for (tp in records.partitions()) {
+                                consumer.seek(tp, records.records(tp).first().offset())
+                            }
+
+                            throw Exception("Feil ved prosessering av kafka-melding. $config", e)
+                        }
+                        log.info("committing offsets: {} {}", records.partitions().associateWith { tp -> records.records(tp).last().offset() }, config)
                         consumer.commitSync()
                     }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    log.error("Feil ved prosessering av kafka-melding", e)
-                    delay(5000) // TODO: backoff
+                    log.error("Feil ved prosessering av kafka-melding. $config", e)
+                    delay(5000)
                 }
             }
         }
