@@ -5,6 +5,7 @@ import io.ktor.server.plugins.di.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
 import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
+import no.nav.arbeidsgiver.min_side.infrastruktur.isActiveAndNotTerminating
 import no.nav.arbeidsgiver.min_side.infrastruktur.logger
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.sykefravarstatistikk.MetadataVirksomhetKafkaKeyDto
@@ -57,7 +58,7 @@ class MsaKafkaConsumer(
             consumer.subscribe(config.topics)
             log.info("Successfully subscribed to $config")
 
-            while (isActive) {
+            while (isActiveAndNotTerminating) {
                 try {
                     val records = consumer.poll(java.time.Duration.ofMillis(1000))
                     log.info("polled {} records {}", records.count(), config)
@@ -93,7 +94,7 @@ class MsaKafkaConsumer(
             consumer.subscribe(config.topics)
             log.info("Successfully subscribed to $config")
 
-            while (isActive) {
+            while (isActiveAndNotTerminating) {
                 try {
                     val records = consumer.poll(java.time.Duration.ofMillis(1000))
                     log.info("polled {} records {}", records.count(), config)
