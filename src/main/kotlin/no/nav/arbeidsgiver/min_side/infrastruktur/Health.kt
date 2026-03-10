@@ -1,6 +1,8 @@
 package no.nav.arbeidsgiver.min_side.infrastruktur
 
 import io.ktor.server.application.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.isActive
 import java.util.concurrent.atomic.AtomicBoolean
 
 interface RequiresReady {
@@ -29,6 +31,9 @@ object Health {
         terminatingAtomic.set(true)
     }
 }
+
+val CoroutineScope.isActiveAndNotTerminating: Boolean
+    get() = isActive && !Health.terminating
 
 fun Application.registerShutdownListener() {
     monitor.subscribe(ApplicationStopping) {
