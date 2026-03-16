@@ -104,6 +104,7 @@ data class AltinnTilganger(
         val organisasjonsform: String,
         val altinn3Tilganger: Set<String>,
         val altinn2Tilganger: Set<String>,
+        val roller: Set<String>,
         val underenheter: List<AltinnTilgang>,
     )
 

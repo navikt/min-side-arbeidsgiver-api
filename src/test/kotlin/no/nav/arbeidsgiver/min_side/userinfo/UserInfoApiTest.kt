@@ -137,6 +137,7 @@ class UserInfoApiTest {
                           "orgnr": "10-parent",
                           "navn": "10-parent",
                           "organisasjonsform": "AS",
+                          "roller": [],
                           "altinn3Tilganger": [],
                           "altinn2Tilganger": [
                             "3403:1"
@@ -146,6 +147,7 @@ class UserInfoApiTest {
                               "orgnr": "10",
                               "navn": "10",
                               "organisasjonsform": "BEDR",
+                              "roller": [],
                               "altinn3Tilganger": [],
                               "altinn2Tilganger": [
                                 "3403:1"
