@@ -6,7 +6,8 @@ import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktInfoService
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktInfoService.KontaktinfoRequest
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Kontaktinfo
-import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -81,10 +82,11 @@ class KontaktinfoServiceTest {
         KontaktInfoService(
             eregClient = mockEregClient,
             kontaktinfoClient = mockKontaktInfoClient,
-            altinnRollerClient = mockAltinnRollerClient(underenhet = true, hovedenhet = true)
+            altinnTilgangerService = mockAltinnTilgangerService(underenhet = true, hovedenhet = true)
         ).getKontaktinfo(
             KontaktinfoRequest(orgnrUnderenhet),
-            subjectFnr
+            subjectFnr,
+            "test-token"
         ).let { kontakinfo ->
             assertNotNull(kontakinfo.hovedenhet)
             assertNotNull(kontakinfo.underenhet)
@@ -97,10 +99,11 @@ class KontaktinfoServiceTest {
         KontaktInfoService(
             eregClient = mockEregClient,
             kontaktinfoClient = mockKontaktInfoClient,
-            altinnRollerClient = mockAltinnRollerClient(underenhet = true, hovedenhet = false)
+            altinnTilgangerService = mockAltinnTilgangerService(underenhet = true, hovedenhet = false)
         ).getKontaktinfo(
             KontaktinfoRequest(orgnrUnderenhet),
-            subjectFnr
+            subjectFnr,
+            "test-token"
         ).let { kontakinfo ->
             assertNull(kontakinfo.hovedenhet)
             assertNotNull(kontakinfo.underenhet)
@@ -112,10 +115,11 @@ class KontaktinfoServiceTest {
         KontaktInfoService(
             eregClient = mockEregClient,
             kontaktinfoClient = mockKontaktInfoClient,
-            altinnRollerClient = mockAltinnRollerClient(underenhet = false, hovedenhet = true)
+            altinnTilgangerService = mockAltinnTilgangerService(underenhet = false, hovedenhet = true)
         ).getKontaktinfo(
             KontaktinfoRequest(orgnrUnderenhet),
-            subjectFnr
+            subjectFnr,
+            "test-token"
         ).let { kontakinfo ->
             assertNotNull(kontakinfo.hovedenhet)
             assertNull(kontakinfo.underenhet)
@@ -127,10 +131,11 @@ class KontaktinfoServiceTest {
         KontaktInfoService(
             eregClient = mockEregClient,
             kontaktinfoClient = mockKontaktInfoClient,
-            altinnRollerClient = mockAltinnRollerClient(underenhet = false, hovedenhet = false)
+            altinnTilgangerService = mockAltinnTilgangerService(underenhet = false, hovedenhet = false)
         ).getKontaktinfo(
             KontaktinfoRequest(orgnrUnderenhet),
-            subjectFnr
+            subjectFnr,
+            "test-token"
         ).let { kontakinfo ->
             assertNull(kontakinfo.hovedenhet)
             assertNull(kontakinfo.underenhet)
@@ -138,20 +143,19 @@ class KontaktinfoServiceTest {
     }
 
     /* Mock alle andre tilgangssjekker som true, for å provosere fram lekkasje. */
-    private fun mockAltinnRollerClient(underenhet: Boolean, hovedenhet: Boolean): AltinnRollerClient {
-        return object : AltinnRollerClient {
-            override suspend fun harAltinnRolle(
-                fnr: String,
-                orgnr: String,
-                altinnRoller: Set<String>,
-                externalRoller: Set<String>
-            ) = when (fnr) {
-                subjectFnr -> when (orgnr) {
-                    orgnrUnderenhet -> underenhet
-                    orgnrHovedenhet -> hovedenhet
-                    else -> true
-                }
-
+    private fun mockAltinnTilgangerService(underenhet: Boolean, hovedenhet: Boolean): AltinnTilgangerService {
+        return object : AltinnTilgangerService {
+            override suspend fun hentAltinnTilganger(token: String) = AltinnTilganger(
+                isError = false,
+                hierarki = emptyList(),
+                orgNrTilTilganger = emptyMap(),
+                tilgangTilOrgNr = emptyMap(),
+            )
+            override suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) = true
+            override suspend fun harOrganisasjon(orgnr: String, token: String) = true
+            override suspend fun harRolle(orgnr: String, rolle: String, token: String) = when (orgnr) {
+                orgnrUnderenhet -> underenhet
+                orgnrHovedenhet -> hovedenhet
                 else -> true
             }
         }

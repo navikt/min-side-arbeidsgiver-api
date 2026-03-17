@@ -3,34 +3,31 @@ package no.nav.arbeidsgiver.min_side.services.kontaktinfo
 import kotlinx.serialization.Serializable
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregOrganisasjon.Companion.orgnummerTilOverenhet
-import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 
 
 class KontaktInfoService(
-    private val altinnRollerClient: AltinnRollerClient,
+    private val altinnTilgangerService: AltinnTilgangerService,
     private val eregClient: EregClient,
     private val kontaktinfoClient: KontaktinfoClient,
 ) {
-    suspend fun getKontaktinfo(requestBody: KontaktinfoRequest, fnr: String): KontaktinfoResponse {
+    suspend fun getKontaktinfo(requestBody: KontaktinfoRequest, fnr: String, token: String): KontaktinfoResponse {
         val orgnrUnderenhet = requestBody.virksomhetsnummer
         val orgnrHovedenhet = eregClient.hentOrganisasjon(orgnrUnderenhet)
             ?.orgnummerTilOverenhet()
 
         return KontaktinfoResponse(
-            underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet, fnr),
-            hovedenhet = orgnrHovedenhet?.let { tilgangsstyrOgHentKontaktinfo(it, fnr) },
+            underenhet = tilgangsstyrOgHentKontaktinfo(orgnrUnderenhet, token),
+            hovedenhet = orgnrHovedenhet?.let { tilgangsstyrOgHentKontaktinfo(it, token) },
         )
     }
 
-    private suspend fun tilgangsstyrOgHentKontaktinfo(orgnr: String, fnr: String): Kontaktinfo? {
-        val tilgangHovedenhet = altinnRollerClient.harAltinnRolle(
-            fnr = fnr,
-            orgnr = orgnr,
-            altinnRoller = ALTINN_ROLLER,
-            externalRoller = EXTERNAL_ROLLER,
-        )
+    private suspend fun tilgangsstyrOgHentKontaktinfo(orgnr: String, token: String): Kontaktinfo? {
+        val harRolle = ROLLER.any { rolle ->
+            altinnTilgangerService.harRolle(orgnr, rolle, token)
+        }
 
-        return if (tilgangHovedenhet) {
+        return if (harRolle) {
             kontaktinfoClient.hentKontaktinfo(orgnr).let {
                 Kontaktinfo(
                     eposter = it.eposter.toList(),
@@ -73,11 +70,9 @@ class KontaktInfoService(
     )
 
     companion object {
-        private val ALTINN_ROLLER = setOf(
+        private val ROLLER = setOf(
             "HADM", // Hovedadministrator
             "SIGNE", // Signerer av Samordnet registermelding
-        )
-        private val EXTERNAL_ROLLER = setOf(
             "DAGL", // daglig leder
             "LEDE", // styreleder
             "NEST", // nestleder

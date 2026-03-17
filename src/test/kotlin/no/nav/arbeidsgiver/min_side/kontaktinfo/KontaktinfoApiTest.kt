@@ -10,7 +10,8 @@ import no.nav.arbeidsgiver.min_side.services.ereg.*
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktInfoService
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
 import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient.Kontaktinfo
-import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -32,13 +33,16 @@ class KontaktinfoApiTest {
             )
     }
 
-    private val dummyAltinnRollerClient = object : AltinnRollerClient {
-        override suspend fun harAltinnRolle(
-            fnr: String,
-            orgnr: String,
-            altinnRoller: Set<String>,
-            externalRoller: Set<String>
-        ) = true
+    private val dummyAltinnTilgangerService = object : AltinnTilgangerService {
+        override suspend fun hentAltinnTilganger(token: String) = AltinnTilganger(
+            isError = false,
+            hierarki = emptyList(),
+            orgNrTilTilganger = emptyMap(),
+            tilgangTilOrgNr = emptyMap(),
+        )
+        override suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) = true
+        override suspend fun harOrganisasjon(orgnr: String, token: String) = true
+        override suspend fun harRolle(orgnr: String, rolle: String, token: String) = true
     }
 
     @Test
@@ -48,7 +52,7 @@ class KontaktinfoApiTest {
 
             provide<EregClient> { dummyEregClient }
             provide<KontaktinfoClient> { dummyKontaktinfoClient }
-            provide<AltinnRollerClient> { dummyAltinnRollerClient }
+            provide<AltinnTilgangerService> { dummyAltinnTilgangerService }
 
             provide(KontaktInfoService::class)
         },
@@ -93,7 +97,7 @@ class KontaktinfoApiTest {
 
             provide<EregClient> { dummyEregClient }
             provide<KontaktinfoClient> { dummyKontaktinfoClient }
-            provide<AltinnRollerClient> { dummyAltinnRollerClient }
+            provide<AltinnTilgangerService> { dummyAltinnTilgangerService }
 
             provide(KontaktInfoService::class)
         },
@@ -125,7 +129,7 @@ class KontaktinfoApiTest {
 
             provide<EregClient> { dummyEregClient }
             provide<KontaktinfoClient> { dummyKontaktinfoClient }
-            provide<AltinnRollerClient> { dummyAltinnRollerClient }
+            provide<AltinnTilgangerService> { dummyAltinnTilgangerService }
 
             provide(KontaktInfoService::class)
         },
@@ -157,7 +161,7 @@ class KontaktinfoApiTest {
 
             provide<EregClient> { dummyEregClient }
             provide<KontaktinfoClient> { dummyKontaktinfoClient }
-            provide<AltinnRollerClient> { dummyAltinnRollerClient }
+            provide<AltinnTilgangerService> { dummyAltinnTilgangerService }
 
             provide(KontaktInfoService::class)
         },

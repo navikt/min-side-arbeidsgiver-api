@@ -53,8 +53,6 @@ import no.nav.arbeidsgiver.min_side.sykefravarstatistikk.SykefraværstatistikkSe
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangSoknadService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClientImpl
-import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClient
-import no.nav.arbeidsgiver.min_side.tilgangsstyring.AltinnRollerClientImpl
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
 import no.nav.arbeidsgiver.min_side.varslingstatus.*
 import org.slf4j.event.Level
@@ -124,7 +122,6 @@ fun Application.configureDependencies() {
 
         provide<KontaktinfoClient>(KontaktinfoClientImpl::class)
 
-        provide<AltinnRollerClient>(AltinnRollerClientImpl::class)
 
         provide<EregClient>(EregClientImpl::class)
 

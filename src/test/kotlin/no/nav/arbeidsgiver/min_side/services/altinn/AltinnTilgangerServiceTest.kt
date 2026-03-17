@@ -77,6 +77,71 @@ class AltinnTilgangerServiceTest {
         )
         assertTrue(tilganger.tilgangTilOrgNr.containsKey("4936:1"))
     }
+
+    @Test
+    fun `harRolle returnerer true når bruker har rollen på orgnr`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger {
+                call.respondText(altinnTilgangerMedRollerResponse, ContentType.Application.Json)
+            }
+        },
+        dependenciesCfg = {
+            provide<TokenXTokenExchanger> { object : TokenXTokenExchanger {
+                override suspend fun exchange(
+                    target: String, userToken: String
+                ) = TokenResponse.Success("$userToken-x", 3600)
+            } }
+            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
+        }
+    ) {
+        val altinnService = resolve<AltinnTilgangerService>()
+        assertTrue(altinnService.harRolle("910825496", "DAGL", "user-token"))
+        assertTrue(altinnService.harRolle("910825496", "HADM", "user-token"))
+        assertTrue(altinnService.harRolle("810825472", "BEST", "user-token"))
+    }
+
+    @Test
+    fun `harRolle returnerer false når bruker ikke har rollen`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger {
+                call.respondText(altinnTilgangerMedRollerResponse, ContentType.Application.Json)
+            }
+        },
+        dependenciesCfg = {
+            provide<TokenXTokenExchanger> { object : TokenXTokenExchanger {
+                override suspend fun exchange(
+                    target: String, userToken: String
+                ) = TokenResponse.Success("$userToken-x", 3600)
+            } }
+            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
+        }
+    ) {
+        val altinnService = resolve<AltinnTilgangerService>()
+        assertFalse(altinnService.harRolle("910825496", "BEST", "user-token"))
+        assertFalse(altinnService.harRolle("810825472", "DAGL", "user-token"))
+        assertFalse(altinnService.harRolle("999999999", "DAGL", "user-token"))
+    }
+
+    @Test
+    fun `harRolle returnerer false når ingen roller finnes`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger {
+                call.respondText(altinnTilgangerResponse, ContentType.Application.Json)
+            }
+        },
+        dependenciesCfg = {
+            provide<TokenXTokenExchanger> { object : TokenXTokenExchanger {
+                override suspend fun exchange(
+                    target: String, userToken: String
+                ) = TokenResponse.Success("$userToken-x", 3600)
+            } }
+            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
+        }
+    ) {
+        val altinnService = resolve<AltinnTilgangerService>()
+        assertFalse(altinnService.harRolle("910825496", "DAGL", "user-token"))
+        assertFalse(altinnService.harRolle("810825472", "DAGL", "user-token"))
+    }
 }
 
 
@@ -125,3 +190,50 @@ private val altinnTilgangerResponse = """
       }
     }
 """.trimIndent()
+
+//language=JSON
+private val altinnTilgangerMedRollerResponse = """
+    {
+      "isError": false,
+      "hierarki": [
+        {
+          "orgnr": "810825472",
+          "navn": "Arbeids- og Velferdsetaten",
+          "organisasjonsform": "ORGL",
+          "altinn3Tilganger": [],
+          "altinn2Tilganger": [],
+          "roller": ["BEST"],
+          "underenheter": [
+            {
+              "orgnr": "910825496",
+              "navn": "SLEMMESTAD OG STAVERN REGNSKAP",
+              "organisasjonsform": "BEDR",
+              "roller": ["DAGL", "HADM"],
+              "altinn3Tilganger": [
+                "test-fager"
+              ],
+              "altinn2Tilganger": [
+                "4936:1"
+              ],
+              "underenheter": []
+            }
+          ]
+        }
+      ],
+      "orgNrTilTilganger": {
+        "910825496": [
+          "test-fager",
+          "4936:1"
+        ]
+      },
+      "tilgangTilOrgNr": {
+        "test-fager": [
+          "910825496"
+        ],
+        "4936:1": [
+          "910825496"
+        ]
+      }
+    }
+""".trimIndent()
+

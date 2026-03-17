@@ -28,6 +28,7 @@ interface AltinnTilgangerService {
     suspend fun hentAltinnTilganger(token: String): AltinnTilganger
     suspend fun harTilgang(orgnr: String, tjeneste: String, token: String): Boolean
     suspend fun harOrganisasjon(orgnr: String, token: String): Boolean
+    suspend fun harRolle(orgnr: String, rolle: String, token: String): Boolean
 }
 
 class AltinnTilgangerServiceImpl(
@@ -67,6 +68,9 @@ class AltinnTilgangerServiceImpl(
         hentAltinnTilganger(token).harTilgang(orgnr, tjeneste)
 
     override suspend fun harOrganisasjon(orgnr: String, token: String) = hentAltinnTilganger(token).harOrganisasjon(orgnr)
+
+    override suspend fun harRolle(orgnr: String, rolle: String, token: String) =
+        hentAltinnTilganger(token).harRolle(orgnr, rolle)
 
     private suspend fun hentAltinnTilgangerFraProxy(token: String): AltinnTilganger {
         val token = tokenExchanger.exchange(
@@ -113,6 +117,10 @@ data class AltinnTilganger(
     fun harOrganisasjon(orgnr: String) = orgnrFlattened.any { it == orgnr }
 
     fun harTilgang(orgnr: String, tjeneste: String) = orgNrTilTilganger[orgnr]?.contains(tjeneste) ?: false
+
+    fun harRolle(orgnr: String, rolle: String) =
+        hierarki.flatMap { flatten(it) { e -> e.takeIf { it.orgnr == orgnr } } }
+            .any { rolle in it.roller }
 }
 
 fun <T> flatten(

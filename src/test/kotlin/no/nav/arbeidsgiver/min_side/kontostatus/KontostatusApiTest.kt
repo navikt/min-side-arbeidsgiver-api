@@ -66,6 +66,9 @@ class KontostatusApiTest {
 
                     override suspend fun harOrganisasjon(orgnr: String, token: String) =
                         TODO("Not yet implemented")
+
+                    override suspend fun harRolle(orgnr: String, rolle: String, token: String) =
+                        TODO("Not yet implemented")
                 }
             }
             provide(KontostatusService::class)
@@ -117,6 +120,9 @@ class KontostatusApiTest {
                         TODO("Not yet implemented")
 
                     override suspend fun harOrganisasjon(orgnr: String, token: String) =
+                        TODO("Not yet implemented")
+
+                    override suspend fun harRolle(orgnr: String, rolle: String, token: String) =
                         TODO("Not yet implemented")
                 }
             }
