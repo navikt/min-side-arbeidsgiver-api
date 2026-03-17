@@ -13,7 +13,7 @@ suspend fun Application.configureKontaktinfoRoutes() {
     msaApiRouting {
         post("kontaktinfo/v1") {
             call.respond(
-                kontaktInfoService.getKontaktinfo(call.receive(), innloggetBruker)
+                kontaktInfoService.getKontaktinfo(call.receive(), innloggetBruker, subjectToken)
             )
         }
     }
