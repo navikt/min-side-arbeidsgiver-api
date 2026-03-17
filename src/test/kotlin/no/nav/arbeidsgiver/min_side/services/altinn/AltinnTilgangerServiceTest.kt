@@ -51,6 +51,7 @@ class AltinnTilgangerServiceTest {
                         organisasjonsform = "ORGL",
                         altinn3Tilganger = emptySet(),
                         altinn2Tilganger = emptySet(),
+                        roller = emptySet(),
                         underenheter = listOf(
                             AltinnTilgang(
                                 orgnr = "910825496",
@@ -59,6 +60,7 @@ class AltinnTilgangerServiceTest {
                                 altinn3Tilganger = setOf("test-fager"),
                                 altinn2Tilganger = setOf("4936:1"),
                                 underenheter = emptyList(),
+                                roller = emptySet(),
                             )
                         )
                     )
@@ -89,11 +91,13 @@ private val altinnTilgangerResponse = """
           "organisasjonsform": "ORGL",
           "altinn3Tilganger": [],
           "altinn2Tilganger": [],
+          "roller": [],
           "underenheter": [
             {
               "orgnr": "910825496",
               "navn": "SLEMMESTAD OG STAVERN REGNSKAP",
               "organisasjonsform": "BEDR",
+              "roller": [],
               "altinn3Tilganger": [
                 "test-fager"
               ],

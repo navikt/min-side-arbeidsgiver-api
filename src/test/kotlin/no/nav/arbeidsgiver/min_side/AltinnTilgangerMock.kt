@@ -43,13 +43,15 @@ object AltinnTilgangerMock {
         orgnr: String,
         navn: String = orgnr,
         ressurs: String? = null,
-        tjeneste: String? = null
+        tjeneste: String? = null,
+        rolle: String? = null,
     ) = AltinnTilganger.AltinnTilgang(
         navn = "$navn-parent",
         orgnr = "$orgnr-parent",
         organisasjonsform = "AS",
         altinn2Tilganger = setOfNotNull(tjeneste),
         altinn3Tilganger = setOfNotNull(ressurs),
+        roller = setOfNotNull(rolle),
         underenheter = listOf(
             AltinnTilganger.AltinnTilgang(
                 navn = navn,
@@ -57,6 +59,7 @@ object AltinnTilgangerMock {
                 organisasjonsform = "BEDR",
                 altinn2Tilganger = setOfNotNull(tjeneste),
                 altinn3Tilganger = setOfNotNull(ressurs),
+                roller = setOfNotNull(rolle),
                 underenheter = emptyList()
             )
         )
@@ -66,13 +69,15 @@ object AltinnTilgangerMock {
         orgnr: String,
         navn: String = orgnr,
         ressurs: String? = null,
-        tjeneste: String? = null
+        tjeneste: String? = null,
+        rolle: String? = null,
     ) = medTilganger(
         medTilgang(
             orgnr = orgnr,
             navn = navn,
             ressurs = ressurs,
-            tjeneste = tjeneste
+            tjeneste = tjeneste,
+            rolle = rolle,
         )
     )
 
