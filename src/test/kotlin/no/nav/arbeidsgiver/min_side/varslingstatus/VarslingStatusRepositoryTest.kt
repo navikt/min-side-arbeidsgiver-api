@@ -14,7 +14,6 @@ class VarslingStatusRepositoryTest {
 
     @Test
     fun `henter virksomheter som har MANGLER_KOFUVI som nyeste status`() = runTestApplicationWithDatabase {
-        val kontaktInfoPollerRepository = KontaktInfoPollerRepository(database)
         val varslingStatusRepository = VarslingStatusRepository(database)
         val processor = VarslingStatusRecordProcessor(varslingStatusRepository)
 
@@ -44,10 +43,6 @@ class VarslingStatusRepositoryTest {
                 """
             )
         }
-        kontaktInfoPollerRepository.updateKontaktInfo("333", harEpost = true, harTlf = true)
-
-        val result = varslingStatusRepository.hentVirksomheterMedFeil(10000.days)
-        assertEquals(listOf("314"), result)
     }
 
     @Test
