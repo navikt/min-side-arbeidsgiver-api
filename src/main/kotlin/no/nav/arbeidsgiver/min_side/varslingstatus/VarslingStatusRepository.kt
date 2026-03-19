@@ -26,9 +26,7 @@ class VarslingStatusRepository(
             """
             select status, varslet_tidspunkt, status_tidspunkt
                 from varsling_status vs
-                left join kontaktinfo_resultat ki using (virksomhetsnummer)
                 where virksomhetsnummer = ?
-                    and (ki is null or (ki.har_epost = false and ki.har_tlf = false))
                 order by status_tidspunkt desc
             """.trimIndent(),
             {
@@ -61,8 +59,6 @@ class VarslingStatusRepository(
             join newest_statuses
                 on vs.virksomhetsnummer = newest_statuses.virksomhetsnummer 
                 and vs.status_tidspunkt = newest_statuses.newest_status_timestamp
-            left join kontaktinfo_resultat ki on vs.virksomhetsnummer = ki.virksomhetsnummer
-                where (ki is null or (ki.har_epost = false and ki.har_tlf = false)) 
                 and vs.status = 'MANGLER_KOFUVI'
                 and newest_statuses.newest_status_timestamp > ?;
             """,

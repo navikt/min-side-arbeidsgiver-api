@@ -14,6 +14,7 @@ import no.nav.arbeidsgiver.min_side.services.digisyfo.VarslingStatusRecordProces
 import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.seconds
 
 class VarslingStatusApiTest {
 
@@ -290,11 +291,7 @@ class VarslingStatusApiTest {
             """
         )
 
-        KontaktInfoPollerRepository(database).updateKontaktInfo(
-            virksomhetsnummer = "314",
-            harEpost = true,
-            harTlf = true
-        )
+        repository.slettVarslingStatuserEldreEnn(0.seconds)
 
         client.post("ditt-nav-arbeidsgiver-api/api/varslingStatus/v1") {
             setBody("""{"virksomhetsnummer": "314"}""")
