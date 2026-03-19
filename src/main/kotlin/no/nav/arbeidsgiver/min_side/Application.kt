@@ -38,9 +38,6 @@ import no.nav.arbeidsgiver.min_side.services.digisyfo.*
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClient
 import no.nav.arbeidsgiver.min_side.services.ereg.EregClientImpl
 import no.nav.arbeidsgiver.min_side.services.ereg.EregService
-import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktInfoService
-import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClient
-import no.nav.arbeidsgiver.min_side.services.kontaktinfo.KontaktinfoClientImpl
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClientImpl
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontostatusService
@@ -54,7 +51,9 @@ import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangSoknadService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClientImpl
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
-import no.nav.arbeidsgiver.min_side.varslingstatus.*
+import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusRepository
+import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusService
+import no.nav.arbeidsgiver.min_side.varslingstatus.startCleanupVarslingStatus
 import org.slf4j.event.Level
 import java.util.*
 
@@ -76,7 +75,7 @@ fun main() {
         configureRoutes()
 
         startKafkaConsumers(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(3)))
-        startKontaktInfoPollingServices(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(3)))
+        startCleanupVarslingStatus(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(1)))
         startDeleteOldSykmeldingLoop(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(1)))
 
         registerShutdownListener()
@@ -92,7 +91,6 @@ internal val RoutingContext.innloggetBruker
 
 suspend fun Application.configureRoutes() {
     configureInternalRoutes()
-    configureKontaktinfoRoutes()
     configureKontonummerRoutes()
     configureLagredefilterRoutes()
     configureEregRoutes()
@@ -120,13 +118,7 @@ fun Application.configureDependencies() {
 
         provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
 
-        provide<KontaktinfoClient>(KontaktinfoClientImpl::class)
-
-
         provide<EregClient>(EregClientImpl::class)
-
-        provide<KontaktInfoService>(KontaktInfoService::class)
-
         provide<EregService>(EregService::class)
 
         provide<KontoregisterClient>(KontoregisterClientImpl::class)
@@ -150,8 +142,6 @@ fun Application.configureDependencies() {
         provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
         provide<AltinnTilgangSoknadService>(AltinnTilgangSoknadService::class)
 
-        provide<KontaktInfoPollerRepository>(KontaktInfoPollerRepository::class)
-        provide<KontaktInfoPollingService>(KontaktInfoPollingService::class)
         provide<VarslingStatusService>(VarslingStatusService::class)
         provide<VarslingStatusRepository>(VarslingStatusRepository::class)
     }
