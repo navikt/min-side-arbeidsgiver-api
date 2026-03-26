@@ -3,7 +3,7 @@ package no.nav.arbeidsgiver.min_side.services.kontostatus
 import kotlinx.serialization.Serializable
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 
-const val kontonummerTilgangTjenesetekode = "2896:87"
+const val kontonummerTilgang = "nav_utbetaling_endre-kontonummer-refusjon-arbeidsgiver"
 
 class KontostatusService(
     val kontoregisterClient: KontoregisterClient,
@@ -26,7 +26,7 @@ class KontostatusService(
         body: OppslagRequest,
         token: String
     ): OppslagResponse? {
-        val harTilgang = altinnTilgangerService.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgangTjenesetekode, token)
+        val harTilgang = altinnTilgangerService.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgang, token)
         if (!harTilgang) {
             return null
         }

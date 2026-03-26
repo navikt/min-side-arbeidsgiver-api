@@ -19,7 +19,7 @@ import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerServiceImpl
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClientImpl
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontostatusService
-import no.nav.arbeidsgiver.min_side.services.kontostatus.kontonummerTilgangTjenesetekode
+import no.nav.arbeidsgiver.min_side.services.kontostatus.kontonummerTilgang
 import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -166,7 +166,7 @@ class KontostatusApiTest {
                     call.respond(HttpStatusCode.NotFound)
                 }
             }
-            mockAltinnTilganger(AltinnTilgangerMock.medTilganger(orgnr = "42", tjeneste = kontonummerTilgangTjenesetekode))
+            mockAltinnTilganger(AltinnTilgangerMock.medTilganger(orgnr = "42", tjeneste = kontonummerTilgang))
         },
         dependenciesCfg = {
             provide<TokenXTokenIntrospector> {
@@ -282,7 +282,7 @@ class KontostatusApiTest {
                 call.respond(HttpStatusCode.NotFound)
             }
             mockAltinnTilganger(
-                AltinnTilgangerMock.medTilganger(orgnr = "42", tjeneste = kontonummerTilgangTjenesetekode)
+                AltinnTilgangerMock.medTilganger(orgnr = "42", tjeneste = kontonummerTilgang)
             )
         },
         dependenciesCfg = {
