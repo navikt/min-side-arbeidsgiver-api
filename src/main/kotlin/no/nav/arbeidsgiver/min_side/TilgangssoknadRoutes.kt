@@ -14,22 +14,16 @@ suspend fun Application.configureTilgangssoknadRoutes() {
     msaApiRouting {
         post("delegation-request") {
             val response = altinnTilgangSoknadService.opprettDelegationRequest(
-                token = subjectToken,
+                fnr = innloggetBruker,
                 request = call.receive(),
             )
             call.respond(HttpStatusCode.Accepted, response)
         }
-        get("delegation-request/{id}/status") {
-            val id = call.parameters["id"]
-            if (id == null) {
-                call.respond(HttpStatusCode.BadRequest, "")
-                return@get
-            }
-            val status = altinnTilgangSoknadService.hentDelegationRequestStatus(
-                token = subjectToken,
-                id = id,
+
+        get("delegation-request") {
+            call.respond(
+                altinnTilgangSoknadService.mineDelegationRequests(innloggetBruker)
             )
-            call.respond(status)
         }
     }
 }

@@ -7,12 +7,11 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import no.nav.arbeidsgiver.min_side.infrastruktur.TokenResponse
-import no.nav.arbeidsgiver.min_side.infrastruktur.TokenXTokenExchanger
+import no.nav.arbeidsgiver.min_side.infrastruktur.AltinnPlattformTokenClient
+import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø
 import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
 import no.nav.arbeidsgiver.min_side.infrastruktur.resolve
 import no.nav.arbeidsgiver.min_side.infrastruktur.runTestApplication
-import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.Test
@@ -21,9 +20,8 @@ import kotlin.test.assertNotNull
 
 class AltinnTilgangssoknadClientTest {
 
-    private val testTokenExchanger = object : TokenXTokenExchanger {
-        override suspend fun exchange(target: String, userToken: String) =
-            TokenResponse.Success("$userToken-exchanged", 3600)
+    private val fakePlatformTokenClient = object : AltinnPlattformTokenClient {
+        override suspend fun token(scope: String): String = "platform-token-for-$scope"
     }
 
     @Test
@@ -31,13 +29,16 @@ class AltinnTilgangssoknadClientTest {
         val capturedRequestBody = AtomicReference<String>()
         runTestApplication(
             externalServicesCfg = {
-                hosts(AltinnTilgangerService.ingress) {
+                hosts(Miljø.Altinn.platformBaseUrl) {
                     install(ContentNegotiation) {
                         json(defaultJson)
                     }
                     routing {
-                        post("/delegation-request") {
-                            assertEquals("Bearer user-token-exchanged", call.request.header("Authorization"))
+                        post("/accessmanagement/api/v1/serviceowner/delegationrequests") {
+                            assertEquals(
+                                "Bearer platform-token-for-altinn:serviceowner/delegationrequests.write",
+                                call.request.header("Authorization")
+                            )
                             capturedRequestBody.set(call.receiveText())
                             call.respondText(
                                 //language=JSON
@@ -54,7 +55,7 @@ class AltinnTilgangssoknadClientTest {
                                     "statusLink": "https://altinn.no/status/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
                                   },
                                   "from": {
-                                    "organizationIdentifier": "11111111111"
+                                    "personIdentifier": "11111111111"
                                   },
                                   "to": {
                                     "organizationIdentifier": "987654321"
@@ -68,7 +69,7 @@ class AltinnTilgangssoknadClientTest {
                 }
             },
             dependenciesCfg = {
-                provide<TokenXTokenExchanger> { testTokenExchanger }
+                provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
                 provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
             },
         ) {
@@ -79,7 +80,7 @@ class AltinnTilgangssoknadClientTest {
                 ),
             )
 
-            val result = resolve<AltinnTilgangssoknadClient>().opprettDelegationRequest("user-token", request)
+            val result = resolve<AltinnTilgangssoknadClient>().opprettDelegationRequest("11111111111", request)
             assertEquals("1a9e3a32-252b-4d81-a23c-ed0d86b852c7", result.id)
             assertEquals(DelegationRequestStatus.Pending, result.status)
             assertNotNull(result.links?.statusLink)
@@ -88,6 +89,7 @@ class AltinnTilgangssoknadClientTest {
                 //language=JSON
                 """
                 {
+                  "from": "urn:altinn:person:identifier-no:11111111111",
                   "to": "urn:altinn:organization:identifier-no:987654321",
                   "resource": {
                     "referenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger"
@@ -103,13 +105,16 @@ class AltinnTilgangssoknadClientTest {
     @Test
     fun hentDelegationRequestStatus() = runTestApplication(
         externalServicesCfg = {
-            hosts(AltinnTilgangerService.ingress) {
+            hosts(Miljø.Altinn.platformBaseUrl) {
                 install(ContentNegotiation) {
                     json(defaultJson)
                 }
                 routing {
-                    get("/delegation-request/{id}/status") {
-                        assertEquals("Bearer user-token-exchanged", call.request.header("Authorization"))
+                    get("/accessmanagement/api/v1/serviceowner/delegationrequests/{id}/status") {
+                        assertEquals(
+                            "Bearer platform-token-for-altinn:serviceowner/delegationrequests.read",
+                            call.request.header("Authorization")
+                        )
                         assertEquals("1a9e3a32-252b-4d81-a23c-ed0d86b852c7", call.parameters["id"])
                         call.respondText(
                             "\"Approved\"",
@@ -120,12 +125,13 @@ class AltinnTilgangssoknadClientTest {
             }
         },
         dependenciesCfg = {
-            provide<TokenXTokenExchanger> { testTokenExchanger }
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
             provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
         },
     ) {
         val result = resolve<AltinnTilgangssoknadClient>()
-            .hentDelegationRequestStatus("user-token", "1a9e3a32-252b-4d81-a23c-ed0d86b852c7")
+            .hentDelegationRequestStatus("1a9e3a32-252b-4d81-a23c-ed0d86b852c7")
         assertEquals(DelegationRequestStatus.Approved, result)
     }
+
 }

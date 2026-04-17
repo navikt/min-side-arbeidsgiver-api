@@ -11,22 +11,25 @@ import io.ktor.server.routing.*
 import no.nav.arbeidsgiver.min_side.configureTilgangssoknadRoutes
 import no.nav.arbeidsgiver.min_side.infrastruktur.*
 import no.nav.arbeidsgiver.min_side.ktorConfig
-import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class AntlinnTilgangSoknadApiTest {
+class AltinnTilgangSoknadApiTest {
+
+    private val fakePlatformTokenClient = object : AltinnPlattformTokenClient {
+        override suspend fun token(scope: String): String = "platform-token-for-$scope"
+    }
 
     @Test
-    fun opprettDelegationRequest() = runTestApplication(
+    fun `opprett delegation request lagrer i database og returnerer 202`() = runTestApplicationWithDatabase(
         externalServicesCfg = {
-            hosts(AltinnTilgangerService.ingress) {
+            hosts(Miljø.Altinn.platformBaseUrl) {
                 install(ContentNegotiation) {
                     json(defaultJson)
                 }
                 routing {
-                    post("/delegation-request") {
+                    post("/accessmanagement/api/v1/serviceowner/delegationrequests") {
                         call.respondText(
                             //language=JSON
                             """
@@ -42,7 +45,7 @@ class AntlinnTilgangSoknadApiTest {
                                 "statusLink": "https://altinn.no/status/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
                               },
                               "from": {
-                                "organizationIdentifier": "11111111111"
+                                "personIdentifier": "42"
                               },
                               "to": {
                                 "organizationIdentifier": "987654321"
@@ -61,8 +64,9 @@ class AntlinnTilgangSoknadApiTest {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
                 }
             }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
             provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -100,22 +104,104 @@ class AntlinnTilgangSoknadApiTest {
             }
             """, jsonResponse, false
         )
+
+        // persisted row is returned from the list endpoint
+        val listJson = client.get("ditt-nav-arbeidsgiver-api/api/delegation-request") {
+            bearerAuth("faketoken")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            it.bodyAsText()
+        }
+
+        JSONAssert.assertEquals(
+            """
+            [
+              {
+                "id": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
+                "orgnr": "987654321",
+                "resourceReferenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger",
+                "status": "Pending"
+              }
+            ]
+            """, listJson, false
+        )
     }
 
     @Test
-    fun hentDelegationRequestStatus() = runTestApplication(
+    fun `mine delegation requests returnerer kun brukerens egne`() = runTestApplicationWithDatabase(
+        dependenciesCfg = {
+            provide<TokenXTokenIntrospector> {
+                MockTokenIntrospector {
+                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
+                }
+            }
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
+            provide<AltinnTilgangssoknadClient> {
+                object : AltinnTilgangssoknadClient {
+                    override suspend fun opprettDelegationRequest(
+                        fnr: String,
+                        request: CreateDelegationRequest,
+                    ) = error("not used")
+                    override suspend fun hentDelegationRequestStatus(id: String) = error("not used")
+                }
+            }
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
+            provide(AltinnTilgangSoknadService::class)
+        },
+        applicationCfg = {
+            ktorConfig()
+            configureTokenXAuth()
+            configureTilgangssoknadRoutes()
+        },
+    ) {
+        val repo = resolve<DelegationRequestRepository>()
+        // Terminal status → no Altinn refresh needed
+        repo.lagre(
+            id = java.util.UUID.fromString("1a9e3a32-252b-4d81-a23c-ed0d86b852c7"),
+            fnr = "42",
+            orgnr = "987654321",
+            resourceReferenceId = "nav_resource_a",
+            status = "Approved",
+        )
+        repo.lagre(
+            id = java.util.UUID.fromString("2b9e3a32-252b-4d81-a23c-ed0d86b852c7"),
+            fnr = "99",
+            orgnr = "987654321",
+            resourceReferenceId = "nav_resource_b",
+            status = "Approved",
+        )
+
+        val listJson = client.get("ditt-nav-arbeidsgiver-api/api/delegation-request") {
+            bearerAuth("faketoken")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            it.bodyAsText()
+        }
+
+        JSONAssert.assertEquals(
+            """
+            [
+              {
+                "id": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
+                "orgnr": "987654321",
+                "resourceReferenceId": "nav_resource_a",
+                "status": "Approved"
+              }
+            ]
+            """, listJson, false
+        )
+    }
+
+    @Test
+    fun `mine delegation requests refresher ikke-terminal status fra altinn`() = runTestApplicationWithDatabase(
         externalServicesCfg = {
-            hosts(AltinnTilgangerService.ingress) {
+            hosts(Miljø.Altinn.platformBaseUrl) {
                 install(ContentNegotiation) {
                     json(defaultJson)
                 }
                 routing {
-                    get("/delegation-request/{id}/status") {
-                        assertEquals("1a9e3a32-252b-4d81-a23c-ed0d86b852c7", call.parameters["id"])
-                        call.respondText(
-                            "\"Approved\"",
-                            ContentType.Application.Json
-                        )
+                    get("/accessmanagement/api/v1/serviceowner/delegationrequests/{id}/status") {
+                        call.respondText("\"Approved\"", ContentType.Application.Json)
                     }
                 }
             }
@@ -126,8 +212,9 @@ class AntlinnTilgangSoknadApiTest {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
                 }
             }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
             provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -136,36 +223,87 @@ class AntlinnTilgangSoknadApiTest {
             configureTilgangssoknadRoutes()
         },
     ) {
-        val jsonResponse = client.get("ditt-nav-arbeidsgiver-api/api/delegation-request/1a9e3a32-252b-4d81-a23c-ed0d86b852c7/status") {
+        val repo = resolve<DelegationRequestRepository>()
+        val id = java.util.UUID.fromString("1a9e3a32-252b-4d81-a23c-ed0d86b852c7")
+        repo.lagre(
+            id = id,
+            fnr = "42",
+            orgnr = "987654321",
+            resourceReferenceId = "nav_resource_a",
+            status = "Pending",
+        )
+
+        val listJson = client.get("ditt-nav-arbeidsgiver-api/api/delegation-request") {
             bearerAuth("faketoken")
         }.let {
             assertEquals(HttpStatusCode.OK, it.status)
             it.bodyAsText()
         }
 
-        assertEquals("\"Approved\"", jsonResponse)
+        JSONAssert.assertEquals(
+            """
+            [
+              { "id": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7", "status": "Approved" }
+            ]
+            """, listJson, false
+        )
+
+        // persisted row was updated
+        assertEquals("Approved", repo.hentForBruker("42").single().status)
     }
 
     @Test
-    fun uautentisertBrukerFår401() = runTestApplication(
-        externalServicesCfg = {
-            hosts(AltinnTilgangerService.ingress) {
-                install(ContentNegotiation) {
-                    json(defaultJson)
-                }
-                routing {
-                    post("/delegation-request") {
-                        call.respond(HttpStatusCode.OK)
-                    }
+    fun `opprett avvises med 400 hvis resource referenceId mangler nav_ prefiks`() = runTestApplicationWithDatabase(
+        dependenciesCfg = {
+            provide<TokenXTokenIntrospector> {
+                MockTokenIntrospector {
+                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
                 }
             }
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
+            provide<AltinnTilgangssoknadClient> {
+                object : AltinnTilgangssoknadClient {
+                    override suspend fun opprettDelegationRequest(
+                        fnr: String,
+                        request: CreateDelegationRequest,
+                    ) = error("skal ikke kalles ved ugyldig resource")
+                    override suspend fun hentDelegationRequestStatus(id: String) = error("not used")
+                }
+            }
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
+            provide(AltinnTilgangSoknadService::class)
         },
+        applicationCfg = {
+            ktorConfig()
+            configureTokenXAuth()
+            configureTilgangssoknadRoutes()
+        },
+    ) {
+        client.post("ditt-nav-arbeidsgiver-api/api/delegation-request") {
+            contentType(ContentType.Application.Json)
+            bearerAuth("faketoken")
+            setBody(
+                """
+                {
+                    "to": "urn:altinn:organization:identifier-no:987654321",
+                    "resource": { "referenceId": "not_a_nav_resource" }
+                }
+                """
+            )
+        }.let {
+            assertEquals(HttpStatusCode.BadRequest, it.status)
+        }
+    }
+
+    @Test
+    fun `uautentisert bruker fr 401`() = runTestApplicationWithDatabase(
         dependenciesCfg = {
             provide<TokenXTokenIntrospector> {
                 MockTokenIntrospector { null }
             }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
             provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
