@@ -12,6 +12,7 @@ data class DelegationRequestRow(
     val orgnr: String,
     val resourceReferenceId: String,
     val status: String,
+    val detailsLink: String?,
     val opprettet: SerializableInstant,
     val sistOppdatert: SerializableInstant,
 )
@@ -25,13 +26,18 @@ class DelegationRequestRepository(
         orgnr: String,
         resourceReferenceId: String,
         status: String,
+        detailsLink: String?,
+        lastResponseJson: String,
     ) {
         database.nonTransactionalExecuteUpdate(
             """
-            insert into delegation_request(id, fnr, orgnr, resource_reference_id, status)
-            values (?, ?, ?, ?, ?)
+            insert into delegation_request(
+                id, fnr, orgnr, resource_reference_id, status, details_link, last_response
+            ) values (?, ?, ?, ?, ?, ?, ?::jsonb)
             on conflict (id) do update set
-                status = excluded.status,
+                status         = excluded.status,
+                details_link   = excluded.details_link,
+                last_response  = excluded.last_response,
                 sist_oppdatert = now()
             """.trimIndent()
         ) {
@@ -40,6 +46,8 @@ class DelegationRequestRepository(
             text(orgnr)
             text(resourceReferenceId)
             text(status)
+            nullableText(detailsLink)
+            text(lastResponseJson)
         }
     }
 
@@ -59,7 +67,7 @@ class DelegationRequestRepository(
     suspend fun hentForBruker(fnr: String): List<DelegationRequestRow> =
         database.nonTransactionalExecuteQuery(
             """
-            select id, orgnr, resource_reference_id, status, opprettet, sist_oppdatert
+            select id, orgnr, resource_reference_id, status, details_link, opprettet, sist_oppdatert
               from delegation_request
              where fnr = ?
              order by opprettet desc
@@ -71,6 +79,7 @@ class DelegationRequestRepository(
                     orgnr = rs.getString("orgnr"),
                     resourceReferenceId = rs.getString("resource_reference_id"),
                     status = rs.getString("status"),
+                    detailsLink = rs.getString("details_link"),
                     opprettet = rs.getTimestamp("opprettet").toInstant(),
                     sistOppdatert = rs.getTimestamp("sist_oppdatert").toInstant(),
                 )

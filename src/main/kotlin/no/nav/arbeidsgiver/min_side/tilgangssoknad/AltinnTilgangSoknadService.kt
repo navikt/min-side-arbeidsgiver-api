@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
+import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
 import no.nav.arbeidsgiver.min_side.infrastruktur.logger
 import java.util.*
 
@@ -18,14 +19,22 @@ class AltinnTilgangSoknadService(
         val response = altinnTilgangssoknadClient.opprettDelegationRequest(fnr, request)
 
         val id = response.id?.let(UUID::fromString)
-        val orgnr = response.to?.organizationIdentifier
+        val orgnr = response.from?.organizationIdentifier
             ?: request.to?.extractOrgnr()
         val resourceReferenceId = response.resource?.referenceId
             ?: request.resource?.referenceId
         val status = response.status?.name
 
         if (id != null && orgnr != null && resourceReferenceId != null && status != null) {
-            delegationRequestRepository.lagre(id, fnr, orgnr, resourceReferenceId, status)
+            delegationRequestRepository.lagre(
+                id = id,
+                fnr = fnr,
+                orgnr = orgnr,
+                resourceReferenceId = resourceReferenceId,
+                status = status,
+                detailsLink = response.links?.detailsLink,
+                lastResponseJson = defaultJson.encodeToString(DelegationRequestResponse.serializer(), response),
+            )
         } else {
             log.warn(
                 "Kunne ikke persistere delegation request: id={}, orgnr={}, resource={}, status={}",

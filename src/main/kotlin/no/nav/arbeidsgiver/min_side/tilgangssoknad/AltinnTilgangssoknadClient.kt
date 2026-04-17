@@ -86,9 +86,15 @@ data class CreateDelegationRequest(
     @SerialName("package")
     val accessPackage: RequestReferenceDto? = null,
 ) {
+    /**
+     * Altinn-semantikk:
+     *   from = entiteten som ber om tilgang (virksomheten)
+     *   to   = entiteten tilgang gis til (personen)
+     * Frontend sender orgnr-urn som `to`; vi mapper det over til `from` her.
+     */
     fun toServiceOwnerRequest(fnr: String) = CreateServiceOwnerRequest(
-        from = "urn:altinn:person:identifier-no:$fnr",
-        to = to,
+        from = to,
+        to = "urn:altinn:person:identifier-no:$fnr",
         resource = resource,
         accessPackage = accessPackage,
     )

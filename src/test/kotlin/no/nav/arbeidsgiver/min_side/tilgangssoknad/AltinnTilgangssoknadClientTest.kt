@@ -55,10 +55,10 @@ class AltinnTilgangssoknadClientTest {
                                     "statusLink": "https://altinn.no/status/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
                                   },
                                   "from": {
-                                    "personIdentifier": "11111111111"
+                                    "organizationIdentifier": "987654321"
                                   },
                                   "to": {
-                                    "organizationIdentifier": "987654321"
+                                    "personIdentifier": "11111111111"
                                   }
                                 }
                                 """.trimIndent(),
@@ -89,8 +89,8 @@ class AltinnTilgangssoknadClientTest {
                 //language=JSON
                 """
                 {
-                  "from": "urn:altinn:person:identifier-no:11111111111",
-                  "to": "urn:altinn:organization:identifier-no:987654321",
+                  "from": "urn:altinn:organization:identifier-no:987654321",
+                  "to": "urn:altinn:person:identifier-no:11111111111",
                   "resource": {
                     "referenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger"
                   }

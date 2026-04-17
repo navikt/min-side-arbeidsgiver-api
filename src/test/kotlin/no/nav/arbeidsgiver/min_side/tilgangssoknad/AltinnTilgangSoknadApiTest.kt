@@ -42,13 +42,14 @@ class AltinnTilgangSoknadApiTest {
                                 "referenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger"
                               },
                               "links": {
+                                "detailsLink": "https://altinn.no/details/1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
                                 "statusLink": "https://altinn.no/status/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
                               },
                               "from": {
-                                "personIdentifier": "42"
+                                "organizationIdentifier": "987654321"
                               },
                               "to": {
-                                "organizationIdentifier": "987654321"
+                                "personIdentifier": "42"
                               }
                             }
                             """.trimIndent(),
@@ -120,7 +121,8 @@ class AltinnTilgangSoknadApiTest {
                 "id": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
                 "orgnr": "987654321",
                 "resourceReferenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger",
-                "status": "Pending"
+                "status": "Pending",
+                "detailsLink": "https://altinn.no/details/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
               }
             ]
             """, listJson, false
@@ -162,6 +164,8 @@ class AltinnTilgangSoknadApiTest {
             orgnr = "987654321",
             resourceReferenceId = "nav_resource_a",
             status = "Approved",
+            detailsLink = "https://altinn.no/details/a",
+            lastResponseJson = """{"id":"1a9e3a32-252b-4d81-a23c-ed0d86b852c7","status":"Approved"}""",
         )
         repo.lagre(
             id = java.util.UUID.fromString("2b9e3a32-252b-4d81-a23c-ed0d86b852c7"),
@@ -169,6 +173,8 @@ class AltinnTilgangSoknadApiTest {
             orgnr = "987654321",
             resourceReferenceId = "nav_resource_b",
             status = "Approved",
+            detailsLink = null,
+            lastResponseJson = """{"id":"2b9e3a32-252b-4d81-a23c-ed0d86b852c7","status":"Approved"}""",
         )
 
         val listJson = client.get("ditt-nav-arbeidsgiver-api/api/delegation-request") {
@@ -231,6 +237,8 @@ class AltinnTilgangSoknadApiTest {
             orgnr = "987654321",
             resourceReferenceId = "nav_resource_a",
             status = "Pending",
+            detailsLink = "https://altinn.no/details/a",
+            lastResponseJson = """{"id":"1a9e3a32-252b-4d81-a23c-ed0d86b852c7","status":"Pending"}""",
         )
 
         val listJson = client.get("ditt-nav-arbeidsgiver-api/api/delegation-request") {
