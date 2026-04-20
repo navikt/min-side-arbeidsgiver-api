@@ -51,6 +51,7 @@ import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangSoknadService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClientImpl
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.DelegationRequestRepository
+import no.nav.arbeidsgiver.min_side.tilgangssoknad.startDelegationRequestMetrics
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusRepository
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusService
@@ -78,6 +79,7 @@ fun main() {
         startKafkaConsumers(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(3)))
         startCleanupVarslingStatus(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(1)))
         startDeleteOldSykmeldingLoop(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(1)))
+        startDelegationRequestMetrics(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(1)))
 
         registerShutdownListener()
     }.start(wait = true)

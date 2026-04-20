@@ -64,6 +64,17 @@ class DelegationRequestRepository(
         }
     }
 
+    suspend fun tellOpprettetPerResource(): Map<String, Long> =
+        database.nonTransactionalExecuteQuery(
+            """
+            select resource_reference_id, count(*) as antall
+              from delegation_request
+             group by resource_reference_id
+            """.trimIndent(),
+            {},
+            { rs -> rs.getString("resource_reference_id") to rs.getLong("antall") }
+        ).toMap()
+
     suspend fun hentForBruker(fnr: String): List<DelegationRequestRow> =
         database.nonTransactionalExecuteQuery(
             """
