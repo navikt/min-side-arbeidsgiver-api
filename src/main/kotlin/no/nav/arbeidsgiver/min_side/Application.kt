@@ -50,6 +50,8 @@ import no.nav.arbeidsgiver.min_side.sykefravarstatistikk.SykefraværstatistikkSe
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangSoknadService
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient
 import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClientImpl
+import no.nav.arbeidsgiver.min_side.tilgangssoknad.DelegationRequestRepository
+import no.nav.arbeidsgiver.min_side.tilgangssoknad.startDelegationRequestMetrics
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusRepository
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusService
@@ -77,6 +79,7 @@ fun main() {
         startKafkaConsumers(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(3)))
         startCleanupVarslingStatus(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(1)))
         startDeleteOldSykmeldingLoop(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(1)))
+        startDelegationRequestMetrics(CoroutineScope(coroutineContext + Dispatchers.IO.limitedParallelism(1)))
 
         registerShutdownListener()
     }.start(wait = true)
@@ -114,6 +117,7 @@ fun Application.configureDependencies() {
         provide<TokenXTokenIntrospector>(TokenXAuthClient::class)
         provide<TokenXTokenExchanger>(TokenXAuthClient::class)
         provide<MaskinportenTokenProvider>(MaskinportenAuthClient::class)
+        provide<AltinnPlattformTokenClient>(AltinnPlattformTokenClientImpl::class)
         provide<AzureAdTokenProvider>(AzureAdAuthClient::class)
 
         provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
@@ -141,6 +145,7 @@ fun Application.configureDependencies() {
 
         provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
         provide<AltinnTilgangSoknadService>(AltinnTilgangSoknadService::class)
+        provide<DelegationRequestRepository>(DelegationRequestRepository::class)
 
         provide<VarslingStatusService>(VarslingStatusService::class)
         provide<VarslingStatusRepository>(VarslingStatusRepository::class)

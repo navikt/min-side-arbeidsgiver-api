@@ -1,5 +1,6 @@
 package no.nav.arbeidsgiver.min_side
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.di.*
 import io.ktor.server.request.*
@@ -11,22 +12,17 @@ suspend fun Application.configureTilgangssoknadRoutes() {
     val altinnTilgangSoknadService = dependencies.resolve<AltinnTilgangSoknadService>()
 
     msaApiRouting {
-        get("altinn-tilgangssoknad") {
-            call.respond(
-                altinnTilgangSoknadService.mineSøknaderOmTilgang(innloggetBruker)
-            )
-        }
-        post("altinn-tilgangssoknad") {
-            val result = altinnTilgangSoknadService.sendSøknadOmTilgang(
-                call.receive(),
+        post("delegation-request") {
+            val response = altinnTilgangSoknadService.opprettDelegationRequest(
                 fnr = innloggetBruker,
-                token = subjectToken
+                request = call.receive(),
             )
+            call.respond(HttpStatusCode.Accepted, response)
+        }
 
-
+        get("delegation-request") {
             call.respond(
-                status = result.status,
-                result.body ?: ""
+                altinnTilgangSoknadService.mineDelegationRequests(innloggetBruker)
             )
         }
     }

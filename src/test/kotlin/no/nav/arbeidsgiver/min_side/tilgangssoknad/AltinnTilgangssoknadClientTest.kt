@@ -1,216 +1,137 @@
 package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import no.nav.arbeidsgiver.min_side.infrastruktur.MaskinportenTokenProvider
+import no.nav.arbeidsgiver.min_side.infrastruktur.AltinnPlattformTokenClient
+import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø
+import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
 import no.nav.arbeidsgiver.min_side.infrastruktur.resolve
 import no.nav.arbeidsgiver.min_side.infrastruktur.runTestApplication
-import no.nav.arbeidsgiver.min_side.infrastruktur.successMaskinportenTokenProvider
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.Test
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class AltinnTilgangssoknadClientTest {
-    val fnr = "42"
-    val orgnr = "314159265"
 
-    /**
-     * se: https://www.altinn.no/api/serviceowner/Help/Api/GET-serviceowner-delegationRequests_serviceCode_serviceEditionCode_status[0]_status[1]_continuation_coveredby_offeredby
-     */
-    @Test
-    fun hentSøknader() = runTestApplication(
-        externalServicesCfg = {
-            hosts(AltinnTilgangssoknadClient.ingress) {
-                routing {
-                    install(ContentNegotiation) {
-                        halJsonConfiguration()
-                    }
-
-                    get(AltinnTilgangssoknadClient.apiPath) {
-                        if (call.request.header("accept")!!.contains("application/json")) {
-                            // dersom application/json er med i listen vil Altinn ikke returnere HAL+JSON selv om den er med
-                            // for unngå å måtte skrive om klienten nå, så returnerer vi feil her i testen og passer på at klienten
-                            // ikke sender med application/json i accept-headeren
-                            call.respond(
-                                HttpStatusCode.BadRequest,
-                                "Feil i accept header: ${call.request.header("accept")!!}"
-                            )
-                        }
-
-                        if (call.parameters[$$"$filter"] == "CoveredBy eq '$fnr'") {
-                            call.respondText(
-                                if (call.parameters["continuation"] == null)
-                                    altinnHentSøknadResponse
-                                else
-                                    altinnHentSøknadTomResponse,
-                                ContentType.Application.HalJson
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        dependenciesCfg = {
-            provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-            provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
-        },
-    ) {
-        val result = resolve<AltinnTilgangssoknadClient>().hentSøknader(fnr)
-        assertTrue(result.isNotEmpty())
+    private val fakePlatformTokenClient = object : AltinnPlattformTokenClient {
+        override suspend fun token(scope: String): String = "platform-token-for-$scope"
     }
 
-    /**
-     * se https://www.altinn.no/api/serviceowner/Help/Api/POST-serviceowner-delegationRequests
-     */
     @Test
-    fun sendSøknad() {
+    fun opprettDelegationRequest() {
         val capturedRequestBody = AtomicReference<String>()
         runTestApplication(
             externalServicesCfg = {
-                hosts(AltinnTilgangssoknadClient.ingress) {
+                hosts(Miljø.Altinn.platformBaseUrl) {
+                    install(ContentNegotiation) {
+                        json(defaultJson)
+                    }
                     routing {
-                        install(ContentNegotiation) {
-                            halJsonConfiguration()
-                        }
-
-                        post(AltinnTilgangssoknadClient.apiPath) {
+                        post("/accessmanagement/api/v1/serviceowner/delegationrequests") {
+                            assertEquals(
+                                "Bearer platform-token-for-altinn:serviceowner/delegationrequests.write",
+                                call.request.header("Authorization")
+                            )
                             capturedRequestBody.set(call.receiveText())
-                            call.response.header(HttpHeaders.ContentType, "application/hal+json")
-                            call.respond(altinnSendSøknadResponse)
+                            call.respondText(
+                                //language=JSON
+                                """
+                                {
+                                  "id": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
+                                  "status": "Pending",
+                                  "type": "resource",
+                                  "lastUpdated": "2025-01-01T00:00:00Z",
+                                  "resource": {
+                                    "referenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger"
+                                  },
+                                  "links": {
+                                    "statusLink": "https://altinn.no/status/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
+                                  },
+                                  "from": {
+                                    "organizationIdentifier": "987654321"
+                                  },
+                                  "to": {
+                                    "personIdentifier": "11111111111"
+                                  }
+                                }
+                                """.trimIndent(),
+                                ContentType.Application.Json
+                            )
                         }
                     }
                 }
             },
             dependenciesCfg = {
-                provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
+                provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
                 provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
             },
         ) {
-            val fnr = "42"
-            val skjema = AltinnTilgangssøknadsskjema(
-                orgnr = "314",
-                redirectUrl = "https://yolo.com",
-                serviceCode = "1337",
-                serviceEdition = 7,
+            val request = CreateDelegationRequest(
+                to = "urn:altinn:organization:identifier-no:987654321",
+                resource = RequestReferenceDto(
+                    referenceId = "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger"
+                ),
             )
 
-            val result = resolve<AltinnTilgangssoknadClient>().sendSøknad(fnr, skjema)
-            assertTrue(result.status!!.isNotBlank())
-            assertTrue(result.submitUrl!!.isNotBlank())
+            val result = resolve<AltinnTilgangssoknadClient>().opprettDelegationRequest("11111111111", request)
+            assertEquals("1a9e3a32-252b-4d81-a23c-ed0d86b852c7", result.id)
+            assertEquals(DelegationRequestStatus.Pending, result.status)
+            assertNotNull(result.links?.statusLink)
+
             JSONAssert.assertEquals(
-                altinnSendSøknadRequest,
+                //language=JSON
+                """
+                {
+                  "from": "urn:altinn:organization:identifier-no:987654321",
+                  "to": "urn:altinn:person:identifier-no:11111111111",
+                  "resource": {
+                    "referenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger"
+                  }
+                }
+                """.trimIndent(),
                 capturedRequestBody.get(),
-                true
+                false
             )
         }
     }
 
-    private val continuationtoken = "hohoho"
-    private val altinnHentSøknadResponse = """
-        {
-          "_links": {
-            "next": {
-              "href": "https://tt02.altinn.no/api/serviceowner/delegationrequests?continuation=$continuationtoken"
-            },
-            "self": {
-              "href": "https://tt02.altinn.no/api/serviceowner/delegationrequests"
-            }
-          },
-          "_embedded": {
-            "delegationRequests": [
-              {
-                "Guid": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
-                "RequestStatus": "Created",
-                "CoveredBy": "16120101181",
-                "OfferedBy": "910825526",
-                "RedirectUrl": "http://localhost",
-                "RequestMessage": "Trenger dette for aa soeke om sykemeldinger",
-                "Created": "2020-08-27T08:51:31.54",
-                "LastChanged": "2020-08-27T08:51:31.54",
-                "RequestResources": [
-                  {
-                    "ServiceCode": "4751",
-                    "ServiceEditionCode": 1,
-                    "Operations": [
-                      "Read",
-                      "Write"
-                    ]
-                  }
-                ],
-                "_links": {
-                  "self": {
-                    "href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
-                  },
-                  "sendRequest": {
-                    "href": "https://tt02.altinn.no/ui/DelegationRequest/send/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
-                  }
+    @Test
+    fun hentDelegationRequestStatus() = runTestApplication(
+        externalServicesCfg = {
+            hosts(Miljø.Altinn.platformBaseUrl) {
+                install(ContentNegotiation) {
+                    json(defaultJson)
                 }
-              }
-            ]
-          },
-          "continuationtoken": "$continuationtoken"
-        }
-    """.trimIndent()
-    private val altinnHentSøknadTomResponse = """
-        {
-          "_links": {
-            "self": {
-              "href": "https://tt02.altinn.no/api/serviceowner/delegationrequests"
+                routing {
+                    get("/accessmanagement/api/v1/serviceowner/delegationrequests/{id}/status") {
+                        assertEquals(
+                            "Bearer platform-token-for-altinn:serviceowner/delegationrequests.read",
+                            call.request.header("Authorization")
+                        )
+                        assertEquals("1a9e3a32-252b-4d81-a23c-ed0d86b852c7", call.parameters["id"])
+                        call.respondText(
+                            "\"Approved\"",
+                            ContentType.Application.Json
+                        )
+                    }
+                }
             }
-          },
-          "_embedded": {
-            "delegationRequests": []
-          }
-        }
-    """.trimIndent()
+        },
+        dependenciesCfg = {
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
+            provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+        },
+    ) {
+        val result = resolve<AltinnTilgangssoknadClient>()
+            .hentDelegationRequestStatus("1a9e3a32-252b-4d81-a23c-ed0d86b852c7")
+        assertEquals(DelegationRequestStatus.Approved, result)
+    }
 
-    private val altinnSendSøknadRequest = """
-        {
-          "CoveredBy": "42",
-          "OfferedBy": "314",
-          "RedirectUrl": "https://yolo.com",
-          "KeepSessionAlive": true,
-          "RequestResources": [
-            {
-              "ServiceCode": "1337",
-              "ServiceEditionCode": 7
-            }
-          ]
-        }
-    """.trimIndent()
-
-    private val altinnSendSøknadResponse = """
-        {
-          "Guid": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
-          "RequestStatus": "Created",
-          "CoveredBy": "16120101181",
-          "OfferedBy": "910825526",
-          "RedirectUrl": "http://localhost",
-          "RequestMessage": "Trenger dette for aa soeke om sykemeldinger",
-          "Created": "2020-08-27T08:51:31.54",
-          "LastChanged": "2020-08-27T08:51:31.54",
-          "RequestResources": [
-            {
-              "ServiceCode": "4751",
-              "ServiceEditionCode": 1,
-              "Operations": [
-                "Read",
-                "Write"
-              ]
-            }
-          ],
-          "_links": {
-            "self": {
-              "href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
-            },
-            "sendRequest": {
-              "href": "https://tt02.altinn.no/ui/DelegationRequest/send/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
-            }
-          }
-        }
-    """.trimIndent()
 }

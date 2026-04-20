@@ -2,31 +2,65 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
 import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 class AltinnDelegationRequestsDeserializeTest {
 
     @Test
-    fun deserialiseJsonResponseIntoDTO()  {
-        val text = requireNotNull(javaClass.getResource("/altinnTilgangerGet.json")).readText()
-        val readValue = defaultJson.decodeFromString<Søknadsstatus>(text)
-        assertNotNull(readValue.embedded)
-        assertNotNull(readValue.embedded.delegationRequests)
-        assertNotNull(readValue.embedded.delegationRequests[0].CoveredBy)
-        assertNotNull(readValue.embedded.delegationRequests[0].Created)
-        assertNotNull(readValue.embedded.delegationRequests[0].KeepSessionAlive)
-        assertNotNull(readValue.embedded.delegationRequests[0].LastChanged)
-        assertNotNull(readValue.embedded.delegationRequests[0].links)
-        assertNotNull(readValue.embedded.delegationRequests[0].links!!.sendRequest)
-        assertNotNull(readValue.embedded.delegationRequests[0].links!!.sendRequest!!.href)
-        assertNotNull(readValue.embedded.delegationRequests[0].OfferedBy)
-        assertNotNull(readValue.embedded.delegationRequests[0].RequestStatus)
-        assertNotNull(readValue.embedded.delegationRequests[0].RedirectUrl)
-        assertNotNull(readValue.embedded.delegationRequests[0].RequestResources)
-        assertNotNull(readValue.embedded.delegationRequests[0].RequestResources!![0].ServiceCode)
-        assertNotNull(readValue.embedded.delegationRequests[0].RequestResources!![0].ServiceEditionCode)
-        assertNotNull(readValue.continuationtoken)
+    fun deserializeDelegationRequestResponse() {
+        //language=JSON
+        val json = """
+            {
+              "id": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
+              "status": "Pending",
+              "type": "resource",
+              "lastUpdated": "2025-01-01T00:00:00Z",
+              "resource": {
+                "referenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger"
+              },
+              "links": {
+                "statusLink": "https://altinn.no/status/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
+              },
+              "from": {
+                "organizationIdentifier": "11111111111"
+              },
+              "to": {
+                "organizationIdentifier": "987654321"
+              }
+            }
+        """.trimIndent()
 
-        /* no parse error */
+        val result = defaultJson.decodeFromString<DelegationRequestResponse>(json)
+        assertNotNull(result.id)
+        assertEquals(DelegationRequestStatus.Pending, result.status)
+        assertNotNull(result.resource?.referenceId)
+        assertNotNull(result.links?.statusLink)
+        assertNotNull(result.from?.organizationIdentifier)
+        assertNotNull(result.to?.organizationIdentifier)
+    }
+
+    @Test
+    fun deserializeDelegationRequestStatus() {
+        val json = "\"Approved\""
+        val result = defaultJson.decodeFromString<DelegationRequestStatus>(json)
+        assertEquals(DelegationRequestStatus.Approved, result)
+    }
+
+    @Test
+    fun deserializeCreateDelegationRequest() {
+        //language=JSON
+        val json = """
+            {
+              "to": "urn:altinn:organization:identifier-no:987654321",
+              "resource": {
+                "referenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger"
+              }
+            }
+        """.trimIndent()
+
+        val result = defaultJson.decodeFromString<CreateDelegationRequest>(json)
+        assertEquals("urn:altinn:organization:identifier-no:987654321", result.to)
+        assertNotNull(result.resource?.referenceId)
     }
 }

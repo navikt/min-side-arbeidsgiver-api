@@ -29,6 +29,12 @@ class Miljø {
                 other = { "http://localhost:8081" }
             )
 
+            val platformBaseUrl = resolve(
+                prod = { "https://platform.altinn.no" },
+                dev = { "https://platform.tt02.altinn.no" },
+                other = { "http://localhost:8081" }
+            )
+
             val altinnHeader: String = resolve(
                 prod = { System.getenv("ALTINN_HEADER") },
                 dev = { System.getenv("ALTINN_HEADER") },

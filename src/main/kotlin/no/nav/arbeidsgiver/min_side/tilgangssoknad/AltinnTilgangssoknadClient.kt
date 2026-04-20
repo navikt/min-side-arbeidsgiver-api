@@ -5,232 +5,155 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import no.nav.arbeidsgiver.min_side.infrastruktur.MaskinportenTokenProvider
+import no.nav.arbeidsgiver.min_side.infrastruktur.AltinnPlattformTokenClient
 import no.nav.arbeidsgiver.min_side.infrastruktur.Miljø
 import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
-import no.nav.arbeidsgiver.min_side.infrastruktur.logger
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.altinnApiKey
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.apiPath
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.ingress
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.targetResource
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient.Companion.targetScope
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.DelegationRequest.RequestResource
 
 interface AltinnTilgangssoknadClient {
-    suspend fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad>
-    suspend fun sendSøknad(fødselsnummer: String, søknadsskjema: AltinnTilgangssøknadsskjema): AltinnTilgangssøknad
+    suspend fun opprettDelegationRequest(fnr: String, request: CreateDelegationRequest): DelegationRequestResponse
+    suspend fun hentDelegationRequestStatus(id: String): DelegationRequestStatus
 
     companion object {
-        val ingress = Miljø.Altinn.baseUrl
-        val apiPath = "/api/serviceowner/delegationRequests"
-        val altinnApiKey = Miljø.Altinn.altinnHeader
-        val targetScope = listOf(
-            "altinn:serviceowner/delegationrequests.read",
-            "altinn:serviceowner/delegationrequests.write"
-        ).joinToString(" ")
-        val targetResource = Miljø.resolve(
-            prod = { "https://www.altinn.no/" },
-            other = { "https://tt02.altinn.no/" }
-        )
+        const val API_PATH = "/accessmanagement/api/v1/serviceowner/delegationrequests"
+        const val SCOPE_READ = "altinn:serviceowner/delegationrequests.read"
+        const val SCOPE_WRITE = "altinn:serviceowner/delegationrequests.write"
+        const val NAV_RESOURCE_PREFIX = "nav_"
     }
 }
 
-fun Configuration.halJsonConfiguration() {
-    json(
-        json = Json(defaultJson) {
-            explicitNulls = false
-        },
-        contentType = ContentType.Application.HalJson
-    )
-}
-
 class AltinnTilgangssoknadClientImpl(
-    private val tokenProvider: MaskinportenTokenProvider,
     defaultHttpClient: HttpClient,
+    private val plattformTokenClient: AltinnPlattformTokenClient,
+    private val altinnPlatformBaseUrl: String = Miljø.Altinn.platformBaseUrl,
 ) : AltinnTilgangssoknadClient {
 
-    private val log = logger()
     private val httpClient = defaultHttpClient.config {
         expectSuccess = true
 
         install(ContentNegotiation) {
-            halJsonConfiguration()
+            json(defaultJson)
+        }
+
+        install(HttpTimeout) {
+            requestTimeoutMillis = 30_000
         }
 
         defaultRequest {
-            header("apikey", altinnApiKey)
-            accept(ContentType.Application.HalJson)
-            contentType(ContentType.Application.HalJson)
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
         }
-
     }
 
-    override suspend fun hentSøknader(fødselsnummer: String): List<AltinnTilgangssøknad> {
-        var shouldContinue = true
-        var continuationtoken: String? = null
-        val resultat = ArrayList<AltinnTilgangssøknad>()
-        while (shouldContinue) {
-            val body = try {
-                val response = httpClient.get {
-                    url {
-                        takeFrom(ingress)
-                        path(apiPath)
-                        parameter($$"$filter", "CoveredBy eq '$fødselsnummer'")
-                        if (continuationtoken != null) {
-                            parameter("continuation", continuationtoken)
-                        }
-                    }
-                    bearerAuth(
-                        tokenProvider.token(targetScope, mapOf("resource" to targetResource)).fold(
-                            onSuccess = { it.accessToken },
-                            onError = { throw Exception("Failed to fetch token: ${it.status} ${it.error}") }
-                        )
-                    )
-                }
-                log.info("Altinn delegation response: ${response.status} ${response.bodyAsText()}")
-                response.body<Søknadsstatus?>()
-            } catch (e: ClientRequestException) {
-                if (e.response.status == HttpStatusCode.BadRequest) {
-                    if (e.response.bodyAsText().contains("User profile")) {
-                        null
-                    } else {
-                        throw e
-                    }
-                } else {
-                    throw e
-                }
-            }
-
-
-            if (body == null) {
-                log.error("Altinn delegation requests: body missing")
-                break
-            }
-
-            if (body.embedded!!.delegationRequests!!.isEmpty()) {
-                shouldContinue = false
-            } else {
-                continuationtoken = body.continuationtoken
-            }
-
-            body.embedded.delegationRequests.mapTo(resultat)
-            { søknadDTO: DelegationRequest ->
-                AltinnTilgangssøknad(
-                    orgnr = søknadDTO.OfferedBy,
-                    status = søknadDTO.RequestStatus,
-                    createdDateTime = søknadDTO.Created,
-                    lastChangedDateTime = søknadDTO.LastChanged,
-                    serviceCode = søknadDTO.RequestResources!![0].ServiceCode,
-                    serviceEdition = søknadDTO.RequestResources[0].ServiceEditionCode,
-                    submitUrl = søknadDTO.links!!.sendRequest!!.href,
-                )
-            }
-        }
-        return resultat
-    }
-
-    override suspend fun sendSøknad(fødselsnummer: String, søknadsskjema: AltinnTilgangssøknadsskjema): AltinnTilgangssøknad {
-        val response = httpClient.post {
+    override suspend fun opprettDelegationRequest(
+        fnr: String,
+        request: CreateDelegationRequest,
+    ): DelegationRequestResponse {
+        val token = plattformTokenClient.token(AltinnTilgangssoknadClient.SCOPE_WRITE)
+        return httpClient.post {
             url {
-                takeFrom(ingress)
-                path(apiPath)
+                takeFrom(altinnPlatformBaseUrl)
+                path(AltinnTilgangssoknadClient.API_PATH)
             }
-            header("apikey", altinnApiKey)
-            bearerAuth(
-                tokenProvider.token(targetScope, mapOf("resource" to targetResource)).fold(
-                    onSuccess = { it.accessToken },
-                    onError = { throw Exception("Failed to fetch token: ${it.status} ${it.error}") }
-                )
-            )
+            bearerAuth(token)
+            setBody(request.toServiceOwnerRequest(fnr))
+        }.body()
+    }
 
-            setBody(
-                DelegationRequest(
-                    CoveredBy = fødselsnummer,
-                    OfferedBy = søknadsskjema.orgnr,
-                    RedirectUrl = søknadsskjema.redirectUrl,
-                    RequestResources = listOf(
-                        RequestResource(
-                            ServiceCode = søknadsskjema.serviceCode,
-                            ServiceEditionCode = søknadsskjema.serviceEdition,
-                        )
-                    ),
-                )
-            )
-        }
-
-        return response.body<DelegationRequest?>().let {
-            AltinnTilgangssøknad(
-                status = it!!.RequestStatus,
-                submitUrl = it.links!!.sendRequest!!.href,
-            )
-        }
+    override suspend fun hentDelegationRequestStatus(id: String): DelegationRequestStatus {
+        val token = plattformTokenClient.token(AltinnTilgangssoknadClient.SCOPE_READ)
+        return httpClient.get {
+            url {
+                takeFrom(altinnPlatformBaseUrl)
+                path("${AltinnTilgangssoknadClient.API_PATH}/$id/status")
+            }
+            bearerAuth(token)
+        }.body()
     }
 }
 
 
-
-@Suppress("PropertyName")
+/**
+ * User-facing request body. `from` is derived from the logged-in user's fnr.
+ */
 @Serializable
-data class DelegationRequest(
-    val RequestStatus: String? = null,
-    val OfferedBy: String? = null,
-    val CoveredBy: String? = null,
-    val RedirectUrl: String? = null,
-    val Created: String? = null,
-    val LastChanged: String? = null,
-    val KeepSessionAlive: Boolean = true,
-    val RequestResources: List<RequestResource>? = null,
-    @SerialName("_links") val links: Links? = null
+data class CreateDelegationRequest(
+    val to: String? = null,
+    val resource: RequestReferenceDto? = null,
+    @SerialName("package")
+    val accessPackage: RequestReferenceDto? = null,
 ) {
-
-    @Serializable
-    data class RequestResource(
-        val ServiceCode: String? = null,
-        val ServiceEditionCode: Int? = null
-    )
-
-    @Serializable
-    data class Links(var sendRequest: Link? = null)
-
-    @Serializable
-    data class Link(var href: String? = null)
-}
-
-@Serializable
-data class Søknadsstatus(
-    @SerialName("_embedded")
-    val embedded: Embedded? = null,
-    val continuationtoken: String? = null,
-) {
-    @Serializable
-    data class Embedded(
-        val delegationRequests: List<DelegationRequest>? = null
+    /**
+     * Altinn-semantikk:
+     *   from = entiteten som ber om tilgang (virksomheten)
+     *   to   = entiteten tilgang gis til (personen)
+     * Frontend sender orgnr-urn som `to`; vi mapper det over til `from` her.
+     */
+    fun toServiceOwnerRequest(fnr: String) = CreateServiceOwnerRequest(
+        from = to,
+        to = "urn:altinn:person:identifier-no:$fnr",
+        resource = resource,
+        accessPackage = accessPackage,
     )
 }
 
-
+/**
+ * Wire-level request body for Altinn serviceowner delegationrequests API.
+ */
 @Serializable
-data class AltinnTilgangssøknad(
-    val orgnr: String? = null,
-    val serviceCode: String? = null,
-    val serviceEdition: Int? = null,
-    val status: String? = null,
-    val createdDateTime: String? = null,
-    val lastChangedDateTime: String? = null,
-    val submitUrl: String? = null
+data class CreateServiceOwnerRequest(
+    val from: String? = null,
+    val to: String? = null,
+    val resource: RequestReferenceDto? = null,
+    @SerialName("package")
+    val accessPackage: RequestReferenceDto? = null,
 )
 
 @Serializable
-data class AltinnTilgangssøknadsskjema(
-    val orgnr: String,
-    val redirectUrl: String,
-    val serviceCode: String,
-    val serviceEdition: Int,
+data class RequestReferenceDto(
+    val id: String? = null,
+    val referenceId: String? = null,
 )
+
+@Serializable
+data class PartyEntityDto(
+    val id: String? = null,
+    val name: String? = null,
+    val type: String? = null,
+    val variant: String? = null,
+    val organizationIdentifier: String? = null,
+    val personIdentifier: String? = null,
+)
+
+@Serializable
+data class RequestLinksDto(
+    val detailsLink: String? = null,
+    val statusLink: String? = null,
+)
+
+@Serializable
+data class DelegationRequestResponse(
+    val id: String? = null,
+    val status: DelegationRequestStatus? = null,
+    val type: String? = null,
+    val lastUpdated: String? = null,
+    val resource: RequestReferenceDto? = null,
+    @SerialName("package")
+    val accessPackage: RequestReferenceDto? = null,
+    val links: RequestLinksDto? = null,
+    val from: PartyEntityDto? = null,
+    val to: PartyEntityDto? = null,
+)
+
+@Serializable
+enum class DelegationRequestStatus {
+    None,
+    Draft,
+    Pending,
+    Approved,
+    Rejected,
+    Withdrawn,
+}

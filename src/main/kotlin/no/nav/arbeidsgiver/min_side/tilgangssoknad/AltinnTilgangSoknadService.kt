@@ -1,75 +1,91 @@
 package no.nav.arbeidsgiver.min_side.tilgangssoknad
 
-import io.ktor.client.plugins.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
 import no.nav.arbeidsgiver.min_side.infrastruktur.logger
-import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
+import java.util.*
 
 class AltinnTilgangSoknadService(
     private val altinnTilgangssoknadClient: AltinnTilgangssoknadClient,
-    private val altinnTilgangerService: AltinnTilgangerService,
+    private val delegationRequestRepository: DelegationRequestRepository,
 ) {
     private val log = logger()
 
-    suspend fun mineSøknaderOmTilgang(fnr: String): List<AltinnTilgangssøknad> {
-        return altinnTilgangssoknadClient.hentSøknader(fnr)
+    suspend fun opprettDelegationRequest(
+        fnr: String,
+        request: CreateDelegationRequest,
+    ): DelegationRequestResponse {
+        validerResource(request.resource?.referenceId)
+
+        val response = altinnTilgangssoknadClient.opprettDelegationRequest(fnr, request)
+
+        val id = response.id?.let(UUID::fromString)
+        val orgnr = response.from?.organizationIdentifier
+            ?: request.to?.extractOrgnr()
+        val resourceReferenceId = response.resource?.referenceId
+            ?: request.resource?.referenceId
+        val status = response.status?.name
+
+        if (id != null && orgnr != null && resourceReferenceId != null && status != null) {
+            delegationRequestRepository.lagre(
+                id = id,
+                fnr = fnr,
+                orgnr = orgnr,
+                resourceReferenceId = resourceReferenceId,
+                status = status,
+                detailsLink = response.links?.detailsLink,
+                lastResponseJson = defaultJson.encodeToString(DelegationRequestResponse.serializer(), response),
+            )
+        } else {
+            log.warn(
+                "Kunne ikke persistere delegation request: id={}, orgnr={}, resource={}, status={}",
+                id, orgnr, resourceReferenceId, status
+            )
+        }
+
+        return response
     }
 
-    suspend fun sendSøknadOmTilgang(søknadsskjema: AltinnTilgangssøknadsskjema, token: String, fnr: String): ResponseEntity {
-        val brukerErIOrg = altinnTilgangerService.harOrganisasjon(søknadsskjema.orgnr, token)
-
-        if (!brukerErIOrg) {
-            log.error("Bruker forsøker å be om tilgang til org de ikke er med i.")
-            return ResponseEntity(HttpStatusCode.BadRequest)
-        }
-
-        if (!tjenester.contains(søknadsskjema.serviceCode to søknadsskjema.serviceEdition)) {
-            log.error(
-                "Bruker forsøker å be om tilgang til tjeneste ({}, {})) vi ikke støtter.",
-                søknadsskjema.serviceCode,
-                søknadsskjema.serviceEdition
-            )
-            return ResponseEntity(HttpStatusCode.BadRequest)
-        }
-        val body = try {
-            altinnTilgangssoknadClient.sendSøknad(fnr, søknadsskjema)
-        } catch (e: ClientRequestException) {
-            if (e.response.bodyAsText().contains("40318")) {
-                // Bruker forsøker å sende en søknad som allerede er sendt.
-                return ResponseEntity(HttpStatusCode.BadRequest)
+    suspend fun mineDelegationRequests(fnr: String): List<DelegationRequestRow> {
+        val rows = delegationRequestRepository.hentForBruker(fnr)
+        val refreshed = rows.map { row ->
+            if (row.status in TERMINAL_STATUSES) {
+                row
             } else {
-                throw e
+                try {
+                    val newStatus = altinnTilgangssoknadClient
+                        .hentDelegationRequestStatus(row.id)
+                        .name
+                    if (newStatus != row.status) {
+                        delegationRequestRepository.oppdaterStatus(UUID.fromString(row.id), newStatus)
+                        row.copy(status = newStatus)
+                    } else {
+                        row
+                    }
+                } catch (e: Exception) {
+                    log.warn("Kunne ikke oppdatere status for delegation request {}: {}", row.id, e.message)
+                    row
+                }
             }
         }
-        return ResponseEntity(HttpStatusCode.OK, body)
+        return refreshed
     }
-
-    companion object {
-        val tjenester = setOf(
-            "3403" to 2,
-            "4936" to 1,
-            "5159" to 1,
-            "5212" to 1,
-            "5216" to 1,
-            "5278" to 1,
-            "5332" to 1,
-            "5332" to 2,
-            "5384" to 1,
-            "5516" to 1,
-            "5516" to 2,
-            "5516" to 3,
-            "5516" to 4,
-            "5516" to 5,
-            "5516" to 6,
-            "5516" to 7,
-            "5902" to 1,
-            "5934" to 1,
-        )
-    }
-
-    data class ResponseEntity(
-        val status: HttpStatusCode,
-        val body: AltinnTilgangssøknad? = null,
-    )
 }
+
+private fun validerResource(referenceId: String?) {
+    require(referenceId != null) { "resource.referenceId mangler" }
+    require(referenceId.startsWith(AltinnTilgangssoknadClient.NAV_RESOURCE_PREFIX)) {
+        "resource.referenceId må begynne med '${AltinnTilgangssoknadClient.NAV_RESOURCE_PREFIX}', fikk '$referenceId'"
+    }
+    // evt ressurser som ikke skal kunne bes om? endre_kontonummer feks
+}
+
+private val TERMINAL_STATUSES = setOf(
+    DelegationRequestStatus.Approved.name,
+    DelegationRequestStatus.Rejected.name,
+    DelegationRequestStatus.Withdrawn.name,
+)
+
+private const val ORG_URN_PREFIX = "urn:altinn:organization:identifier-no:"
+
+private fun String.extractOrgnr(): String? =
+    if (startsWith(ORG_URN_PREFIX)) removePrefix(ORG_URN_PREFIX) else null

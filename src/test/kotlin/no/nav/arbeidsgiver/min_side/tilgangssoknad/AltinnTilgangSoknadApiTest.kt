@@ -3,81 +3,58 @@ package no.nav.arbeidsgiver.min_side.tilgangssoknad
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import no.nav.arbeidsgiver.min_side.AltinnTilgangerMock
 import no.nav.arbeidsgiver.min_side.configureTilgangssoknadRoutes
 import no.nav.arbeidsgiver.min_side.infrastruktur.*
 import no.nav.arbeidsgiver.min_side.ktorConfig
-import no.nav.arbeidsgiver.min_side.mockAltinnTilganger
-import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
-import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerServiceImpl
-import org.intellij.lang.annotations.Language
 import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class AntlinnTilgangSoknadApiTest {
+class AltinnTilgangSoknadApiTest {
 
-    private val orgnr = "133700000"
-
+    private val fakePlatformTokenClient = object : AltinnPlattformTokenClient {
+        override suspend fun token(scope: String): String = "platform-token-for-$scope"
+    }
 
     @Test
-    fun mineSoknaderOmTilgang() = runTestApplication(
+    fun `opprett delegation request lagrer i database og returnerer 202`() = runTestApplicationWithDatabase(
         externalServicesCfg = {
-            mockAltinnTilganger(AltinnTilgangerMock.medTilganger(orgnr = orgnr))
-
-            hosts(AltinnTilgangssoknadClient.ingress) {
+            hosts(Miljø.Altinn.platformBaseUrl) {
+                install(ContentNegotiation) {
+                    json(defaultJson)
+                }
                 routing {
-                    install(ContentNegotiation) {
-                        halJsonConfiguration()
-                    }
-
-                    get(AltinnTilgangssoknadClient.apiPath) {
-                        if (call.parameters[$$"$filter"] == "CoveredBy eq '42'") {
-                            if (call.parameters["continuation"] != null) {
-                                call.respondText(altinnHentSoknadTomResponse, ContentType.Application.HalJson)
-                            } else {
-                                call.respondText(
-                                    getResponse(
-                                        """
-                                    [
-                                      {
-                                        "Guid": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
-                                        "RequestStatus": "Created",
-                                        "CoveredBy": "11111111111",
-                                        "OfferedBy": "$orgnr",
-                                        "RedirectUrl": "http://localhost",
-                                        "RequestMessage": "Trenger dette for aa soeke om sykemeldinger",
-                                        "Created": "now",
-                                        "LastChanged": "whenever",
-                                        "RequestResources": [
-                                          {
-                                            "ServiceCode": "13337",
-                                            "ServiceEditionCode": 3,
-                                            "Operations": [
-                                              "Read",
-                                              "Write"
-                                            ]
-                                          }
-                                        ],
-                                        "_links": {
-                                          "self": {
-                                            "href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
-                                          },
-                                          "sendRequest": {
-                                            "href": "https://yolo.com"
-                                          }
-                                        }
-                                      }
-                                    ]
-                                    """
-                                    ),
-                                    ContentType.Application.HalJson
-                                )
+                    post("/accessmanagement/api/v1/serviceowner/delegationrequests") {
+                        call.respondText(
+                            //language=JSON
+                            """
+                            {
+                              "id": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
+                              "status": "Pending",
+                              "type": "resource",
+                              "lastUpdated": "2025-01-01T00:00:00Z",
+                              "resource": {
+                                "referenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger"
+                              },
+                              "links": {
+                                "detailsLink": "https://altinn.no/details/1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
+                                "statusLink": "https://altinn.no/status/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
+                              },
+                              "from": {
+                                "organizationIdentifier": "987654321"
+                              },
+                              "to": {
+                                "personIdentifier": "42"
+                              }
                             }
-                        }
+                            """.trimIndent(),
+                            ContentType.Application.Json
+                        )
                     }
                 }
             }
@@ -88,10 +65,9 @@ class AntlinnTilgangSoknadApiTest {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
                 }
             }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
             provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -100,8 +76,38 @@ class AntlinnTilgangSoknadApiTest {
             configureTilgangssoknadRoutes()
         },
     ) {
+        val jsonResponse = client.post("ditt-nav-arbeidsgiver-api/api/delegation-request") {
+            contentType(ContentType.Application.Json)
+            bearerAuth("faketoken")
+            setBody(
+                """
+                {
+                    "to": "urn:altinn:organization:identifier-no:987654321",
+                    "resource": {
+                        "referenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger"
+                    }
+                }
+                """
+            )
+        }.let {
+            assertEquals(HttpStatusCode.Accepted, it.status)
+            it.bodyAsText()
+        }
 
-        val jsonResponse = client.get("ditt-nav-arbeidsgiver-api/api/altinn-tilgangssoknad") {
+        JSONAssert.assertEquals(
+            """
+            {
+              "id": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
+              "status": "Pending",
+              "resource": {
+                "referenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger"
+              }
+            }
+            """, jsonResponse, false
+        )
+
+        // persisted row is returned from the list endpoint
+        val listJson = client.get("ditt-nav-arbeidsgiver-api/api/delegation-request") {
             bearerAuth("faketoken")
         }.let {
             assertEquals(HttpStatusCode.OK, it.status)
@@ -112,79 +118,36 @@ class AntlinnTilgangSoknadApiTest {
             """
             [
               {
-                "orgnr": "$orgnr",
-                "serviceCode": "13337",
-                "serviceEdition": 3,
-                "status": "Created",
-                "createdDateTime": "now",
-                "lastChangedDateTime": "whenever",
-                "submitUrl": "https://yolo.com"
+                "id": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
+                "orgnr": "987654321",
+                "resourceReferenceId": "nav_permittering-og-nedbemmaning_innsyn-i-alle-innsendte-meldinger",
+                "status": "Pending",
+                "detailsLink": "https://altinn.no/details/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
               }
             ]
-            """, jsonResponse, true
+            """, listJson, false
         )
     }
 
     @Test
-    fun sendSoknadOmTilgang() = runTestApplication(
-        externalServicesCfg = {
-            mockAltinnTilganger(AltinnTilgangerMock.medTilganger(orgnr = orgnr))
-
-            hosts(AltinnTilgangssoknadClient.ingress) {
-                routing {
-                    install(ContentNegotiation) {
-                        halJsonConfiguration()
-                    }
-
-                    post(AltinnTilgangssoknadClient.apiPath) {
-                        call.respondText(
-                            //language=JSON
-                            """
-                             {
-                                  "Guid": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
-                                  "RequestStatus": "Created",
-                                  "CoveredBy": "11111111111",
-                                  "OfferedBy": "$orgnr",
-                                  "RedirectUrl": "http://localhost",
-                                  "RequestMessage": "Trenger dette for aa soeke om sykemeldinger",
-                                  "Created": "2020-08-27T08:51:31.54",
-                                  "LastChanged": "2020-08-27T08:51:31.54",
-                                  "RequestResources": [
-                                    {
-                                      "ServiceCode": "4751",
-                                      "ServiceEditionCode": 1,
-                                      "Operations": [
-                                        "Read",
-                                        "Write"
-                                      ]
-                                    }
-                                  ],
-                                  "_links": {
-                                    "self": {
-                                      "href": "https://tt02.altinn.no/api/serviceowner/delegationrequests/1a9e3a32-252b-4d81-a23c-ed0d86b852c7"
-                                    },
-                                    "sendRequest": {
-                                      "href": "https://yolo.com"
-                                    }
-                                  }
-                                }
-                            """.trimIndent(),
-                            ContentType.Application.HalJson
-                        )
-                    }
-                }
-            }
-        },
+    fun `mine delegation requests returnerer kun brukerens egne`() = runTestApplicationWithDatabase(
         dependenciesCfg = {
             provide<TokenXTokenIntrospector> {
                 MockTokenIntrospector {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
                 }
             }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
-            provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
+            provide<AltinnTilgangssoknadClient> {
+                object : AltinnTilgangssoknadClient {
+                    override suspend fun opprettDelegationRequest(
+                        fnr: String,
+                        request: CreateDelegationRequest,
+                    ) = error("not used")
+                    override suspend fun hentDelegationRequestStatus(id: String) = error("not used")
+                }
+            }
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -193,75 +156,58 @@ class AntlinnTilgangSoknadApiTest {
             configureTilgangssoknadRoutes()
         },
     ) {
-        val skjema = AltinnTilgangssøknadsskjema(
-            orgnr = orgnr,
-            redirectUrl = "https://yolo.it",
-            serviceCode = AltinnTilgangSoknadService.tjenester.first().first,
-            serviceEdition = AltinnTilgangSoknadService.tjenester.first().second,
+        val repo = resolve<DelegationRequestRepository>()
+        // Terminal status → no Altinn refresh needed
+        repo.lagre(
+            id = java.util.UUID.fromString("1a9e3a32-252b-4d81-a23c-ed0d86b852c7"),
+            fnr = "42",
+            orgnr = "987654321",
+            resourceReferenceId = "nav_resource_a",
+            status = "Approved",
+            detailsLink = "https://altinn.no/details/a",
+            lastResponseJson = """{"id":"1a9e3a32-252b-4d81-a23c-ed0d86b852c7","status":"Approved"}""",
+        )
+        repo.lagre(
+            id = java.util.UUID.fromString("2b9e3a32-252b-4d81-a23c-ed0d86b852c7"),
+            fnr = "99",
+            orgnr = "987654321",
+            resourceReferenceId = "nav_resource_b",
+            status = "Approved",
+            detailsLink = null,
+            lastResponseJson = """{"id":"2b9e3a32-252b-4d81-a23c-ed0d86b852c7","status":"Approved"}""",
         )
 
-        val jsonResponse = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilgangssoknad") {
-            contentType(ContentType.Application.Json)
+        val listJson = client.get("ditt-nav-arbeidsgiver-api/api/delegation-request") {
             bearerAuth("faketoken")
-            setBody(
-                """
-                    {
-                        "orgnr": "${skjema.orgnr}",
-                        "redirectUrl": "${skjema.redirectUrl}",
-                        "serviceCode": "${skjema.serviceCode}",
-                        "serviceEdition": ${skjema.serviceEdition}
-                    }
-                """
-            )
         }.let {
             assertEquals(HttpStatusCode.OK, it.status)
             it.bodyAsText()
         }
 
-        /**
-         * NB: before kotlinx.serialization jackson was configured to ignore nulls for this dto,
-         * so only status and submitUrl were present.
-         * but there is no such expectation in the frontend. Seems weird to have nulls ignored for just this api
-         * when the frontend does not care. Adding the nulls back to the response to avoid complexity in serialization
-         * config.
-         * Also, why are they null? Some of the fields are actually known in the response,.
-         * so it looks intentional that they are not included in the response.
-         */
         JSONAssert.assertEquals(
             """
+            [
               {
-                "createdDateTime": null,
-                "lastChangedDateTime": null,
-                "orgnr": null,
-                "serviceCode": null,
-                "serviceEdition": null,
-                "status": "Created",
-                "submitUrl": "https://yolo.com"
+                "id": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7",
+                "orgnr": "987654321",
+                "resourceReferenceId": "nav_resource_a",
+                "status": "Approved"
               }
-            """, jsonResponse, true
+            ]
+            """, listJson, false
         )
     }
 
     @Test
-    fun sendSoknadOmTilgangSomAlleredeErSoktPaGirBadRequest() = runTestApplication(
+    fun `mine delegation requests refresher ikke-terminal status fra altinn`() = runTestApplicationWithDatabase(
         externalServicesCfg = {
-            mockAltinnTilganger(AltinnTilgangerMock.medTilganger(orgnr = orgnr))
-
-            hosts(AltinnTilgangssoknadClient.ingress) {
+            hosts(Miljø.Altinn.platformBaseUrl) {
+                install(ContentNegotiation) {
+                    json(defaultJson)
+                }
                 routing {
-                    install(ContentNegotiation) {
-                        halJsonConfiguration()
-                    }
-
-                    post(AltinnTilgangssoknadClient.apiPath) {
-                        call.respond(
-                            status = HttpStatusCode.BadRequest,
-                            //language=JSON
-                            """
-                             [{"ErrorCode":"40318","ErrorMessage":"This request for access has already been registered"}]
-                            """
-
-                        )
+                    get("/accessmanagement/api/v1/serviceowner/delegationrequests/{id}/status") {
+                        call.respondText("\"Approved\"", ContentType.Application.Json)
                     }
                 }
             }
@@ -272,10 +218,9 @@ class AntlinnTilgangSoknadApiTest {
                     if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
                 }
             }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<MaskinportenTokenProvider> { successMaskinportenTokenProvider }
-            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
             provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -284,60 +229,112 @@ class AntlinnTilgangSoknadApiTest {
             configureTilgangssoknadRoutes()
         },
     ) {
-        val skjema = AltinnTilgangssøknadsskjema(
-            orgnr = "314",
-            redirectUrl = "https://yolo.it",
-            serviceCode = AltinnTilgangSoknadService.tjenester.first().first,
-            serviceEdition = AltinnTilgangSoknadService.tjenester.first().second,
+        val repo = resolve<DelegationRequestRepository>()
+        val id = java.util.UUID.fromString("1a9e3a32-252b-4d81-a23c-ed0d86b852c7")
+        repo.lagre(
+            id = id,
+            fnr = "42",
+            orgnr = "987654321",
+            resourceReferenceId = "nav_resource_a",
+            status = "Pending",
+            detailsLink = "https://altinn.no/details/a",
+            lastResponseJson = """{"id":"1a9e3a32-252b-4d81-a23c-ed0d86b852c7","status":"Pending"}""",
         )
 
+        val listJson = client.get("ditt-nav-arbeidsgiver-api/api/delegation-request") {
+            bearerAuth("faketoken")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            it.bodyAsText()
+        }
 
-        client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilgangssoknad") {
+        JSONAssert.assertEquals(
+            """
+            [
+              { "id": "1a9e3a32-252b-4d81-a23c-ed0d86b852c7", "status": "Approved" }
+            ]
+            """, listJson, false
+        )
+
+        // persisted row was updated
+        assertEquals("Approved", repo.hentForBruker("42").single().status)
+    }
+
+    @Test
+    fun `opprett avvises med 400 hvis resource referenceId mangler nav_ prefiks`() = runTestApplicationWithDatabase(
+        dependenciesCfg = {
+            provide<TokenXTokenIntrospector> {
+                MockTokenIntrospector {
+                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
+                }
+            }
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
+            provide<AltinnTilgangssoknadClient> {
+                object : AltinnTilgangssoknadClient {
+                    override suspend fun opprettDelegationRequest(
+                        fnr: String,
+                        request: CreateDelegationRequest,
+                    ) = error("skal ikke kalles ved ugyldig resource")
+                    override suspend fun hentDelegationRequestStatus(id: String) = error("not used")
+                }
+            }
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
+            provide(AltinnTilgangSoknadService::class)
+        },
+        applicationCfg = {
+            ktorConfig()
+            configureTokenXAuth()
+            configureTilgangssoknadRoutes()
+        },
+    ) {
+        client.post("ditt-nav-arbeidsgiver-api/api/delegation-request") {
             contentType(ContentType.Application.Json)
             bearerAuth("faketoken")
             setBody(
-            """
-            {
-                "orgnr": "${skjema.orgnr}",
-                "redirectUrl": "${skjema.redirectUrl}",
-                "serviceCode": "${skjema.serviceCode}",
-                "serviceEdition": ${skjema.serviceEdition}
-            }
-            """
+                """
+                {
+                    "to": "urn:altinn:organization:identifier-no:987654321",
+                    "resource": { "referenceId": "not_a_nav_resource" }
+                }
+                """
             )
         }.let {
             assertEquals(HttpStatusCode.BadRequest, it.status)
         }
+    }
 
+    @Test
+    fun `uautentisert bruker fr 401`() = runTestApplicationWithDatabase(
+        dependenciesCfg = {
+            provide<TokenXTokenIntrospector> {
+                MockTokenIntrospector { null }
+            }
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
+            provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
+            provide(AltinnTilgangSoknadService::class)
+        },
+        applicationCfg = {
+            ktorConfig()
+            configureTokenXAuth()
+            configureTilgangssoknadRoutes()
+        },
+    ) {
+        client.post("ditt-nav-arbeidsgiver-api/api/delegation-request") {
+            contentType(ContentType.Application.Json)
+            bearerAuth("invalidtoken")
+            setBody(
+                """
+                {
+                    "to": "urn:altinn:organization:identifier-no:987654321",
+                    "resource": {
+                        "referenceId": "nav_some_resource"
+                    }
+                }
+                """
+            )
+        }.let {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
     }
 }
-
-private val altinnHentSoknadTomResponse = """
-        {
-          "_links": {
-            "self": {
-              "href": "https://tt02.altinn.no/api/serviceowner/delegationrequests"
-            }
-          },
-          "_embedded": {
-            "delegationRequests": []
-          }
-        }
-    """.trimIndent()
-
-private fun getResponse(@Language("JSON") delegationRequests: String) = """
-        {
-          "_links": {
-            "next": {
-              "href": "https://tt02.altinn.no/api/serviceowner/delegationrequests?continuation=fancytoken"
-            },
-            "self": {
-              "href": "https://tt02.altinn.no/api/serviceowner/delegationrequests"
-            }
-          },
-          "_embedded": {
-            "delegationRequests": $delegationRequests
-          },
-          "continuationtoken": "fancytoken"
-        }
-    """.trimIndent()
