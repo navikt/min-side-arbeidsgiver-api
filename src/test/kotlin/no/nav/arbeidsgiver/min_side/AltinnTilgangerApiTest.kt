@@ -68,6 +68,7 @@ class AltinnTilgangerApiTest {
                 {
                   "hierarki": [
                     {
+                      "altinn3Tilganger": ["nav_test_ressurs"],
                       "roller": [
                         {
                           "kode": "DAGL",
@@ -76,12 +77,65 @@ class AltinnTilgangerApiTest {
                       ],
                       "underenheter": [
                         {
+                          "altinn3Tilganger": ["nav_test_ressurs"],
                           "roller": [
                             {
                               "kode": "DAGL",
                               "visningsnavn": "Daglig leder"
                             }
                           ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+            """.trimIndent(),
+            response.bodyAsText(),
+            false
+        )
+    }
+
+    @Test
+    fun `filtrerer ut altinn2-tilganger og altinn3-tilganger som ikke starter med nav_`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger(
+                AltinnTilgangerMock.medTilganger(
+                    orgnr = "123456789",
+                    tjeneste = "3403:1",
+                    ressurs = "ikke_nav_ressurs",
+                    rolle = "DAGL"
+                )
+            )
+        },
+        dependenciesCfg = {
+            provide<TokenXTokenIntrospector> {
+                MockTokenIntrospector {
+                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
+                }
+            }
+            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
+            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
+        },
+        applicationCfg = {
+            ktorConfig()
+            configureTokenXAuth()
+            configureAltinnTilgangerRoutes()
+        }
+    ) {
+        val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
+            bearerAuth("faketoken")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        JSONAssert.assertEquals(
+            """
+                {
+                  "hierarki": [
+                    {
+                      "altinn3Tilganger": [],
+                      "underenheter": [
+                        {
+                          "altinn3Tilganger": []
                         }
                       ]
                     }

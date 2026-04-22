@@ -27,15 +27,11 @@ suspend fun Application.configureAltinnTilgangerRoutes() {
 data class AltinnTilgangerResponse(
     val isError: Boolean,
     val hierarki: List<AltinnTilgangResponse>,
-    val orgNrTilTilganger: Map<String, Set<String>>,
-    val tilgangTilOrgNr: Map<String, Set<String>>,
 ) {
     companion object {
         fun from(altinnTilganger: AltinnTilganger): AltinnTilgangerResponse = AltinnTilgangerResponse(
             isError = altinnTilganger.isError,
             hierarki = altinnTilganger.hierarki.map(AltinnTilgangResponse::from),
-            orgNrTilTilganger = altinnTilganger.orgNrTilTilganger,
-            tilgangTilOrgNr = altinnTilganger.tilgangTilOrgNr,
         )
     }
 }
@@ -46,7 +42,6 @@ data class AltinnTilgangResponse(
     val navn: String,
     val organisasjonsform: String,
     val altinn3Tilganger: Set<String>,
-    val altinn2Tilganger: Set<String>,
     val roller: Set<AltinnRolleResponse>,
     val underenheter: List<AltinnTilgangResponse>,
 ) {
@@ -55,8 +50,7 @@ data class AltinnTilgangResponse(
             orgnr = altinnTilgang.orgnr,
             navn = altinnTilgang.navn,
             organisasjonsform = altinnTilgang.organisasjonsform,
-            altinn3Tilganger = altinnTilgang.altinn3Tilganger,
-            altinn2Tilganger = altinnTilgang.altinn2Tilganger,
+            altinn3Tilganger = altinnTilgang.altinn3Tilganger.filter { it.startsWith("nav_") }.toSet(),
             roller = altinnTilgang.roller.map { rolle ->
                 AltinnRolleResponse(
                     kode = rolle,
