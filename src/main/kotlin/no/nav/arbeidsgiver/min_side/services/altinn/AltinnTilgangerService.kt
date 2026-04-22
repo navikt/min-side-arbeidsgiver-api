@@ -100,7 +100,6 @@ data class AltinnTilganger(
     val hierarki: List<AltinnTilgang>,
     val orgNrTilTilganger: Map<String, Set<String>>,
     val tilgangTilOrgNr: Map<String, Set<String>>,
-    val visningsnavn: Map<String, String> = rolleVisningsnavn,
 ) {
     @Serializable
     data class AltinnTilgang(

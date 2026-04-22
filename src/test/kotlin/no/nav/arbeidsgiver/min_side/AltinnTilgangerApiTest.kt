@@ -2,6 +2,7 @@ package no.nav.arbeidsgiver.min_side
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import no.nav.arbeidsgiver.min_side.infrastruktur.MockTokenIntrospector
 import no.nav.arbeidsgiver.min_side.infrastruktur.TokenXTokenExchanger
@@ -14,7 +15,7 @@ import no.nav.arbeidsgiver.min_side.infrastruktur.withPid
 import no.nav.arbeidsgiver.min_side.ktorConfig
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerServiceImpl
-import no.nav.arbeidsgiver.min_side.services.altinn.rolleVisningsnavn
+import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -52,13 +53,43 @@ class AltinnTilgangerApiTest {
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(
-            AltinnTilgangerMock.medTilganger(
-                orgnr = "123456789",
-                tjeneste = "3403:1",
-                ressurs = "nav_test_ressurs",
-                rolle = "DAGL"
-            ).copy(visningsnavn = rolleVisningsnavn),
-            response.body()
+            AltinnTilgangerResponse.from(
+                AltinnTilgangerMock.medTilganger(
+                    orgnr = "123456789",
+                    tjeneste = "3403:1",
+                    ressurs = "nav_test_ressurs",
+                    rolle = "DAGL"
+                )
+            ),
+            response.body<AltinnTilgangerResponse>()
+        )
+        JSONAssert.assertEquals(
+            """
+                {
+                  "hierarki": [
+                    {
+                      "roller": [
+                        {
+                          "kode": "DAGL",
+                          "visningsnavn": "Daglig leder"
+                        }
+                      ],
+                      "underenheter": [
+                        {
+                          "roller": [
+                            {
+                              "kode": "DAGL",
+                              "visningsnavn": "Daglig leder"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+            """.trimIndent(),
+            response.bodyAsText(),
+            false
         )
     }
 }

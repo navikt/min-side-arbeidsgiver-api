@@ -72,7 +72,6 @@ class AltinnTilgangerServiceTest {
                     "test-fager" to setOf("910825496"),
                     "4936:1" to setOf("910825496")
                 ),
-                visningsnavn = rolleVisningsnavn,
             ),
             tilganger,
         )
