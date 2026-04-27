@@ -74,6 +74,7 @@ object AltinnTilgangerMock {
         altinn2Tilganger = setOfNotNull(tjeneste),
         altinn3Tilganger = setOfNotNull(ressurs),
         roller = setOfNotNull(rolle),
+        tilgangspakker = emptySet(),
         underenheter = listOf(
             AltinnTilganger.AltinnTilgang(
                 navn = navn,
@@ -82,6 +83,7 @@ object AltinnTilgangerMock {
                 altinn2Tilganger = setOfNotNull(tjeneste),
                 altinn3Tilganger = setOfNotNull(ressurs),
                 roller = setOfNotNull(rolle),
+                tilgangspakker = emptySet(),
                 underenheter = emptyList()
             )
         )

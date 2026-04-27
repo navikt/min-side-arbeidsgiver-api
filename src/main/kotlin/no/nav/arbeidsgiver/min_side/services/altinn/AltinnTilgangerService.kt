@@ -130,7 +130,8 @@ data class AltinnTilganger(
         val organisasjonsform: String,
         val altinn3Tilganger: Set<String>,
         val altinn2Tilganger: Set<String>,
-        val roller: Set<String>,
+        val roller: Set<String> = emptySet(),
+        val tilgangspakker: Set<String> = emptySet(),
         val underenheter: List<AltinnTilgang>,
     )
 

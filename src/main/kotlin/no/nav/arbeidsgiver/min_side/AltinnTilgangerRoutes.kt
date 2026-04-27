@@ -60,6 +60,7 @@ data class AltinnTilgangResponse(
     val organisasjonsform: String,
     val altinn3Tilganger: Set<String>,
     val roller: Set<AltinnRolleResponse>,
+    val tilgangspakker: Set<String>,
     val underenheter: List<AltinnTilgangResponse>,
 ) {
     companion object {
@@ -74,6 +75,7 @@ data class AltinnTilgangResponse(
                     visningsnavn = rolleVisningsnavn[rolle] ?: rolle,
                 )
             }.toSet(),
+            tilgangspakker = altinnTilgang.tilgangspakker,
             underenheter = altinnTilgang.underenheter.map { underenhet -> from(underenhet) },
         )
     }
