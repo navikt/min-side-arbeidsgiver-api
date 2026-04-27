@@ -7,18 +7,25 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
+import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata
 import no.nav.arbeidsgiver.min_side.services.altinn.rolleVisningsnavn
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("no.nav.arbeidsgiver.min_side.AltinnTilgangerRoutes")
 
 suspend fun Application.configureAltinnTilgangerRoutes() {
     val altinnTilgangerService = dependencies.resolve<AltinnTilgangerService>()
 
     msaApiRouting {
         post("altinn-tilganger") {
-            call.respond(
-                AltinnTilgangerResponse.from(
-                    altinnTilgangerService.hentAltinnTilganger(subjectToken)
-                )
-            )
+            val tilganger = altinnTilgangerService.hentAltinnTilganger(subjectToken)
+            val ressursMetadata = try {
+                altinnTilgangerService.hentRessursMetadata()
+            } catch (e: Exception) {
+                log.warn("Klarte ikke hente ressursmetadata", e)
+                emptyMap()
+            }
+            call.respond(AltinnTilgangerResponse.from(tilganger, ressursMetadata))
         }
     }
 }
@@ -27,12 +34,22 @@ suspend fun Application.configureAltinnTilgangerRoutes() {
 data class AltinnTilgangerResponse(
     val isError: Boolean,
     val hierarki: List<AltinnTilgangResponse>,
+    val ressursMetadata: Map<String, RessursMetadata>,
 ) {
     companion object {
-        fun from(altinnTilganger: AltinnTilganger): AltinnTilgangerResponse = AltinnTilgangerResponse(
-            isError = altinnTilganger.isError,
-            hierarki = altinnTilganger.hierarki.map(AltinnTilgangResponse::from),
-        )
+        fun from(
+            altinnTilganger: AltinnTilganger,
+            ressursMetadata: Map<String, RessursMetadata> = emptyMap(),
+        ): AltinnTilgangerResponse {
+            val brukerensRessurser = altinnTilganger.tilgangTilOrgNr.keys
+                .filter { it.startsWith("nav_") }
+                .toSet()
+            return AltinnTilgangerResponse(
+                isError = altinnTilganger.isError,
+                hierarki = altinnTilganger.hierarki.map(AltinnTilgangResponse::from),
+                ressursMetadata = ressursMetadata.filterKeys { it in brukerensRessurser },
+            )
+        }
     }
 }
 

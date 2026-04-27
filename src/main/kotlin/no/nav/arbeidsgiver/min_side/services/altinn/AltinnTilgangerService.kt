@@ -26,6 +26,7 @@ interface AltinnTilgangerService {
     }
 
     suspend fun hentAltinnTilganger(token: String): AltinnTilganger
+    suspend fun hentRessursMetadata(): Map<String, RessursMetadata>
     suspend fun harTilgang(orgnr: String, tjeneste: String, token: String): Boolean
     suspend fun harOrganisasjon(orgnr: String, token: String): Boolean
     suspend fun harRolle(orgnr: String, rolle: String, token: String): Boolean
@@ -59,9 +60,21 @@ class AltinnTilgangerServiceImpl(
             .recordStats()
             .build()
 
+    private val metadataCache: Cache<String, Map<String, RessursMetadata>> =
+        Caffeine.newBuilder()
+            .maximumSize(1)
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .recordStats()
+            .build()
+
     override suspend fun hentAltinnTilganger(token: String) =
         cache.getOrCompute(token) {
             hentAltinnTilgangerFraProxy(token)
+        }
+
+    override suspend fun hentRessursMetadata(): Map<String, RessursMetadata> =
+        metadataCache.getOrCompute("all") {
+            hentRessursMetadataFraProxy()
         }
 
     override suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) =
@@ -91,6 +104,15 @@ class AltinnTilgangerServiceImpl(
             bearerAuth(token)
         }.body()
     }
+
+    private suspend fun hentRessursMetadataFraProxy(): Map<String, RessursMetadata> =
+        httpClient.get {
+            url {
+                takeFrom(ingress)
+                path("/resource-metadata")
+            }
+            accept(ContentType.Application.Json)
+        }.body<RessursMetadataResponse>().resources
 }
 
 
@@ -141,3 +163,32 @@ fun <T> flatten(
 ): List<T> = listOfNotNull(
     mapFn(e)
 ) + e.underenheter.flatMap { flatten(it, mapFn) }
+
+@Serializable
+data class LocalizedText(
+    val nb: String? = null,
+    val nn: String? = null,
+    val en: String? = null,
+)
+
+@Serializable
+data class RessursRegistryRessurs(
+    val identifier: String,
+    val title: LocalizedText = LocalizedText(),
+    val rightDescription: LocalizedText = LocalizedText(),
+    val resourceType: String? = null,
+    val status: String? = null,
+    val delegable: Boolean? = null,
+)
+
+@Serializable
+data class RessursMetadata(
+    val metadata: RessursRegistryRessurs,
+    val grantedByRoles: List<String>,
+    val grantedByAccessPackages: List<String>,
+)
+
+@Serializable
+data class RessursMetadataResponse(
+    val resources: Map<String, RessursMetadata>,
+)

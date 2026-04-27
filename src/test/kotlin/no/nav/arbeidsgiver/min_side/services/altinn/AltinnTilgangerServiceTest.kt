@@ -8,10 +8,16 @@ import no.nav.arbeidsgiver.min_side.infrastruktur.TokenXTokenExchanger
 import no.nav.arbeidsgiver.min_side.infrastruktur.resolve
 import no.nav.arbeidsgiver.min_side.infrastruktur.runTestApplication
 import no.nav.arbeidsgiver.min_side.mockAltinnTilganger
+import no.nav.arbeidsgiver.min_side.mockAltinnTilgangerMedMetadataHandler
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
+import no.nav.arbeidsgiver.min_side.services.altinn.LocalizedText
+import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata
+import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadataResponse
+import no.nav.arbeidsgiver.min_side.services.altinn.RessursRegistryRessurs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 
@@ -141,6 +147,46 @@ class AltinnTilgangerServiceTest {
         val altinnService = resolve<AltinnTilgangerService>()
         assertFalse(altinnService.harRolle("910825496", "DAGL", "user-token"))
         assertFalse(altinnService.harRolle("810825472", "DAGL", "user-token"))
+    }
+
+    @Test
+    fun `hentRessursMetadata henter metadata uten auth-header`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilgangerMedMetadataHandler(
+                handler = { call.respondText(altinnTilgangerResponse, ContentType.Application.Json) },
+                ressursMetadataHandler = {
+                    assertNull(call.request.authorization(), "resource-metadata skal ikke ha Authorization-header")
+                    call.respond(
+                        RessursMetadataResponse(
+                            resources = mapOf(
+                                "nav_test" to RessursMetadata(
+                                    metadata = RessursRegistryRessurs(
+                                        identifier = "nav_test",
+                                        title = LocalizedText(nb = "Test ressurs"),
+                                    ),
+                                    grantedByRoles = listOf("dagl"),
+                                    grantedByAccessPackages = emptyList(),
+                                )
+                            )
+                        )
+                    )
+                },
+            )
+        },
+        dependenciesCfg = {
+            provide<TokenXTokenExchanger> { object : TokenXTokenExchanger {
+                override suspend fun exchange(
+                    target: String, userToken: String
+                ) = TokenResponse.Success("$userToken-x", 3600)
+            } }
+            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
+        }
+    ) {
+        val altinnService = resolve<AltinnTilgangerService>()
+        val metadata = altinnService.hentRessursMetadata()
+        assertEquals(1, metadata.size)
+        assertEquals("nav_test", metadata["nav_test"]?.metadata?.identifier)
+        assertEquals(listOf("dagl"), metadata["nav_test"]?.grantedByRoles)
     }
 }
 

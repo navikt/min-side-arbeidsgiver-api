@@ -8,27 +8,49 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
+import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata
+import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadataResponse
 import no.nav.arbeidsgiver.min_side.services.altinn.flatten
 
+/** Mock that handles POST /altinn-tilganger with [handler]. GET /resource-metadata returns empty by default. */
 fun ExternalServicesBuilder.mockAltinnTilganger(
-    handler: suspend RoutingContext.() -> Unit
+    handler: suspend RoutingContext.() -> Unit,
 ) {
     hosts(AltinnTilgangerService.ingress) {
-        install(ContentNegotiation) {
-            json()
-        }
+        install(ContentNegotiation) { json() }
         routing {
-            post("altinn-tilganger") {
-                handler()
-            }
+            post("altinn-tilganger") { handler() }
+            get("resource-metadata") { call.respond(RessursMetadataResponse(emptyMap())) }
         }
     }
 }
 
+/** Mock that serves [tilgangerResponse] from POST /altinn-tilganger and [ressursMetadataResponse] from GET /resource-metadata. */
 fun ExternalServicesBuilder.mockAltinnTilganger(
-    tilgangerResponse: AltinnTilganger
-) = mockAltinnTilganger {
-    call.respond(tilgangerResponse)
+    tilgangerResponse: AltinnTilganger,
+    ressursMetadataResponse: Map<String, RessursMetadata> = emptyMap(),
+) {
+    hosts(AltinnTilgangerService.ingress) {
+        install(ContentNegotiation) { json() }
+        routing {
+            post("altinn-tilganger") { call.respond(tilgangerResponse) }
+            get("resource-metadata") { call.respond(RessursMetadataResponse(ressursMetadataResponse)) }
+        }
+    }
+}
+
+/** Mock with full custom control over both handlers. */
+fun ExternalServicesBuilder.mockAltinnTilgangerMedMetadataHandler(
+    handler: suspend RoutingContext.() -> Unit,
+    ressursMetadataHandler: suspend RoutingContext.() -> Unit,
+) {
+    hosts(AltinnTilgangerService.ingress) {
+        install(ContentNegotiation) { json() }
+        routing {
+            post("altinn-tilganger") { handler() }
+            get("resource-metadata") { ressursMetadataHandler() }
+        }
+    }
 }
 
 object AltinnTilgangerMock {

@@ -69,6 +69,9 @@ class KontostatusApiTest {
 
                     override suspend fun harRolle(orgnr: String, rolle: String, token: String) =
                         TODO("Not yet implemented")
+
+                    override suspend fun hentRessursMetadata(): Map<String, no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata> =
+                        emptyMap()
                 }
             }
             provide(KontostatusService::class)
@@ -124,6 +127,9 @@ class KontostatusApiTest {
 
                     override suspend fun harRolle(orgnr: String, rolle: String, token: String) =
                         TODO("Not yet implemented")
+
+                    override suspend fun hentRessursMetadata(): Map<String, no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata> =
+                        emptyMap()
                 }
             }
             provide(KontostatusService::class)
