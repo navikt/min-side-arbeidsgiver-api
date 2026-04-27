@@ -3,6 +3,8 @@ package no.nav.arbeidsgiver.min_side.userinfo
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.Serializable
+import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
+import no.nav.arbeidsgiver.min_side.infrastruktur.teamLogger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import no.nav.arbeidsgiver.min_side.services.digisyfo.DigisyfoService
@@ -13,6 +15,8 @@ class UserInfoService(
     private val digisyfoService: DigisyfoService,
     private val refusjonStatusService: RefusjonStatusService,
 ) {
+    private val teamLog = teamLogger()
+
     suspend fun getUserInfoV3(fnr: String, token: String) = supervisorScope {
         val tilganger = async {
             runCatching {
@@ -31,6 +35,13 @@ class UserInfoService(
             }
         }
         UserInfoV3.from(tilganger.await(), syfoVirksomheter.await(), refusjoner.await())
+            .also {
+                teamLog.info(
+                    "userInfo response fnr={} altinnError={} digisyfoError={} payload={}",
+                    fnr, it.altinnError, it.digisyfoError,
+                    defaultJson.encodeToString(UserInfoV3.serializer(), it)
+                )
+            }
     }
 }
 
