@@ -13,10 +13,14 @@ import no.nav.arbeidsgiver.min_side.infrastruktur.runTestApplication
 import no.nav.arbeidsgiver.min_side.infrastruktur.successTokenXTokenExchanger
 import no.nav.arbeidsgiver.min_side.infrastruktur.withPid
 import no.nav.arbeidsgiver.min_side.ktorConfig
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerServiceImpl
+import no.nav.arbeidsgiver.min_side.services.altinn.AccessPackageArea
+import no.nav.arbeidsgiver.min_side.services.altinn.AccessPackageMetadata
 import no.nav.arbeidsgiver.min_side.services.altinn.LocalizedText
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata
+import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadataResponse
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursRegistryRessurs
 import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.Test
@@ -297,7 +301,7 @@ class AltinnTilgangerApiTest {
                     )
 
                     override suspend fun hentAltinnTilganger(token: String) = tilganger
-                    override suspend fun hentRessursMetadata(): Map<String, no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata> =
+                    override suspend fun hentRessursMetadata(): RessursMetadataResponse =
                         throw Exception("metadata utilgjengelig")
                     override suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) = false
                     override suspend fun harOrganisasjon(orgnr: String, token: String) = false
@@ -318,5 +322,92 @@ class AltinnTilgangerApiTest {
         assertEquals(HttpStatusCode.OK, response.status)
         val body = response.body<AltinnTilgangerResponse>()
         assertEquals(emptyMap(), body.ressursMetadata)
+        assertEquals(emptyMap(), body.accessPackages)
+    }
+
+    @Test
+    fun `berikter respons med accessPackages for brukerens tilgangspakker`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger(
+                tilgangerResponse = AltinnTilgangerMock.medTilganger(
+                    *arrayOf(
+                        AltinnTilganger.AltinnTilgang(
+                            navn = "Mor AS",
+                            orgnr = "111111111",
+                            organisasjonsform = "AS",
+                            altinn2Tilganger = emptySet(),
+                            altinn3Tilganger = emptySet(),
+                            roller = emptySet(),
+                            tilgangspakker = emptySet(),
+                            underenheter = listOf(
+                                AltinnTilganger.AltinnTilgang(
+                                    navn = "Datter AS",
+                                    orgnr = "222222222",
+                                    organisasjonsform = "BEDR",
+                                    altinn2Tilganger = emptySet(),
+                                    altinn3Tilganger = emptySet(),
+                                    roller = emptySet(),
+                                    tilgangspakker = setOf("regnskapsforer-lonn"),
+                                    underenheter = emptyList(),
+                                )
+                            ),
+                        )
+                    )
+                ),
+                accessPackagesMetadataResponse = mapOf(
+                    "regnskapsforer-lonn" to AccessPackageMetadata(
+                        name = "Regnskapsfører lønn",
+                        description = "Denne fullmakten gir tilgang til lønnstjenester for regnskapsførere.",
+                        area = AccessPackageArea(
+                            urn = "accesspackage:area:skatt_avgift_regnskap_og_toll",
+                            name = "Skatt, avgift, regnskap og toll",
+                            description = "Tilgangspakker knyttet til skatt, avgift, regnskap og toll.",
+                        ),
+                    ),
+                    "annen-pakke" to AccessPackageMetadata(name = "Annen pakke"),
+                ),
+            )
+        },
+        dependenciesCfg = {
+            provide<TokenXTokenIntrospector> {
+                MockTokenIntrospector {
+                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
+                }
+            }
+            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
+            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
+        },
+        applicationCfg = {
+            ktorConfig()
+            configureTokenXAuth()
+            configureAltinnTilgangerRoutes()
+        }
+    ) {
+        val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
+            bearerAuth("faketoken")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        JSONAssert.assertEquals(
+            """
+                {
+                  "accessPackages": {
+                    "regnskapsforer-lonn": {
+                      "name": "Regnskapsfører lønn",
+                      "description": "Denne fullmakten gir tilgang til lønnstjenester for regnskapsførere.",
+                      "area": {
+                        "urn": "accesspackage:area:skatt_avgift_regnskap_og_toll",
+                        "name": "Skatt, avgift, regnskap og toll",
+                        "description": "Tilgangspakker knyttet til skatt, avgift, regnskap og toll."
+                      }
+                    }
+                  }
+                }
+            """.trimIndent(),
+            response.bodyAsText(),
+            false
+        )
+        val body = response.body<AltinnTilgangerResponse>()
+        assertEquals(setOf("regnskapsforer-lonn"), body.accessPackages.keys)
     }
 }

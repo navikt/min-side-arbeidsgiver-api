@@ -26,7 +26,7 @@ interface AltinnTilgangerService {
     }
 
     suspend fun hentAltinnTilganger(token: String): AltinnTilganger
-    suspend fun hentRessursMetadata(): Map<String, RessursMetadata>
+    suspend fun hentRessursMetadata(): RessursMetadataResponse
     suspend fun harTilgang(orgnr: String, tjeneste: String, token: String): Boolean
     suspend fun harOrganisasjon(orgnr: String, token: String): Boolean
     suspend fun harRolle(orgnr: String, rolle: String, token: String): Boolean
@@ -60,7 +60,7 @@ class AltinnTilgangerServiceImpl(
             .recordStats()
             .build()
 
-    private val metadataCache: Cache<String, Map<String, RessursMetadata>> =
+    private val metadataCache: Cache<String, RessursMetadataResponse> =
         Caffeine.newBuilder()
             .maximumSize(1)
             .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -72,7 +72,7 @@ class AltinnTilgangerServiceImpl(
             hentAltinnTilgangerFraProxy(token)
         }
 
-    override suspend fun hentRessursMetadata(): Map<String, RessursMetadata> =
+    override suspend fun hentRessursMetadata(): RessursMetadataResponse =
         metadataCache.getOrCompute("all") {
             hentRessursMetadataFraProxy()
         }
@@ -105,14 +105,14 @@ class AltinnTilgangerServiceImpl(
         }.body()
     }
 
-    private suspend fun hentRessursMetadataFraProxy(): Map<String, RessursMetadata> =
+    private suspend fun hentRessursMetadataFraProxy(): RessursMetadataResponse =
         httpClient.get {
             url {
                 takeFrom(ingress)
                 path("/resource-metadata")
             }
             accept(ContentType.Application.Json)
-        }.body<RessursMetadataResponse>().resources
+        }.body()
 }
 
 
@@ -192,4 +192,19 @@ data class RessursMetadata(
 @Serializable
 data class RessursMetadataResponse(
     val resources: Map<String, RessursMetadata>,
+    val accessPackages: Map<String, AccessPackageMetadata> = emptyMap(),
+)
+
+@Serializable
+data class AccessPackageMetadata(
+    val name: String,
+    val description: String? = null,
+    val area: AccessPackageArea? = null,
+)
+
+@Serializable
+data class AccessPackageArea(
+    val urn: String,
+    val name: String,
+    val description: String? = null,
 )

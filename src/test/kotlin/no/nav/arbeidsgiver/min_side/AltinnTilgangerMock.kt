@@ -8,6 +8,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
+import no.nav.arbeidsgiver.min_side.services.altinn.AccessPackageMetadata
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadataResponse
 import no.nav.arbeidsgiver.min_side.services.altinn.flatten
@@ -29,12 +30,13 @@ fun ExternalServicesBuilder.mockAltinnTilganger(
 fun ExternalServicesBuilder.mockAltinnTilganger(
     tilgangerResponse: AltinnTilganger,
     ressursMetadataResponse: Map<String, RessursMetadata> = emptyMap(),
+    accessPackagesMetadataResponse: Map<String, AccessPackageMetadata> = emptyMap(),
 ) {
     hosts(AltinnTilgangerService.ingress) {
         install(ContentNegotiation) { json() }
         routing {
             post("altinn-tilganger") { call.respond(tilgangerResponse) }
-            get("resource-metadata") { call.respond(RessursMetadataResponse(ressursMetadataResponse)) }
+            get("resource-metadata") { call.respond(RessursMetadataResponse(ressursMetadataResponse, accessPackagesMetadataResponse)) }
         }
     }
 }

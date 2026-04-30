@@ -5,9 +5,12 @@ import io.ktor.server.plugins.di.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
+import no.nav.arbeidsgiver.min_side.services.altinn.AccessPackageMetadata
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata
+import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadataResponse
+import no.nav.arbeidsgiver.min_side.services.altinn.flatten
 import no.nav.arbeidsgiver.min_side.services.altinn.rolleVisningsnavn
 import org.slf4j.LoggerFactory
 
@@ -19,13 +22,13 @@ suspend fun Application.configureAltinnTilgangerRoutes() {
     msaApiRouting {
         post("altinn-tilganger") {
             val tilganger = altinnTilgangerService.hentAltinnTilganger(subjectToken)
-            val ressursMetadata = try {
+            val ressursMetadataResponse = try {
                 altinnTilgangerService.hentRessursMetadata()
             } catch (e: Exception) {
                 log.warn("Klarte ikke hente ressursmetadata", e)
-                emptyMap()
+                RessursMetadataResponse(emptyMap())
             }
-            call.respond(AltinnTilgangerResponse.from(tilganger, ressursMetadata))
+            call.respond(AltinnTilgangerResponse.from(tilganger, ressursMetadataResponse))
         }
     }
 }
@@ -35,19 +38,25 @@ data class AltinnTilgangerResponse(
     val isError: Boolean,
     val hierarki: List<AltinnTilgangResponse>,
     val ressursMetadata: Map<String, RessursMetadata>,
+    val accessPackages: Map<String, AccessPackageMetadata>,
 ) {
     companion object {
         fun from(
             altinnTilganger: AltinnTilganger,
-            ressursMetadata: Map<String, RessursMetadata> = emptyMap(),
+            ressursMetadataResponse: RessursMetadataResponse = RessursMetadataResponse(emptyMap()),
         ): AltinnTilgangerResponse {
             val brukerensRessurser = altinnTilganger.tilgangTilOrgNr.keys
                 .filter { it.startsWith("nav_") }
                 .toSet()
+            val brukerensAltinnTilganger = altinnTilganger.hierarki
+                .flatMap { flatten(it) { t -> t.tilgangspakker } }
+                .flatten()
+                .toSet()
             return AltinnTilgangerResponse(
                 isError = altinnTilganger.isError,
                 hierarki = altinnTilganger.hierarki.map(AltinnTilgangResponse::from),
-                ressursMetadata = ressursMetadata.filterKeys { it in brukerensRessurser },
+                ressursMetadata = ressursMetadataResponse.resources.filterKeys { it in brukerensRessurser },
+                accessPackages = ressursMetadataResponse.accessPackages.filterKeys { it in brukerensAltinnTilganger },
             )
         }
     }

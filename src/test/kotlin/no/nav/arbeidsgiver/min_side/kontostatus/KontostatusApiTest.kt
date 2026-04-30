@@ -16,6 +16,7 @@ import no.nav.arbeidsgiver.min_side.ktorConfig
 import no.nav.arbeidsgiver.min_side.mockAltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerServiceImpl
+import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadataResponse
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClient
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontoregisterClientImpl
 import no.nav.arbeidsgiver.min_side.services.kontostatus.KontostatusService
@@ -70,8 +71,8 @@ class KontostatusApiTest {
                     override suspend fun harRolle(orgnr: String, rolle: String, token: String) =
                         TODO("Not yet implemented")
 
-                    override suspend fun hentRessursMetadata(): Map<String, no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata> =
-                        emptyMap()
+                    override suspend fun hentRessursMetadata(): RessursMetadataResponse =
+                        RessursMetadataResponse(emptyMap())
                 }
             }
             provide(KontostatusService::class)
@@ -128,8 +129,8 @@ class KontostatusApiTest {
                     override suspend fun harRolle(orgnr: String, rolle: String, token: String) =
                         TODO("Not yet implemented")
 
-                    override suspend fun hentRessursMetadata(): Map<String, no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata> =
-                        emptyMap()
+                    override suspend fun hentRessursMetadata(): RessursMetadataResponse =
+                        RessursMetadataResponse(emptyMap())
                 }
             }
             provide(KontostatusService::class)

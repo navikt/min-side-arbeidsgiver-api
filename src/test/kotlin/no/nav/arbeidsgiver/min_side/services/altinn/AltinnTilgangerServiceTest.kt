@@ -184,9 +184,9 @@ class AltinnTilgangerServiceTest {
     ) {
         val altinnService = resolve<AltinnTilgangerService>()
         val metadata = altinnService.hentRessursMetadata()
-        assertEquals(1, metadata.size)
-        assertEquals("nav_test", metadata["nav_test"]?.metadata?.identifier)
-        assertEquals(listOf("dagl"), metadata["nav_test"]?.grantedByRoles)
+        assertEquals(1, metadata.resources.size)
+        assertEquals("nav_test", metadata.resources["nav_test"]?.metadata?.identifier)
+        assertEquals(listOf("dagl"), metadata.resources["nav_test"]?.grantedByRoles)
     }
 }
 
