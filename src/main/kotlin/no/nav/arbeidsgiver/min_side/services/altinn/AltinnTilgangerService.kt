@@ -197,14 +197,14 @@ data class RessursMetadataResponse(
 
 @Serializable
 data class AccessPackageMetadata(
-    val name: String,
+    val name: String? = null,
     val description: String? = null,
     val area: AccessPackageArea? = null,
 )
 
 @Serializable
 data class AccessPackageArea(
-    val urn: String,
-    val name: String,
+    val urn: String? = null,
+    val name: String? = null,
     val description: String? = null,
 )

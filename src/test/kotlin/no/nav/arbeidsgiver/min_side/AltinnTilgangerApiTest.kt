@@ -22,14 +22,35 @@ import no.nav.arbeidsgiver.min_side.services.altinn.LocalizedText
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadataResponse
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursRegistryRessurs
+import io.ktor.server.application.*
+import io.ktor.server.plugins.di.*
+import io.ktor.server.testing.*
 import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class AltinnTilgangerApiTest {
 
+    private val defaultDependencies: DependencyRegistry.(ApplicationTestBuilder) -> Unit = {
+        provide<TokenXTokenIntrospector> {
+            MockTokenIntrospector {
+                if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
+            }
+        }
+        provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
+        provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
+    }
+
+    private val defaultApp: suspend Application.() -> Unit = {
+        ktorConfig()
+        configureTokenXAuth()
+        configureAltinnTilgangerRoutes()
+    }
+
     @Test
-    fun `returnerer altinn-tilganger for innlogget bruker`() = runTestApplication(
+    fun `returnerer hierarki med enriched altinn3Tilganger og roller`() = runTestApplication(
         externalServicesCfg = {
             mockAltinnTilganger(
                 AltinnTilgangerMock.medTilganger(
@@ -40,45 +61,25 @@ class AltinnTilgangerApiTest {
                 )
             )
         },
-        dependenciesCfg = {
-            provide<TokenXTokenIntrospector> {
-                MockTokenIntrospector {
-                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
-                }
-            }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
-        },
-        applicationCfg = {
-            ktorConfig()
-            configureTokenXAuth()
-            configureAltinnTilgangerRoutes()
-        }
+        dependenciesCfg = defaultDependencies,
+        applicationCfg = defaultApp,
     ) {
         val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
             bearerAuth("faketoken")
         }
 
         assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals(
-            AltinnTilgangerResponse.from(
-                AltinnTilgangerMock.medTilganger(
-                    orgnr = "123456789",
-                    tjeneste = "3403:1",
-                    ressurs = "nav_test_ressurs",
-                    rolle = "DAGL"
-                ),
-                RessursMetadataResponse(emptyMap()),
-            ),
-            response.body<AltinnTilgangerResponse>()
-        )
         JSONAssert.assertEquals(
             """
                 {
-                  "ressursMetadata": {},
                   "hierarki": [
                     {
-                      "altinn3Tilganger": ["nav_test_ressurs"],
+                      "altinn3Tilganger": [
+                        {
+                          "ressursId": "nav_test_ressurs",
+                          "erEnkeltrettighet": null
+                        }
+                      ],
                       "roller": [
                         {
                           "kode": "DAGL",
@@ -87,7 +88,12 @@ class AltinnTilgangerApiTest {
                       ],
                       "underenheter": [
                         {
-                          "altinn3Tilganger": ["nav_test_ressurs"],
+                          "altinn3Tilganger": [
+                            {
+                              "ressursId": "nav_test_ressurs",
+                              "erEnkeltrettighet": null
+                            }
+                          ],
                           "roller": [
                             {
                               "kode": "DAGL",
@@ -106,7 +112,7 @@ class AltinnTilgangerApiTest {
     }
 
     @Test
-    fun `berikter respons med ressursmetadata for brukerens nav_-ressurser`() = runTestApplication(
+    fun `berikter altinn3Tilganger med navn og beskrivelse fra ressursmetadata`() = runTestApplication(
         externalServicesCfg = {
             mockAltinnTilganger(
                 tilgangerResponse = AltinnTilgangerMock.medTilganger(
@@ -126,28 +132,11 @@ class AltinnTilgangerApiTest {
                         grantedByRoles = listOf("dagl", "lede"),
                         grantedByAccessPackages = listOf("regnskapsforer-lonn"),
                     ),
-                    "nav_annen_ressurs" to RessursMetadata(
-                        metadata = RessursRegistryRessurs(identifier = "nav_annen_ressurs"),
-                        grantedByRoles = emptyList(),
-                        grantedByAccessPackages = emptyList(),
-                    ),
                 ),
             )
         },
-        dependenciesCfg = {
-            provide<TokenXTokenIntrospector> {
-                MockTokenIntrospector {
-                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
-                }
-            }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
-        },
-        applicationCfg = {
-            ktorConfig()
-            configureTokenXAuth()
-            configureAltinnTilgangerRoutes()
-        }
+        dependenciesCfg = defaultDependencies,
+        applicationCfg = defaultApp,
     ) {
         val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
             bearerAuth("faketoken")
@@ -157,20 +146,17 @@ class AltinnTilgangerApiTest {
         JSONAssert.assertEquals(
             """
                 {
-                  "ressursMetadata": {
-                    "nav_permittering_test": {
-                      "metadata": {
-                        "identifier": "nav_permittering_test",
-                        "title": { "nb": "Permitteringsmelding", "en": "Layoff notice" },
-                        "rightDescription": { "nb": "Rettighet til innsyn" },
-                        "resourceType": "GenericAccessResource",
-                        "status": "Completed",
-                        "delegable": true
-                      },
-                      "grantedByRoles": ["dagl", "lede"],
-                      "grantedByAccessPackages": ["regnskapsforer-lonn"]
+                  "hierarki": [
+                    {
+                      "altinn3Tilganger": [
+                        {
+                          "ressursId": "nav_permittering_test",
+                          "navn": { "nb": "Permitteringsmelding", "en": "Layoff notice" },
+                          "beskrivelse": { "nb": "Rettighet til innsyn" }
+                        }
+                      ]
                     }
-                  }
+                  ]
                 }
             """.trimIndent(),
             response.bodyAsText(),
@@ -179,41 +165,133 @@ class AltinnTilgangerApiTest {
     }
 
     @Test
-    fun `filtrerer ressursmetadata til kun brukerens tilgjengelige ressurser`() = runTestApplication(
+    fun `beregner delegertViaRoller case-insensitivt`() = runTestApplication(
         externalServicesCfg = {
             mockAltinnTilganger(
                 tilgangerResponse = AltinnTilgangerMock.medTilganger(
                     orgnr = "123456789",
-                    ressurs = "nav_ressurs_a",
+                    ressurs = "nav_permittering_test",
+                    rolle = "DAGL",
                 ),
                 ressursMetadataResponse = mapOf(
-                    "nav_ressurs_a" to RessursMetadata(
-                        metadata = RessursRegistryRessurs(identifier = "nav_ressurs_a"),
+                    "nav_permittering_test" to RessursMetadata(
+                        metadata = RessursRegistryRessurs(identifier = "nav_permittering_test"),
                         grantedByRoles = listOf("dagl"),
-                        grantedByAccessPackages = emptyList(),
-                    ),
-                    "nav_ressurs_b" to RessursMetadata(
-                        metadata = RessursRegistryRessurs(identifier = "nav_ressurs_b"),
-                        grantedByRoles = emptyList(),
                         grantedByAccessPackages = emptyList(),
                     ),
                 ),
             )
         },
-        dependenciesCfg = {
-            provide<TokenXTokenIntrospector> {
-                MockTokenIntrospector {
-                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
-                }
-            }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
-        },
-        applicationCfg = {
-            ktorConfig()
-            configureTokenXAuth()
-            configureAltinnTilgangerRoutes()
+        dependenciesCfg = defaultDependencies,
+        applicationCfg = defaultApp,
+    ) {
+        val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
+            bearerAuth("faketoken")
         }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        JSONAssert.assertEquals(
+            """
+                {
+                  "hierarki": [
+                    {
+                      "altinn3Tilganger": [
+                        {
+                          "ressursId": "nav_permittering_test",
+                          "delegertViaRoller": [{ "kode": "DAGL", "visningsnavn": "Daglig leder" }],
+                          "delegertViaTilgangspakker": [],
+                          "erEnkeltrettighet": false
+                        }
+                      ]
+                    }
+                  ]
+                }
+            """.trimIndent(),
+            response.bodyAsText(),
+            false
+        )
+    }
+
+    @Test
+    fun `beregner delegertViaTilgangspakker`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger(
+                tilgangerResponse = AltinnTilgangerMock.medTilganger(
+                    *arrayOf(
+                        AltinnTilganger.AltinnTilgang(
+                            navn = "Mor AS",
+                            orgnr = "111111111",
+                            organisasjonsform = "AS",
+                            altinn2Tilganger = emptySet(),
+                            altinn3Tilganger = setOf("nav_permittering_test"),
+                            roller = emptySet(),
+                            tilgangspakker = setOf("regnskapsforer-lonn"),
+                            underenheter = emptyList(),
+                        )
+                    )
+                ),
+                ressursMetadataResponse = mapOf(
+                    "nav_permittering_test" to RessursMetadata(
+                        metadata = RessursRegistryRessurs(identifier = "nav_permittering_test"),
+                        grantedByRoles = emptyList(),
+                        grantedByAccessPackages = listOf("regnskapsforer-lonn"),
+                    ),
+                ),
+                accessPackagesMetadataResponse = mapOf(
+                    "regnskapsforer-lonn" to AccessPackageMetadata(name = "Regnskapsfører lønn"),
+                ),
+            )
+        },
+        dependenciesCfg = defaultDependencies,
+        applicationCfg = defaultApp,
+    ) {
+        val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
+            bearerAuth("faketoken")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        JSONAssert.assertEquals(
+            """
+                {
+                  "hierarki": [
+                    {
+                      "altinn3Tilganger": [
+                        {
+                          "ressursId": "nav_permittering_test",
+                          "delegertViaRoller": [],
+                          "delegertViaTilgangspakker": [{ "id": "regnskapsforer-lonn", "navn": "Regnskapsfører lønn" }],
+                          "erEnkeltrettighet": false
+                        }
+                      ]
+                    }
+                  ]
+                }
+            """.trimIndent(),
+            response.bodyAsText(),
+            false
+        )
+    }
+
+    @Test
+    fun `erEnkeltrettighet er true naar tilgangen ikke kommer fra rolle eller tilgangspakke`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger(
+                tilgangerResponse = AltinnTilgangerMock.medTilganger(
+                    orgnr = "123456789",
+                    ressurs = "nav_permittering_test",
+                    // ingen rolle eller tilgangspakke
+                ),
+                ressursMetadataResponse = mapOf(
+                    "nav_permittering_test" to RessursMetadata(
+                        metadata = RessursRegistryRessurs(identifier = "nav_permittering_test"),
+                        grantedByRoles = listOf("dagl"),
+                        grantedByAccessPackages = listOf("regnskapsforer-lonn"),
+                    ),
+                ),
+            )
+        },
+        dependenciesCfg = defaultDependencies,
+        applicationCfg = defaultApp,
     ) {
         val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
             bearerAuth("faketoken")
@@ -221,11 +299,40 @@ class AltinnTilgangerApiTest {
 
         assertEquals(HttpStatusCode.OK, response.status)
         val body = response.body<AltinnTilgangerResponse>()
-        assertEquals(setOf("nav_ressurs_a"), body.ressursMetadata.keys)
+        val tilgang = body.hierarki.first().altinn3Tilganger.first { it.ressursId == "nav_permittering_test" }
+        assertEquals(true, tilgang.erEnkeltrettighet)
+        assertTrue(tilgang.delegertViaRoller.isEmpty())
+        assertTrue(tilgang.delegertViaTilgangspakker.isEmpty())
     }
 
     @Test
-    fun `filtrerer ut altinn2-tilganger og altinn3-tilganger som ikke starter med nav_`() = runTestApplication(
+    fun `erEnkeltrettighet er null naar ressursmetadata mangler`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger(
+                tilgangerResponse = AltinnTilgangerMock.medTilganger(
+                    orgnr = "123456789",
+                    ressurs = "nav_test_ressurs",
+                )
+                // ingen ressursMetadataResponse => tom map (default)
+            )
+        },
+        dependenciesCfg = defaultDependencies,
+        applicationCfg = defaultApp,
+    ) {
+        val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
+            bearerAuth("faketoken")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val tilgang = response.body<AltinnTilgangerResponse>()
+            .hierarki.first().altinn3Tilganger.first { it.ressursId == "nav_test_ressurs" }
+        assertNull(tilgang.erEnkeltrettighet)
+        assertNull(tilgang.navn)
+        assertNull(tilgang.beskrivelse)
+    }
+
+    @Test
+    fun `filtrerer ut altinn3-tilganger som ikke starter med nav_`() = runTestApplication(
         externalServicesCfg = {
             mockAltinnTilganger(
                 AltinnTilgangerMock.medTilganger(
@@ -236,20 +343,8 @@ class AltinnTilgangerApiTest {
                 )
             )
         },
-        dependenciesCfg = {
-            provide<TokenXTokenIntrospector> {
-                MockTokenIntrospector {
-                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
-                }
-            }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
-        },
-        applicationCfg = {
-            ktorConfig()
-            configureTokenXAuth()
-            configureAltinnTilgangerRoutes()
-        }
+        dependenciesCfg = defaultDependencies,
+        applicationCfg = defaultApp,
     ) {
         val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
             bearerAuth("faketoken")
@@ -259,7 +354,6 @@ class AltinnTilgangerApiTest {
         JSONAssert.assertEquals(
             """
                 {
-                  "ressursMetadata": {},
                   "hierarki": [
                     {
                       "altinn3Tilganger": [],
@@ -278,56 +372,7 @@ class AltinnTilgangerApiTest {
     }
 
     @Test
-    fun `returnerer tomt ressursMetadata dersom metadata-kall feiler`() = runTestApplication(
-        externalServicesCfg = {
-            mockAltinnTilganger(
-                AltinnTilgangerMock.medTilganger(
-                    orgnr = "123456789",
-                    ressurs = "nav_test_ressurs",
-                )
-            )
-        },
-        dependenciesCfg = {
-            provide<TokenXTokenIntrospector> {
-                MockTokenIntrospector {
-                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
-                }
-            }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<AltinnTilgangerService> {
-                object : AltinnTilgangerService {
-                    private val tilganger = AltinnTilgangerMock.medTilganger(
-                        orgnr = "123456789",
-                        ressurs = "nav_test_ressurs",
-                    )
-
-                    override suspend fun hentAltinnTilganger(token: String) = tilganger
-                    override suspend fun hentRessursMetadata(): RessursMetadataResponse =
-                        throw Exception("metadata utilgjengelig")
-                    override suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) = false
-                    override suspend fun harOrganisasjon(orgnr: String, token: String) = false
-                    override suspend fun harRolle(orgnr: String, rolle: String, token: String) = false
-                }
-            }
-        },
-        applicationCfg = {
-            ktorConfig()
-            configureTokenXAuth()
-            configureAltinnTilgangerRoutes()
-        }
-    ) {
-        val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
-            bearerAuth("faketoken")
-        }
-
-        assertEquals(HttpStatusCode.OK, response.status)
-        val body = response.body<AltinnTilgangerResponse>()
-        assertEquals(emptyMap(), body.ressursMetadata)
-        assertEquals(emptyMap(), body.accessPackages)
-    }
-
-    @Test
-    fun `berikter respons med accessPackages for brukerens tilgangspakker`() = runTestApplication(
+    fun `berikter tilgangspakker med navn, beskrivelse og area`() = runTestApplication(
         externalServicesCfg = {
             mockAltinnTilganger(
                 tilgangerResponse = AltinnTilgangerMock.medTilganger(
@@ -369,20 +414,8 @@ class AltinnTilgangerApiTest {
                 ),
             )
         },
-        dependenciesCfg = {
-            provide<TokenXTokenIntrospector> {
-                MockTokenIntrospector {
-                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
-                }
-            }
-            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
-            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
-        },
-        applicationCfg = {
-            ktorConfig()
-            configureTokenXAuth()
-            configureAltinnTilgangerRoutes()
-        }
+        dependenciesCfg = defaultDependencies,
+        applicationCfg = defaultApp,
     ) {
         val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
             bearerAuth("faketoken")
@@ -392,23 +425,118 @@ class AltinnTilgangerApiTest {
         JSONAssert.assertEquals(
             """
                 {
-                  "accessPackages": {
-                    "regnskapsforer-lonn": {
-                      "name": "Regnskapsfører lønn",
-                      "description": "Denne fullmakten gir tilgang til lønnstjenester for regnskapsførere.",
-                      "area": {
-                        "urn": "accesspackage:area:skatt_avgift_regnskap_og_toll",
-                        "name": "Skatt, avgift, regnskap og toll",
-                        "description": "Tilgangspakker knyttet til skatt, avgift, regnskap og toll."
-                      }
+                  "hierarki": [
+                    {
+                      "tilgangspakker": [],
+                      "underenheter": [
+                        {
+                          "tilgangspakker": [
+                            {
+                              "id": "regnskapsforer-lonn",
+                              "navn": "Regnskapsfører lønn",
+                              "beskrivelse": "Denne fullmakten gir tilgang til lønnstjenester for regnskapsførere.",
+                              "area": {
+                                "urn": "accesspackage:area:skatt_avgift_regnskap_og_toll",
+                                "name": "Skatt, avgift, regnskap og toll",
+                                "description": "Tilgangspakker knyttet til skatt, avgift, regnskap og toll."
+                              }
+                            }
+                          ]
+                        }
+                      ]
                     }
-                  }
+                  ]
                 }
             """.trimIndent(),
             response.bodyAsText(),
             false
         )
+        val datterTilgangspakker = response.body<AltinnTilgangerResponse>()
+            .hierarki.first().underenheter.first().tilgangspakker
+        assertEquals(1, datterTilgangspakker.size)
+    }
+
+    @Test
+    fun `tilgangspakke faar id som navn-fallback naar metadata mangler`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger(
+                tilgangerResponse = AltinnTilgangerMock.medTilganger(
+                    *arrayOf(
+                        AltinnTilganger.AltinnTilgang(
+                            navn = "Bedrift AS",
+                            orgnr = "123456789",
+                            organisasjonsform = "BEDR",
+                            altinn2Tilganger = emptySet(),
+                            altinn3Tilganger = emptySet(),
+                            roller = emptySet(),
+                            tilgangspakker = setOf("ukjent-pakke"),
+                            underenheter = emptyList(),
+                        )
+                    )
+                )
+                // ingen accessPackagesMetadataResponse
+            )
+        },
+        dependenciesCfg = defaultDependencies,
+        applicationCfg = defaultApp,
+    ) {
+        val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
+            bearerAuth("faketoken")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val pakke = response.body<AltinnTilgangerResponse>()
+            .hierarki.first().tilgangspakker.first()
+        assertEquals("ukjent-pakke", pakke.id)
+        assertEquals("ukjent-pakke", pakke.navn)
+        assertNull(pakke.beskrivelse)
+        assertNull(pakke.area)
+    }
+
+    @Test
+    fun `returnerer hierarki uten metadata naar metadata-kall feiler`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger(
+                AltinnTilgangerMock.medTilganger(
+                    orgnr = "123456789",
+                    ressurs = "nav_test_ressurs",
+                )
+            )
+        },
+        dependenciesCfg = {
+            provide<TokenXTokenIntrospector> {
+                MockTokenIntrospector {
+                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
+                }
+            }
+            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
+            provide<AltinnTilgangerService> {
+                object : AltinnTilgangerService {
+                    private val tilganger = AltinnTilgangerMock.medTilganger(
+                        orgnr = "123456789",
+                        ressurs = "nav_test_ressurs",
+                    )
+
+                    override suspend fun hentAltinnTilganger(token: String) = tilganger
+                    override suspend fun hentRessursMetadata(): RessursMetadataResponse =
+                        throw Exception("metadata utilgjengelig")
+                    override suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) = false
+                    override suspend fun harOrganisasjon(orgnr: String, token: String) = false
+                    override suspend fun harRolle(orgnr: String, rolle: String, token: String) = false
+                }
+            }
+        },
+        applicationCfg = defaultApp,
+    ) {
+        val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
+            bearerAuth("faketoken")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
         val body = response.body<AltinnTilgangerResponse>()
-        assertEquals(setOf("regnskapsforer-lonn"), body.accessPackages.keys)
+        val tilgang = body.hierarki.first().altinn3Tilganger.first { it.ressursId == "nav_test_ressurs" }
+        assertNull(tilgang.navn)
+        assertNull(tilgang.beskrivelse)
+        assertNull(tilgang.erEnkeltrettighet)
     }
 }
