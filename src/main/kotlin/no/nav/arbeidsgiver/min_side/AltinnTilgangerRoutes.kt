@@ -43,14 +43,13 @@ data class AltinnTilgangerResponse(
     companion object {
         fun from(
             altinnTilganger: AltinnTilganger,
-            ressursMetadataResponse: RessursMetadataResponse = RessursMetadataResponse(emptyMap()),
+            ressursMetadataResponse: RessursMetadataResponse,
         ): AltinnTilgangerResponse {
             val brukerensRessurser = altinnTilganger.tilgangTilOrgNr.keys
                 .filter { it.startsWith("nav_") }
                 .toSet()
             val brukerensAltinnTilganger = altinnTilganger.hierarki
-                .flatMap { flatten(it) { t -> t.tilgangspakker } }
-                .flatten()
+                .flatMap { flatten(it) { t -> t.tilgangspakker }.flatten() }
                 .toSet()
             return AltinnTilgangerResponse(
                 isError = altinnTilganger.isError,
@@ -85,7 +84,7 @@ data class AltinnTilgangResponse(
                 )
             }.toSet(),
             tilgangspakker = altinnTilgang.tilgangspakker,
-            underenheter = altinnTilgang.underenheter.map { underenhet -> from(underenhet) },
+            underenheter = altinnTilgang.underenheter.map(::from),
         )
     }
 }

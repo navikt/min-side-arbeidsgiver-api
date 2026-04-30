@@ -67,7 +67,8 @@ class AltinnTilgangerApiTest {
                     tjeneste = "3403:1",
                     ressurs = "nav_test_ressurs",
                     rolle = "DAGL"
-                )
+                ),
+                RessursMetadataResponse(emptyMap()),
             ),
             response.body<AltinnTilgangerResponse>()
         )
