@@ -47,11 +47,7 @@ import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusService
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusServiceImpl
 import no.nav.arbeidsgiver.min_side.sykefravarstatistikk.SykefravarstatistikkRepository
 import no.nav.arbeidsgiver.min_side.sykefravarstatistikk.SykefraværstatistikkService
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangSoknadService
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClient
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.AltinnTilgangssoknadClientImpl
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.DelegationRequestRepository
-import no.nav.arbeidsgiver.min_side.tilgangssoknad.startDelegationRequestMetrics
+import no.nav.arbeidsgiver.min_side.tilgangssoknad.*
 import no.nav.arbeidsgiver.min_side.userinfo.UserInfoService
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusRepository
 import no.nav.arbeidsgiver.min_side.varslingstatus.VarslingStatusService
@@ -71,6 +67,7 @@ fun main() {
             shutdownTimeout = 30_000
         }
     ) {
+        teamLogger().info("Team logging enabled")
         ktorConfig()
         configureDependencies()
         configureTokenXAuth()
