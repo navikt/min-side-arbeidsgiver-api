@@ -146,18 +146,6 @@ data class AltinnTilganger(
             .any { rolle in it.roller }
 }
 
-val rolleVisningsnavn = mapOf(
-    "DAGL" to "Daglig leder",
-    "STYR" to "Styrets leder",
-    "BEST" to "Bestyrende reder",
-    "BOBE" to "Bostyrer",
-    "DTPR" to "Deltaker med delt ansvar",
-    "DTSO" to "Deltaker med fullt ansvar",
-    "INNH" to "Innehaver",
-    "KOMP" to "Komplementar",
-    "REPR" to "Norsk representant for utenlandsk enhet",
-)
-
 fun <T> flatten(
     e: AltinnTilgang,
     mapFn: (AltinnTilgang) -> T?
@@ -193,6 +181,13 @@ data class RessursMetadata(
 data class RessursMetadataResponse(
     val resources: Map<String, RessursMetadata>,
     val accessPackages: Map<String, AccessPackageMetadata> = emptyMap(),
+    val roles: Map<String, RolleMetadata> = emptyMap(),
+)
+
+@Serializable
+data class RolleMetadata(
+    val name: String? = null,
+    val description: String? = null,
 )
 
 @Serializable

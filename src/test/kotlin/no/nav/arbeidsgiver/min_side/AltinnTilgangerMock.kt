@@ -11,6 +11,7 @@ import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import no.nav.arbeidsgiver.min_side.services.altinn.AccessPackageMetadata
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadataResponse
+import no.nav.arbeidsgiver.min_side.services.altinn.RolleMetadata
 import no.nav.arbeidsgiver.min_side.services.altinn.flatten
 
 /** Mock that handles POST /altinn-tilganger with [handler]. GET /resource-metadata returns empty by default. */
@@ -31,12 +32,13 @@ fun ExternalServicesBuilder.mockAltinnTilganger(
     tilgangerResponse: AltinnTilganger,
     ressursMetadataResponse: Map<String, RessursMetadata> = emptyMap(),
     accessPackagesMetadataResponse: Map<String, AccessPackageMetadata> = emptyMap(),
+    rolesMetadataResponse: Map<String, RolleMetadata> = emptyMap(),
 ) {
     hosts(AltinnTilgangerService.ingress) {
         install(ContentNegotiation) { json() }
         routing {
             post("altinn-tilganger") { call.respond(tilgangerResponse) }
-            get("resource-metadata") { call.respond(RessursMetadataResponse(ressursMetadataResponse, accessPackagesMetadataResponse)) }
+            get("resource-metadata") { call.respond(RessursMetadataResponse(ressursMetadataResponse, accessPackagesMetadataResponse, rolesMetadataResponse)) }
         }
     }
 }

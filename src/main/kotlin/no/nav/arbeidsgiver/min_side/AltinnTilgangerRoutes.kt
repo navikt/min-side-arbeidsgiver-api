@@ -10,7 +10,6 @@ import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import no.nav.arbeidsgiver.min_side.services.altinn.LocalizedText
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadataResponse
-import no.nav.arbeidsgiver.min_side.services.altinn.rolleVisningsnavn
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger("no.nav.arbeidsgiver.min_side.AltinnTilgangerRoutes")
@@ -64,7 +63,12 @@ data class AltinnTilgangResponse(
             ressursMetadataResponse: RessursMetadataResponse,
         ): AltinnTilgangResponse {
             val roller = altinnTilgang.roller.map { rolle ->
-                AltinnRolleResponse(kode = rolle, visningsnavn = rolleVisningsnavn[rolle] ?: rolle)
+                val rolleMetadata = ressursMetadataResponse.roles[rolle.lowercase()]
+                AltinnRolleResponse(
+                    kode = rolle,
+                    visningsnavn = rolleMetadata?.name ?: rolle,
+                    beskrivelse = rolleMetadata?.description,
+                )
             }
             val tilgangspakker = altinnTilgang.tilgangspakker.map { id ->
                 val metadata = ressursMetadataResponse.accessPackages[id]
@@ -144,4 +148,5 @@ data class TilgangspakkeResponse(
 data class AltinnRolleResponse(
     val kode: String,
     val visningsnavn: String,
+    val beskrivelse: String? = null,
 )

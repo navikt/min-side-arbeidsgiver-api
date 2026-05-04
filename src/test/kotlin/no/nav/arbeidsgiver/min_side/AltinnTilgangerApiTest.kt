@@ -22,6 +22,7 @@ import no.nav.arbeidsgiver.min_side.services.altinn.LocalizedText
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadata
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadataResponse
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursRegistryRessurs
+import no.nav.arbeidsgiver.min_side.services.altinn.RolleMetadata
 import io.ktor.server.application.*
 import io.ktor.server.plugins.di.*
 import io.ktor.server.testing.*
@@ -83,7 +84,7 @@ class AltinnTilgangerApiTest {
                       "roller": [
                         {
                           "kode": "DAGL",
-                          "visningsnavn": "Daglig leder"
+                          "visningsnavn": "DAGL"
                         }
                       ],
                       "underenheter": [
@@ -97,9 +98,93 @@ class AltinnTilgangerApiTest {
                           "roller": [
                             {
                               "kode": "DAGL",
-                              "visningsnavn": "Daglig leder"
+                              "visningsnavn": "DAGL"
                             }
                           ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+            """.trimIndent(),
+            response.bodyAsText(),
+            false
+        )
+    }
+
+    @Test
+    fun `berikter roller med navn og beskrivelse fra rollemetadata`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger(
+                tilgangerResponse = AltinnTilgangerMock.medTilganger(
+                    orgnr = "123456789",
+                    rolle = "DAGL",
+                ),
+                rolesMetadataResponse = mapOf(
+                    "dagl" to RolleMetadata(
+                        name = "Daglig leder (fra Altinn)",
+                        description = "Personen som er ansvarlig for den daglige driften.",
+                    ),
+                ),
+            )
+        },
+        dependenciesCfg = defaultDependencies,
+        applicationCfg = defaultApp,
+    ) {
+        val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
+            bearerAuth("faketoken")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        JSONAssert.assertEquals(
+            """
+                {
+                  "hierarki": [
+                    {
+                      "roller": [
+                        {
+                          "kode": "DAGL",
+                          "visningsnavn": "Daglig leder (fra Altinn)",
+                          "beskrivelse": "Personen som er ansvarlig for den daglige driften."
+                        }
+                      ]
+                    }
+                  ]
+                }
+            """.trimIndent(),
+            response.bodyAsText(),
+            false
+        )
+    }
+
+    @Test
+    fun `roller bruker rollekode som visningsnavn naar rollemetadata mangler`() = runTestApplication(
+        externalServicesCfg = {
+            mockAltinnTilganger(
+                AltinnTilgangerMock.medTilganger(
+                    orgnr = "123456789",
+                    rolle = "DAGL",
+                )
+                // ingen rolesMetadataResponse → tom map (default)
+            )
+        },
+        dependenciesCfg = defaultDependencies,
+        applicationCfg = defaultApp,
+    ) {
+        val response = client.post("ditt-nav-arbeidsgiver-api/api/altinn-tilganger") {
+            bearerAuth("faketoken")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        JSONAssert.assertEquals(
+            """
+                {
+                  "hierarki": [
+                    {
+                      "roller": [
+                        {
+                          "kode": "DAGL",
+                          "visningsnavn": "DAGL"
                         }
                       ]
                     }
@@ -198,7 +283,7 @@ class AltinnTilgangerApiTest {
                       "altinn3Tilganger": [
                         {
                           "ressursId": "nav_permittering_test",
-                          "delegertViaRoller": [{ "kode": "DAGL", "visningsnavn": "Daglig leder" }],
+                          "delegertViaRoller": [{ "kode": "DAGL", "visningsnavn": "DAGL" }],
                           "delegertViaTilgangspakker": [],
                           "erEnkeltrettighet": false
                         }
