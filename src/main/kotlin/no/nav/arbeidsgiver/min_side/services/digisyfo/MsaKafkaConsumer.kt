@@ -7,7 +7,6 @@ import kotlinx.coroutines.*
 import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
 import no.nav.arbeidsgiver.min_side.infrastruktur.isActiveAndNotTerminating
 import no.nav.arbeidsgiver.min_side.infrastruktur.logger
-import no.nav.arbeidsgiver.min_side.infrastruktur.teamLogger
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.sykefravarstatistikk.MetadataVirksomhetKafkaKeyDto
 import no.nav.arbeidsgiver.min_side.sykefravarstatistikk.StatistikkategoriKafkaKeyDto
@@ -24,6 +23,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import java.lang.System.getenv
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.time.Duration.Companion.milliseconds
 
 data class KafkaConsumerConfig(
     val topics: Set<String>,
@@ -34,7 +34,6 @@ class MsaKafkaConsumer(
     private val config: KafkaConsumerConfig,
 ) {
     private val log = logger()
-    private val teamLog = teamLogger()
 
     private val properties = Properties().apply {
         put(ConsumerConfig.GROUP_ID_CONFIG, config.groupId)
@@ -67,13 +66,6 @@ class MsaKafkaConsumer(
 
                     if (records.any()) {
                         for (record in records) {
-                            record.also {
-                                teamLog.info(
-                                    "kafka record received groupId={} topic={} partition={} offset={} timestamp={} key={} value={}",
-                                    config.groupId, it.topic(), it.partition(), it.offset(),
-                                    it.timestamp(), it.key(), it.value()
-                                )
-                            }
                             try {
                                 processor.processRecord(record)
                             } catch (e: Exception) {
@@ -92,7 +84,7 @@ class MsaKafkaConsumer(
                     throw e
                 } catch (e: Exception) {
                     log.error("Feil ved prosessering av kafka-melding. $config", e)
-                    delay(5000)
+                    delay(5000.milliseconds)
                 }
             }
         }
@@ -109,15 +101,6 @@ class MsaKafkaConsumer(
                     log.info("polled {} records {}", records.count(), config)
 
                     if (records.any()) {
-                        for (record in records) {
-                            record.also {
-                                teamLog.info(
-                                    "kafka record received groupId={} topic={} partition={} offset={} timestamp={} key={} value={}",
-                                    config.groupId, it.topic(), it.partition(), it.offset(),
-                                    it.timestamp(), it.key(), it.value()
-                                )
-                            }
-                        }
                         try {
                             processor.processRecords(records)
                         } catch (e: Exception) {
@@ -137,7 +120,7 @@ class MsaKafkaConsumer(
                     throw e
                 } catch (e: Exception) {
                     log.error("Feil ved prosessering av kafka-melding. $config", e)
-                    delay(5000)
+                    delay(5000.milliseconds)
                 }
             }
         }
