@@ -390,3 +390,7 @@ Place it next to the existing `log.info(...)` startup lines (search for
 | `nais/prod-env.yaml` | Add `logging.nais-system` outbound rule |
 
 No `pom.xml` change.
+
+## Important Update
+
+Team logs was causing connection issues and memory leaks ending with OOMKilled in production. It is now removed until we can find a better solution for tracing without risking stability.
