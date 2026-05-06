@@ -63,6 +63,9 @@ class MaskingAppender : AppenderBase<ILoggingEvent>() {
                 override fun getFormattedMessage(): String? =
                     mask(event.formattedMessage)
 
+                override fun getMDCPropertyMap(): Map<String, String> =
+                    event.mdcPropertyMap.mapValues { (_, v) -> mask(v) ?: v }
+
                 override fun getThrowableProxy(): IThrowableProxy? {
                     if (event.throwableProxy == null) {
                         return null
