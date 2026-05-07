@@ -16,7 +16,7 @@ import io.micrometer.core.instrument.Timer
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import org.slf4j.MDC
 import java.io.EOFException
-import java.net.ConnectException
+import java.net.SocketException
 import java.util.*
 import javax.net.ssl.SSLHandshakeException
 
@@ -44,9 +44,8 @@ fun defaultHttpClient(
             retryOnServerErrors(3)
             retryOnExceptionIf(3) { _, cause ->
                 when (cause) {
+                    is SocketException,
                     is SocketTimeoutException,
-                    is ConnectTimeoutException,
-                    is ConnectException,
                     is EOFException,
                     is SSLHandshakeException,
                     is ClosedReceiveChannelException,
