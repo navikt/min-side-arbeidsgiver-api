@@ -60,6 +60,8 @@ spec:
     outbound:
       rules:
         - application: arbeidsgiver-altinn-tilganger
+        - application: logging
+          namespace: nais-system
       external:
         - host: platform.tt02.altinn.no
         - host: tt02.altinn.no
