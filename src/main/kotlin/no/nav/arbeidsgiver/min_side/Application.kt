@@ -89,6 +89,7 @@ internal val RoutingContext.innloggetBruker
     get() = call.principal<TokenXPrincipal>()!!.pid
 
 suspend fun Application.configureRoutes() {
+    configureAltinnTilgangerRoutes()
     configureInternalRoutes()
     configureKontonummerRoutes()
     configureLagredefilterRoutes()

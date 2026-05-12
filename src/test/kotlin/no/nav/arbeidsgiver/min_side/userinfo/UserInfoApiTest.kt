@@ -142,6 +142,7 @@ class UserInfoApiTest {
                           "altinn2Tilganger": [
                             "3403:1"
                           ],
+                          "tilgangspakker": [],
                           "underenheter": [
                             {
                               "orgnr": "10",
@@ -152,6 +153,7 @@ class UserInfoApiTest {
                               "altinn2Tilganger": [
                                 "3403:1"
                               ],
+                              "tilgangspakker": [],
                               "underenheter": []
                             }
                           ]
