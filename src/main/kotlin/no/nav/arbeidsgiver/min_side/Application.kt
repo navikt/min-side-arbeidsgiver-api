@@ -67,6 +67,7 @@ fun main() {
             shutdownTimeout = 30_000
         }
     ) {
+        teamLogger().info("Team logging enabled")
         ktorConfig()
         configureDependencies()
         configureTokenXAuth()

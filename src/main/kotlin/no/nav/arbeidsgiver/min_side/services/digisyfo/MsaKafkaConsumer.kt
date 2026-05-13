@@ -7,6 +7,7 @@ import kotlinx.coroutines.*
 import no.nav.arbeidsgiver.min_side.infrastruktur.defaultJson
 import no.nav.arbeidsgiver.min_side.infrastruktur.isActiveAndNotTerminating
 import no.nav.arbeidsgiver.min_side.infrastruktur.logger
+import no.nav.arbeidsgiver.min_side.infrastruktur.teamLogger
 import no.nav.arbeidsgiver.min_side.services.tiltak.RefusjonStatusRepository
 import no.nav.arbeidsgiver.min_side.sykefravarstatistikk.MetadataVirksomhetKafkaKeyDto
 import no.nav.arbeidsgiver.min_side.sykefravarstatistikk.StatistikkategoriKafkaKeyDto
@@ -23,7 +24,6 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import java.lang.System.getenv
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.time.Duration.Companion.milliseconds
 
 data class KafkaConsumerConfig(
     val topics: Set<String>,
@@ -34,6 +34,7 @@ class MsaKafkaConsumer(
     private val config: KafkaConsumerConfig,
 ) {
     private val log = logger()
+    private val teamLog = teamLogger()
 
     private val properties = Properties().apply {
         put(ConsumerConfig.GROUP_ID_CONFIG, config.groupId)
@@ -69,6 +70,11 @@ class MsaKafkaConsumer(
                             try {
                                 processor.processRecord(record)
                             } catch (e: Exception) {
+                                teamLog.error(
+                                    "kafka record failed groupId={} topic={} partition={} offset={} timestamp={} key={} value={}",
+                                    config.groupId, record.topic(), record.partition(), record.offset(),
+                                    record.timestamp(), record.key(), record.value(), e
+                                )
                                 log.error("Feil ved prosessering av kafka-melding.", e)
 
                                 // without seek next poll will advance the offset, regardless of autocommit=false
@@ -84,7 +90,7 @@ class MsaKafkaConsumer(
                     throw e
                 } catch (e: Exception) {
                     log.error("Feil ved prosessering av kafka-melding. $config", e)
-                    delay(5000.milliseconds)
+                    delay(5000)
                 }
             }
         }
@@ -104,6 +110,13 @@ class MsaKafkaConsumer(
                         try {
                             processor.processRecords(records)
                         } catch (e: Exception) {
+                            for (record in records) {
+                                teamLog.error(
+                                    "kafka record failed (batch) groupId={} topic={} partition={} offset={} timestamp={} key={} value={}",
+                                    config.groupId, record.topic(), record.partition(), record.offset(),
+                                    record.timestamp(), record.key(), record.value()
+                                )
+                            }
                             log.error("Feil ved prosessering av kafka-melding.", e)
 
                             // without seek next poll will advance the offset, regardless of autocommit=false
@@ -120,7 +133,7 @@ class MsaKafkaConsumer(
                     throw e
                 } catch (e: Exception) {
                     log.error("Feil ved prosessering av kafka-melding. $config", e)
-                    delay(5000.milliseconds)
+                    delay(5000)
                 }
             }
         }
