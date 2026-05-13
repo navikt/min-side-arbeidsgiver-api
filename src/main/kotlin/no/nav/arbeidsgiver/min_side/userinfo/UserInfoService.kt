@@ -35,12 +35,20 @@ class UserInfoService(
             }
         }
         UserInfoV3.from(tilganger.await(), syfoVirksomheter.await(), refusjoner.await())
-            .also {
+            .also { result ->
                 teamLog.info(
-                    "userInfo response fnr={} altinnError={} digisyfoError={} payload={}",
-                    fnr, it.altinnError, it.digisyfoError,
-                    defaultJson.encodeToString(UserInfoV3.serializer(), it)
+                    "userInfo summary fnr={} altinnError={} digisyfoError={} orgCount={} digisyfoOrgCount={} refusjonCount={} tilgangCount={}",
+                    fnr, result.altinnError, result.digisyfoError,
+                    result.organisasjoner.size, result.digisyfoOrganisasjoner.size,
+                    result.refusjoner.size, result.tilganger.size
                 )
+                if (result.altinnError || result.digisyfoError) {
+                    teamLog.info(
+                        "userInfo payload (errored) fnr={} payload={}",
+                        fnr,
+                        defaultJson.encodeToString(UserInfoV3.serializer(), result)
+                    )
+                }
             }
     }
 }

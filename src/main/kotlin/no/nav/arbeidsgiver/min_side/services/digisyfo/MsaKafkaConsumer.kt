@@ -67,16 +67,14 @@ class MsaKafkaConsumer(
 
                     if (records.any()) {
                         for (record in records) {
-                            record.also {
-                                teamLog.info(
-                                    "kafka record received groupId={} topic={} partition={} offset={} timestamp={} key={} value={}",
-                                    config.groupId, it.topic(), it.partition(), it.offset(),
-                                    it.timestamp(), it.key(), it.value()
-                                )
-                            }
                             try {
                                 processor.processRecord(record)
                             } catch (e: Exception) {
+                                teamLog.error(
+                                    "kafka record failed groupId={} topic={} partition={} offset={} timestamp={} key={} value={}",
+                                    config.groupId, record.topic(), record.partition(), record.offset(),
+                                    record.timestamp(), record.key(), record.value(), e
+                                )
                                 log.error("Feil ved prosessering av kafka-melding.", e)
 
                                 // without seek next poll will advance the offset, regardless of autocommit=false
@@ -109,18 +107,16 @@ class MsaKafkaConsumer(
                     log.info("polled {} records {}", records.count(), config)
 
                     if (records.any()) {
-                        for (record in records) {
-                            record.also {
-                                teamLog.info(
-                                    "kafka record received groupId={} topic={} partition={} offset={} timestamp={} key={} value={}",
-                                    config.groupId, it.topic(), it.partition(), it.offset(),
-                                    it.timestamp(), it.key(), it.value()
-                                )
-                            }
-                        }
                         try {
                             processor.processRecords(records)
                         } catch (e: Exception) {
+                            for (record in records) {
+                                teamLog.error(
+                                    "kafka record failed (batch) groupId={} topic={} partition={} offset={} timestamp={} key={} value={}",
+                                    config.groupId, record.topic(), record.partition(), record.offset(),
+                                    record.timestamp(), record.key(), record.value()
+                                )
+                            }
                             log.error("Feil ved prosessering av kafka-melding.", e)
 
                             // without seek next poll will advance the offset, regardless of autocommit=false

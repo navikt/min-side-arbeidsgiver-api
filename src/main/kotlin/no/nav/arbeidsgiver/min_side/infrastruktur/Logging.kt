@@ -32,6 +32,12 @@ val TEAM_LOG_MARKER: Marker = MarkerFactory.getMarker(TEAM_LOGS)
 class LogConfig : ContextAwareBase(), Configurator {
 
     override fun configure(lc: LoggerContext): ExecutionStatus {
+        // Suppress repeated transport-error status messages from the TCP appender.
+        // Without this, logback's StatusManager prints a connection error to
+        // stderr on every failed reconnect, which is noisy and (in v1) appeared
+        // in pod logs as a slow drip even when team-logs was just briefly down.
+        lc.statusManager.add(RateLimitedStatusListener(maxMessagesPerMinute = 6))
+
         val rootAppender = MaskingAppender().setup(lc) {
             appender = ConsoleAppender<ILoggingEvent>().setup(lc) {
                 encoder = LogstashEncoder().setup(lc) {
@@ -59,6 +65,15 @@ class LogConfig : ContextAwareBase(), Configurator {
                 addAppender(LogstashTcpSocketAppender().setup(lc) {
                     this.name = "TEAMLOGS"
                     addDestination("team-logs.nais-system:5170")
+
+                    // --- v2 hardening: bound the queue, never block the caller ---
+                    this.ringBufferSize = 1024
+                    this.appendTimeout = ch.qos.logback.core.util.Duration.buildByMilliseconds(0.0)
+                    setWaitStrategyType("sleeping")
+                    this.reconnectionDelay = ch.qos.logback.core.util.Duration.buildByMinutes(1.0)
+                    this.keepAliveDuration = ch.qos.logback.core.util.Duration.buildByMinutes(5.0)
+                    // --- end v2 hardening ---
+
                     this.encoder = LogstashEncoder().setup(lc) {
                         this.customFields = """{
                         |"google_cloud_project":"${System.getenv("GOOGLE_CLOUD_PROJECT")}",
@@ -154,6 +169,47 @@ class MaskingAppender : AppenderBase<ILoggingEvent>() {
 
 inline fun <reified T : Any> T.logger(): Logger = LoggerFactory.getLogger(this::class.java)
 inline fun <reified T> T.teamLogger(): Logger = MarkerLogger(LoggerFactory.getLogger(T::class.qualifiedName), TEAM_LOG_MARKER)
+
+/**
+ * StatusListener that rate-limits status messages to N per minute.
+ *
+ * Used to silence the reconnect-error storm from LogstashTcpSocketAppender
+ * when team-logs.nais-system is briefly unreachable. Without this, every
+ * reconnect attempt produces a Status WARN/ERROR that the StatusManager
+ * prints to stderr.
+ */
+class RateLimitedStatusListener(
+    private val maxMessagesPerMinute: Int,
+) : ch.qos.logback.core.status.StatusListener,
+    ch.qos.logback.core.spi.LifeCycle {
+
+    private val window = java.time.Duration.ofMinutes(1)
+    private val timestamps = java.util.ArrayDeque<java.time.Instant>()
+    private var started = false
+
+    override fun addStatusEvent(status: ch.qos.logback.core.status.Status) {
+        // Only rate-limit WARN/ERROR; let INFO through (they are rare, mostly startup).
+        if (status.level < ch.qos.logback.core.status.Status.WARN) {
+            System.err.println(status)
+            return
+        }
+        val now = java.time.Instant.now()
+        synchronized(timestamps) {
+            while (timestamps.isNotEmpty() && java.time.Duration.between(timestamps.peekFirst(), now) > window) {
+                timestamps.pollFirst()
+            }
+            if (timestamps.size < maxMessagesPerMinute) {
+                timestamps.addLast(now)
+                System.err.println(status)
+            }
+            // else: drop silently
+        }
+    }
+
+    override fun start() { started = true }
+    override fun stop() { started = false }
+    override fun isStarted(): Boolean = started
+}
 
 /**
  * Logger wrapper that enforces usage of a specific Marker for all logging methods.
