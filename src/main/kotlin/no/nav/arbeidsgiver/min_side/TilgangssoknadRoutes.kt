@@ -15,9 +15,14 @@ suspend fun Application.configureTilgangssoknadRoutes() {
         post("delegation-request") {
             val response = altinnTilgangSoknadService.opprettDelegationRequest(
                 fnr = innloggetBruker,
+                token = subjectToken,
                 request = call.receive(),
             )
-            call.respond(HttpStatusCode.Accepted, response)
+            if (response == null) {
+                call.respond(HttpStatusCode.Forbidden)
+            } else {
+                call.respond(HttpStatusCode.Accepted, response)
+            }
         }
 
         get("delegation-request") {

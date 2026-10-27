@@ -21,13 +21,19 @@ class KontostatusService(
      * Henter kontonummer for en gitt organisasjon.
      * Kontonummer tilgangstyres på overordnet enhet, ikke på underenhet.
      * Dersom bruker har tilgang på overordnet enhet, har hen også tilgang på underenhet (https://nav-it.slack.com/archives/CKZADNFBP/p1736263494923189)
+     *
+     * Bruker må ha tilgangen på [OppslagRequest.orgnrForTilgangstyring], og
+     * [OppslagRequest.orgnrForOppslag] må være samme enhet eller ligge under den i brukerens hierarki.
      */
     suspend fun getKontonummer(
         body: OppslagRequest,
         token: String
     ): OppslagResponse? {
-        val harTilgang = altinnTilgangerService.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgang, token)
-        if (!harTilgang) {
+        val tilganger = altinnTilgangerService.hentAltinnTilganger(token)
+        if (!tilganger.harTilgang(body.orgnrForTilgangstyring, kontonummerTilgang)) {
+            return null
+        }
+        if (!tilganger.erIOrganisasjonstre(rot = body.orgnrForTilgangstyring, orgnr = body.orgnrForOppslag)) {
             return null
         }
         return when (val oppslag = kontoregisterClient.hentKontonummer(body.orgnrForOppslag)) {

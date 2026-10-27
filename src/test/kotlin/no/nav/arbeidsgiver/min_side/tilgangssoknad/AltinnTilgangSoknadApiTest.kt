@@ -11,6 +11,7 @@ import io.ktor.server.routing.*
 import no.nav.arbeidsgiver.min_side.configureTilgangssoknadRoutes
 import no.nav.arbeidsgiver.min_side.infrastruktur.*
 import no.nav.arbeidsgiver.min_side.ktorConfig
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -68,6 +69,7 @@ class AltinnTilgangSoknadApiTest {
             provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
             provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
             provide<DelegationRequestRepository>(DelegationRequestRepository::class)
+            provide<AltinnTilgangerService> { altinnTilgangerMed(ORGNR_MED_TILGANG) }
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -148,6 +150,7 @@ class AltinnTilgangSoknadApiTest {
                 }
             }
             provide<DelegationRequestRepository>(DelegationRequestRepository::class)
+            provide<AltinnTilgangerService> { altinnTilgangerMed(ORGNR_MED_TILGANG) }
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -221,6 +224,7 @@ class AltinnTilgangSoknadApiTest {
             provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
             provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
             provide<DelegationRequestRepository>(DelegationRequestRepository::class)
+            provide<AltinnTilgangerService> { altinnTilgangerMed(ORGNR_MED_TILGANG) }
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -279,6 +283,7 @@ class AltinnTilgangSoknadApiTest {
                 }
             }
             provide<DelegationRequestRepository>(DelegationRequestRepository::class)
+            provide<AltinnTilgangerService> { altinnTilgangerMed(ORGNR_MED_TILGANG) }
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -312,6 +317,7 @@ class AltinnTilgangSoknadApiTest {
             provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
             provide<AltinnTilgangssoknadClient>(AltinnTilgangssoknadClientImpl::class)
             provide<DelegationRequestRepository>(DelegationRequestRepository::class)
+            provide<AltinnTilgangerService> { altinnTilgangerMed(ORGNR_MED_TILGANG) }
             provide(AltinnTilgangSoknadService::class)
         },
         applicationCfg = {
@@ -337,4 +343,95 @@ class AltinnTilgangSoknadApiTest {
             assertEquals(HttpStatusCode.Unauthorized, it.status)
         }
     }
+
+    @Test
+    fun `opprett avvises med 403 når bruker ikke har tilgang til organisasjonen`() = runTestApplicationWithDatabase(
+        dependenciesCfg = {
+            provide<TokenXTokenIntrospector> {
+                MockTokenIntrospector {
+                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
+                }
+            }
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
+            provide<AltinnTilgangssoknadClient> { altinnSkalIkkeKalles }
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
+            provide<AltinnTilgangerService> { altinnTilgangerMed(ORGNR_MED_TILGANG) }
+            provide(AltinnTilgangSoknadService::class)
+        },
+        applicationCfg = {
+            ktorConfig()
+            configureTokenXAuth()
+            configureTilgangssoknadRoutes()
+        },
+    ) {
+        client.post("ditt-nav-arbeidsgiver-api/api/delegation-request") {
+            contentType(ContentType.Application.Json)
+            bearerAuth("faketoken")
+            setBody(
+                """
+                {
+                    "to": "urn:altinn:organization:identifier-no:123456789",
+                    "resource": { "referenceId": "nav_some_resource" }
+                }
+                """
+            )
+        }.let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
+        }
+
+        assertEquals(emptyList(), resolve<DelegationRequestRepository>().hentForBruker("42"))
+    }
+
+    @Test
+    fun `opprett avvises med 400 når to ikke er en gyldig organisasjons-urn`() = runTestApplicationWithDatabase(
+        dependenciesCfg = {
+            provide<TokenXTokenIntrospector> {
+                MockTokenIntrospector {
+                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
+                }
+            }
+            provide<AltinnPlattformTokenClient> { fakePlatformTokenClient }
+            provide<AltinnTilgangssoknadClient> { altinnSkalIkkeKalles }
+            provide<DelegationRequestRepository>(DelegationRequestRepository::class)
+            provide<AltinnTilgangerService> { altinnTilgangerMed(ORGNR_MED_TILGANG) }
+            provide(AltinnTilgangSoknadService::class)
+        },
+        applicationCfg = {
+            ktorConfig()
+            configureTokenXAuth()
+            configureTilgangssoknadRoutes()
+        },
+    ) {
+        listOf(
+            """"to": "urn:altinn:person:identifier-no:11223344556",""",
+            """"to": "urn:altinn:organization:identifier-no:98765432",""",
+            """"to": "urn:altinn:organization:identifier-no:$ORGNR_MED_TILGANG/x",""",
+            """"to": "$ORGNR_MED_TILGANG",""",
+            "",
+        ).forEach { to ->
+            client.post("ditt-nav-arbeidsgiver-api/api/delegation-request") {
+                contentType(ContentType.Application.Json)
+                bearerAuth("faketoken")
+                setBody("""{ $to "resource": { "referenceId": "nav_some_resource" } }""")
+            }.let {
+                assertEquals(HttpStatusCode.BadRequest, it.status, "to: $to")
+            }
+        }
+    }
+}
+
+private const val ORGNR_MED_TILGANG = "987654321"
+
+private val altinnSkalIkkeKalles = object : AltinnTilgangssoknadClient {
+    override suspend fun opprettDelegationRequest(fnr: String, request: CreateDelegationRequest) =
+        error("skal ikke kalles")
+    override suspend fun hentDelegationRequestStatus(id: String) = error("skal ikke kalles")
+}
+
+private fun altinnTilgangerMed(vararg organisasjoner: String) = object : AltinnTilgangerService {
+    override suspend fun harOrganisasjon(orgnr: String, token: String) = orgnr in organisasjoner
+    override suspend fun hentAltinnTilganger(token: String) = error("not used")
+    override suspend fun hentRessursMetadata() = error("not used")
+    override suspend fun harTilgang(orgnr: String, tjeneste: String, token: String) = error("not used")
+    override suspend fun harRolle(orgnr: String, rolle: String, token: String) = error("not used")
 }
