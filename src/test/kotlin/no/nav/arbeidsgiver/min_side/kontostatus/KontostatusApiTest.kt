@@ -14,6 +14,7 @@ import no.nav.arbeidsgiver.min_side.configureKontonummerRoutes
 import no.nav.arbeidsgiver.min_side.infrastruktur.*
 import no.nav.arbeidsgiver.min_side.ktorConfig
 import no.nav.arbeidsgiver.min_side.mockAltinnTilganger
+import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilganger.AltinnTilgang
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerService
 import no.nav.arbeidsgiver.min_side.services.altinn.AltinnTilgangerServiceImpl
 import no.nav.arbeidsgiver.min_side.services.altinn.RessursMetadataResponse
@@ -335,6 +336,113 @@ class KontostatusApiTest {
                 true
             )
         }
+    }
+
+    @Test
+    fun `underenhet uten egen tilgang kan slås opp via overordnet enhet`() =
+        kontonummerOppslag(orgnrForTilgangstyring = OVERORDNET, orgnrForOppslag = UNDERENHET_UTEN_TILGANG) { status, oppslag ->
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals(listOf(UNDERENHET_UTEN_TILGANG), oppslag)
+        }
+
+    @Test
+    fun `oppslag i annet organisasjonstre gir 404 og kaller ikke kontoregister`() =
+        kontonummerOppslag(orgnrForTilgangstyring = OVERORDNET, orgnrForOppslag = ANNET_TRE_UNDERENHET) { status, oppslag ->
+            assertEquals(HttpStatusCode.NotFound, status)
+            assertEquals(emptyList(), oppslag)
+        }
+
+    @Test
+    fun `oppslag på overordnet enhet via underenhet gir 404`() =
+        kontonummerOppslag(orgnrForTilgangstyring = UNDERENHET_MED_TILGANG, orgnrForOppslag = OVERORDNET) { status, oppslag ->
+            assertEquals(HttpStatusCode.NotFound, status)
+            assertEquals(emptyList(), oppslag)
+        }
+
+    @Test
+    fun `oppslag på søsken-underenhet gir 404`() =
+        kontonummerOppslag(orgnrForTilgangstyring = UNDERENHET_MED_TILGANG, orgnrForOppslag = UNDERENHET_UTEN_TILGANG) { status, oppslag ->
+            assertEquals(HttpStatusCode.NotFound, status)
+            assertEquals(emptyList(), oppslag)
+        }
+}
+
+private const val OVERORDNET = "100000001"
+private const val UNDERENHET_UTEN_TILGANG = "100000002"
+private const val UNDERENHET_MED_TILGANG = "100000003"
+private const val ANNET_TRE_OVERORDNET = "200000001"
+private const val ANNET_TRE_UNDERENHET = "200000002"
+
+private fun enhet(
+    orgnr: String,
+    tilganger: Set<String>,
+    underenheter: List<AltinnTilgang> = emptyList(),
+) = AltinnTilgang(
+    orgnr = orgnr,
+    navn = orgnr,
+    organisasjonsform = if (underenheter.isEmpty()) "BEDR" else "AS",
+    altinn2Tilganger = tilganger,
+    altinn3Tilganger = emptySet(),
+    underenheter = underenheter,
+)
+
+private val toTrær = AltinnTilgangerMock.medTilganger(
+    enhet(
+        OVERORDNET, setOf(kontonummerTilgang), listOf(
+            enhet(UNDERENHET_UTEN_TILGANG, emptySet()),
+            enhet(UNDERENHET_MED_TILGANG, setOf(kontonummerTilgang)),
+        )
+    ),
+    enhet(
+        ANNET_TRE_OVERORDNET, setOf(kontonummerTilgang), listOf(
+            enhet(ANNET_TRE_UNDERENHET, setOf(kontonummerTilgang)),
+        )
+    ),
+)
+
+private fun kontonummerOppslag(
+    orgnrForTilgangstyring: String,
+    orgnrForOppslag: String,
+    assertions: (status: HttpStatusCode, kontoregisterOppslag: List<String>) -> Unit,
+) {
+    val kontoregisterOppslag = mutableListOf<String>()
+    runTestApplication(
+        externalServicesCfg = {
+            mockKontoregister {
+                val orgnummer = call.parameters["orgnummer"]!!
+                kontoregisterOppslag.add(orgnummer)
+                call.respondText(
+                    """{"mottaker": "$orgnummer", "kontonr": "12345678901"}""",
+                    ContentType.Application.Json
+                )
+            }
+            mockAltinnTilganger(toTrær)
+        },
+        dependenciesCfg = {
+            provide<TokenXTokenIntrospector> {
+                MockTokenIntrospector {
+                    if (it == "faketoken") mockIntrospectionResponse.withPid("42") else null
+                }
+            }
+            provide<AzureAdTokenProvider> { successAzureAdTokenProvider }
+            provide<TokenXTokenExchanger> { successTokenXTokenExchanger }
+            provide<KontoregisterClient>(KontoregisterClientImpl::class)
+            provide<AltinnTilgangerService>(AltinnTilgangerServiceImpl::class)
+            provide(KontostatusService::class)
+        },
+        applicationCfg = {
+            ktorConfig()
+            configureTokenXAuth()
+            configureKontonummerRoutes()
+        }
+    ) {
+        val status = client.post("ditt-nav-arbeidsgiver-api/api/kontonummer/v1") {
+            setBody("""{"orgnrForOppslag": "$orgnrForOppslag", "orgnrForTilgangstyring": "$orgnrForTilgangstyring"}""")
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            bearerAuth("faketoken")
+        }.status
+        assertions(status, kontoregisterOppslag)
     }
 }
 

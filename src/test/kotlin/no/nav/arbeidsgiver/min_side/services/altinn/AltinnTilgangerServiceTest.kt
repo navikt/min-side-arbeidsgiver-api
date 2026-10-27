@@ -188,6 +188,38 @@ class AltinnTilgangerServiceTest {
         assertEquals("nav_test", metadata.resources["nav_test"]?.metadata?.identifier)
         assertEquals(listOf("dagl"), metadata.resources["nav_test"]?.grantedByRoles)
     }
+
+    @Test
+    fun `erIOrganisasjonstre godtar kun rot og enheter under rot`() {
+        fun enhet(orgnr: String, vararg underenheter: AltinnTilgang) = AltinnTilgang(
+            orgnr = orgnr,
+            navn = orgnr,
+            organisasjonsform = "AS",
+            altinn3Tilganger = emptySet(),
+            altinn2Tilganger = emptySet(),
+            underenheter = underenheter.toList(),
+        )
+        val tilganger = AltinnTilganger(
+            isError = false,
+            hierarki = listOf(
+                enhet("1", enhet("11", enhet("111")), enhet("12")),
+                enhet("2", enhet("21")),
+            ),
+            orgNrTilTilganger = emptyMap(),
+            tilgangTilOrgNr = emptyMap(),
+        )
+
+        assertTrue(tilganger.erIOrganisasjonstre(rot = "1", orgnr = "1"))
+        assertTrue(tilganger.erIOrganisasjonstre(rot = "1", orgnr = "11"))
+        assertTrue(tilganger.erIOrganisasjonstre(rot = "1", orgnr = "111"))
+        assertTrue(tilganger.erIOrganisasjonstre(rot = "11", orgnr = "111"))
+
+        assertFalse(tilganger.erIOrganisasjonstre(rot = "11", orgnr = "1"), "overordnet")
+        assertFalse(tilganger.erIOrganisasjonstre(rot = "11", orgnr = "12"), "søsken")
+        assertFalse(tilganger.erIOrganisasjonstre(rot = "1", orgnr = "21"), "annet tre")
+        assertFalse(tilganger.erIOrganisasjonstre(rot = "1", orgnr = "999"), "ukjent orgnr")
+        assertFalse(tilganger.erIOrganisasjonstre(rot = "999", orgnr = "999"), "ukjent rot")
+    }
 }
 
 

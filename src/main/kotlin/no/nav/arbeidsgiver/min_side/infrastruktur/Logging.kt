@@ -125,15 +125,8 @@ class MaskingAppender : AppenderBase<ILoggingEvent>() {
                 override fun getMDCPropertyMap(): Map<String, String> =
                     event.mdcPropertyMap.mapValues { (_, v) -> mask(v) ?: v }
 
-                override fun getThrowableProxy(): IThrowableProxy? {
-                    if (event.throwableProxy == null) {
-                        return null
-                    }
-                    return object : IThrowableProxy by event.throwableProxy {
-                        override fun getMessage(): String? =
-                            mask(event.throwableProxy.message)
-                    }
-                }
+                override fun getThrowableProxy(): IThrowableProxy? =
+                    event.throwableProxy?.let(::MaskedThrowableProxy)
 
                 @Deprecated("Deprecated in Java")
                 override fun getMarker(): Marker? {
@@ -165,6 +158,20 @@ class MaskingAppender : AppenderBase<ILoggingEvent>() {
             }
         }
     }
+}
+
+/** Maskerer meldinger i hele exception-kjeden, ikke bare på øverste nivå. */
+private class MaskedThrowableProxy(
+    private val delegate: IThrowableProxy,
+) : IThrowableProxy by delegate {
+    override fun getMessage(): String? = MaskingAppender.mask(delegate.message)
+
+    override fun getOverridingMessage(): String? = MaskingAppender.mask(delegate.overridingMessage)
+
+    override fun getCause(): IThrowableProxy? = delegate.cause?.let(::MaskedThrowableProxy)
+
+    override fun getSuppressed(): Array<IThrowableProxy>? =
+        delegate.suppressed?.map { MaskedThrowableProxy(it) }?.toTypedArray()
 }
 
 inline fun <reified T : Any> T.logger(): Logger = LoggerFactory.getLogger(this::class.java)

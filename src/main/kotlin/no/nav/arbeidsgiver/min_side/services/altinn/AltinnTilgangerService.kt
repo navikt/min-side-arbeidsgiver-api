@@ -144,6 +144,14 @@ data class AltinnTilganger(
     fun harRolle(orgnr: String, rolle: String) =
         hierarki.flatMap { flatten(it) { e -> e.takeIf { it.orgnr == orgnr } } }
             .any { rolle in it.roller }
+
+    /**
+     * Sann dersom [orgnr] er [rot] selv eller ligger under [rot] i brukerens hierarki.
+     * Går kun nedover fra [rot]: overordnet enhet, søsken eller et annet tre gir false.
+     */
+    fun erIOrganisasjonstre(rot: String, orgnr: String) =
+        hierarki.flatMap { flatten(it) { e -> e.takeIf { it.orgnr == rot } } }
+            .any { node -> flatten(node) { e -> e.orgnr }.contains(orgnr) }
 }
 
 fun <T> flatten(

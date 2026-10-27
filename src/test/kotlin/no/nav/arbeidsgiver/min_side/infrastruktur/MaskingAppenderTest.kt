@@ -1,5 +1,9 @@
 package no.nav.arbeidsgiver.min_side.infrastruktur
 
+import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.classic.spi.ThrowableProxyUtil
+import ch.qos.logback.core.read.ListAppender
 import no.nav.arbeidsgiver.min_side.infrastruktur.MaskingAppender.Companion.mask
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -7,6 +11,44 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class MaskingAppenderTest {
+    @Test
+    fun `Masking i hele exception-kjeden`() {
+        val fnr = "11223344556"
+        val lc = LoggerContext()
+        val listAppender = ListAppender<ILoggingEvent>().apply { context = lc; start() }
+        val maskingAppender = MaskingAppender().apply { context = lc; appender = listAppender; start() }
+        val logger = lc.getLogger("test").apply {
+            isAdditive = false
+            addAppender(maskingAppender)
+        }
+
+        val exception = RuntimeException(
+            "topp fnr=$fnr",
+            IllegalArgumentException("cause fnr=$fnr", ExceptionMedEgenToString(fnr)),
+        ).apply { addSuppressed(IllegalStateException("suppressed fnr=$fnr")) }
+
+        logger.error("feilet", exception)
+
+        val proxy = listAppender.list.single().throwableProxy
+        val kjede = generateSequence(listOf(proxy)) { nivå ->
+            nivå.flatMap { listOfNotNull(it.cause) + it.suppressed.orEmpty() }.ifEmpty { null }
+        }.flatten().toList()
+
+        assertEquals(4, kjede.size)
+        kjede.forEach {
+            assertFalse(it.message.orEmpty().contains(fnr), "message i ${it.className}")
+            assertFalse(it.overridingMessage.orEmpty().contains(fnr), "overridingMessage i ${it.className}")
+        }
+
+        val rendret = ThrowableProxyUtil.asString(proxy)
+        assertFalse(rendret.contains(fnr), rendret)
+        assertTrue(rendret.contains("suppressed fnr=***********"), rendret)
+    }
+
+    private class ExceptionMedEgenToString(private val fnr: String) : RuntimeException() {
+        override fun toString() = "egen toString fnr=$fnr"
+    }
+
     @Test
     fun `Masking fødselsnummer`() {
         // works for 11 digits
